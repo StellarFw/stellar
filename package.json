@@ -1,0 +1,36 @@
+{
+    "name": "stellar",
+    "author": "Gil Mendes <gil00mendes@gmail.com>",
+    "version": "1.0.0-alpha",
+    "description": "A system modules, based on actions to create WEB APIs in NodeJS",
+    "keywords": [
+        "api",
+        "web-framework",
+        "stellar",
+        "rest",
+        "orm"
+    ],
+    "main": "./lib/index.js",
+    "bin": {
+        "stellar": "./bin/stellar.js"
+    },
+    "directories": {
+        "lib": "lib"
+    },
+    "dependencies": {
+        "commander": "~2.9.0",
+        "lodash": "~3.10.1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:gil0mendes/stellar.git"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/gil0mendes/stellar/issues"
+    },
+    "engines": {
+        "node": ">= 0.10.0",
+        "npm": ">= 1.4.0"
+    }
+}
