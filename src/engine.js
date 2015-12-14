@@ -62,16 +62,33 @@ export default class Engine {
    * @param scope - Initial scope
    */
   constructor(scope) {
+    let self = this;
+
     // default scope configs
     let defaultScope = {};
 
     // save the app scope
-    this.api.scope = _.merge(scope, defaultScope);
+    self.api.scope = _.merge(scope, defaultScope);
 
     // define a early custom logger
-    this.api.log = function (msg, level = 'info') {
+    self.api.log = function (msg, level = 'info') {
       console.log(`[${level}]`, msg);
     };
+
+    // define the available engine commands
+    self.api.commands = {
+      start: self.start,
+      stop: self.stop,
+      restart: self.restart
+    };
+  }
+
+  stop() {
+    console.log("TODO - Engine::stop");
+  }
+
+  restart() {
+    console.log("TODO - Engine::restart");
   }
 
   /**

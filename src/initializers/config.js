@@ -55,14 +55,26 @@ export default class {
       }
     };
 
-
     if (argv.NODE_ENV) {
       api.env = argv.NODE_ENV;
     } else if (process.env.NODE_ENV) {
       api.env = process.env.NODE_ENV;
     }
 
-    api.loadConfigDirectory = function (configPath) {
+    /**
+     * Reboot handler.
+     *
+     * This is executed when a config file is changed.
+     *
+     * @param file
+     */
+    let rebootCallback = function(file){
+      api.log('\r\n\r\n*** rebooting due to config change (' + file + ') ***\r\n\r\n', 'info');
+      delete require.cache[require.resolve(file)];
+      api.commands.restart.call(api._self);
+    }
+
+    api.loadConfigDirectory = function (configPath, watch = false) {
       // get all files from the config folder
       let configFiles = Utils.recursiveDirectoryGlob(configPath);
 
@@ -83,10 +95,14 @@ export default class {
             api.config = Utils.hashMerge(api.config, localConfig[ api.env ], api);
           }
 
-          // configuration file load success: clear retries and
-          // errors since progress has been made
+          // configuration file load success: clear retries and errors since progress has been made
           loadRetries = 0;
           loadErrors = {};
+
+          if (watch !== false) {
+            // configuration file loaded: set watch
+            api.watchFileAndAct(file, rebootCallback);
+          }
         } catch (error) {
           // error loading configuration, abort if all remaining
           // configuration files have been tried and failed
@@ -122,7 +138,8 @@ export default class {
     api.loadConfigDirectory(__dirname + '/../config');
 
     // load the config files from the current universe if exists
-    api.loadConfigDirectory(`${api.scope.rootPath}/config`);
+    // the platform should be reloaded when the project configs changes
+    api.loadConfigDirectory(`${api.scope.rootPath}/config`, true);
 
     process.nextTick(next);
   }

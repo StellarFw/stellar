@@ -30,13 +30,6 @@ export default {
       developmentMode: true,
 
       // ---------------------------------------------------------------------
-      // This isolates each action execution.
-      //
-      // This makes the app safer but slows it down.
-      // ---------------------------------------------------------------------
-      actionDomains: true,
-
-      // ---------------------------------------------------------------------
       // Number of action who can be executed simultaneous by a single
       // connection.
       // ---------------------------------------------------------------------
@@ -48,11 +41,6 @@ export default {
       // They will be set to 0
       // ---------------------------------------------------------------------
       enforceConnectionProperties: true,
-
-      // ---------------------------------------------------------------------
-      // Disables the whitelisting of client params
-      // ---------------------------------------------------------------------
-      disableParamScrubbing: false,
 
       // ---------------------------------------------------------------------
       // Params you would like hidden from any logs
