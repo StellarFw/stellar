@@ -89,6 +89,20 @@ export default class Engine {
   stage0() {
     var self = this;
 
+    // add a shutdown function to the API
+    // @todo this should perform a proper initializers shutdown
+    this.api.shutdown = function (err = false, msg = '') {
+      if (!err) {
+        process.exit(0);
+      } else {
+        // print the error message
+        self.api.log.emergency(msg);
+
+        // end engine execution
+        process.exit(-1);
+      }
+    };
+
     // reset config stage0 initializers
     this.stage0Initialisers = [];
 
