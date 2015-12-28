@@ -1,3 +1,7 @@
+// Enable source map support
+import 'source-map-support/register'
+
+// Module Dependencies
 import Log from 'log';
 import _ from 'lodash';
 import path from 'path';

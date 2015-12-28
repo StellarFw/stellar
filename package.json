@@ -15,8 +15,9 @@
   "dependencies": {
     "async": "^1.5.0",
     "commander": "^2.9.0",
+    "lodash": "^3.10.1",
     "log": "^1.4.0",
-    "lodash": "^3.10.1"
+    "source-map-support": "^0.4.0"
   },
   "devDependencies": {
     "babel-plugin-transform-class-properties": "^6.3.13",
