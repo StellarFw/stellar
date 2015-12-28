@@ -1,0 +1,18 @@
+#!/usr/bin/env node
+
+var package = require('../package.json');
+var Engine = require('../dist/engine').default;
+
+module.exports = function () {
+  // build initial scope
+  var scope = {
+    rootPath: process.cwd(),
+    stellarPackageJSON: package
+  };
+
+  // create a stellar engine instance
+  var engine = new Engine(scope);
+
+  // start the engine
+  engine.start();
+};
