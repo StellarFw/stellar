@@ -10,7 +10,7 @@ export default class Config {
 
     try {
       // read project manifest
-      api.config.app = require(`${api.scope.rootPath}/manifest.json`);
+      api.config = require(`${api.scope.rootPath}/manifest.json`);
     } catch (e) {
       // when the project manifest doesn't exists the user is informed
       // and the engine instance is terminated
