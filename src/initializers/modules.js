@@ -10,7 +10,7 @@ export default class Modules {
 
   static load(api, next) {
     // get active modules
-    let modules = api.config.app.modules;
+    let modules = api.config.modules;
 
     // this config is required. If doesn't exists or is an empty array
     // an exception should be raised.

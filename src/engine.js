@@ -2,7 +2,6 @@
 import 'source-map-support/register'
 
 // Module Dependencies
-import Log from 'log';
 import _ from 'lodash';
 import path from 'path';
 import async from 'async';
@@ -64,15 +63,15 @@ export default class Engine {
    */
   constructor(scope) {
     // default scope configs
-    var defaultScope = {
-      debug: 'error'
-    };
+    let defaultScope = {};
 
     // save the app scope
     this.api.scope = _.merge(scope, defaultScope);
 
-    // create a log instance
-    this.api.log = new Log(this.api.scope.debug);
+    // define a early custom logger
+    this.api.log = function (msg, level = 'info') {
+      console.log(`[${level}]`, msg);
+    };
   }
 
   /**
@@ -80,7 +79,7 @@ export default class Engine {
    */
   start() {
     // print current execution path
-    this.api.log.info(`Current universe "${this.api.scope.rootPath}"`);
+    this.api.log(`Current universe "${this.api.scope.rootPath}"`, 'info');
 
     // start stage0 loading method
     this.stage0();
@@ -91,17 +90,17 @@ export default class Engine {
 
     // add a shutdown function to the API
     // @todo this should perform a proper initializers shutdown
-    this.api.shutdown = function (err = false, msg = '') {
+    /*this.api.shutdown = function (err = false, msg = '') {
       if (!err) {
         process.exit(0);
       } else {
         // print the error message
-        self.api.log.emergency(msg);
+        self.api.log(msg, 'emergency');
 
         // end engine execution
         process.exit(-1);
       }
-    };
+    };*/
 
     // reset config stage0 initializers
     this.stage0Initialisers = [];
@@ -111,10 +110,10 @@ export default class Engine {
       path.resolve(__dirname + '/initializers/config.js')
     ].forEach(function (file) {
       var filename = file.replace(/^.*[\\\/]/, '');
-      var initializer = filename.split('.')[0];
-      self.initializers[initializer] = require(file).default;
+      var initializer = filename.split('.')[ 0 ];
+      self.initializers[ initializer ] = require(file).default;
       self.stage0Initialisers.push(function (next) {
-        self.initializers[initializer].load(self.api, next);
+        self.initializers[ initializer ].load(self.api, next);
       });
     });
 
@@ -140,13 +139,13 @@ export default class Engine {
    */
   static fatalError(api, errors, type) {
     if (errors && !(errors instanceof Array)) {
-      errors = [errors];
+      errors = [ errors ];
     }
 
     if (errors) {
-      api.log.emergency(`Error with initializer step: ${type}`);
+      api.log(`Error with initializer step: ${type}`, 'emergency');
       errors.forEach(function (err) {
-        api.log.emergency(err.stack);
+        api.log(err.stack, 'emergency');
       });
       process.exit(1);
     }
@@ -172,7 +171,7 @@ export default class Engine {
     _.forEach(initializers_files, function (f) {
       // get some file useful information
       var file = path.normalize(f);
-      var initializer = path.basename(f).split('.')[0];
+      var initializer = path.basename(f).split('.')[ 0 ];
       var ext = _.last(file.split('.'));
 
       // only load files with the `.js` extension
@@ -181,17 +180,17 @@ export default class Engine {
       }
 
       // require initializer instance
-      self.initializers[initializer] = require(file).default;
+      self.initializers[ initializer ] = require(file).default;
 
       // create a new load function for current initializer
       let loadFunction = function (next) {
         // check if the initializer have a load function
-        if (typeof self.initializers[initializer].load === 'function') {
-          self.api.log.debug(`loading initializer: ${initializer}`);
+        if (typeof self.initializers[ initializer ].load === 'function') {
+          self.api.log(`loading initializer: ${initializer}`, 'debug');
 
           // call `load` property
-          self.initializers[initializer].load(self.api, function (err) {
-            self.api.log.debug(`loaded initializer: ${initializer}`);
+          self.initializers[ initializer ].load(self.api, function (err) {
+            self.api.log(`loaded initializer: ${initializer}`, 'debug');
             next(err);
           });
         } else {
@@ -202,12 +201,12 @@ export default class Engine {
       // create a new start function for current initializer
       let startFunction = function (next) {
         // check if the initializer have a start function
-        if (typeof self.initializers[initializer].start === 'function') {
-          self.api.log.debug(`starting initializer: ${initializer}`);
+        if (typeof self.initializers[ initializer ].start === 'function') {
+          self.api.log(`starting initializer: ${initializer}`, 'debug');
 
           // execute start routine
-          self.initializers[initializer].start(self.api, function (err) {
-            self.api.log.debug(`started initializer: ${initializer}`);
+          self.initializers[ initializer ].start(self.api, function (err) {
+            self.api.log(`started initializer: ${initializer}`, 'debug');
             next(err);
           });
         } else {
@@ -216,13 +215,13 @@ export default class Engine {
       };
 
       // normalize initializer priorities
-      Engine.normalizeInitializerPriority(self.initializers[initializer]);
-      loadInitializersRankings[self.initializers[initializer].loadPriority] = loadInitializersRankings[self.initializers[initializer].loadPriority] || [];
-      startInitializersRankings[self.initializers[initializer].startProority] = startInitializersRankings[self.initializers[initializer].startProority] || [];
+      Engine.normalizeInitializerPriority(self.initializers[ initializer ]);
+      loadInitializersRankings[ self.initializers[ initializer ].loadPriority ] = loadInitializersRankings[ self.initializers[ initializer ].loadPriority ] || [];
+      startInitializersRankings[ self.initializers[ initializer ].startProority ] = startInitializersRankings[ self.initializers[ initializer ].startProority ] || [];
 
       // push loader state function to ranked arrays
-      loadInitializersRankings[self.initializers[initializer].loadPriority].push(loadFunction);
-      startInitializersRankings[self.initializers[initializer].startProority].push(startFunction);
+      loadInitializersRankings[ self.initializers[ initializer ].loadPriority ].push(loadFunction);
+      startInitializersRankings[ self.initializers[ initializer ].startProority ].push(startFunction);
     });
 
     // organize final array to match the initializers priorities
@@ -288,7 +287,7 @@ export default class Engine {
 
     keys.sort((a, b) => a - b);
     keys.forEach(function (key) {
-      collection[key].forEach(function (d) {
+      collection[ key ].forEach(function (d) {
         output.push(d);
       });
     });

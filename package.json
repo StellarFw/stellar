@@ -14,10 +14,17 @@
   },
   "dependencies": {
     "async": "^1.5.0",
+    "browser_fingerprint": "0.0.6",
     "commander": "^2.9.0",
+    "formidable": "^1.0.17",
     "lodash": "^3.10.1",
     "log": "^1.4.0",
-    "source-map-support": "^0.4.0"
+    "node-uuid": "^1.4.7",
+    "primus": "^4.0.4",
+    "qs": "latest",
+    "source-map-support": "^0.4.0",
+    "winston": "^2.1.1",
+    "ws": "^1.0.1"
   },
   "devDependencies": {
     "babel-plugin-transform-class-properties": "^6.3.13",

@@ -7,9 +7,21 @@ import Utils from '../utils';
  */
 class Actions {
 
+  /**
+   * API reference.
+   *
+   * @type {null}
+   */
+  api = null;
+
+  /**
+   * Hash map with the registered actions.
+   *
+   * @type {{}}
+   */
   actions = {};
 
-  api = null;
+  versions = {};
 
   constructor(api) {
     this.api = api;
@@ -30,7 +42,7 @@ class Actions {
       self.actions[action.name] = action;
 
       // debug message
-      self.api.log.debug(`action loaded: ${action.name}, ${fullFilePath}`);
+      self.api.log(`action loaded: ${action.name}, ${fullFilePath}`, 'debug');
     });
   }
 
