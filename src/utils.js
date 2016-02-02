@@ -217,6 +217,8 @@ export default class Utils {
     array.filter((value, index, self) => {
       return self.indexOf(value) === index;
     });
+
+    return array;
   }
 
   static isObject(arg) {

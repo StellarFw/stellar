@@ -1,3 +1,6 @@
+import async from 'async';
+import domain from 'domain';
+
 /**
  * This class process an action request.
  */
@@ -27,7 +30,10 @@ class ActionProcessor {
 
   /**
    * Create a new Action Processor instance.
-   * @param api
+   *
+   * @param api API reference.
+   * @param connection Connection object.
+   * @param callback Callback function.
    */
   constructor(api, connection, callback) {
     this.api = api;
@@ -152,15 +158,69 @@ class ActionProcessor {
   }
 
   preProcessAction(callback) {
-    console.log("todo - ActionProcessor::preProcessAction");
+    let self = this;
+    let processors = [];
+    let processorsNames = self.api.actions.globalMiddleware.slice(0);
+
+    // get action processor names
+    if (self.actionTemplate.middleware) {
+      self.actionTemplate.middleware.forEach(function (m) {
+        processorsNames.push(m);
+      });
+    }
+
+    processorsNames.forEach(function (name) {
+      if (typeof self.api.actions.middleware[ name ].preProcessor === 'function') {
+        processors.push(function (next) {
+          self.api.actions.middleware[ name ].preProcessor(self, next);
+        });
+      }
+    });
+
+    async.series(processors, function (err) {
+      callback(err);
+    });
   }
 
   postProcessAction(callback) {
-    console.log("todo - ActionProcessor::postProcessAction");
+    let self = this;
+    let processors = [];
+    let processorNames = self.api.actions.globalMiddleware.slice(0);
+
+    if (self.actionTemplate.middleware) {
+      self.actionTemplate.middleware.forEach(function (m) {
+        processorNames.push(m);
+      });
+    }
+
+    processorNames.forEach(function (name) {
+      if (typeof api.actions.middleware[ name ].postProcessor === 'function') {
+        processors.push(function (next) {
+          self.api.actions.middleware[ name ].postProcessor(self, next);
+        });
+      }
+    });
+
+    async.series(processors, function (err) {
+      callback(err);
+    });
   }
 
   reduceParams() {
-    console.log("todo - ActionProcessor::reduceParams");
+    let self = this;
+    let inputNames = [];
+
+    if (self.actionTemplate.input) {
+      inputNames = Object.keys(self.actionTemplate.inputs);
+    }
+
+    if (self.api.config.general.disableParamScrubbing !== true) {
+      for (let p in self.params) {
+        if (self.api.params.globalSafeParams.indexOf(p) < 0 && inputNames.indexOf(p) < 0) {
+          delete self.params[ p ];
+        }
+      }
+    }
   }
 
   validateParams() {
@@ -179,7 +239,7 @@ class ActionProcessor {
 
     if (self.api.actions.versions[ self.action ]) {
       if (!self.params.apiVersion) {
-        self.params.apiVersion = self.api.actions.versions[ self.action ][ self.api.actions.version[ self.action ].length - 1 ];
+        self.params.apiVersion = self.api.actions.versions[ self.action ][ self.api.actions.versions[ self.action ].length - 1 ];
       }
       self.actionTemplate = self.api.actions.actions[ self.action ][ self.params.apiVersion ];
     }
@@ -188,31 +248,56 @@ class ActionProcessor {
       self.completeAction('server_shutting_down');
     } else if (self.getPendingActionCount(self.connection) > self.api.config.general.simultaneousActions) {
       self.completeAction('too_many_requests');
+    } else if (!self.action || !self.actionTemplate) {
+      self.completeAction('unknown_action');
     } else if (self.actionTemplate.blockedConnectionTypes && self.actionTemplate.blockedConnectionTypes.indexOf(self.connection.type) >= 0) {
       self.completeAction('unsupported_server_type');
     } else {
 
       if (self.api.config.general.actionDomains === true) {
-        self.actionDomain = domain.create();
-        self.actionDomain.on('error', function (err) {
-          self.api.exceptionHandlers.action(self.actionDomain, err, self, function () {
+        try {
+          self.runAction();
+        } catch (err) {
+          self.api.exceptionHandlers.action(err, self, function () {
             self.completeAction('server_error');
           });
-        });
-
-        self.actionDomain.run(function () {
-          self.runAction();
-        });
+        }
       } else {
         self.runAction();
       }
     }
   }
 
+  /**
+   * Run an action.
+   */
   runAction() {
-    console.log("todo - ActionProcessor::runAction");
-  }
+    let self = this;
 
+    self.preProcessAction(function (error) {
+      self.reduceParams();
+      self.validateParams();
+
+      if (error) {
+        self.completeAction(error);
+      } else if (self.missingParams.length > 0) {
+        self.completeAction('missing_params');
+      } else if (self.toProcess === true && !error) {
+        // execute the action logic
+        self.actionTemplate.run(self.api, self, function (error) {
+          if (error) {
+            self.completeAction(error);
+          } else {
+            self.postProcessAction(function (error) {
+              self.completeAction(error);
+            });
+          }
+        });
+      } else {
+        self.completeAction();
+      }
+    });
+  }
 }
 
 export default class {
@@ -222,7 +307,7 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 21;
+  static loadPriority = 20;
 
   static load(api, next) {
     // load action processor to the API

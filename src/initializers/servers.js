@@ -105,7 +105,7 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 20;
+  static loadPriority = 30;
 
   static load(api, next) {
     // instance the server manager

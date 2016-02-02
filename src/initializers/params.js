@@ -1,5 +1,8 @@
 import Utils from '../utils';
 
+/**
+ * Manage the application secure params.
+ */
 class Params {
 
   /**
@@ -43,10 +46,14 @@ class Params {
       postVariables.push(p);
     });
 
-    // iterate all registered actions
+    // iterate all actions files
     for (i in self.api.actions.actions) {
+      // iterate all actions definitions
       for (j in self.api.actions.actions[ i ]) {
+        // get current action
         let action = self.api.actions.actions[ i ][ j ];
+
+        // iterate all inputs keys and add it to postVariables
         for (let key in action.inputs) {
           postVariables.push(key);
         }
@@ -63,8 +70,19 @@ class Params {
 
 export default class {
 
-  static loadPriority = 24;
+  /**
+   * Initializer load priority.
+   *
+   * @type {number}
+   */
+  static loadPriority = 20;
 
+  /**
+   * Action to the executed on the initializer loading.
+   *
+   * @param api   Api reference.
+   * @param next  Callback function.
+   */
   static load(api, next) {
     api.params = new Params(api);
 

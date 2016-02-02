@@ -91,16 +91,16 @@ export default class Engine {
     // add a shutdown function to the API
     // @todo this should perform a proper initializers shutdown
     /*this.api.shutdown = function (err = false, msg = '') {
-      if (!err) {
-        process.exit(0);
-      } else {
-        // print the error message
-        self.api.log(msg, 'emergency');
+     if (!err) {
+     process.exit(0);
+     } else {
+     // print the error message
+     self.api.log(msg, 'emergency');
 
-        // end engine execution
-        process.exit(-1);
-      }
-    };*/
+     // end engine execution
+     process.exit(-1);
+     }
+     };*/
 
     // reset config stage0 initializers
     this.stage0Initialisers = [];
@@ -252,8 +252,17 @@ export default class Engine {
     var self = this;
 
     if (this.api.initialized !== true) {
-      throw new Error('The initializers needs to be loaded frist.');
+      throw new Error('The initializers needs to be loaded first.');
     }
+
+    this.startInitializers.push(function (next) {
+      // define Stellar like running
+      self.api.running = true;
+
+      self.api.bootTime = new Date().getTime();
+      self.api.log('** Server Started @ ' + new Date() + ' ***', 'notice');
+      next();
+    });
 
     async.series(this.startInitializers, function (err) {
       Engine.fatalError(self, err, 'stage2');

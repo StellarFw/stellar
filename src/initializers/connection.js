@@ -195,7 +195,7 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 18;
+  static loadPriority = 15;
 
   static load(api, next) {
     // put Connections instance available to all platform

@@ -44,7 +44,7 @@ export default class Web extends GenericServer {
 
     let self = this;
 
-    if ([ 'api', 'file' ].indexOf(api.config.servers.web.rootEndpointType) < 0) {
+    if ([ 'api', 'file' ].indexOf(self.api.config.servers.web.rootEndpointType) < 0) {
       throw new Error(`api.config.servers.web.rootEndpointType can only be 'api' or 'file'.`);
     }
 
@@ -55,6 +55,8 @@ export default class Web extends GenericServer {
           case 'api':
             self.processAction(connection);
             break;
+          default:
+            self.api.log(`TODO - ${requestMode}`, 'emergency');
         }
       });
     });
@@ -93,7 +95,7 @@ export default class Web extends GenericServer {
         self.log(`cannot boot web server; trying again [${String(e)}]`, 'error');
 
         if (bootAttempts === 1) {
-          cleanSocket(self.options.bindIP, self.options.port);
+          self.cleanSocket(self.options.bindIP, self.options.port);
         }
 
         setTimeout(function () {
@@ -141,7 +143,7 @@ export default class Web extends GenericServer {
 
     self.cleanHeaders(connection);
     let headers = connection.rawConnection.responseHeaders;
-    let responseHttpCode = parseInt(connection.rawConnection.resposeHttpCode);
+    let responseHttpCode = parseInt(connection.rawConnection.responseHttpCode);
 
     self.sendWithCompression(connection, responseHttpCode, headers, stringResponse);
   }
@@ -512,7 +514,7 @@ export default class Web extends GenericServer {
       }
     }
 
-    if (!data.response.error && data.action && data.params.apiVersion && api.actions.actions[ data.params.action ][ data.params.apiVersion ].matchExtensionMimeType === true && data.connection.extension) {
+    if (!data.response.error && data.action && data.params.apiVersion && self.api.actions.actions[ data.params.action ][ data.params.apiVersion ].matchExtensionMimeType === true && data.connection.extension) {
       data.connection.rawConnection.responseHeaders.push([ 'Content-Type', Mime.lookup(data.connection.extension) ]);
     }
 
@@ -551,6 +553,7 @@ export default class Web extends GenericServer {
   }
 
   _buildRequesterInformation(connection) {
+    let self = this;
     let requesterInformation = {
       id: connection.id,
       fingerprint: connection.fingerprint,
@@ -559,14 +562,19 @@ export default class Web extends GenericServer {
     };
 
     for (let param in connection.params) {
-      if (self.api.config.general.disableParamScrubbing === true || self.api.params.postVariables.indexOf(p) >= 0) {
-        requesterInformation.receivedParams[ p ] = connection.params[ p ];
+      if (self.api.config.general.disableParamScrubbing === true || self.api.params.postVariables.indexOf(param) >= 0) {
+        requesterInformation.receivedParams[ param ] = connection.params[ param ];
       }
     }
 
     return requesterInformation;
   }
 
+  /**
+   * Remove some unnecessary headers from the response.
+   *
+   * @param connection
+   */
   cleanHeaders(connection) {
     let originalHeaders = connection.rawConnection.responseHeaders.reverse();
     let foundHeaders = [];

@@ -23,6 +23,39 @@ export default class {
     // define env property
     api.env = 'development';
 
+    // implement a system to watch for file changes
+    api.watchedFiles = [];
+
+    api.watchFileAndAct = function (file, callback) {
+      // normalise file path
+      file = path.normalize(file);
+
+      // check if file exists
+      if (!fs.existsSync(file)) {
+        throw new Error(`${file} does not exist, and cannot be watched`);
+      }
+
+      // the watch for files change only works on development mode
+      if (api.config.general.developmentMode === true && api.watchedFiles.indexOf(file) < 0) {
+        api.watchedFiles.push(file);
+        fs.watchFile(file, {interval: 1000}, (curr, prev) => {
+          if (curr.mtime > prev.mtime && api.config.general.developmentMode === true) {
+            process.nextTick(function () {
+              let cleanPath = file;
+              if (process.platform === 'win32') {
+                cleanPath = file.replace(/\//g, '\\');
+              }
+
+              // remove file from require cache
+              delete require.cache[ require.resolve(cleanPath) ];
+              callback(file);
+            });
+          }
+        });
+      }
+    };
+
+
     if (argv.NODE_ENV) {
       api.env = argv.NODE_ENV;
     } else if (process.env.NODE_ENV) {

@@ -178,10 +178,10 @@ class RoutesManager {
       }
     }
 
-    // todo - implement that
-    // self.api.params.postVariables = Utils.arrayUniqueify(self.api.params.postVariables);
+    // remove duplicated entries on postVariables
+    self.api.params.postVariables = Utils.arrayUniqueify(self.api.params.postVariables);
 
-    self.api.log(`${counter} routes loaded from `, 'debug', self.api.routes.routesFile);
+    self.api.log(`${counter} routes loaded`, 'debug');
 
     if (self.api.config.servers.web && self.api.config.servers.web.simpleRouting === true) {
       let simplePaths = [];
