@@ -24,11 +24,6 @@ let attributes = {
 export default class Web extends GenericServer {
 
   /**
-   * Server options.
-   */
-  options;
-
-  /**
    * Http server instance.
    */
   server;
@@ -61,6 +56,7 @@ export default class Web extends GenericServer {
       });
     });
 
+    // event to be executed after the action completion
     self.on('actionComplete', function (data) {
       self._completeResponse(data);
     });
@@ -582,7 +578,7 @@ export default class Web extends GenericServer {
 
     for (let i in originalHeaders) {
       let key = originalHeaders[ i ][ 0 ];
-      let value = originalHeaders[ i ][ 0 ];
+      let value = originalHeaders[ i ][ 1 ];
 
       if (foundHeaders.indexOf(key.toLowerCase()) >= 0 && key.toLowerCase().indexOf('set-cookie') < 0) {
         // ignore, it's a duplicate

@@ -1,5 +1,4 @@
 import async from 'async';
-import domain from 'domain';
 
 /**
  * This class process an action request.
@@ -26,7 +25,6 @@ class ActionProcessor {
   response = {};
   duration = null;
   actionStatus = null;
-  actionDomain = null;
 
   /**
    * Create a new Action Processor instance.
@@ -43,14 +41,29 @@ class ActionProcessor {
     this.callback = callback;
   }
 
+  /**
+   * Increment the total number of executed actions for this connection.
+   *
+   * @param count
+   */
   incrementTotalActions(count = 1) {
     this.connection.totalActions += count;
   }
 
+  /**
+   * Increment the pending actions for this connection.
+   *
+   * @param count
+   */
   incrementPendingActions(count = 1) {
     this.connection.pendingActions += count;
   }
 
+  /**
+   * Get the number of pending action for this connection.
+   *
+   * @returns {number|*}
+   */
   getPendingActionCount() {
     return this.connection.pendingActions;
   }
@@ -68,10 +81,6 @@ class ActionProcessor {
 
     // define the action status
     self.actionStatus = String(status);
-
-    if (self.actionDomain) {
-      self.actionDomain.exit();
-    }
 
     if (status instanceof Error) {
       error = status;
@@ -114,6 +123,11 @@ class ActionProcessor {
     self.logAction(error);
   }
 
+  /**
+   * Log the action execution.
+   *
+   * @param error
+   */
   logAction(error) {
     let self = this;
     let logLevel = 'info';
@@ -157,6 +171,11 @@ class ActionProcessor {
     self.api.log(`[ action @  ${self.connection.type}]`, logLevel, logLine);
   }
 
+  /**
+   * Operations to be performed before the real action execution.
+   *
+   * @param callback
+   */
   preProcessAction(callback) {
     let self = this;
     let processors = [];
@@ -182,6 +201,11 @@ class ActionProcessor {
     });
   }
 
+  /**
+   * Operations to be performed after the action execution.
+   *
+   * @param callback
+   */
   postProcessAction(callback) {
     let self = this;
     let processors = [];
@@ -206,25 +230,50 @@ class ActionProcessor {
     });
   }
 
-  reduceParams() {
+  /**
+   * Validate call params with the action requirements.
+   */
+  validateParams() {
     let self = this;
-    let inputNames = [];
 
-    if (self.actionTemplate.input) {
-      inputNames = Object.keys(self.actionTemplate.inputs);
-    }
+    // iterate inputs definitions of the called action
+    for (let key in self.actionTemplate.inputs) {
+      // get input properties
+      let props = self.actionTemplate.inputs[key];
 
-    if (self.api.config.general.disableParamScrubbing !== true) {
-      for (let p in self.params) {
-        if (self.api.params.globalSafeParams.indexOf(p) < 0 && inputNames.indexOf(p) < 0) {
-          delete self.params[ p ];
+      // default
+      if (self.params[key] === undefined && props.default !== undefined) {
+        if (typeof props.default === 'function') {
+          self.params[key] = props.default(self.params[key], self);
+        } else {
+          self.params[key] = props.default;
+        }
+      }
+
+      // validator
+      if (self.params[key] !== undefined && props.validator !== undefined) {
+        let validatorResponse = true;
+
+        if (typeof props.validator === 'function') {
+          validatorResponse = props.validator(self.params[key]);
+        } else {
+          let pattern = new RegExp(props.validator);
+          validatorResponse = pattern.test(self.params[key]) ? true : `Don't match with the validator.`;
+        }
+
+        // if an error are present add it to the validatorErrors array
+        if (validatorResponse !== true) {
+          self.validatorErrors.push(validatorResponse);
+        }
+      }
+
+      // required
+      if (props.required === true) {
+        if (self.api.config.general.missingParamChecks.indexOf(self.params[key]) >= 0) {
+          self.missingParams.push(key);
         }
       }
     }
-  }
-
-  validateParams() {
-    console.log("todo - ActionProcessor::validateParams");
   }
 
   processAction() {
@@ -253,17 +302,12 @@ class ActionProcessor {
     } else if (self.actionTemplate.blockedConnectionTypes && self.actionTemplate.blockedConnectionTypes.indexOf(self.connection.type) >= 0) {
       self.completeAction('unsupported_server_type');
     } else {
-
-      if (self.api.config.general.actionDomains === true) {
-        try {
-          self.runAction();
-        } catch (err) {
-          self.api.exceptionHandlers.action(err, self, function () {
-            self.completeAction('server_error');
-          });
-        }
-      } else {
+      try {
         self.runAction();
+      } catch (err) {
+        self.api.exceptionHandlers.action(err, self, function () {
+          self.completeAction('server_error');
+        });
       }
     }
   }
@@ -275,13 +319,15 @@ class ActionProcessor {
     let self = this;
 
     self.preProcessAction(function (error) {
-      self.reduceParams();
+      // validate the request params with the action requirements
       self.validateParams();
 
       if (error) {
         self.completeAction(error);
       } else if (self.missingParams.length > 0) {
         self.completeAction('missing_params');
+      } else if (self.validatorErrors.length > 0) {
+        self.completeAction('validator_errors');
       } else if (self.toProcess === true && !error) {
         // execute the action logic
         self.actionTemplate.run(self.api, self, function (error) {

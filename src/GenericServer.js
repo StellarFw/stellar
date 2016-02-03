@@ -81,6 +81,11 @@ export default class GenericServer extends EventEmitter {
     }
   }
 
+  /**
+   * Process an action request.
+   *
+   * @param connection
+   */
   processAction(connection) {
     let self = this;
     let actionProcessor = new this.api.actionProcessor(self.api, connection, function (data) {
