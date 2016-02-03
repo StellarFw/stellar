@@ -95,6 +95,46 @@ class Servers {
       });
     }
   }
+
+  stopServers(next) {
+    let self = this;
+    let started = 0;
+
+    // check if exists any started server
+    if (self.servers.length === 0) {
+      next();
+    }
+
+    for (let server in self.servers) {
+      started++;
+
+      ((server) => {
+        if (self.api.config.servers[ server ] && self.api.config.servers[ server ].enabled === true || !self.api.config.servers[ server ]) {
+          self.api.log(`stopping server: ${server}`, 'notice');
+          self.servers[ server ].stop(function (err) {
+            if (err) {
+              return next(err);
+            }
+
+            process.nextTick(() => {
+              self.api.log(`server stopped: ${server}`, 'debug');
+              started--;
+              if (started === 0) {
+                next();
+              }
+            });
+          });
+        } else {
+          process.nextTick(() => {
+            started--;
+            if (started === 0) {
+              next();
+            }
+          });
+        }
+      })(server);
+    }
+  }
 }
 
 export default class {
@@ -107,6 +147,8 @@ export default class {
    */
   static loadPriority = 30;
 
+  static stopPriority = 10;
+
   static load(api, next) {
     // instance the server manager
     api.servers = new Servers(api);
@@ -116,8 +158,13 @@ export default class {
   }
 
   static start(api, next) {
-    // start the serves
+    // start servers
     api.servers.startServers(next);
+  }
+
+  static stop(api, next) {
+    // stop servers
+    api.servers.stopServers(next);
   }
 
 }
