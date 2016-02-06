@@ -72,7 +72,7 @@ export default class {
       api.log('\r\n\r\n*** rebooting due to config change (' + file + ') ***\r\n\r\n', 'info');
       delete require.cache[require.resolve(file)];
       api.commands.restart.call(api._self);
-    }
+    };
 
     api.loadConfigDirectory = function (configPath, watch = false) {
       // get all files from the config folder

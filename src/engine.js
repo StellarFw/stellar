@@ -17,274 +17,13 @@ import Utils from './utils';
  */
 export default class Engine {
 
+  // ---------------------------------------------------------------------------------------------------------- [STATIC]
+
   static defaultPriorities = {
     load: 100,
     start: 100,
     stop: 100
   };
-
-  /**
-   * API object.
-   *
-   * @type {{}}
-   */
-  api = {
-    initialized: false,
-    started: false,
-
-    log: null,
-
-    scope: {}
-  };
-
-  /**
-   * List with all initializers.
-   *
-   * @type {{}}
-   */
-  initializers = {};
-
-  /**
-   * Array with the stage0 initializers.
-   *
-   * This initializers are loaded first and the others.
-   *
-   * @type {Array}
-   */
-  stage0Initialisers = [];
-
-  loadInitializers = [];
-  startInitializers = [];
-
-  /**
-   * Create a new instance of Stellar Engine.
-   *
-   * @param scope - Initial scope
-   */
-  constructor(scope) {
-    let self = this;
-
-    // default scope configs
-    let defaultScope = {};
-
-    // save the app scope
-    self.api.scope = _.merge(scope, defaultScope);
-
-    // define a early custom logger
-    self.api.log = function (msg, level = 'info') {
-      console.log(`[${level}]`, msg);
-    };
-
-    // define the available engine commands
-    self.api.commands = {
-      start: self.start,
-      stop: self.stop,
-      restart: self.restart
-    };
-  }
-
-  stop() {
-    console.log("TODO - Engine::stop");
-  }
-
-  restart() {
-    console.log("TODO - Engine::restart");
-  }
-
-  /**
-   * Start engine execution.
-   */
-  start() {
-    // print current execution path
-    this.api.log(`Current universe "${this.api.scope.rootPath}"`, 'info');
-
-    // start stage0 loading method
-    this.stage0();
-  }
-
-  stage0() {
-    var self = this;
-
-    // add a shutdown function to the API
-    // @todo this should perform a proper initializers shutdown
-    /*this.api.shutdown = function (err = false, msg = '') {
-     if (!err) {
-     process.exit(0);
-     } else {
-     // print the error message
-     self.api.log(msg, 'emergency');
-
-     // end engine execution
-     process.exit(-1);
-     }
-     };*/
-
-    // reset config stage0 initializers
-    this.stage0Initialisers = [];
-
-    // we need to load the config first
-    [
-      path.resolve(__dirname + '/initializers/config.js')
-    ].forEach(function (file) {
-      var filename = file.replace(/^.*[\\\/]/, '');
-      var initializer = filename.split('.')[ 0 ];
-      self.initializers[ initializer ] = require(file).default;
-      self.stage0Initialisers.push(function (next) {
-        self.initializers[ initializer ].load(self.api, next);
-      });
-    });
-
-    // add stage1 function at the end of stage0 initializer cycle
-    this.stage0Initialisers.push(function () {
-      self.stage1();
-    });
-
-    // execute stage0 initializers in series
-    async.series(this.stage0Initialisers, function (error) {
-      this.fatalError(self.api, error, 'stage0');
-    });
-  }
-
-  /**
-   * Print fatal error on the console and exit from the engine
-   * execution.
-   *
-   * @private
-   * @param api     API instance.
-   * @param errors  String or array with the fatal error(s).
-   * @param type    String with the error type.
-   */
-  static fatalError(api, errors, type) {
-    if (errors && !(errors instanceof Array)) {
-      errors = [ errors ];
-    }
-
-    if (errors) {
-      api.log(`Error with initializer step: ${type}`, 'emergency');
-      errors.forEach(function (err) {
-        api.log(err.stack, 'emergency');
-      });
-      process.exit(1);
-    }
-  }
-
-  /**
-   * @todo
-   */
-  stage1() {
-    var self = this;
-
-    // ranked object for all stages
-    var loadInitializersRankings = {};
-    var startInitializersRankings = {};
-
-    // reset initializers arrays
-    this.initializers = {};
-
-    // get all initializers
-    var initializers_files = Utils.getFiles(__dirname + '/initializers');
-
-    // iterate all files
-    _.forEach(initializers_files, function (f) {
-      // get some file useful information
-      var file = path.normalize(f);
-      var initializer = path.basename(f).split('.')[ 0 ];
-      var ext = _.last(file.split('.'));
-
-      // only load files with the `.js` extension
-      if (ext !== 'js') {
-        return;
-      }
-
-      // require initializer instance
-      self.initializers[ initializer ] = require(file).default;
-
-      // create a new load function for current initializer
-      let loadFunction = function (next) {
-        // check if the initializer have a load function
-        if (typeof self.initializers[ initializer ].load === 'function') {
-          self.api.log(`loading initializer: ${initializer}`, 'debug');
-
-          // call `load` property
-          self.initializers[ initializer ].load(self.api, function (err) {
-            self.api.log(`loaded initializer: ${initializer}`, 'debug');
-            next(err);
-          });
-        } else {
-          next();
-        }
-      };
-
-      // create a new start function for current initializer
-      let startFunction = function (next) {
-        // check if the initializer have a start function
-        if (typeof self.initializers[ initializer ].start === 'function') {
-          self.api.log(`starting initializer: ${initializer}`, 'debug');
-
-          // execute start routine
-          self.initializers[ initializer ].start(self.api, function (err) {
-            self.api.log(`started initializer: ${initializer}`, 'debug');
-            next(err);
-          });
-        } else {
-          next();
-        }
-      };
-
-      // normalize initializer priorities
-      Engine.normalizeInitializerPriority(self.initializers[ initializer ]);
-      loadInitializersRankings[ self.initializers[ initializer ].loadPriority ] = loadInitializersRankings[ self.initializers[ initializer ].loadPriority ] || [];
-      startInitializersRankings[ self.initializers[ initializer ].startProority ] = startInitializersRankings[ self.initializers[ initializer ].startProority ] || [];
-
-      // push loader state function to ranked arrays
-      loadInitializersRankings[ self.initializers[ initializer ].loadPriority ].push(loadFunction);
-      startInitializersRankings[ self.initializers[ initializer ].startProority ].push(startFunction);
-    });
-
-    // organize final array to match the initializers priorities
-    this.loadInitializers = Engine.flattenOrderedInitializer(loadInitializersRankings);
-    this.startInitializers = Engine.flattenOrderedInitializer(startInitializersRankings);
-
-    // on the end of loading all initializers set engine like initialized
-    this.loadInitializers.push(function () {
-      process.nextTick(function () {
-        // mark engine like initialized
-        self.api.initialized = true;
-
-        // call stage2
-        self.stage2();
-      });
-    });
-
-    // start initialization process
-    async.series(this.loadInitializers, function (errors) {
-      Engine.fatalError(self, errors, 'stage0');
-    });
-  }
-
-  /**
-   * Start initializers.
-   */
-  stage2() {
-    var self = this;
-
-    if (this.api.initialized !== true) {
-      throw new Error('The initializers needs to be loaded first.');
-    }
-
-    this.startInitializers.push(function (next) {
-      // define Stellar like running
-      self.api.running = true;
-
-      self.api.bootTime = new Date().getTime();
-      self.api.log('** Server Started @ ' + new Date() + ' ***', 'notice');
-      next();
-    });
-
-    async.series(this.startInitializers, function (err) {
-      Engine.fatalError(self, err, 'stage2');
-    });
-  }
 
   /**
    * Normalize initializer priorities.
@@ -319,5 +58,433 @@ export default class Engine {
     });
 
     return output;
+  }
+
+  /**
+   * Print fatal error on the console and exit from the engine
+   * execution.
+   *
+   * @private
+   * @param api     API instance.
+   * @param errors  String or array with the fatal error(s).
+   * @param type    String with the error type.
+   */
+  static fatalError(api, errors, type) {
+    if (errors && !(errors instanceof Array)) {
+      errors = [ errors ];
+    }
+
+    if (errors) {
+      api.log(`Error with initializer step: ${type}`, 'emergency');
+      errors.forEach(function (err) {
+        api.log(err.stack, 'emergency');
+      });
+      process.exit(1);
+    }
+  }
+
+  // ----------------------------------------------------------------------------------------------------------- [CLASS]
+
+  /**
+   * API object.
+   *
+   * @type {{}}
+   */
+  api = {
+    initialized: false,
+    shuttingDown: false,
+    running: false,
+    started: false,
+
+    log: null,
+
+    scope: {}
+  };
+
+  /**
+   * List with all initializers.
+   *
+   * @type {{}}
+   */
+  initializers = {};
+
+  /**
+   * Array with the initial initializers.
+   *
+   * @type {Array}
+   */
+  initialInitializers = [];
+
+  /**
+   * Array with the load initializers.
+   *
+   * @type {Array}
+   */
+  loadInitializers = [];
+
+  /**
+   * Array with the start initializers.
+   *
+   * @type {Array}
+   */
+  startInitializers = [];
+
+  /**
+   * Array with the stop initializers.
+   *
+   * @type {Array}
+   */
+  stopInitializers = [];
+
+  /**
+   * Create a new instance of Stellar Engine.
+   *
+   * @param scope - Initial scope
+   */
+  constructor(scope) {
+    let self = this;
+
+    // default scope configs
+    let defaultScope = {};
+
+    // save the app scope
+    self.api.scope = _.merge(scope, defaultScope);
+
+    // save the engine reference for external calls
+    self.api._self = self;
+
+    // define a early custom logger
+    self.api.log = function (msg, level = 'info') {
+      console.log(`[${level}]`, msg);
+    };
+
+    // define the available engine commands
+    self.api.commands = {
+      start: self.start,
+      stop: self.stop,
+      restart: self.restart
+    };
+  }
+
+  // ----------------------------------------------------------------------------------------- [STATE MANAGER FUNCTIONS]
+
+  /**
+   * Start engine execution.
+   */
+  start(callback = null) {
+    // print current execution path
+    this.api.log(`Current universe "${this.api.scope.rootPath}"`, 'info');
+
+    // start stage0 loading method
+    this.stage0(callback);
+  }
+
+  /**
+   * Stop the Engine execution.
+   *
+   * @param callback
+   */
+  stop(callback = null) {
+    let self = this;
+
+    // if this function has called outside of the Engine the 'this'
+    // variable has an invalid reference
+    if (this._self) {
+      self = this._self;
+    }
+
+    if (self.api.running === true) {
+      // stop Engine
+      self.api.shuttingDown = true;
+      self.api.running = false;
+      self.api.initialized = false;
+
+      self.api.log('Shutting down open servers and stopping task processing', 'alert');
+
+      // if this is the second shutdown we need remove the `finalStopInitializer` callback
+      if (self.stopInitializers[ (self.stopInitializers.length - 1) ].name === 'finalStopInitializer') {
+        self.stopInitializers.pop();
+      }
+
+      // add the final callback
+      self.stopInitializers.push(function finalStopInitializer(next) {
+        self.api.unwatchAllFiles();
+        // @todo - clear pids when we implement clustering
+        self.api.log('The Stellar has been stopped', 'alert');
+        self.api.log('***', 'debug');
+
+        process.nextTick(function () {
+          if (callback !== null) {
+            callback(null, self.api);
+          }
+        });
+
+        next();
+      });
+
+      // iterate all initializers and stop them
+      async.series(self.stopInitializers, function (errors) {
+        Engine.fatalError(self.api, errors, 'stop');
+      });
+    } else if (self.api.shuttingDown === true) {
+      // double sigterm; ignore it
+    } else {
+      self.api.log('Cannot shutdown Stellar, not running', 'error');
+
+      // exists a callback?
+      if (callback !== null) {
+        callback(null, self.api);
+      }
+    }
+  }
+
+  /**
+   * Restart the Stellar Engine.
+   *
+   * @param callback
+   */
+  restart(callback = null) {
+    let self = this;
+
+    // if this function has called outside of the Engine the 'this'
+    // variable has an invalid reference
+    if (this._self) {
+      self = this._self;
+    }
+
+    if (self.api.running === true) {
+      // stop the engine
+      self.stop(function (err) {
+        // log error if present
+        if (err) {
+          self.api.log(err, 'error');
+        }
+
+        // start the engine again
+        self.stage2(function (err) {
+          if (err) {
+            self.api.log(err, 'error');
+          }
+
+          self.api.log('*** Stellar Restarted ***', 'info');
+
+          // exists a callback
+          if (callback !== null) {
+            callback(null, self.api);
+          }
+        });
+      });
+    } else {
+      self.stage2(function (err) {
+        // log any encountered error
+        if (err) {
+          self.api.log(err, 'error');
+        }
+
+        self.api.log('*** Stellar Restarted ***', 'info');
+
+        // exists a callback
+        if (callback !== null) {
+          callback(null, self.api);
+        }
+      })
+    }
+  }
+
+  // ------------------------------------------------------------------------------------------------ [STAGES FUNCTIONS]
+
+  /**
+   * First startup stage.
+   *
+   * Steps:
+   *  - executes the initial initializers;
+   *  - call stage1
+   *
+   * @param callback This callback only are executed at the end of stage2.
+   */
+  stage0(callback = null) {
+    let self = this;
+
+    // we need to load the config first
+    [
+      path.resolve(__dirname + '/initializers/config.js')
+    ].forEach(function (file) {
+      // get full file name
+      let filename = file.replace(/^.*[\\\/]/, '');
+
+      // get the first part of the file name
+      let initializer = filename.split('.')[ 0 ];
+
+      // get the initializer
+      self.initializers[ initializer ] = require(file).default;
+
+      // add it to array
+      self.initialInitializers.push(function (next) {
+        self.initializers[ initializer ].load(self.api, next);
+      });
+    });
+
+    // stage1 is called at the end of execution of all initial initializers
+    self.initialInitializers.push(function () {
+      // call stage1
+      self.stage1(callback);
+    });
+
+    // execute stage0 initializers in series
+    async.series(this.initialInitializers, function (error) {
+      this.fatalError(self.api, error, 'stage0');
+    });
+  }
+
+  /**
+   * Second startup stage.
+   *
+   * Steps:
+   *  - load all initializers into memory;
+   *  - load initializers;
+   *  - mark Engine like initialized;
+   *  - call stage2.
+   *
+   * @param callback This callback only is executed at the stage2 end.
+   */
+  stage1(callback = null) {
+    let self = this;
+
+    // ranked object for all stages
+    let loadInitializersRankings = {};
+    let startInitializersRankings = {};
+    let stopInitializersRankings = {};
+
+    // reset initializers arrays
+    this.initializers = {};
+
+    // get an array with all initializers
+    let initializers_files = Utils.getFiles(__dirname + '/initializers');
+
+    // iterate all files
+    for (let key in initializers_files) {
+      let f = initializers_files[ key ];
+
+      // get some file useful information
+      let file = path.normalize(f);
+      let initializer = path.basename(f).split('.')[ 0 ];
+      let ext = _.last(file.split('.'));
+
+      // only load files with the `.js` extension
+      if (ext !== 'js') {
+        continue;
+      }
+
+      // get initializer module
+      self.initializers[ initializer ] = require(file).default;
+
+      // initializer load function
+      let loadFunction = function (next) {
+        // check if the initializer have a load function
+        if (typeof self.initializers[ initializer ].load === 'function') {
+          self.api.log(` > load: ${initializer}`, 'debug');
+
+          // call `load` property
+          self.initializers[ initializer ].load(self.api, function (err) {
+            self.api.log(`   loaded: ${initializer}`, 'debug');
+            next(err);
+          });
+        } else {
+          next();
+        }
+      };
+
+      // initializer start function
+      let startFunction = function (next) {
+        // check if the initializer have a start function
+        if (typeof self.initializers[ initializer ].start === 'function') {
+          self.api.log(` > start: ${initializer}`, 'debug');
+
+          // execute start routine
+          self.initializers[ initializer ].start(self.api, function (err) {
+            self.api.log(`   started: ${initializer}`, 'debug');
+            next(err);
+          });
+        } else {
+          next();
+        }
+      };
+
+      // initializer stop function
+      let stopFunction = function (next) {
+        if (typeof  self.initializers[ initializer ].stop === 'function') {
+          self.api.log(` > stop: ${initializer}`, 'debug', file);
+
+          self.initializers[ initializer ].stop(self.api, function (err) {
+            self.api.log(`   stopped: ${initializer}`, 'debug', file);
+            next(err);
+          });
+        } else {
+          next();
+        }
+      };
+
+      // normalize initializer priorities
+      Engine.normalizeInitializerPriority(self.initializers[ initializer ]);
+      loadInitializersRankings[ self.initializers[ initializer ].loadPriority ] = loadInitializersRankings[ self.initializers[ initializer ].loadPriority ] || [];
+      startInitializersRankings[ self.initializers[ initializer ].startProority ] = startInitializersRankings[ self.initializers[ initializer ].startProority ] || [];
+      stopInitializersRankings[ self.initializers[ initializer ].stopProority ] = stopInitializersRankings[ self.initializers[ initializer ].stopProority ] || [];
+
+      // push loader state function to ranked arrays
+      loadInitializersRankings[ self.initializers[ initializer ].loadPriority ].push(loadFunction);
+      startInitializersRankings[ self.initializers[ initializer ].startProority ].push(startFunction);
+      stopInitializersRankings[ self.initializers[ initializer ].stopProority ].push(stopFunction);
+    }
+
+    // organize final array to match the initializers priorities
+    self.loadInitializers = Engine.flattenOrderedInitializer(loadInitializersRankings);
+    self.startInitializers = Engine.flattenOrderedInitializer(startInitializersRankings);
+    self.stopInitializers = Engine.flattenOrderedInitializer(stopInitializersRankings);
+
+    // on the end of loading all initializers set engine like initialized
+    self.loadInitializers.push(function () {
+      // mark engine like initialized
+      self.api.initialized = true;
+
+      // call stage2
+      self.stage2(callback);
+    });
+
+    // start initialization process
+    async.series(self.loadInitializers, function (errors) {
+      Engine.fatalError(self, errors, 'stage0');
+    });
+  }
+
+  /**
+   * Third startup stage.
+   *
+   * Steps:
+   *  - start initializers;
+   *  - mark Engine as running.
+   *
+   *  @param callback
+   */
+  stage2(callback = null) {
+    let self = this;
+
+    self.startInitializers.push(function (next) {
+      // define Stellar like running
+      self.api.running = true;
+
+      self.api.bootTime = new Date().getTime();
+      self.api.log('** Server Started @ ' + new Date() + ' ***', 'notice');
+
+      // call the callback if it's present
+      if (callback !== null) {
+        callback(null, self.api);
+      }
+
+      next();
+    });
+
+    async.series(this.startInitializers, function (err) {
+      Engine.fatalError(self, err, 'stage2');
+    });
   }
 }
