@@ -28,8 +28,8 @@ export default class GenericServer extends EventEmitter {
 
     // attributes can be overwritten by the options
     for (let key in this.options) {
-      if (this.attributes[key] !== null && this.attributes[key] !== undefined) {
-        this.attributes[key] = this.options[key];
+      if (this.attributes[ key ] !== null && this.attributes[ key ] !== undefined) {
+        this.attributes[ key ] = this.options[ key ];
       }
     }
   }
@@ -97,7 +97,7 @@ export default class GenericServer extends EventEmitter {
 
   processFile(connection) {
     let self = this;
-    this.api.staticFile.get(connection, function (connection, error, fileStream, mime, length, lastModified) {
+    self.api.staticFile.get(connection, function (connection, error, fileStream, mime, length, lastModified) {
       self.sendFile(connection, error, fileStream, mime, length, lastModified);
     });
   }
@@ -106,7 +106,7 @@ export default class GenericServer extends EventEmitter {
     let _connections = [];
 
     for (let i in this.api.connections.connections) {
-      let connection = this.api.connections.connections[i];
+      let connection = this.api.connections.connections[ i ];
       if (connection.type === this.type) {
         _connections.push(connection);
       }

@@ -1,5 +1,9 @@
-import GenericServer from '../genericServer';
+import fs from 'fs';
+import util from 'util';
+import path from 'path';
 import Primus from 'primus';
+import UglifyJS from 'uglify-js';
+import GenericServer from '../genericServer';
 
 // server type
 let type = 'websocket';
@@ -31,13 +35,6 @@ export default class WebSocketServer extends GenericServer {
   api = null;
 
   /**
-   * Server options.
-   *
-   * @type {{}}
-   */
-  options = {};
-
-  /**
    * Server instance.
    */
   server;
@@ -52,11 +49,15 @@ export default class WebSocketServer extends GenericServer {
     super(api, type, options, attributes);
 
     this.api = api;
-    this.options = options;
   }
 
-  //////////////////// [REQUIRED METHODS]
+  // ------------------------------------------------------------------------------------------------ [REQUIRED METHODS]
 
+  /**
+   * Start the server
+   *
+   * @param next
+   */
   start(next) {
     let self = this;
     let webserver = self.api.servers.servers.web;
@@ -76,20 +77,41 @@ export default class WebSocketServer extends GenericServer {
     self.api.log(`webSocket bound to ${webserver.options.bindIP}:${webserver.options.port}`, 'debug');
     self.server.active = true;
 
-    self.writeClientJS();
-
     // config event handlers
     this._defineEventHandlers();
 
+    // write client js
+    self._writeClientJS();
+
+    // execute the callback
     next();
   }
 
-  stop() {
-    // todo
-    console.log("todo:stop");
+  /**
+   * Shutdown the websocket server.
+   *
+   * @param next Callback
+   */
+  stop(next) {
+    let self = this;
+
+    // disable the server
+    self.active = false;
+
+    // destroy clients connections
+    if (self.api.config.servers.websocket.destroyClientOnShutdown === true) {
+      self.connections().forEach((connection) => {
+        connection.destroy();
+      });
+    }
+
+    // execute the callback on the next tick
+    process.nextTick(() => {
+      next();
+    });
   }
 
-  sendMessage() {
+  sendMessage(connection, message, messageCount) {
     // todo
     console.log("todo:sendMessage");
   }
@@ -104,18 +126,74 @@ export default class WebSocketServer extends GenericServer {
     console.log("todo:goodbye");
   }
 
-  writeClientJS() {
+  //////////////////// [PRIVATE METHODS]
+
+  _compileActionheroClientJS() {
     let self = this;
 
-    /*if (!self.api.config.general.paths.public || self.api.config.general.paths.public.length === 0) {
-      return;
-    }*/
+    let clientSource = fs.readFileSync(__dirname + '/../client.js').toString();
+    let url = self.api.config.servers.websocket.clientUrl;
 
-    // todo
-    console.log("todo:writeClientJS");
+    // replace any url by client url
+    clientSource = clientSource.replace(/%%URL%%/g, url);
+
+    let defaults = {};
+    for (var i in self.api.config.servers.websocket.client) {
+      defaults[i] = self.api.config.servers.websocket.client[i];
+    }
+    defaults.url = url;
+
+    let defaultsString = util.inspect(defaults);
+    defaultsString = defaultsString.replace('\'window.location.origin\'', 'window.location.origin');
+    clientSource = clientSource.replace('%%DEFAULTS%%', 'return ' + defaultsString);
+
+    return clientSource;
   }
 
-  //////////////////// [PRIVATE METHODS]
+  _renderClientJs(minimize = false) {
+    let self = this;
+
+    let libSource = self.api.servers.servers.websocket.server.library();
+    let clientSource = self._compileActionheroClientJS();
+
+    clientSource =
+      ';;;\r\n' +
+      '(function(exports){ \r\n' +
+      clientSource +
+      '\r\n' +
+      'exports.StellarClient = StellarClient; \r\n' +
+      '})(typeof exports === \'undefined\' ? window : exports);';
+
+    if (minimize) {
+      return UglifyJS.minify(`${libSource}\r\n\r\n\r\n${clientSource}`, {fromString: true}).code;
+    } else {
+      return `${libSource}\r\n\r\n\r\n${clientSource}`;
+    }
+  }
+
+  /**
+   * Write client js code.
+   */
+  _writeClientJS() {
+    let self = this;
+
+    if (self.api.config.servers.websocket.clientJsPath && self.api.config.servers.websocket.clientJsName) {
+      let base = path.normalize(
+        self.api.config.general.paths.temp + path.sep +
+        self.api.config.servers.websocket.clientJsName);
+
+      try {
+        fs.writeFileSync(`${base}.js`, self._renderClientJs(false));
+        self.api.log(`write ${base}.js`, 'debug');
+        fs.writeFileSync(`${base}.min.js`, self._renderClientJs(true));
+        self.api.log(`wrote ${base}.min.js`, 'debug');
+      } catch (e) {
+        self.api.log(`Cannot write client-side JS for websocket server:`, 'warning');
+        self.api.log(e, 'warning');
+        throw e;
+      }
+    }
+  }
 
   _handleConnection() {
     // todo
@@ -130,16 +208,6 @@ export default class WebSocketServer extends GenericServer {
   _handleData() {
     // todo
     console.log("todo:_handleData");
-  }
-
-  _compileActionheroClientJS() {
-    // todo
-    console.log("todo:_compileActionheroClientJS");
-  }
-
-  _renderClientJS() {
-    // todo
-    console.log("todo:_renderClientJS");
   }
 
   /**

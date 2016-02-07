@@ -1,6 +1,7 @@
 import fs from 'fs';
 import qs from 'qs';
 import url from 'url';
+import path from 'path';
 import uuid from 'node-uuid';
 import Utils from '../utils';
 import formidable from 'formidable';
@@ -49,6 +50,15 @@ export default class Web extends GenericServer {
         switch (requestMode) {
           case 'api':
             self.processAction(connection);
+            break;
+          case 'file':
+            self.processFile(connection);
+            break;
+          case 'options':
+            self._respondToOptions(connection);
+            break;
+          case 'client-lib':
+            self.processClientLib(connection);
             break;
           default:
             self.api.log(`TODO - ${requestMode}`, 'emergency');
@@ -175,7 +185,7 @@ export default class Web extends GenericServer {
       }
 
       connection.rawConnection.responseHeaders.push([ 'Last-Modified', new Date(lastModified) ]);
-      cleanHeaders(connection);
+      self.cleanHeaders(connection);
       let headers = connection.rawConnection.responseHeaders;
       if (error) {
         connection.rawConnection.responseHttpCode = 404
@@ -197,6 +207,16 @@ export default class Web extends GenericServer {
     });
   }
 
+  /**
+   * Send a compressed message to the client.
+   *
+   * @param connection
+   * @param responseHttpCode
+   * @param headers
+   * @param stringResponse
+   * @param fileStream
+   * @param fileLength
+   */
   sendWithCompression(connection, responseHttpCode, headers, stringResponse, fileStream, fileLength) {
     let self = this;
     let compressor, stringEncoder;
@@ -255,7 +275,7 @@ export default class Web extends GenericServer {
     // disconnect handlers
   }
 
-  //////////////////// [PRIVATE]
+  // --------------------------------------------------------------------------------------------------------- [PRIVATE]
 
   _handleRequest(req, res) {
     let self = this;
@@ -369,6 +389,9 @@ export default class Web extends GenericServer {
     if (pathParts[ 0 ] && pathParts[ 0 ] === self.api.config.servers.web.urlPathForActions) {
       requestMode = 'api';
       pathParts.shift();
+    } else if (pathParts[ 0 ] && pathParts[ 0 ] === self.api.config.servers.websocket.clientJsName) {
+      requestMode = 'client-lib';
+      pathParts.shift();
     } else if (pathParts[ 0 ] && pathParts[ 0 ] === self.api.config.servers.web.urlPathForFiles) {
       requestMode = 'file';
       pathParts.shift();
@@ -445,9 +468,32 @@ export default class Web extends GenericServer {
 
         callback(requestMode);
       }
+    } else if (requestMode === 'file') {
+      if (!connection.params.file) {
+        connection.params.file = pathParts.join(path.sep);
+      }
+      if (connection.params.file === '' || connection.params.file[ connection.params.file.length - 1 ] === '/') {
+        connection.params.file = connection.params.file + self.api.config.general.directoryFileType;
+      }
+      callback(requestMode);
+    } else if (requestMode === 'client-lib') {
+      callback(requestMode);
     }
+  }
 
-    // todo : implement file requests
+  processClientLib(connection) {
+    let self = this;
+
+    // client lib
+    let file = path.normalize(
+      self.api.config.general.paths.temp + path.sep +
+      self.api.config.servers.websocket.clientJsName + '.js');
+
+    // define the file to be loaded
+    connection.params.file = file;
+
+    // process like a file
+    self.processFile(connection);
   }
 
   /**
@@ -549,7 +595,6 @@ export default class Web extends GenericServer {
   }
 
   _buildRequesterInformation(connection) {
-    let self = this;
     let requesterInformation = {
       id: connection.id,
       fingerprint: connection.fingerprint,
@@ -558,9 +603,7 @@ export default class Web extends GenericServer {
     };
 
     for (let param in connection.params) {
-      if (self.api.config.general.disableParamScrubbing === true || self.api.params.postVariables.indexOf(param) >= 0) {
-        requesterInformation.receivedParams[ param ] = connection.params[ param ];
-      }
+      requesterInformation.receivedParams[ param ] = connection.params[ param ];
     }
 
     return requesterInformation;
@@ -591,5 +634,18 @@ export default class Web extends GenericServer {
     }
 
     connection.rawConnection.responseHeaders = cleanedHeaders;
+  }
+
+  _respondToOptions(connection = null) {
+    if (!self.api.config.servers.web.httpHeaders[ 'Access-Control-Allow-Methods' ] && !extractHeader(connection, 'Access-Control-Allow-Methods')) {
+      let methods = 'HEAD, GET, POST, PUT, DELETE, OPTIONS, TRACE';
+      connection.rawConnection.responseHeaders.push([ 'Access-Control-Allow-Methods', methods ]);
+    }
+
+    if (!self.api.config.servers.web.httpHeaders[ 'Access-Control-Allow-Origin' ] && !extractHeader(connection, 'Access-Control-Allow-Origin')) {
+      var origin = '*';
+      connection.rawConnection.responseHeaders.push([ 'Access-Control-Allow-Origin', origin ]);
+    }
+    self.sendMessage(connection, '');
   }
 }

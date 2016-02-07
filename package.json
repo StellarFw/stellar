@@ -24,7 +24,8 @@
     "qs": "latest",
     "source-map-support": "^0.4.0",
     "winston": "^2.1.1",
-    "ws": "^1.0.1"
+    "ws": "^1.0.1",
+    "uglify-js": "latest"
   },
   "devDependencies": {
     "babel-plugin-transform-class-properties": "^6.3.13",

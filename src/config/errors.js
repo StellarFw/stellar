@@ -82,6 +82,20 @@ export default {
       // ---------------------------------------------------------------------
       doubleCallbackError: function () {
         return 'Double callback prevented within action';
+      },
+
+      // ---------------------------------------------------------------------
+      // function to be executed when a file to exists
+      // ---------------------------------------------------------------------
+      fileNotFound: function () {
+        return 'The requested file not exists';
+      },
+
+      // ---------------------------------------------------------------------
+      // User didn't request a file
+      // ---------------------------------------------------------------------
+      fileNotProvided: function () {
+        return 'File is a required param to send a file';
       }
 
     };

@@ -58,10 +58,11 @@ export default {
       defaultMiddlewarePriority: 100,
 
       // ---------------------------------------------------------------------
-      // Configutation for Stellar project structure
+      // Configurations for Stellar project structure
       // ---------------------------------------------------------------------
       paths: {
-        'public': api.scope.rootPath + '/public'
+        'public': api.scope.rootPath + '/public',
+        'temp': api.scope.rootPath + '/temp'
       }
     };
   }
