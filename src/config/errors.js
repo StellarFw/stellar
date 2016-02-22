@@ -17,7 +17,14 @@ export default {
             } else {
               return error;
             }
-          }
+          },
+          websocket: function (error) {
+            if (Utils.isError(error)) {
+              return String(error.message);
+            } else {
+              return error;
+            }
+          },
         }
       },
 

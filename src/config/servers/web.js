@@ -101,6 +101,11 @@ export default {
         queryRouting: true,
 
         // ---------------------------------------------------------------------
+        // The header which will be returned for all flat file served.
+        // ---------------------------------------------------------------------
+        flatFileCacheDuration: 60,
+
+        // ---------------------------------------------------------------------
         // Options to configure metadata in responses
         // ---------------------------------------------------------------------
         metadataOptions: {

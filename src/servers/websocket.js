@@ -4,12 +4,14 @@ import path from 'path';
 import Primus from 'primus';
 import UglifyJS from 'uglify-js';
 import GenericServer from '../genericServer';
+import browser_fingerprint from 'browser_fingerprint';
 
 // server type
 let type = 'websocket';
 
 // server attributes
 let attributes = {
+  canChar: true,
   logConnections: true,
   logExists: true,
   sendWelcomeMessage: true,
@@ -28,13 +30,6 @@ let attributes = {
 export default class WebSocketServer extends GenericServer {
 
   /**
-   * Engine interface object.
-   *
-   * @type {null}
-   */
-  api = null;
-
-  /**
    * Server instance.
    */
   server;
@@ -48,7 +43,22 @@ export default class WebSocketServer extends GenericServer {
   constructor(api, options) {
     super(api, type, options, attributes);
 
-    this.api = api;
+    let self = this;
+
+    // connection event
+    self.on('connection', (connection) => {
+      connection.rawConnection.on('data', (data) => {
+        self._handleData(connection, data);
+      })
+    });
+
+    // action complete event
+    self.on('actionComplete', (data) => {
+      if (data.toRender !== false) {
+        data.connection.response.messageCount = data.messageCount;
+        self.sendMessage(data.connection, data.response, data.messageCount);
+      }
+    });
   }
 
   // ------------------------------------------------------------------------------------------------ [REQUIRED METHODS]
@@ -76,9 +86,6 @@ export default class WebSocketServer extends GenericServer {
 
     self.api.log(`webSocket bound to ${webserver.options.bindIP}:${webserver.options.port}`, 'debug');
     self.server.active = true;
-
-    // config event handlers
-    this._defineEventHandlers();
 
     // write client js
     self._writeClientJS();
@@ -112,8 +119,26 @@ export default class WebSocketServer extends GenericServer {
   }
 
   sendMessage(connection, message, messageCount) {
-    // todo
-    console.log("todo:sendMessage");
+    let self = this;
+
+    // serialize the error if exists
+    if (message.error) {
+      message.error = self.api.config.errors.serializers.servers.websocket(message.error);
+    }
+
+    if (!message.context) {
+      message.context = 'response';
+    }
+
+    if (!messageCount) {
+      messageCount = connection.messageCount;
+    }
+
+    if (message.context === 'response' && !message.messageCount) {
+      message.messageCount = messageCount;
+    }
+
+    connection.rawConnection.write(message);
   }
 
   sendFile() {
@@ -121,31 +146,30 @@ export default class WebSocketServer extends GenericServer {
     console.log("todo:sendFile");
   }
 
-  goodbye() {
-    // todo
-    console.log("todo:goodbye");
+  goodbye(connection) {
+    connection.rawConnection.end();
   }
 
   //////////////////// [PRIVATE METHODS]
 
-  _compileActionheroClientJS() {
+  _compileClientJS() {
     let self = this;
 
     let clientSource = fs.readFileSync(__dirname + '/../client.js').toString();
     let url = self.api.config.servers.websocket.clientUrl;
 
     // replace any url by client url
-    clientSource = clientSource.replace(/%%URL%%/g, url);
+    clientSource = clientSource.replace(/\'%%URL%%\'/g, url);
 
     let defaults = {};
     for (var i in self.api.config.servers.websocket.client) {
-      defaults[i] = self.api.config.servers.websocket.client[i];
+      defaults[ i ] = self.api.config.servers.websocket.client[ i ];
     }
     defaults.url = url;
 
     let defaultsString = util.inspect(defaults);
     defaultsString = defaultsString.replace('\'window.location.origin\'', 'window.location.origin');
-    clientSource = clientSource.replace('%%DEFAULTS%%', 'return ' + defaultsString);
+    clientSource = clientSource.replace('\'%%DEFAULTS%%\'', defaultsString);
 
     return clientSource;
   }
@@ -154,7 +178,7 @@ export default class WebSocketServer extends GenericServer {
     let self = this;
 
     let libSource = self.api.servers.servers.websocket.server.library();
-    let clientSource = self._compileActionheroClientJS();
+    let clientSource = self._compileClientJS();
 
     clientSource =
       ';;;\r\n' +
@@ -177,7 +201,7 @@ export default class WebSocketServer extends GenericServer {
   _writeClientJS() {
     let self = this;
 
-    if (self.api.config.servers.websocket.clientJsPath && self.api.config.servers.websocket.clientJsName) {
+    if (self.api.config.servers.websocket.clientJsName) {
       let base = path.normalize(
         self.api.config.general.paths.temp + path.sep +
         self.api.config.servers.websocket.clientJsName);
@@ -195,41 +219,87 @@ export default class WebSocketServer extends GenericServer {
     }
   }
 
-  _handleConnection() {
-    // todo
-    console.log("todo:_handleConnection");
-  }
+  _handleConnection(rawConnection) {
+    let self = this;
 
-  _handleDisconnection() {
-    // todo
-    console.log("todo:_handleDisconnection");
-  }
+    let parsedCookies = browser_fingerprint.parseCookies(rawConnection);
+    let fingerPrint = parsedCookies[ self.api.config.servers.web.fingerprintOptions.cookieKey ];
 
-  _handleData() {
-    // todo
-    console.log("todo:_handleData");
+    self.buildConnection({
+      rawConnection: rawConnection,
+      remoteAddress: rawConnection.address.ip,
+      remotePort: rawConnection.address.port,
+      fingerprint: fingerPrint
+    });
   }
 
   /**
-   * Define event handlers.
+   * Handle the disconnection event.
    *
+   * @param rawConnection
    * @private
    */
-  _defineEventHandlers() {
+  _handleDisconnection(rawConnection) {
     let self = this;
 
-    self.server.on('connection', function (connection) {
-      connection.rawConnection.on('data', function (data) {
-        self._handleData(connection, data);
-      });
-    });
-
-    self.server.on('actionComplete', function (data) {
-      if (data.toRender !== false) {
-        data.connection.response.messageCount = data.messageCount;
-        self.sendMessage(data.connection, data.response, data.message());
+    for (let i in self.connections()) {
+      if (self.connections()[i] && rawConnection.id == self.connections()[i].rawConnection.id) {
+        self.connections()[i].destroy();
+        break;
       }
-    });
+    }
+  }
+
+  _handleData(connection, data) {
+    let self = this;
+    let verb = data.event;
+    delete data.event;
+
+    connection.messageCount++;
+    connection.params = {};
+
+    switch (verb) {
+      case 'action':
+        for (let v in data.params) {
+          connection.params[v] = data.params[v];
+        }
+
+        connection.error = null;
+        connection.response = {};
+        self.processAction(connection);
+        break;
+
+      case 'file':
+        connection.params = {
+          file: data.file
+        };
+
+        self.processFile(connection);
+        break;
+
+      default:
+        let words = [];
+        let message;
+
+        if (data.room) {
+          words.push(data.room);
+          delete data.room;
+        }
+
+        for (let i in data) {
+          words.push(data[i]);
+        }
+
+        connection.verbs(verb, words, (error, data) => {
+          if (!error) {
+            message = {status: 'OK', context: 'response', data: data};
+            self.sendMessage(connection, message);
+          } else {
+            message = {status: error, context: 'response', data: data};
+            self.sendMessage(connection, message);
+          }
+        });
+    }
   }
 
 }

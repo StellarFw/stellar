@@ -178,33 +178,49 @@ export default class Web extends GenericServer {
       if (pair[ 1 ].toLowerCase() === 'cache-control') {
         foundCacheControl = true;
       }
-
-      reqHeaders = connection.rawConnection.req.headers;
-      if (reqHeaders[ 'if-modified-since' ]) {
-        ifModifiedSince = new Date(reqHeaders[ 'if-modified-since' ]);
-      }
-
-      connection.rawConnection.responseHeaders.push([ 'Last-Modified', new Date(lastModified) ]);
-      self.cleanHeaders(connection);
-      let headers = connection.rawConnection.responseHeaders;
-      if (error) {
-        connection.rawConnection.responseHttpCode = 404
-      }
-      if (ifModifiedSince && lastModified <= ifModifiedSince) {
-        connection.rawConnection.responseHttpCode = 304
-      }
-      let responseHttpCode = parseInt(connection.rawConnection.responseHttpCode);
-      if (error) {
-        self.sendWithCompression(connection, responseHttpCode, headers, String(error));
-      }
-      else if (responseHttpCode !== 304) {
-        self.sendWithCompression(connection, responseHttpCode, headers, null, fileStream, length);
-      } else {
-        connection.rawConnection.res.writeHead(responseHttpCode, headers);
-        connection.rawConnection.res.end();
-        connection.destroy();
-      }
     });
+
+    reqHeaders = connection.rawConnection.req.headers;
+    if (reqHeaders[ 'if-modified-since' ]) {
+      ifModifiedSince = new Date(reqHeaders[ 'if-modified-since' ]);
+    }
+
+    // add mime type to the response headers
+    connection.rawConnection.responseHeaders.push([ 'Content-Type', mime ]);
+
+    // check if file expires
+    if (foundExpires === false) {
+      connection.rawConnection.responseHeaders.push([ 'Expires',
+        new Date(new Date().getTime() + self.api.config.servers.web.flatFileCacheDuration * 1000).toUTCString() ]);
+    }
+
+    // check if exists a cache control
+    if (foundCacheControl === false) {
+      connection.rawConnection.responseHeaders.push([ 'Cache-Control', 'max-age=' + self.api.config.servers.web.flatFileCacheDuration + ', must-revalidate, public' ]);
+    }
+
+    // add header entry for last modified info
+    connection.rawConnection.responseHeaders.push([ 'Last-Modified', new Date(lastModified) ]);
+
+    self.cleanHeaders(connection);
+    let headers = connection.rawConnection.responseHeaders;
+    if (error) {
+      connection.rawConnection.responseHttpCode = 404
+    }
+    if (ifModifiedSince && lastModified <= ifModifiedSince) {
+      connection.rawConnection.responseHttpCode = 304
+    }
+    let responseHttpCode = parseInt(connection.rawConnection.responseHttpCode);
+    if (error) {
+      self.sendWithCompression(connection, responseHttpCode, headers, String(error));
+    }
+    else if (responseHttpCode !== 304) {
+      self.sendWithCompression(connection, responseHttpCode, headers, null, fileStream, length);
+    } else {
+      connection.rawConnection.res.writeHead(responseHttpCode, headers);
+      connection.rawConnection.res.end();
+      connection.destroy();
+    }
   }
 
   /**
@@ -637,6 +653,8 @@ export default class Web extends GenericServer {
   }
 
   _respondToOptions(connection = null) {
+    let self = this;
+
     if (!self.api.config.servers.web.httpHeaders[ 'Access-Control-Allow-Methods' ] && !extractHeader(connection, 'Access-Control-Allow-Methods')) {
       let methods = 'HEAD, GET, POST, PUT, DELETE, OPTIONS, TRACE';
       connection.rawConnection.responseHeaders.push([ 'Access-Control-Allow-Methods', methods ]);

@@ -91,7 +91,7 @@ class Connection {
 
     [ 'remotePort', 'remoteIP' ].forEach(function (req) {
       if (data[ req ] === null || data[ req ] === undefined) {
-        if (api.config.general.enforceConnectionProperties === true) {
+        if (self.api.config.general.enforceConnectionProperties === true) {
           throw new Error(`${req} is required to create a new connection object`);
         } else {
           data[ req ] = 0; // could be a random uuid as well?
@@ -183,8 +183,99 @@ class Connection {
     self[ key ] = value;
   }
 
+  /**
+   *
+   * @param verb
+   * @param words Words are optional.
+   * @param callback
+   */
   verbs(verb, words, callback) {
-    console.log("TODO - Connection::verbs");
+    let self = this;
+    let key, value, room;
+    let server = self.api.servers.servers[ self.type ];
+    let allowedVerbs = server.attributes.verbs;
+
+    if (typeof words === 'function' && !callback) {
+      callback = words;
+      words = [];
+    }
+
+    if (!(words instanceof Array)) {
+      words = [ words ];
+    }
+
+    if (server && allowedVerbs.indexOf(verb) >= 0) {
+      server.log('verb', 'debug', {verb: verb, to: self.remoteIP, params: JSON.stringify(words)});
+
+      if (verb === 'quit' || verb === 'exit') {
+        server.goodbye(self);
+      } else if (verb === 'paramAdd') {
+        key = words[ 0 ];
+        value = words[ 1 ];
+
+        if (words[ 0 ] && (words[ 0 ].indexOf('=') >= 0)) {
+          let parts = words[ 0 ].split('=');
+          key = parts[ 0 ];
+          value = parts[ 1 ];
+        }
+
+        self.params[ key ] = value;
+
+        if (typeof callback === 'function') {
+          callback(null, null);
+        }
+      } else if (verb === 'paramDelete') {
+        key = words[ 0 ];
+        delete self.params[ key ];
+
+        if (typeof callback === 'function') {
+          callback(null, null);
+        }
+      } else if (verb === 'roomAdd') {
+        room = words[ 0 ];
+        self.api.chatRoom.addMember(self.id, room, function (err, didHappen) {
+          if (typeof callback === 'function') {
+            callback(err, didHappen);
+          }
+        });
+      } else if (verb === 'roomLeave') {
+        room = words[ 0 ];
+        self.api.chatRoom.removeMember(self.id, room, function (err, didHappen) {
+          if (typeof callback === 'function') {
+            callback(err, didHappen);
+          }
+        });
+      } else if (verb === 'detailsView') {
+        let details = {};
+        details.id = self.id;
+        details.fingerprint = self.fingerprint;
+        details.remoteIP = self.remoteIP;
+        details.remotePort = self.remotePort;
+        details.params = self.params;
+        details.connectedAt = self.connectedAt;
+        details.rooms = self.rooms;
+        details.totalActions = self.totalActions;
+        details.pendingActions = self.pendingActions;
+        if (typeof callback === 'function') {
+          callback(null, details);
+        }
+      } else if (verb === 'say') {
+        room = words.shift();
+        self.api.chatRoom.broadcast(self, room, words.join(' '), function (err) {
+          if (typeof callback === 'function') {
+            callback(err);
+          }
+        });
+      } else {
+        if (typeof callback === 'function') {
+          callback(self.api.config.errors.verbNotFound(self, verb), null);
+        }
+      }
+    } else {
+      if (typeof callback === 'function') {
+        callback(self.api.config.errors.verbNotAllowed(self, verb), null);
+      }
+    }
   }
 }
 
