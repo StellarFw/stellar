@@ -141,11 +141,50 @@ export default class WebSocketServer extends GenericServer {
     connection.rawConnection.write(message);
   }
 
-  sendFile() {
-    // todo
-    console.log("todo:sendFile");
+  /**
+   * Action to be executed on a file request.
+   *
+   * @param connection
+   * @param error
+   * @param fileStream
+   * @param mime
+   * @param length
+   * @param lastModified
+   */
+  sendFile(connection, error, fileStream, mime, length, lastModified) {
+    let self = this;
+    let content = '';
+    let response = {
+      error: error,
+      content: null,
+      mime: mime,
+      length: length,
+      lastModified: lastModified
+    };
+
+    try {
+      if (!error) {
+        fileStream.on('data', function (d) {
+          content += d;
+        });
+        fileStream.on('end', function () {
+          response.content = content;
+          self.server.sendMessage(connection, response, connection.messageCount);
+        });
+      } else {
+        self.server.sendMessage(connection, response, connection.messageCount);
+      }
+    } catch (e) {
+      self.api.log(e, 'warning');
+      self.server.sendMessage(connection, response, connection.messageCount);
+    }
   }
 
+  /**
+   * Action to be executed on the goodbye.
+   *
+   * @param connection
+   */
   goodbye(connection) {
     connection.rawConnection.end();
   }
@@ -243,8 +282,8 @@ export default class WebSocketServer extends GenericServer {
     let self = this;
 
     for (let i in self.connections()) {
-      if (self.connections()[i] && rawConnection.id == self.connections()[i].rawConnection.id) {
-        self.connections()[i].destroy();
+      if (self.connections()[ i ] && rawConnection.id == self.connections()[ i ].rawConnection.id) {
+        self.connections()[ i ].destroy();
         break;
       }
     }
@@ -261,7 +300,7 @@ export default class WebSocketServer extends GenericServer {
     switch (verb) {
       case 'action':
         for (let v in data.params) {
-          connection.params[v] = data.params[v];
+          connection.params[ v ] = data.params[ v ];
         }
 
         connection.error = null;
@@ -287,7 +326,7 @@ export default class WebSocketServer extends GenericServer {
         }
 
         for (let i in data) {
-          words.push(data[i]);
+          words.push(data[ i ]);
         }
 
         connection.verbs(verb, words, (error, data) => {

@@ -448,13 +448,13 @@ export default class Web extends GenericServer {
 
       if (connection.rawConnection.method !== 'GET' && connection.rawConnection.method !== 'HEAD' &&
         ( connection.rawConnection.req.headers[ 'content-type' ] || connection.rawConnection.req.headers[ 'Content-Type' ] )) {
-        connection.rawConnection.from = new formidable.IncomingForm();
+        connection.rawConnection.form = new formidable.IncomingForm();
 
-        for (i in api.config.servers.web.formOptions) {
+        for (i in self.api.config.servers.web.formOptions) {
           connection.rawConnection.form[ i ] = self.api.config.servers.web.formOptions[ i ];
         }
 
-        connection.raw.form.parse(connection.rawConnection.req, function (err, fields, files) {
+        connection.rawConnection.form.parse(connection.rawConnection.req, (err, fields, files) => {
           if (err) {
             self.log('error processing form: ' + String(err), 'error');
             connection.error = new Error('There was an error processing this form.')
@@ -465,7 +465,7 @@ export default class Web extends GenericServer {
             self._fillParamsFromWebRequest(connection, fields);
           }
 
-          if (api.config.servers.web.queryRouting !== true) {
+          if (self.api.config.servers.web.queryRouting !== true) {
             connection.params.action = null;
           }
 
