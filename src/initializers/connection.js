@@ -148,6 +148,19 @@ class Connection {
     throw new Error(`I should be replaced with a connection-specific method [${path}]`);
   }
 
+  localize(message) {
+    let self = this;
+
+    console.log('@todo - Connection::localize');
+    return message;
+
+    // this.locale will be sourced automatically
+    /*if (!Array.isArray(message)) {
+      message = [ message ];
+    }
+    return self.api.i18n.i18n.__.apply(this, message);*/
+  }
+
   destroy(callback) {
     let self = this;
     self.destroyed = true;

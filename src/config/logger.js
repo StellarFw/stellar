@@ -1,5 +1,9 @@
 export default {
 
+  consoleLevel: function(api) {
+    return 'debug';
+  },
+
   logger: function (api) {
     let logger = {transports: []};
 

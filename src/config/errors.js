@@ -25,6 +25,13 @@ export default {
               return error;
             }
           },
+          tcp: function (error) {
+            if (Utils.isError(error)) {
+              return String(error.message);
+            } else {
+              return error;
+            }
+          }
         }
       },
 
@@ -103,6 +110,17 @@ export default {
       // ---------------------------------------------------------------------
       fileNotProvided: function () {
         return 'File is a required param to send a file';
+      },
+
+      // ---------------------------------------------------------------------
+      // Connections
+      // ---------------------------------------------------------------------
+
+      // ---------------------------------------------------------------------
+      // Function to be executed when a verb isn't not allowed
+      // ---------------------------------------------------------------------
+      verbNotAllowed: function(connection, verb){
+        return connection.localize(`verb not found or not allowed (${verb})`);
       }
 
     };
