@@ -26,7 +26,8 @@
     "source-map-support": "^0.4.0",
     "uglify-js": "latest",
     "winston": "^2.1.1",
-    "ws": "^1.0.1"
+    "ws": "^1.0.1",
+    "yargs": "^4.2.0"
   },
   "devDependencies": {
     "babel-plugin-transform-class-properties": "^6.3.13",

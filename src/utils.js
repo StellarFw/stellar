@@ -1,3 +1,4 @@
+import os from 'os';
 import fs from 'fs';
 import path from 'path';
 
@@ -277,6 +278,26 @@ export default class Utils {
     } catch (er) {
       return false
     }
+  }
+
+  /**
+   * Get this servers external interface.
+   *
+   * @returns {String} Server external IP or false if not founded.
+   */
+  static getExternalIPAddress() {
+    let ifaces = os.networkInterfaces();
+    let ip = false;
+
+    for (var dev in ifaces) {
+      ifaces[ dev ].forEach((details) => {
+        if (details.family === 'IPv4' && details.address !== '127.0.0.1') {
+          ip = details.address;
+        }
+      });
+    }
+
+    return ip;
   }
 
 }
