@@ -62,7 +62,8 @@ export default {
       // ---------------------------------------------------------------------
       paths: {
         'public': api.scope.rootPath + '/public',
-        'temp': api.scope.rootPath + '/temp'
+        'temp': api.scope.rootPath + '/temp',
+        'pid': api.scope.rootPath + '/pids'
       }
     };
   }
