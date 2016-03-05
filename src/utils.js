@@ -233,4 +233,50 @@ export default class Utils {
     return Utils.isObject(e) && (Utils.objectToString(e) === '[object Error]' || e instanceof Error);
   }
 
+  /**
+   * Remove a directory.
+   *
+   * @param dir   Directory path.
+   */
+  static removeDirectory(dir) {
+    let filesList;
+
+    // get directory files
+    try {
+      filesList = fs.readdirSync(dir);
+    } catch (e) {
+      return;
+    }
+
+    // iterate all folders and files on the directory
+    filesList.forEach((file) => {
+      // get full file path
+      let filePath = `${dir}/${file}`;
+
+      // check if it's a file
+      if (fs.statSync(filePath).isFile()) {
+        fs.unlinkSync(filePath);
+      } else {
+        Utils.removeDirectory(filePath);
+      }
+    });
+
+    // remove current directory
+    fs.rmdirSync(dir);
+  }
+
+  /**
+   * Check if the directory exists.
+   *
+   * @param dir           Directory path.
+   * @returns {boolean}   True if exists, false if not or the given path isn't a directory.
+   */
+  static directoryExists(dir) {
+    try {
+      fs.statSync(dir).isDirectory()
+    } catch (er) {
+      return false
+    }
+  }
+
 }
