@@ -26,6 +26,13 @@ export default class {
     // implement a system to watch for file changes
     api.watchedFiles = [];
 
+    api.unWatchAllFiles = function () {
+      for (var i in api.watchedFiles) {
+        fs.unwatchFile(api.watchedFiles[ i ]);
+      }
+      api.watchedFiles = [];
+    };
+
     api.watchFileAndAct = function (file, callback) {
       // normalise file path
       file = path.normalize(file);
@@ -68,9 +75,9 @@ export default class {
      *
      * @param file
      */
-    let rebootCallback = function(file){
+    let rebootCallback = function (file) {
       api.log('\r\n\r\n*** rebooting due to config change (' + file + ') ***\r\n\r\n', 'info');
-      delete require.cache[require.resolve(file)];
+      delete require.cache[ require.resolve(file) ];
       api.commands.restart.call(api._self);
     };
 
