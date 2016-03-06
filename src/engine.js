@@ -172,11 +172,13 @@ export default class Engine {
    * Start engine execution.
    */
   start(callback = null) {
+    let self = this;
+
     // print current execution path
-    this.api.log(`Current universe "${this.api.scope.rootPath}"`, 'info');
+    self.api.log(`Current universe "${self.api.scope.rootPath}"`, 'info');
 
     // start stage0 loading method
-    this.stage0(callback);
+    self.stage0(callback);
   }
 
   /**
@@ -208,7 +210,7 @@ export default class Engine {
 
       // add the final callback
       self.stopInitializers.push(function finalStopInitializer(next) {
-        self.api.unwatchAllFiles();
+        self.api.unWatchAllFiles();
         // @todo - clear pids when we implement clustering
         self.api.log('The Stellar has been stopped', 'alert');
         self.api.log('***', 'debug');
@@ -331,8 +333,8 @@ export default class Engine {
     });
 
     // execute stage0 initializers in series
-    async.series(this.initialInitializers, function (error) {
-      this.fatalError(self.api, error, 'stage0');
+    async.series(self.initialInitializers, function (error) {
+      self.fatalError(self.api, error, 'stage0');
     });
   }
 
@@ -356,7 +358,7 @@ export default class Engine {
     let stopInitializersRankings = {};
 
     // reset initializers arrays
-    this.initializers = {};
+    self.initializers = {};
 
     // get an array with all initializers
     let initializers_files = Utils.getFiles(__dirname + '/initializers');
@@ -452,7 +454,7 @@ export default class Engine {
 
     // start initialization process
     async.series(self.loadInitializers, function (errors) {
-      Engine.fatalError(self, errors, 'stage0');
+      Engine.fatalError(self.api, errors, 'stage0');
     });
   }
 
@@ -483,8 +485,8 @@ export default class Engine {
       next();
     });
 
-    async.series(this.startInitializers, function (err) {
-      Engine.fatalError(self, err, 'stage2');
+    async.series(self.startInitializers, function (err) {
+      Engine.fatalError(self.api, err, 'stage2');
     });
   }
 }
