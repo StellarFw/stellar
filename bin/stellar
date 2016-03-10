@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
-/**
- * Module dependencies.
- */
+// ----------------------------------------------------------------------------------------------------------- [Imports]
 
 var _ = require('lodash');
 var program = require('commander');
@@ -57,14 +55,20 @@ program
 // usage
 program.usage('[command]');
 
-// $ stellar stellar-run
+// $ stellar run
 var cmd;
 cmd = program.command('run');
 cmd.option('--prod');
 cmd.option('--port [port]');
 cmd.unknownOption = NOOP;
-cmd.description('stellar-run Stellar app');
+cmd.description('run Stellar app');
 cmd.action(require('./stellar-run'));
+
+// $ stellar cluster
+cmd = program.command('cluster');
+cmd.description('Create a cluster');
+cmd.unknownOption = NOOP;
+cmd.action(require('./stellar-cluster'));
 
 // ----------------------------------------
 // Normalize help argument, i.e.
