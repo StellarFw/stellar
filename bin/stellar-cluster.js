@@ -215,9 +215,10 @@ class ClusterManager {
       expectedWorkers: os.cpus().length,
       flapWindow: 1000 * 30,
       execPath: __filename,
+      tempPath: process.cwd() + '/temp',
       pidPath: process.cwd() + '/temp/pids',
       pidFile: 'cluster_pidfile',
-      logPath: process.cwd() + '/temp/log',
+      logPath: process.cwd() + '/temp/logs',
       logFile: 'cluster.log',
       workerTitlePrefix: 'stellar-worker-',
       args: '',
@@ -355,6 +356,7 @@ class ClusterManager {
     });
 
     // config some folders
+    jobs.push((done) => { ClusterManager.configurePath(self.options.tempPath, done); });
     jobs.push((done) => { ClusterManager.configurePath(self.options.logPath, done); });
     jobs.push((done) => { ClusterManager.configurePath(self.options.pidPath, done); });
 
