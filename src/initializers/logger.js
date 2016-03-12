@@ -2,7 +2,7 @@ import winston from 'winston';
 
 export default class {
 
-  static loadPriority = 5;
+  static loadPriority = 120;
 
   static load(api, next) {
     let transports = [];

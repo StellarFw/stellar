@@ -353,7 +353,7 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 20;
+  static loadPriority = 430;
 
   static load(api, next) {
     // load action processor to the API

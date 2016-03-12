@@ -117,7 +117,7 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 15;
+  static loadPriority = 1;
 
   /**
    * Load initializer method.

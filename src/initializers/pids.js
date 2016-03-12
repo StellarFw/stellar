@@ -109,7 +109,7 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 100;
+  static loadPriority = 110;
 
   /**
    * Start priority.

@@ -211,7 +211,7 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 25;
+  static loadPriority = 500;
 
   static load(api, next) {
     // put the routes manager available to all platform

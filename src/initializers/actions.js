@@ -150,7 +150,7 @@ class Actions {
 // initializer class
 export default class {
 
-  static loadPriority = 20;
+  static loadPriority = 410;
 
   static load(api, next) {
     // add the actions class to the api

@@ -75,7 +75,7 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 20;
+  static loadPriority = 420;
 
   /**
    * Action to the executed on the initializer loading.

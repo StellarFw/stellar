@@ -136,7 +136,7 @@ class ExceptionsManager {
 
 export default class {
 
-  static loadPriority = 10;
+  static loadPriority = 130;
 
   static load(api, next) {
     api.exceptionHandlers = new ExceptionsManager(api);
