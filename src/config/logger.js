@@ -1,17 +1,41 @@
+import fs from 'fs';
+import cluster from 'cluster';
+
 export default {
 
-  consoleLevel: function(api) {
+  consoleLevel: function (api) {
     return 'debug';
   },
 
   logger: function (api) {
     let logger = {transports: []};
 
-    // add console logger
-    logger.transports.push(function (api, winston) {
-      return new winston.transports.Console({
-        colorize: true,
-        level: 'debug',
+    // check if this Stellar instance is the Master
+    if (cluster.isMaster) {
+      logger.transports.push((api, winston) => {
+        return new (winston.transports.Console)({
+          colorize: true,
+          level: 'info',
+          timestamp: true
+        });
+      })
+    }
+
+    // add a file logger
+    let logDirectory = api.config.general.paths.log;
+
+    try {
+      fs.mkdirSync(logDirectory);
+    } catch (e) {
+      if (e.code !== 'EEXIST') {
+        throw new Error(`Cannot create log directory @ ${logDirectory}`);
+      }
+    }
+
+    logger.transports.push((api, winston) => {
+      return new (winston.transports.File)({
+        filename: `${logDirectory}/${api.pids.title}.log`,
+        level: 'info',
         timestamp: true
       });
     });
