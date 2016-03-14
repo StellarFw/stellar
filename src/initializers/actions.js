@@ -1,5 +1,4 @@
 // initializer modules
-import _ from 'lodash';
 import Utils from '../utils';
 
 /**
@@ -51,6 +50,12 @@ class Actions {
     this.api = api;
   }
 
+  /**
+   * Load a new action file.
+   *
+   * @param fullFilePath
+   * @param reload
+   */
   loadFile(fullFilePath, reload = false) {
     let self = this;
 
@@ -87,6 +92,13 @@ class Actions {
         // if the action not exists create a new entry on the hash map
         if (self.actions[ action.name ] === null || self.actions[ action.name ] === undefined) {
           self.actions[ action.name ] = {}
+        }
+
+        // if the action exists and are protected return now
+        if (self.actions[ action.name ][ action.version ] !== undefined &&
+          self.actions[ action.name ][ action.version ].protected !== undefined &&
+          self.actions[ action.name ][ action.version ].protected === true) {
+          return
         }
 
         // put the action on correct version slot
@@ -150,18 +162,30 @@ class Actions {
 // initializer class
 export default class {
 
+  /**
+   * Module load priority.
+   *
+   * @type {number}
+   */
   static loadPriority = 410;
 
+  /**
+   * Load method.
+   *
+   * @param api   API reference.
+   * @param next  Callback.
+   */
   static load(api, next) {
     // add the actions class to the api
     api.actions = new Actions(api);
 
     // iterate all modules and load all actions
-    _.forEach(api.config.modules, function (module_slug, manifest) {
-      _.forEach(Utils.getFiles(`${api.scope.rootPath}/modules/${module_slug}/actions`), function (file) {
-        api.actions.loadFile(file);
-      });
-    });
+    for (let module_slug in api.config.modules) {
+      Utils.recursiveDirectoryGlob(`${api.scope.rootPath}/modules/${module_slug}/actions`)
+        .forEach((actionFile) => {
+          api.actions.loadFile(actionFile)
+        });
+    }
 
     next();
   }
