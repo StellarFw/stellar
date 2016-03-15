@@ -25,6 +25,21 @@ export default {
       welcomeMessage: 'Hello human! Welcome to Stellar',
 
       // ---------------------------------------------------------------------
+      // The Redis prefix for Stellar's cache objects
+      // ---------------------------------------------------------------------
+      cachePrefix: 'stellar:cache',
+
+      // ---------------------------------------------------------------------
+      // The Redis prefix for Stellar's cache/lock objects
+      // ---------------------------------------------------------------------
+      lockPrefix: 'stellar:lock',
+
+      // ---------------------------------------------------------------------
+      // How long will a lock last before it expires (ms)
+      // ---------------------------------------------------------------------
+      lockDuration: 1000 * 10, // 10 seconds
+
+      // ---------------------------------------------------------------------
       // By default the Stellar are in development mode
       // ---------------------------------------------------------------------
       developmentMode: true,

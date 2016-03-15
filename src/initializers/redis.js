@@ -1,6 +1,11 @@
 import uuid from 'node-uuid'
 import Utils from '../utils'
 
+/**
+ * Redis manager class.
+ *
+ * This creates a interface to connect with a redis server.
+ */
 class RedisManager {
 
   /**
@@ -228,6 +233,9 @@ class RedisManager {
   }
 }
 
+/**
+ * Redis initializer.
+ */
 export default class {
 
   /**
@@ -238,11 +246,18 @@ export default class {
   static loadPriority = 200;
 
   /**
+   * Initializer start priority.
+   *
+   * @type {number}
+   */
+  static startPriority = 101;
+
+  /**
    * Initializer stop priority.
    *
    * @type {number}
    */
-  static stopPriority = 101;
+  static stopPriority = 999;
 
   /**
    * Initializer load method.
