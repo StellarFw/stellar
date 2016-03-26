@@ -32,8 +32,8 @@ export default class Engine {
    */
   static normalizeInitializerPriority(initializer) {
     initializer.loadPriority = initializer.loadPriority || Engine.defaultPriorities.load;
-    initializer.startProority = initializer.startProority || Engine.defaultPriorities.start;
-    initializer.stopProority = initializer.stopProority || Engine.defaultPriorities.stop;
+    initializer.startPriority = initializer.startPriority || Engine.defaultPriorities.start;
+    initializer.stopPriority = initializer.stopPriority || Engine.defaultPriorities.stop;
   }
 
   /**
@@ -429,13 +429,13 @@ export default class Engine {
       // normalize initializer priorities
       Engine.normalizeInitializerPriority(self.initializers[ initializer ]);
       loadInitializersRankings[ self.initializers[ initializer ].loadPriority ] = loadInitializersRankings[ self.initializers[ initializer ].loadPriority ] || [];
-      startInitializersRankings[ self.initializers[ initializer ].startProority ] = startInitializersRankings[ self.initializers[ initializer ].startProority ] || [];
-      stopInitializersRankings[ self.initializers[ initializer ].stopProority ] = stopInitializersRankings[ self.initializers[ initializer ].stopProority ] || [];
+      startInitializersRankings[ self.initializers[ initializer ].startPriority ] = startInitializersRankings[ self.initializers[ initializer ].startPriority ] || [];
+      stopInitializersRankings[ self.initializers[ initializer ].stopPriority ] = stopInitializersRankings[ self.initializers[ initializer ].stopPriority ] || [];
 
       // push loader state function to ranked arrays
       loadInitializersRankings[ self.initializers[ initializer ].loadPriority ].push(loadFunction);
-      startInitializersRankings[ self.initializers[ initializer ].startProority ].push(startFunction);
-      stopInitializersRankings[ self.initializers[ initializer ].stopProority ].push(stopFunction);
+      startInitializersRankings[ self.initializers[ initializer ].startPriority ].push(startFunction);
+      stopInitializersRankings[ self.initializers[ initializer ].stopPriority ].push(stopFunction);
     }
 
     // organize final array to match the initializers priorities
