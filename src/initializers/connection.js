@@ -9,6 +9,15 @@ class Connections {
   allowedVerbs = [
     'quit',
     'exit',
+    'paramAdd',
+    'paramDelete',
+    'paramView',
+    'paramsView',
+    'paramsDelete',
+    'roomAdd',
+    'roomLeave',
+    'roomView',
+    'detailsView',
     'say'
   ];
 
@@ -104,19 +113,17 @@ class Connection {
     let connectionDefaults = {
       error: null,
       params: {},
+      rooms: [],
       fingerprint: null,
       pendingActions: 0,
       totalActions: 0,
-      messageCount: 0
+      messageCount: 0,
+      canChat: false
     };
 
     for (let i in connectionDefaults) {
-      if (self[ i ] === undefined && data[ i ] !== undefined) {
-        self[ i ] = data[ i ];
-      }
-      if (self[ i ] === undefined) {
-        self[ i ] = connectionDefaults[ i ];
-      }
+      if (self[ i ] === undefined && data[ i ] !== undefined) { self[ i ] = data[ i ]; }
+      if (self[ i ] === undefined) { self[ i ] = connectionDefaults[ i ]; }
     }
 
     self.api.i18n.invokeConnectionLocale(self);
@@ -258,10 +265,19 @@ class Connection {
       } else if (verb === 'roomLeave') {
         room = words[ 0 ];
         self.api.chatRoom.removeMember(self.id, room, function (err, didHappen) {
-          if (typeof callback === 'function') {
-            callback(err, didHappen);
-          }
+          if (typeof callback === 'function') { callback(err, didHappen); }
         });
+      } else if (verb === 'roomView') {
+        // get requested room name
+        room = words[ 0 ];
+
+        if (self.rooms.indexOf(room) > -1) {
+          self.api.chatRoom.roomStatus(room, (err, roomStatus) => {
+            if (typeof callback === 'function') { callback(err, roomStatus); }
+          });
+        } else {
+          if (typeof callback === 'function') { callback(`not member of room ${room}`); }
+        }
       } else if (verb === 'detailsView') {
         let details = {};
         details.id = self.id;

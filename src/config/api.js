@@ -1,3 +1,6 @@
+/**
+ * General configs.
+ */
 export default {
   general(api) {
     return {
@@ -80,7 +83,51 @@ export default {
         'temp': api.scope.rootPath + '/temp',
         'pid': api.scope.rootPath + '/temp/pids',
         'log': api.scope.rootPath + '/temp/logs'
+      },
+
+      // ---------------------------------------------------------------------
+      // hash containing chat rooms to be created at server boot
+      //
+      // Format:
+      //  {roomName: {authKey, authValue}}
+      //
+      // Example:
+      //  'secureRoom': {authorized: true}
+      // ---------------------------------------------------------------------
+      startingChatRooms: {
+        'defaultRoom': {}
       }
     };
   }
 }
+
+/**
+ * Test configs.
+ *
+ * @type {{}}
+ */
+export const test = {
+  general: (api) => {
+    return {
+      id: 'test-server',
+      developmentMode: true,
+      startingChatRooms: {
+        defaultRoom: {},
+        otherRoom: {}
+      }
+    }
+  }
+};
+
+/**
+ * Production configs.
+ *
+ * @type {{}}
+ */
+export const production = {
+  general: (api) => {
+    return {
+      developmentMode: false
+    }
+  }
+};

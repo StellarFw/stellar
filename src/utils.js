@@ -300,4 +300,16 @@ export default class Utils {
     return ip;
   }
 
+  /**
+   * Make a clone of an object.
+   *
+   * @param obj         Object to be cloned.
+   * @returns {Object}  New object reference.
+   */
+  static objClone(obj) {
+    return Object.create(Object.getPrototypeOf(obj), Object.getOwnPropertyNames(obj).reduce((memo, name) => {
+      return (memo[ name ] = Object.getOwnPropertyDescriptor(obj, name)) && memo;
+    }, {}));
+  };
+
 }

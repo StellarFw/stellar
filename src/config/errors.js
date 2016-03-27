@@ -119,8 +119,61 @@ export default {
       // ---------------------------------------------------------------------
       // Function to be executed when a verb isn't not allowed
       // ---------------------------------------------------------------------
-      verbNotAllowed: function(connection, verb){
+      verbNotAllowed: function (connection, verb) {
         return connection.localize(`verb not found or not allowed (${verb})`);
+      },
+
+      // ---------------------------------------------------------------------
+      // Error handler when the room and the message are not present on the
+      // request.
+      // ---------------------------------------------------------------------
+      connectionRoomAndMessage: function (connection) {
+        return connection.localize('both room and message are required');
+      },
+
+      // ---------------------------------------------------------------------
+      // Error handle for a request made to a room who the user as not part of
+      // ---------------------------------------------------------------------
+      connectionNotInRoom: function (connection, room) {
+        return connection.localize(`connection not in this room (${room})`);
+      },
+
+      // ---------------------------------------------------------------------
+      // Error handler for a join request to a room which the user is already
+      // part
+      // ---------------------------------------------------------------------
+      connectionAlreadyInRoom: function (connection, room) {
+        return connection.localize(`connection already in this room (${room})`);
+      },
+
+      // ---------------------------------------------------------------------
+      // Error handle request for a deleted room.
+      // ---------------------------------------------------------------------
+      connectionRoomHasBeenDeleted: function (room) {
+        return 'this room has been deleted';
+      },
+
+      // ---------------------------------------------------------------------
+      // Error handler for a join request to a not existing room
+      // ---------------------------------------------------------------------
+      connectionRoomNotExist: function (room) {
+        return 'room does not exist';
+      },
+
+      // ---------------------------------------------------------------------
+      // Error handler for a room creation request with a same name a already
+      // existing room
+      // ---------------------------------------------------------------------
+      connectionRoomExists: function (room) {
+        return 'room exists';
+      },
+
+      // ---------------------------------------------------------------------
+      // Error handler for a request who need a room name and that parameter
+      // are not present.
+      // ---------------------------------------------------------------------
+      connectionRoomRequired: function (room) {
+        return 'a room is required';
       }
 
     };

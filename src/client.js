@@ -1,3 +1,10 @@
+/**
+ * Interface for WebSocket client interact with the server.
+ *
+ * @param opts    Connections parameters.
+ * @param client  Client object (if exists).
+ * @constructor
+ */
 var StellarClient = function (opts, client) {
   var self = this;
 
@@ -107,9 +114,7 @@ StellarClient.prototype.connect = function (callback) {
 StellarClient.prototype.configure = function (callback) {
   var self = this;
 
-  self.rooms.forEach((room) => {
-    self.send({event: 'roomAdd', room: room});
-  });
+  self.rooms.forEach((room) => { self.send({event: 'roomAdd', room: room}); });
 
   self.detailsView((details) => {
     self.id = details.data.id;
@@ -119,7 +124,7 @@ StellarClient.prototype.configure = function (callback) {
   });
 };
 
-// ---------------------------------------------------------------------------------------------------------- [Messages]
+// --------------------------------------------------------------------------------------------------------- [Messaging]
 
 /**
  * Send a message.
@@ -132,9 +137,7 @@ StellarClient.prototype.send = function (args, callback) {
   var self = this;
   self.messageCount++;
 
-  if (typeof callback == 'function') {
-    self.callbacks[ self.messageCount ] = callback;
-  }
+  if (typeof callback == 'function') { self.callbacks[ self.messageCount ] = callback; }
 
   self.client.write(args);
 };
@@ -172,11 +175,15 @@ StellarClient.prototype.handleMessage = function (message) {
 /**
  * Call an action.
  *
- * @param action   name of the action to be called.
- * @param params
- * @param callback function who will be called when we receive the response.
+ * If this client instance are connected use WebSocket, otherwise use a normal
+ * HTTP request. This makes possible call actions as soon as the web app is
+ * loaded.
+ *
+ * @param action   Name of the action to be called.
+ * @param params   Action parameters.
+ * @param callback Function who will be called when we receive the response.
  */
-StellarClient.prototype.action = function (action, params, callback) {
+StellarClient.prototype.action = function (action, params = {}, callback) {
   let self = this;
 
   if (!callback && typeof params === 'function') {
@@ -184,25 +191,45 @@ StellarClient.prototype.action = function (action, params, callback) {
     params = null;
   }
 
-  if (!params) {
-    params = {};
-  }
+  // define params to be a Map if it is null
+  if (!params) { params = {}; }
+
+  // sets the parameter action, in case of the action call be done over HTTP.
   params.action = action;
 
+  // if the client is connected the connection should be done by WebSocket
+  // otherwise we need to use HTTP
   if (self.state !== 'connected') {
-    self.actionWeb(params, callback);
+    self._actionWeb(params, callback);
   } else {
-    self.actionWebSocket(params, callback);
+    self._actionWebSocket(params, callback);
   }
 };
 
-StellarClient.prototype.actionWeb = function (params, callback) {
+/**
+ * Call a action using a normal HTTP connection.
+ *
+ * @param params    Call parameters.
+ * @param callback  Function to be executed after the response be received.
+ * @private
+ */
+StellarClient.prototype._actionWeb = function (params, callback) {
   let self = this;
-  var xmlhttp = new XMLHttpRequest();
 
+  // create a new XMLHttpRequest instance
+  let xmlhttp = new XMLHttpRequest();
+
+  // define the action to be executed at the end of the request
   xmlhttp.onreadystatechange = function () {
-    var response;
+    let response;
+
+    // the response only are received if the readyState is equals to 4
     if (xmlhttp.readyState === 4) {
+
+      // if the HTTP status code is equals to 200 make a JSON parser.
+      // in case of the request code be different of 200 we try make
+      // a JSON parser too, but it can fail so we catch the exception
+      // and we make our own error message
       if (xmlhttp.status === 200) {
         response = JSON.parse(xmlhttp.responseText);
       } else {
@@ -213,29 +240,44 @@ StellarClient.prototype.actionWeb = function (params, callback) {
         }
       }
 
+      // execute the callback function
       callback(response);
     }
   };
 
+  // define the HTTP method to be used (by default we use POST)
   let method = (params.httpMethod || 'POST').toUpperCase();
+
+  // define the URL to be called and append the action on the query params
   let url = self.options.url + self.options.apiPath + '?action=' + params.action;
 
   if (method === 'GET') {
     for (let param in params) {
-      if (~[ 'action', 'httpMethod' ].indexOf(param)) {
-        continue;
-      }
+      if (~[ 'action', 'httpMethod' ].indexOf(param)) { continue; }
       url += `&${param}=${params[ param ]}`;
     }
   }
 
+  // open a new connection
   xmlhttp.open(method, url, true);
+
+  // det the content type to JSON
   xmlhttp.setRequestHeader('Content-Type', 'application/json');
+
+  // send the request
   xmlhttp.send(JSON.stringify(params));
 };
 
-StellarClient.prototype.actionWebSocket = function (params, callback) {
-  this.send({event: 'action', params: params}, callback);
+/**
+ * Send an action call request by WebSocket.
+ *
+ * @param params    Call parameters.
+ * @param callback  Function to be executed at the end do the request.
+ * @private
+ */
+StellarClient.prototype._actionWebSocket = function (params, callback) {
+  let self = this;
+  self.send({event: 'action', params: params}, callback);
 };
 
 // ---------------------------------------------------------------------------------------------------------- [Commands]
@@ -243,19 +285,19 @@ StellarClient.prototype.actionWebSocket = function (params, callback) {
 /**
  * Send a message to a room.
  *
- * @param room
- * @param message
- * @param callback
+ * @param room      Room name.
+ * @param message   Message to be sent.
+ * @param callback  Function to be executed to receive the server response.
  */
 StellarClient.prototype.say = function (room, message, callback) {
   this.send({event: 'say', room: room, message: message}, callback);
 };
 
 /**
- * Request a file.
+ * Make a file request.
  *
- * @param file
- * @param callback
+ * @param file      File to be requested.
+ * @param callback  Function to be executed to receive the server response.
  */
 StellarClient.prototype.file = function (file, callback) {
   this.send({event: 'file', file: file}, callback);
@@ -263,43 +305,73 @@ StellarClient.prototype.file = function (file, callback) {
 
 /**
  * Request the details view.
+ *
+ * @param callback  Function to be executed when the server respond.
  */
 StellarClient.prototype.detailsView = function (callback) {
   this.send({event: 'detailsView'}, callback);
 };
 
-StellarClient.prototype.roomView = function (callback) {
-  this.send({event: 'roomView', room: room}, callback);
+/**
+ * Request a room state.
+ *
+ * @param room      Room name.
+ * @param callback  Function to be executed to receive the server response.
+ */
+StellarClient.prototype.roomView = function (room, callback) {
+  let self = this;
+  self.send({event: 'roomView', room: room}, callback);
 };
 
+/**
+ * Create a new room.
+ *
+ * @param room      Name for the room to be created.
+ * @param callback  Function to be executed to receive the server response.
+ */
 StellarClient.prototype.roomAdd = function (room, callback) {
-  var self = this;
+  let self = this;
+
   self.send({event: 'roomAdd', room: room}, function (data) {
     self.configure(function () {
-      if (typeof callback === 'function') {
-        callback(data);
-      }
+      if (typeof callback === 'function') { callback(data); }
     });
   });
 };
 
+/**
+ * Leave a room.
+ *
+ * @param room      Name the to leave.
+ * @param callback  Function to be executed to receive the server response.
+ */
 StellarClient.prototype.roomLeave = function (room, callback) {
-  var self = this;
-  var index = self.rooms.indexOf(room);
-  if (index > -1) {
-    self.rooms.splice(index, 1);
-  }
-  this.send({event: 'roomLeave', room: room}, function (data) {
-    self.configure(function () {
-      if (typeof callback === 'function') {
-        callback(data);
-      }
-    });
+  let self = this;
+
+  // get the position of the room on the client rooms list
+  let index = self.rooms.indexOf(room);
+
+  // remove the room from the client room list
+  if (index > -1) { self.rooms.splice(index, 1); }
+
+  // make a server request to remove the client from the room
+  self.send({event: 'roomLeave', room: room}, (data) => {
+    self.configure(() => { if (typeof callback === 'function') { callback(data); } });
   });
 };
 
+/**
+ * Disconnect client from the server.
+ */
 StellarClient.prototype.disconnect = function () {
-  this.state = 'disconnected';
-  this.client.end();
-  this.emit('disconnected');
+  let self = this;
+
+  // change the connection state to disconnected
+  self.state = 'disconnected';
+
+  // finish the connection between the client and the server
+  self.client.end();
+
+  // emit the 'disconnected' event
+  self.emit('disconnected');
 };
