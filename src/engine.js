@@ -415,10 +415,10 @@ export default class Engine {
       // initializer stop function
       let stopFunction = function (next) {
         if (typeof  self.initializers[ initializer ].stop === 'function') {
-          self.api.log(` > stop: ${initializer}`, 'debug', file);
+          self.api.log(` > stop: ${initializer}`, 'debug');
 
           self.initializers[ initializer ].stop(self.api, function (err) {
-            self.api.log(`   stopped: ${initializer}`, 'debug', file);
+            self.api.log(`   stopped: ${initializer}`, 'debug');
             next(err);
           });
         } else {
