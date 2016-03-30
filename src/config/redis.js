@@ -1,3 +1,6 @@
+/**
+ * Redis configs.
+ */
 export default {
   redis: (api) => {
     let redisDetails = {
@@ -36,8 +39,13 @@ export default {
 
     return redisDetails;
   }
-};
+}
 
+/**
+ * Redis configs for test environment.
+ *
+ * @type {{redis: test.redis}}
+ */
 export let test = {
   redis: function (api) {
     let pkg = 'fakeredis';
@@ -45,5 +53,9 @@ export let test = {
     if (process.env.FAKEREDIS === 'false') {
       pkg = 'ioredis';
     }
+
+    return {
+      pkg: pkg
+    }
   }
-};
+}
