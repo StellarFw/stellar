@@ -1,37 +1,51 @@
-import _ from 'lodash';
+import Utils from '../utils'
 
 /**
  * This initializer loads all active modules configs to the
  * engine instance.
  */
-export default class Modules {
+export default class {
 
-  static loadPriority = 0;
+  /**
+   * Initializer load priority.
+   *
+   * @type {number}
+   */
+  static loadPriority = 0
 
+  /**
+   * Initializer load function.
+   *
+   * @param api   API reference.
+   * @param next  Callback function.
+   */
   static load(api, next) {
     // get active modules
-    let modules = api.config.modules;
+    let modules = api.config.modules
 
     // this config is required. If doesn't exists or is an empty array
     // an exception should be raised.
-    if (modules === undefined || _.isEmpty(modules)) {
-      api.shutdown(true, 'At least one module needs to be active.');
-    }
+    if (modules === undefined || modules.length === 0) { api.shutdown(true, 'At least one module needs to be active.') }
 
-    // the modules configs are located at `api.config.modules`
-    api.config.modules = {};
+    // save the list of active modules
+    api.config.activeModules = Utils.objClone(api.config.modules)
+
+    // save the modules
+    api.config.modules = new Map()
 
     // load all modules manifests
-    _.forEach(modules, function (module_slug) {
-      let path = `${api.scope.rootPath}/modules/${module_slug}/manifest.json`;
+    api.config.activeModules.forEach((moduleName) => {
+      // build the full path
+      let path = `${api.scope.rootPath}/modules/${moduleName}/manifest.json`
 
       // get module manifest file content
-      let manifest = require(path);
+      let manifest = require(path)
 
       // save the module config on the engine instance
-      api.config.modules[manifest.id] = manifest;
-    });
+      api.config.modules.set(manifest.id, manifest)
+    })
 
+    // finish initializer loading
     next();
   }
 
