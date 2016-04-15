@@ -23,7 +23,7 @@ export default {
       // Basic configuration options
       // ---------------------------------------------------------------------
       host: process.env.REDIS_HOST || '127.0.0.1',
-      port: process.env.REDIS_PORT || 6279,
+      port: process.env.REDIS_PORT || 6379,
       database: process.env.REDIS_DB || 0
     };
 
@@ -32,9 +32,7 @@ export default {
 
       // there are many more connection options, including support for cluster and sentinel
       // learn more @ https://github.com/luin/ioredis
-      redisDetails.options = {
-        password: process.env.REDIS_PASS || null
-      }
+      redisDetails.options = { password: process.env.REDIS_PASS || null }
     }
 
     return redisDetails;
