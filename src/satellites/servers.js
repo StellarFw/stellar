@@ -141,7 +141,7 @@ export default class {
 
   /**
    * This should be loaded after all engine
-   * loading initializers.
+   * loading satellites.
    *
    * @type {number}
    */
