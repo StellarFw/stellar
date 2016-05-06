@@ -310,6 +310,6 @@ export default class Utils {
     return Object.create(Object.getPrototypeOf(obj), Object.getOwnPropertyNames(obj).reduce((memo, name) => {
       return (memo[ name ] = Object.getOwnPropertyDescriptor(obj, name)) && memo;
     }, {}));
-  };
+  }
 
 }

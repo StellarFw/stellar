@@ -33,16 +33,22 @@ export default class {
     // save the modules
     api.config.modules = new Map()
 
+    // create  anew object to save the modules full path
+    api.config.modulesPaths = new Map()
+
     // load all modules manifests
     api.config.activeModules.forEach((moduleName) => {
       // build the full path
-      let path = `${api.scope.rootPath}/modules/${moduleName}/manifest.json`
+      let path = `${api.scope.rootPath}/modules/${moduleName}`
 
       // get module manifest file content
-      let manifest = require(path)
+      let manifest = require(`${path}/manifest.json`)
 
       // save the module config on the engine instance
       api.config.modules.set(manifest.id, manifest)
+
+      // save the module full path
+      api.config.modulesPaths.set(manifest.id, path)
     })
 
     // finish initializer loading

@@ -431,7 +431,7 @@ export default class Engine {
         }
       };
 
-      // normalize initializer priorities
+      // normalize satellite priorities
       Engine.normalizeInitializerPriority(self.satellites[ initializer ])
       loadSatellitesRankings[ self.satellites[ initializer ].loadPriority ] = loadSatellitesRankings[ self.satellites[ initializer ].loadPriority ] || []
       startSatellitesRankings[ self.satellites[ initializer ].startPriority ] = startSatellitesRankings[ self.satellites[ initializer ].startPriority ] || []
