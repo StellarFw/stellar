@@ -25,6 +25,7 @@
     "log": "^1.4.0",
     "mockgoose": "^5.4.1",
     "mongoose": "^4.4.10",
+    "node-resque": "^2.0.0",
     "node-uuid": "^1.4.7",
     "primus": "^4.0.4",
     "qs": "latest",
