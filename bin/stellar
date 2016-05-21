@@ -1,101 +1,29 @@
 #!/usr/bin/env node
 
-// ----------------------------------------------------------------------------------------------------------- [Imports]
+'use strict';
 
-var _ = require('lodash');
-var program = require('commander');
-var package = require('../package.json');
-var NOOP = function () {
-};
+let Commander = require('./commander')
 
-// Allow us to display help(), but omit the wildcard (*) command.
-program.Command.prototype.usageMinusWildcard =
-  program.usageMinusWildcard = function () {
-    program.commands = _.reject(program.commands, {
-      _name: '*'
-    });
-  };
+// create a new Commander instance
+let commander = new Commander()
 
-// Force program to display version information
-program.Command.prototype.versionInformation =
-  program.versionInformation = function () {
-    program.emit('version');
-  };
+// register makeAction command
+commander.command('makeAction')
+  .description('Create a new action file')
+  .option('module', 'Module here the action must be created')
+  .action(require('./commands/makeAction'))
 
-// show stellar version
-program.version(package.version, '-v, --version');
+// register run command
+commander.command('run')
+  .description('Run a Stellar instance')
+  .option('prod', 'Enable production mode')
+  .option('port', 'Define the port here the server will listening')
+  .action(require('./commands/run'))
 
-// ----------------------------------------
-// Normalize version argument, i.e.
-// ----------------------------------------
-// $ stellar -v
-// $ stellar -V
-// $ stellar --version
-// $ stellar version
-// ----------------------------------------
+// register cluster command
+commander.command('cluster')
+  .description('Create a custer')
+  .action(require('./commands/cluster'))
 
-// make `-v` option case-insensitive
-program.argv = process.argv.map(function (arg) {
-  return (arg === '-V') ? '-v' : arg;
-});
-
-// $ stellar version (--version synonym)
-program
-  .command('version')
-  .description('show app version')
-  .action(program.versionInformation);
-
-// main program options
-program
-  .option('--silent')
-  .option('--verbose')
-  .option('--silly')
-  .unknownOption = NOOP;
-
-// usage
-program.usage('[command]');
-
-// $ stellar run
-var cmd;
-cmd = program.command('run');
-cmd.option('--prod');
-cmd.option('--port [port]');
-cmd.unknownOption = NOOP;
-cmd.description('run Stellar app');
-cmd.action(require('./stellar-run'));
-
-// $ stellar cluster
-cmd = program.command('cluster');
-cmd.description('Create a cluster');
-cmd.unknownOption = NOOP;
-cmd.action(require('./stellar-cluster'));
-
-// ----------------------------------------
-// Normalize help argument, i.e.
-// ----------------------------------------
-// $ stellar --help
-// $ stellar help
-// $ stellar
-// $ stellar <unrecognized_cmd>
-// ----------------------------------------
-
-// $ stellar help (--help synonym)
-cmd = program.command('help');
-cmd.description('show this info');
-cmd.action(program.usageMinusWildcard);
-
-// $ stellar <unrecognized_cmd>
-// Mark the '*' in `help`.
-program
-  .command('*')
-  .action(program.usageMinusWildcard);
-
-// Don't balk at unknown options
-program.unknownOption = NOOP;
-
-// $ stellar
-program.parse(process.argv);
-var NO_COMMAND_SPECIFIED = program.args.length === 0;
-if (NO_COMMAND_SPECIFIED) {
-  program.usageMinusWildcard();
-}
+// parse the command line argument an execute the requested action
+commander.parse(process.argv)

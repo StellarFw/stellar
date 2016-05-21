@@ -1,11 +1,9 @@
-#!/usr/bin/env node
-
 // ----------------------------------------------------------------------------------------------------------- [Imports]
 
 var os = require('os');
 var cluster = require('cluster');
-var package = require('../package.json');
-var Engine = require('../dist/engine').default;
+var package = require('../../package.json');
+var Engine = require('../../dist/engine').default;
 
 // ------------------------------------------------------------------------------------------------------------ [Module]
 
