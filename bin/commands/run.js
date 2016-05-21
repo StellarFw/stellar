@@ -1,48 +1,50 @@
+'use strict'
+
 // ----------------------------------------------------------------------------------------------------------- [Imports]
 
-var os = require('os');
-var cluster = require('cluster');
-var package = require('../../package.json');
-var Engine = require('../../dist/engine').default;
+let os = require('os');
+let cluster = require('cluster');
+let pkg = require('../../package.json');
+let Engine = require('../../dist/engine').default;
 
 // ------------------------------------------------------------------------------------------------------------ [Module]
 
 module.exports = function () {
   // build initial scope
-  var scope = {
+  let scope = {
     rootPath: process.cwd(),
-    stellarPackageJSON: package
-  };
+    stellarPackageJSON: pkg
+  }
 
   // number of ms to wait to do a force shutdown if the Stellar won't stop gracefully
-  var shutdownTimeout = 1000 * 30;
-  if (process.env.STELLAR_SHUTDOWN_TIMEOUT) { shutdownTimeout = parseInt(process.env.STELLAR_SHUTDOWN_TIMEOUT); }
+  let shutdownTimeout = 1000 * 30
+  if (process.env.STELLAR_SHUTDOWN_TIMEOUT) { shutdownTimeout = parseInt(process.env.STELLAR_SHUTDOWN_TIMEOUT) }
 
   // API reference
-  var api = null;
+  let api = null
 
   // process state
-  var state = 'stopped';
+  let state = 'stopped'
 
   // create a stellar engine instance
-  var engine = new Engine(scope);
+  let engine = new Engine(scope)
 
   // save the timer who checks the internal stop
-  var checkForInternalStopTimer;
+  let checkForInternalStopTimer
 
   /**
    * Checks if the engine stops.
    */
-  var checkForInternalStop = function () {
+  let checkForInternalStop = function () {
     // clear timeout
-    clearTimeout(checkForInternalStopTimer);
+    clearTimeout(checkForInternalStopTimer)
 
     // if the engine executing stops finish the process
-    if (engine.api.running !== true) { process.exit(0); }
+    if (engine.api.running !== true) { process.exit(0) }
 
     // create a new timeout
-    checkForInternalStopTimer = setTimeout(checkForInternalStop, shutdownTimeout);
-  };
+    checkForInternalStopTimer = setTimeout(checkForInternalStop, shutdownTimeout)
+  }
 
   // -------------------------------------------------------------------------------------------------- [Actions Server]
 
@@ -51,153 +53,150 @@ module.exports = function () {
    *
    * @param callback Callback function.
    */
-  var startServer = function (callback) {
+  let startServer = function (callback) {
     // set the engine state to 'starting'
-    state = 'starting';
+    state = 'starting'
 
     // inform the new work start to the master
-    if (cluster.isWorker) { process.send({state: state}); }
+    if (cluster.isWorker) { process.send({state: state}) }
 
     // start the engine
-    engine.start(function (err, apiFromCallback) {
+    engine.start((err, apiFromCallback) => {
       if (err) {
-        binary.log(err);
-        process.exit(1);
-      } else {
-        // set the engine state to 'started'
-        state = 'started';
-
-        // inform the new work start to the master
-        if (cluster.isWorker) { process.send({state: state}); }
-
-        // save the api instance
-        api = apiFromCallback;
-
-        // start check for the engine internal state
-        checkForInternalStop();
-
-        // execute the callback if defined
-        if (typeof callback === 'function') { callback(null, api); }
+        binary.log(err)
+        process.exit(1)
+        return
       }
-    });
-  };
+
+      // set the engine state to 'started'
+      state = 'started'
+
+      // inform the new work start to the master
+      if (cluster.isWorker) { process.send({state: state}) }
+
+      // save the api instance
+      api = apiFromCallback
+
+      // start check for the engine internal state
+      checkForInternalStop()
+
+      // execute the callback if defined
+      if (typeof callback === 'function') { callback(null, api) }
+    })
+  }
 
   /**
    * Stop server.
    *
    * @param callback Callback function.
    */
-  var stopServer = function (callback) {
-    state = 'stopping';
+  let stopServer = function (callback) {
+    state = 'stopping'
 
-    if (cluster.isWorker) { process.send({state: state}); }
+    if (cluster.isWorker) { process.send({state: state}) }
 
-    engine.stop(function () {
-      state = 'stopped';
-      if (cluster.isWorker) { process.send({state: state}); }
-      api = null;
-      if (typeof  callback === 'function') { callback(null, api); }
-    });
-  };
+    engine.stop(() => {
+      state = 'stopped'
+      if (cluster.isWorker) { process.send({state: state}) }
+      api = null
+      if (typeof  callback === 'function') { callback(null, api) }
+    })
+  }
 
   /**
    * Restart the server.
    *
    * @param callback Callback function.
    */
-  var restartServer = function (callback) {
+  let restartServer = function (callback) {
     // set engine state to 'restarting'
-    state = 'restarting';
+    state = 'restarting'
 
     // if this process is a worker, inform the new state to the master
-    if (process.isWorker) { process.send({state: state}); }
+    if (process.isWorker) { process.send({state: state}) }
 
     // restart the server
-    engine.restart(function (err, apiFromCallback) {
+    engine.restart((err, apiFromCallback) => {
       // set the server state to 'started'
-      state = 'started';
+      state = 'started'
 
       // if this process is a worker, inform the new state to the master
-      if (process.isWorker) { process.send({state: state}); }
+      if (process.isWorker) { process.send({state: state}) }
 
       // save the new api object
-      api = apiFromCallback;
+      api = apiFromCallback
 
       // if the callback is defined execute him
-      if (typeof callback === 'function') { callback(null, api); }
-    });
-  };
+      if (typeof callback === 'function') { callback(null, api) }
+    })
+  }
 
   // --------------------------------------------------------------------------------------------------------- [Process]
 
   /**
    * Stop the process.
    */
-  var stopProcess = function () {
+  let stopProcess = function () {
     // put a time limit to shutdown the server
-    setTimeout(function () { process.exit(1); }, shutdownTimeout);
+    setTimeout(() => process.exit(1), shutdownTimeout)
 
     // stop the server
-    stopServer(function () {
-      process.nextTick(function () {
-        process.exit();
-      })
-    });
-  };
+    stopServer(() => process.nextTick(() => process.exit()))
+  }
 
   if (cluster.isWorker) {
     // define action to te performed on 'message' event
-    process.on('message', function (msg) {
+    process.on('message', (msg) => {
       switch (msg) {
         case 'start':
           // start the server
-          startServer();
-          break;
+          startServer()
+          break
         case 'stop':
           // stop the server
-          stopServer();
-          break;
+          stopServer()
+          break
         case 'stopProcess':
           // stop process
-          stopProcess();
-          break;
+          stopProcess()
+          break
         case 'restart':
           // in cluster, we cannot re-bind the port, so kill this worker, and
           // then let the cluster start a new worker
-          stopProcess();
-          break;
+          stopProcess()
+          break
       }
-    });
+    })
 
     // define action to te performed on 'uncaughtException' event
-    process.on('uncaughtException', function (error) {
+    process.on('uncaughtException', error => {
       // send the exception to the master
       process.send({
         uncaughtException: {
           message: error.message,
           stack: error.stack.split(os.EOL)
         }
-      });
+      })
 
       // finish the process on the next tick
-      process.nextTick(process.exit);
-    });
+      process.nextTick(process.exit)
+    })
 
     // define action to te performed on 'unhandledRejection' event
-    process.on('unhandledRejection', function (reason, p) {
+    process.on('unhandledRejection', (reason, p) => {
       // send the reason the the master
-      process.send({unhandledRejection: {reason: reason, p: p}});
+      process.send({unhandledRejection: {reason: reason, p: p}})
 
       // finish the process on the next tick
-      process.nextTick(process.exit);
-    });
+      process.nextTick(process.exit)
+    })
   }
 
   // defines the action to be performed when a particular event occurs
-  process.on('SIGINT', function () { stopProcess(); });
-  process.on('SIGTERM', function () { stopProcess(); });
-  process.on('SIGUSR2', function () { restartServer(); });
+  process.on('SIGINT', () => stopProcess())
+  process.on('SIGTERM', () => stopProcess())
+  process.on('SIGUSR2', () => restartServer())
 
   // start the server!
-  startServer();
-};
+  startServer()
+}
