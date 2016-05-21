@@ -163,7 +163,8 @@ module.exports = class Commander {
         let desc = command.args[ key ] || ''
 
         // print it
-        console.log(`  ${FgGreen}${key}\t\t${FgWhite}${desc}`);
+        let optionName = Commander._normalizeString(key, 25)
+        console.log(`  ${FgGreen}${optionName}${FgWhite}${desc}`);
       }
     }
   }
