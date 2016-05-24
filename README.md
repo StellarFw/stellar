@@ -1,10 +1,14 @@
 <p align="center">
   <a href="https://stellar-framework.com" target="_blank">
-    <img width="300" src="https://stellar-framework.com/imgs/logotype_github.png">
+    <img width="250" src="https://stellar-framework.com/imgs/logotype_github.png">
   </a>
 </p>
 
-# Intro
+<p align="center">
+  <a href="https://raw.githubusercontent.com/gil0mendes/stellar/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
+</p>
+
+## Intro
 
 Stellar is a web framework that makes it easy to build modular APIs. It is designed to follow an action based pattern that makes it possible to isolate logic in small structures.
 
@@ -25,11 +29,11 @@ Please make sure to read the [Contributing Guide]() before making a pull request
 
 ## Changelog
 
-Details changes for each release are documented in the [release notes](https://github.com/gil0mendes/stellar/releases) and the [Changelog](https://github.com/vuejs/vue/blob/dev/CHANGELOG.md) file.
+Details changes for each release are documented in the [release notes](https://github.com/gil0mendes/stellar/releases) and the [Changelog](https://github.com/gil0mendes/stellar/blob/dev/CHANGELOG.md) file.
 
 ## Stay In Touch
 
-- For latest releases and announcements, follow me on Twitter: [@gil0mendes](https://twitter.com/gil0mendes).
+For latest releases and announcements, follow me on Twitter: [@gil0mendes](https://twitter.com/gil0mendes).
 
 ## License
 
