@@ -27,7 +27,7 @@ For questions and support use the issue list of this repository. The issue list 
 
 ## Contribution
 
-Please make sure to read the [Contributing Guide]() before making a pull request.
+Please make sure to read the [Contributing Guide](https://github.com/gil0mendes/stellar/blob/dev/CONTRIBUTING.md) before making a pull request.
 
 ## Changelog
 
