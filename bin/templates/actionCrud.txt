@@ -1,0 +1,101 @@
+'use strict'
+
+module.exports = [ {
+    name: 'create%ModelName%',
+    description: 'Create a new %ModelName%',
+
+    inputs: {},
+
+    run: (api, action, next) => {
+        // create a new model instance
+        var newModel = new (api.models.get('%ModelNameLC%'))(action.params.%ModelNameLC%)
+
+        // save it
+        newModel.save(err => {
+            if (err) {
+                // return an error message to the client
+                next(new Error('We can create that resource!'))
+                return
+            }
+
+            // append the new model on the response object
+            action.response.%ModelNameLC% = newModel
+
+            // finish the action execution
+            next()
+        })
+    }
+}, {
+    name: 'get%ModelName%s',
+    description: 'Get all %ModelName%s',
+
+    run: (api, action, next) => {
+        api.models.get('%ModelNameLC%').find({}, (err, resources) => {
+            action.response.%ModelNameLC%s = resources
+            next()
+        })
+    }
+}, {
+    name: 'get%ModelName%',
+    description: 'Get a %ModelName%',
+
+    inputs: {
+        id: {required: true}
+    },
+
+    run: (api, action, next) => {
+        // search for the request post on the DB
+        api.models.get('%ModelNameLC%').findById(action.params.id, (err, resource) => {
+            // put model information in response object
+            action.response.%ModelName% = resource
+
+            // finish the action execution
+            next()
+        })
+    }
+}, {
+    name: 'edit%ModelName%',
+    description: 'Edit a %ModelName%',
+
+    inputs: {
+        id: {required: true}
+    },
+
+    run: (api, action, next) => {
+        // search for the %ModelName% and update it
+        api.models.get('%ModelNameLC%').findOneAndUpdate({_id: action.params.id}, action.params.%ModelNameLC%, {upsert: true}, (err, model) => {
+            if (err) {
+                // return an error message to the client
+                next(new Error('We could not find the resource you were looking for'))
+                return
+            }
+
+            // put the updated model on the response object
+            action.response.%ModelNameLC% = model
+
+            // finish the action execution
+            next()
+        })
+    }
+}, {
+    name: 'remove%ModelName%',
+    description: 'Remove a %ModelName%',
+
+    inputs: {
+        id: {required: true}
+    },
+
+    run: (api, action, next) => {
+        // search and remove the model
+        api.models.get('%ModelNameLC%').findByIdAndRemove(action.params.id, err => {
+            if (err) {
+                  // return an error message to the client
+                  next(new Error('We could not remove the requested resource'))
+                  return
+              }
+
+              // finish the action execution
+              next()
+        })
+    }
+} ]

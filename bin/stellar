@@ -13,6 +13,14 @@ commander.command('makeAction')
   .option('module', 'Module here the action must be created')
   .action(require('./commands/makeAction'))
 
+// register makeModel command
+commander.command('makeModel')
+  .description('Create a new model')
+  .option('module', 'Module here the model must be created')
+  .option('crud', 'Create a set of actions with the CRUD operations')
+  .option('actionName', 'Overwrite the action file name')
+  .action(require('./commands/makeModel'))
+
 // register run command
 commander.command('run')
   .description('Run a Stellar instance')
