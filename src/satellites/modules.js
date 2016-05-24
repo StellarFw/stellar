@@ -19,7 +19,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  static load(api, next) {
+  static load (api, next) {
     // get active modules
     let modules = api.config.modules
 

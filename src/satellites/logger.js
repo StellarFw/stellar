@@ -4,7 +4,7 @@ export default class {
 
   static loadPriority = 120;
 
-  static load(api, next) {
+  static load (api, next) {
     let transports = [];
 
     // load all transports

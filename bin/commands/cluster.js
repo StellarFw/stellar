@@ -20,7 +20,7 @@ class Worker {
    * @param id      Worker identifier.
    * @param env     Environment.
    */
-  constructor(parent, id, env) {
+  constructor (parent, id, env) {
     this.state = null;
     this.id = id;
     this.env = env;
@@ -32,7 +32,7 @@ class Worker {
    *
    * @returns {string}
    */
-  logPrefix() {
+  logPrefix () {
     let self = this;
     let s = '';
 
@@ -53,7 +53,7 @@ class Worker {
    * @param message   Message to be logged.
    * @param severity  Log Severity.
    */
-  log(message, severity) {
+  log (message, severity) {
     let self = this;
 
     // set default value
@@ -65,7 +65,7 @@ class Worker {
   /**
    * Start the worker execution.
    */
-  start() {
+  start () {
     let self = this;
 
     // create the worker
@@ -115,14 +115,14 @@ class Worker {
   /**
    * Stop the worker execution.
    */
-  stop() {
+  stop () {
     this.worker.send('stopProcess');
   }
 
   /**
    *
    */
-  restart() {
+  restart () {
     this.worker.send('restart');
   }
 
@@ -138,7 +138,7 @@ class ClusterManager {
    *
    * @param args Options
    */
-  constructor(args) {
+  constructor (args) {
     let self = this;
 
     // class variables
@@ -185,7 +185,7 @@ class ClusterManager {
    * @param path      Path to the directory to be created.
    * @param callback  Callback function.
    */
-  static configurePath(path, callback) {
+  static configurePath (path, callback) {
     // make the 'logs' folder if not exists
     if (!fs.existsSync(path)) { fs.mkdirSync(path); }
 
@@ -199,7 +199,7 @@ class ClusterManager {
    * @param message   Message to be logged.
    * @param severity  Severity of the message.
    */
-  log(message, severity) {
+  log (message, severity) {
     let self = this;
     self.logger.log(severity, message);
   }
@@ -209,7 +209,7 @@ class ClusterManager {
    *
    * @returns {{stopTimeout: number, expectedWorkers: *, flapWindow: number, execPath: String, pidPath: string, logPath: string, workerTitlePrefix: string, args: string, buildEnv: null}}
    */
-  static defaults() {
+  static defaults () {
     return {
       stopTimeout: 3000,
       expectedWorkers: os.cpus().length,
@@ -232,7 +232,7 @@ class ClusterManager {
    * @param workerId  Worker identifier.
    * @returns {*}     Hash with the environment options.
    */
-  buildEnv(workerId) {
+  buildEnv (workerId) {
     let self = this;
 
     if (typeof self.options.buildEnv === 'function') {
@@ -249,7 +249,7 @@ class ClusterManager {
    *
    * @param callback  Callback function.
    */
-  writePidFile(callback) {
+  writePidFile (callback) {
     let self = this;
 
     // build the pid file path
@@ -277,7 +277,7 @@ class ClusterManager {
    *
    * @param callback  Callback function.
    */
-  start(callback) {
+  start (callback) {
     let self = this;
     let jobs = [];
 
@@ -380,7 +380,7 @@ class ClusterManager {
    *
    * @param callback Function to be executed at the end.
    */
-  stop(callback) {
+  stop (callback) {
     let self = this;
 
     // execute the callback when the number of works goes to zero
@@ -402,12 +402,12 @@ class ClusterManager {
   /**
    * Sort the workers.
    */
-  sortWorkers() {
+  sortWorkers () {
     let self = this;
     self.workers.sort((a, b) => { return (a.id > b.id); });
   }
 
-  work() {
+  work () {
     let self = this;
     let worker;
     let workerId;

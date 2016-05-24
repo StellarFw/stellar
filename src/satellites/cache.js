@@ -55,7 +55,7 @@ class CacheManager {
    *
    * @param api API reference.
    */
-  constructor(api) {
+  constructor (api) {
     this.api = api;
 
     this.redisPrefix = api.config.general.cachePrefix;
@@ -71,7 +71,7 @@ class CacheManager {
    *
    * @param next  Callback.
    */
-  keys(next) {
+  keys (next) {
     let self = this;
     self.api.redis.client.keys(this.redisPrefix + '*', (err, keys) => { next(err, keys); });
   }
@@ -81,7 +81,7 @@ class CacheManager {
    *
    * @param next Callback function.
    */
-  locks(next) {
+  locks (next) {
     let self = this;
     self.api.redis.client.keys(this.lockPrefix + '*', (err, keys) => { next(err, keys); });
   }
@@ -91,7 +91,7 @@ class CacheManager {
    *
    * @param next  Callback.
    */
-  size(next) {
+  size (next) {
     let self = this;
 
     // get all cached keys
@@ -110,7 +110,7 @@ class CacheManager {
    *
    * @param next  Callback.
    */
-  clear(next) {
+  clear (next) {
     let self = this;
 
     // get all cached keys
@@ -140,7 +140,7 @@ class CacheManager {
    * @param expireTimeMS  Expire time in milliseconds.
    * @param next          Callback function.
    */
-  save(key, value, expireTimeMS, next) {
+  save (key, value, expireTimeMS, next) {
     let self = this;
 
     if (typeof expireTimeMS === 'function' && typeof next === 'undefined') {
@@ -192,7 +192,7 @@ class CacheManager {
    * @param options   Call options.
    * @param next      Callback function.
    */
-  load(key, options, next) {
+  load (key, options, next) {
     let self = this;
 
     if (typeof options === 'function') {
@@ -259,7 +259,7 @@ class CacheManager {
    * @param key   Key to destroy.
    * @param next  Callback.
    */
-  destroy(key, next) {
+  destroy (key, next) {
     let self = this;
 
     // check cache entry lock
@@ -287,7 +287,7 @@ class CacheManager {
    * @param next      Callback function.
    * @param startTime This should not be used by the user.
    */
-  checkLock(key, retry, next, startTime) {
+  checkLock (key, retry, next, startTime) {
     let self = this;
 
     // if the start time are not defined use the current timestamp
@@ -333,7 +333,7 @@ export default class {
    * @param api
    * @param next
    */
-  static load(api, next) {
+  static load (api, next) {
     // put cache manager available to all API
     api.cache = new CacheManager(api);
 

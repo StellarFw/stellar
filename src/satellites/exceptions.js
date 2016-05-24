@@ -16,7 +16,7 @@ class ExceptionsManager {
    */
   reporters = [];
 
-  constructor(api) {
+  constructor (api) {
     this.api = api;
 
     // load default console handler
@@ -83,7 +83,7 @@ class ExceptionsManager {
    * @param objects
    * @param severity
    */
-  report(err, type, name, objects, severity) {
+  report (err, type, name, objects, severity) {
     let self = this;
 
     if (!severity) {
@@ -101,7 +101,7 @@ class ExceptionsManager {
    * @param fullFilePath
    * @param err
    */
-  loader(fullFilePath, err) {
+  loader (fullFilePath, err) {
     let self = this;
     let name = `loader ${fullFilePath}`;
     self.report(err, 'loader', name, {fullFilePath: fullFilePath}, 'alert');
@@ -114,7 +114,7 @@ class ExceptionsManager {
    * @param data
    * @param next
    */
-  action(err, data, next) {
+  action (err, data, next) {
     let self = this;
     let simpleName;
 
@@ -138,7 +138,7 @@ export default class {
 
   static loadPriority = 130;
 
-  static load(api, next) {
+  static load (api, next) {
     api.exceptionHandlers = new ExceptionsManager(api);
     next();
   }

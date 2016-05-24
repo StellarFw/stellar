@@ -26,11 +26,11 @@ class Servers {
    *
    * @param api engine api instance.
    */
-  constructor(api) {
+  constructor (api) {
     this.api = api;
   }
 
-  loadServers(next) {
+  loadServers (next) {
     let self = this;
 
     // get list with the server files
@@ -69,7 +69,7 @@ class Servers {
     }
   }
 
-  startServers(next) {
+  startServers (next) {
     let started = 0;
 
     // check if exists any server loaded
@@ -96,7 +96,7 @@ class Servers {
     }
   }
 
-  stopServers(next) {
+  stopServers (next) {
     let self = this;
     let started = 0;
 
@@ -151,7 +151,7 @@ export default class {
 
   static stopPriority = 100;
 
-  static load(api, next) {
+  static load (api, next) {
     // instance the server manager
     api.servers = new Servers(api);
 
@@ -159,12 +159,12 @@ export default class {
     api.servers.loadServers(next);
   }
 
-  static start(api, next) {
+  static start (api, next) {
     // start servers
     api.servers.startServers(next);
   }
 
-  static stop(api, next) {
+  static stop (api, next) {
     // stop servers
     api.servers.stopServers(next);
   }

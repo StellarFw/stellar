@@ -14,7 +14,7 @@ class MakeModel extends Command {
    *
    * @param args
    */
-  constructor(args) {
+  constructor (args) {
     // execute the super class constructor method
     super()
 
@@ -28,7 +28,7 @@ class MakeModel extends Command {
   /**
    * Execute the command.
    */
-  execute() {
+  execute () {
     // we need at least two arguments. One: the command name, two: the model name
     if (this.args._.length < 2) {
       this.printUsage()

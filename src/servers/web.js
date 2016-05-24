@@ -35,7 +35,7 @@ export default class Web extends GenericServer {
    * @param api       api instance.
    * @param options   map with the server options.
    */
-  constructor(api, options) {
+  constructor (api, options) {
     super(api, type, options, attributes);
 
     let self = this;
@@ -78,7 +78,7 @@ export default class Web extends GenericServer {
   /**
    * Start a new server instance.
    */
-  start(next) {
+  start (next) {
     let self = this;
 
     if (self.options.secure === false) {
@@ -124,7 +124,7 @@ export default class Web extends GenericServer {
    *
    * @param next callback
    */
-  stop(next) {
+  stop (next) {
     this.server.close();
     process.nextTick(function () {
       next();
@@ -137,7 +137,7 @@ export default class Web extends GenericServer {
    * @param connection
    * @param message
    */
-  sendMessage(connection, message) {
+  sendMessage (connection, message) {
     let self = this;
     let stringResponse = '';
 
@@ -164,7 +164,7 @@ export default class Web extends GenericServer {
    * @param length
    * @param lastModified
    */
-  sendFile(connection, error, fileStream, mime, length, lastModified) {
+  sendFile (connection, error, fileStream, mime, length, lastModified) {
     let self = this;
     let foundExpires = false;
     let foundCacheControl = false;
@@ -233,7 +233,7 @@ export default class Web extends GenericServer {
    * @param fileStream
    * @param fileLength
    */
-  sendWithCompression(connection, responseHttpCode, headers, stringResponse, fileStream, fileLength) {
+  sendWithCompression (connection, responseHttpCode, headers, stringResponse, fileStream, fileLength) {
     let self = this;
     let compressor, stringEncoder;
     let acceptEncoding = connection.rawConnection.req.headers[ 'accept-encoding' ];
@@ -287,13 +287,13 @@ export default class Web extends GenericServer {
    *
    * @param connection
    */
-  goodbye(connection) {
+  goodbye (connection) {
     // disconnect handlers
   }
 
   // --------------------------------------------------------------------------------------------------------- [PRIVATE]
 
-  _handleRequest(req, res) {
+  _handleRequest (req, res) {
     let self = this;
 
     browser_fingerprint.fingerprint(req, self.api.config.servers.web.fingerprintOptions, function (fingerprint, elementHash, cookieHash) {
@@ -378,14 +378,14 @@ export default class Web extends GenericServer {
    * @param bindIP
    * @param port
    */
-  chmodSocket(bindIP, port) {
+  chmodSocket (bindIP, port) {
     let self = this;
     if (!self.options.bindIP && self.options.port.indexOf('/') >= 0) {
       fs.chmodSync(port, 0o777);
     }
   }
 
-  _determineRequestParams(connection, callback) {
+  _determineRequestParams (connection, callback) {
     let self = this;
 
     // determine if is a file or an api request
@@ -497,7 +497,7 @@ export default class Web extends GenericServer {
     }
   }
 
-  processClientLib(connection) {
+  processClientLib (connection) {
     let self = this;
 
     // client lib
@@ -519,7 +519,7 @@ export default class Web extends GenericServer {
    * @param varsHash Request params.
    * @private
    */
-  _fillParamsFromWebRequest(connection, varsHash) {
+  _fillParamsFromWebRequest (connection, varsHash) {
     let self = this;
 
     // helper for JSON parts
@@ -536,7 +536,7 @@ export default class Web extends GenericServer {
     }
   }
 
-  _completeResponse(data) {
+  _completeResponse (data) {
     let self = this;
 
     if (data.toRender === true) {
@@ -598,7 +598,7 @@ export default class Web extends GenericServer {
     self.sendMessage(data.connection, stringResponse);
   }
 
-  _extractHeader(connection, match) {
+  _extractHeader (connection, match) {
     let i = connection.rawConnection.responseHeaders.length - 1;
 
     while (i >= 0) {
@@ -610,7 +610,7 @@ export default class Web extends GenericServer {
     return null;
   }
 
-  _buildRequesterInformation(connection) {
+  _buildRequesterInformation (connection) {
     let requesterInformation = {
       id: connection.id,
       fingerprint: connection.fingerprint,
@@ -630,7 +630,7 @@ export default class Web extends GenericServer {
    *
    * @param connection
    */
-  cleanHeaders(connection) {
+  cleanHeaders (connection) {
     let originalHeaders = connection.rawConnection.responseHeaders.reverse();
     let foundHeaders = [];
     let cleanedHeaders = [];
@@ -652,7 +652,7 @@ export default class Web extends GenericServer {
     connection.rawConnection.responseHeaders = cleanedHeaders;
   }
 
-  _respondToOptions(connection = null) {
+  _respondToOptions (connection = null) {
     let self = this;
 
     if (!self.api.config.servers.web.httpHeaders[ 'Access-Control-Allow-Methods' ] && !extractHeader(connection, 'Access-Control-Allow-Methods')) {

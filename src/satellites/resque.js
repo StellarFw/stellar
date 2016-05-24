@@ -45,7 +45,7 @@ class ResqueManager {
    *
    * @param api API reference object.
    */
-  constructor(api) {
+  constructor (api) {
     let self = this
 
     // save the API object reference
@@ -60,7 +60,7 @@ class ResqueManager {
    *
    * @param callback Callback function.
    */
-  startQueue(callback) {
+  startQueue (callback) {
     let self = this
 
     self.queue = new NR.queue({connection: self.connectionDetails}, self.api.tasks.jobs)
@@ -73,7 +73,7 @@ class ResqueManager {
    *
    * @param callback  Callback function.
    */
-  startScheduler(callback) {
+  startScheduler (callback) {
     let self = this
 
     if (self.api.config.tasks.scheduler !== true) {
@@ -112,7 +112,7 @@ class ResqueManager {
    *
    * @param callback Callback function.
    */
-  stopScheduler(callback) {
+  stopScheduler (callback) {
     let self = this
 
     // if the scheduler not exists execute the callback function and return
@@ -133,7 +133,7 @@ class ResqueManager {
    *
    * @param callback
    */
-  startMultiWorker(callback) {
+  startMultiWorker (callback) {
     let self = this
 
     self.workerLogging = self.api.config.tasks.workerLogging
@@ -193,7 +193,7 @@ class ResqueManager {
    *
    * @param callback Callback function.
    */
-  stopMultiWorker(callback) {
+  stopMultiWorker (callback) {
     let self = this
 
     if (self.api.config.tasks.minTaskProcessors > 0) {
@@ -239,7 +239,7 @@ export default class {
    * @param api   API reference object.
    * @param next  Callback function.
    */
-  static load(api, next) {
+  static load (api, next) {
     // put resque manager available to the entire platform
     api.resque = new ResqueManager(api)
 
@@ -253,7 +253,7 @@ export default class {
    * @param api   API reference object.
    * @param next  Callback function.
    */
-  static start(api, next) {
+  static start (api, next) {
     if (api.config.tasks.minTaskProcessors === 0 && api.config.tasks.maxTaskProcessors > 0) {
       api.config.tasks.minTaskProcessors = 1
     }
@@ -274,7 +274,7 @@ export default class {
    * @param api   API reference object.
    * @param next  Callback function.
    */
-  static stop(api, next) {
+  static stop (api, next) {
     api.resque.stopScheduler(() => {
       api.resque.stopMultiWorker(() => {
         api.resque.queue.end(() => {

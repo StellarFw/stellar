@@ -53,7 +53,7 @@ class RedisManager {
    *
    * @param api API reference.
    */
-  constructor(api) {
+  constructor (api) {
     let self = this
 
     self.api = api
@@ -95,7 +95,7 @@ class RedisManager {
    *
    * @param callback  Callback function.
    */
-  start(callback) {
+  start (callback) {
     let self = this
 
     // get Redis package
@@ -173,7 +173,7 @@ class RedisManager {
    *
    * @param payload Payload to be published.
    */
-  publish(payload) {
+  publish (payload) {
     let self = this
 
     let channel = self.api.config.redis.channel
@@ -182,7 +182,7 @@ class RedisManager {
 
   // RPC
 
-  doCluster(method, args, connectionId, callback) {
+  doCluster (method, args, connectionId, callback) {
     let self = this
 
     let requestId = uuid.v4()
@@ -210,7 +210,7 @@ class RedisManager {
     }
   }
 
-  respondCluster(requestId, response) {
+  respondCluster (requestId, response) {
     let self = this
 
     let payload = {
@@ -257,7 +257,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback
    */
-  static load(api, next) {
+  static load (api, next) {
     // put the redis manager available
     api.redis = new RedisManager(api)
 
@@ -271,7 +271,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback.
    */
-  static start(api, next) {
+  static start (api, next) {
     // start manager
     api.redis.start(() => {
       api.redis.doCluster('api.log', `Stellar member ${api.id} has joined the cluster`, null, null)
@@ -287,7 +287,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback.
    */
-  static stop(api, next) {
+  static stop (api, next) {
     // execute all existent timeouts and remove them
     for (let i in api.redis.clusterCallbacksTimeout) {
       clearTimeout(api.redis.clusterCallbacksTimeout[ i ])

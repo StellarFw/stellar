@@ -39,7 +39,7 @@ class ChatRooms {
    *
    * @param api API reference.
    */
-  constructor(api) {
+  constructor (api) {
     this.api = api;
   }
 
@@ -48,7 +48,7 @@ class ChatRooms {
    *
    * @param data  Middleware object.
    */
-  addMiddleware(data) {
+  addMiddleware (data) {
     let self = this;
 
     if (!data.name) { throw new Error('middleware.name is required'); }
@@ -74,7 +74,7 @@ class ChatRooms {
    * @param message     Message to broadcast.
    * @param callback    Callback function.
    */
-  broadcast(connection, room, message, callback) {
+  broadcast (connection, room, message, callback) {
     let self = this;
 
     // check if the room are present
@@ -142,7 +142,7 @@ class ChatRooms {
    *
    * @param message Incoming message to be processed.
    */
-  incomingMessage(message) {
+  incomingMessage (message) {
     let self = this;
 
     // generate the message payload
@@ -160,7 +160,7 @@ class ChatRooms {
    * @param room      Name of the room to be created.
    * @param callback  Callback function.
    */
-  add(room, callback) {
+  add (room, callback) {
     let self = this;
 
     // check if the room already exists
@@ -184,7 +184,7 @@ class ChatRooms {
    * @param room      Room to be destroyed.
    * @param callback  Callback function.
    */
-  destroy(room, callback) {
+  destroy (room, callback) {
     let self = this;
 
     // check if the room exists
@@ -219,7 +219,7 @@ class ChatRooms {
    * @param room      Name of the room.
    * @param callback  Callback function.
    */
-  exists(room, callback) {
+  exists (room, callback) {
     let self = this;
 
     // make a call to the redis server to check if the room exists
@@ -240,7 +240,7 @@ class ChatRooms {
    * @param room      Name of the room to check.
    * @param callback  Callback function.
    */
-  roomStatus(room, callback) {
+  roomStatus (room, callback) {
     let self = this;
 
     // we need a room to check their status
@@ -289,7 +289,7 @@ class ChatRooms {
    * @param room
    * @param callback
    */
-  addMember(connectionId, room, callback) {
+  addMember (connectionId, room, callback) {
     let self = this;
 
     // if the connection not exists create a new one in every stellar instance and return
@@ -335,7 +335,7 @@ class ChatRooms {
    * @param room            Room name.
    * @param callback        Callback.
    */
-  removeMember(connectionId, room, callback) {
+  removeMember (connectionId, room, callback) {
     let self = this;
 
     // if the connection does not exists on the connections array perform a remove
@@ -387,7 +387,7 @@ class ChatRooms {
    * @returns {{id: *, joinedAt: number, host: *}}
    * @private
    */
-  _generateMemberDetails(connection) {
+  _generateMemberDetails (connection) {
     let self = this;
 
     return {
@@ -404,7 +404,7 @@ class ChatRooms {
    * @returns {{message: *, room: *, from: *, context: string, sendAt: *}}
    * @private
    */
-  _generateMessagePayload(message) {
+  _generateMessagePayload (message) {
     return {
       message: message.message,
       room: message.connection.room,
@@ -426,7 +426,7 @@ class ChatRooms {
    * @param next              Callback function.
    * @private
    */
-  _handleCallbacks(connection, room, direction, messagePayload, next) {
+  _handleCallbacks (connection, room, direction, messagePayload, next) {
     let self = this;
     let jobs = [];
     let newMessagePayload;
@@ -474,7 +474,7 @@ class ChatRooms {
    * @returns {{id: *, joinedAt: *}}    Sanitized
    * @private
    */
-  _sanitizeMemberDetails(memberData) {
+  _sanitizeMemberDetails (memberData) {
     return {
       id: memberData.id,
       joinedAt: memberData.joinedAt
@@ -488,7 +488,7 @@ class ChatRooms {
    * @param messagePayload  Message payload to be sent.
    * @private
    */
-  _incomingMessagePerConnection(connection, messagePayload) {
+  _incomingMessagePerConnection (connection, messagePayload) {
     let self = this;
 
     // check if the connection can chat
@@ -530,7 +530,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback.
    */
-  static load(api, next) {
+  static load (api, next) {
     // put the chat room interface available to all system
     api.chatRoom = new ChatRooms(api);
 
@@ -544,7 +544,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback.
    */
-  static start(api, next) {
+  static start (api, next) {
     // subscribe new chat messages on the redis server
     api.redis.subscriptionHandlers.chat = (message) => { api.chatRoom.incomingMessage(message); };
 

@@ -12,7 +12,7 @@ module.exports = class Utils {
    *
    * @returns {*|String}
    */
-  static getCurrentUniverse() { return process.cwd() }
+  static getCurrentUniverse () { return process.cwd() }
 
   /**
    * Check if a file/folder exists.
@@ -20,7 +20,7 @@ module.exports = class Utils {
    * @param path
    * @returns {boolean}
    */
-  static exists(path) {
+  static exists (path) {
     try {
       fs.accessSync(path, fs.F_OK)
       return true
@@ -35,7 +35,7 @@ module.exports = class Utils {
    * @param moduleName
    * @returns {boolean}
    */
-  static moduleExists(moduleName) {
+  static moduleExists (moduleName) {
     return this.exists(this.getCurrentUniverse() + `/modules/${moduleName}`)
   }
 
@@ -46,7 +46,7 @@ module.exports = class Utils {
    * @param content   Content to be written.
    * @returns {*}
    */
-  static createFile(path, content) { return fs.writeFileSync(path, content) }
+  static createFile (path, content) { return fs.writeFileSync(path, content) }
 
   /**
    * Read and return the file content.
@@ -54,7 +54,7 @@ module.exports = class Utils {
    * @param path    Path here the file must be read.
    * @returns {*}
    */
-  static fileContent(path) { return fs.readFileSync(path).toString()}
+  static fileContent (path) { return fs.readFileSync(path).toString()}
 
   /**
    * Get the template file content.
@@ -62,7 +62,7 @@ module.exports = class Utils {
    * @param name    Template name to get.
    * @returns {*}
    */
-  static getTemplate(name) {
+  static getTemplate (name) {
     // build the full template path
     let path = `${__dirname}/templates/${name}.txt`
 

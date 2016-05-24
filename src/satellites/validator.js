@@ -35,7 +35,7 @@ class Validator {
    *
    * @param api API reference object.
    */
-  constructor(api) {
+  constructor (api) {
     this.api = api
   }
 
@@ -44,7 +44,7 @@ class Validator {
    *
    * @returns {*}
    */
-  validate(validatorString, params, key, value) {
+  validate (validatorString, params, key, value) {
     let self = this
 
     // save parameters request parameters
@@ -94,7 +94,7 @@ class Validator {
    * @param key         Parameter key name.
    * @returns {*}
    */
-  execValidator(validator, args, value, key) {
+  execValidator (validator, args, value, key) {
     // call the validator function
     let funcName = `validator_${validator}`
 
@@ -116,7 +116,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_alpha(value) { return /^[a-zA-Z]*$/.test(value) }
+  validator_alpha (value) { return /^[a-zA-Z]*$/.test(value) }
 
   /**
    * Check if the value is a number.
@@ -124,7 +124,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_alpha_num(value) { return /^[a-zA-Z0-9]*$/.test(value) }
+  validator_alpha_num (value) { return /^[a-zA-Z0-9]*$/.test(value) }
 
   /**
    * Check if the value is a string only with alpha or (_, -) characters.
@@ -132,7 +132,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_alpha_dash(value) { return /^[a-zA-Z0-9-_]*$/.test(value) }
+  validator_alpha_dash (value) { return /^[a-zA-Z0-9-_]*$/.test(value) }
 
   /**
    * Check if the value is an array.
@@ -140,7 +140,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_array(value) { return Array.isArray(value) }
+  validator_array (value) { return Array.isArray(value) }
 
   /**
    * Check if the value is before than the specified date.
@@ -149,7 +149,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_before(value, args) {
+  validator_before (value, args) {
     // check if the developer specify an argument
     if (args === undefined) { return 'you need to specify an argument' }
 
@@ -170,7 +170,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_between(value, args) {
+  validator_between (value, args) {
     // check if the developer specify the valid number of arguments
     if (!Array.isArray(args) || args.length !== 2) { return 'invalid validator arguments' }
 
@@ -191,7 +191,7 @@ class Validator {
    * @param args
    * @returns {boolean}
    */
-  validator_boolean(value) { return typeof value === 'boolean' }
+  validator_boolean (value) { return typeof value === 'boolean' }
 
   /**
    * Check if exists a confirmation fields to the testing key with the same name.
@@ -201,7 +201,7 @@ class Validator {
    * @param key
    * @returns {*}
    */
-  validator_confirmed(value, args, key) {
+  validator_confirmed (value, args, key) {
     // build the confirmation field name
     let confirmationFieldName = `${key}_confirmation`
 
@@ -220,7 +220,7 @@ class Validator {
    * @param value
    * @returns {*}
    */
-  validator_date(value) {
+  validator_date (value) {
     if (isNaN(Date.parse(value))) { return 'the specified value is not a valid date' }
     return true
   }
@@ -232,7 +232,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_different(value, args) {
+  validator_different (value, args) {
     // check if the validator has the correct parameter number
     if (args === undefined) { return 'the validator need one argument' }
 
@@ -245,7 +245,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_email(value) {
+  validator_email (value) {
     return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(value)
   }
 
@@ -255,7 +255,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_filled(value) { return value !== undefined && value !== null && value !== '' }
+  validator_filled (value) { return value !== undefined && value !== null && value !== '' }
 
   /**
    * Check if the value are included in the array.
@@ -264,7 +264,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_in(value, args) {
+  validator_in (value, args) {
     // check if the validator have a name
     if (args === undefined && !Array.isArray(args)) { return 'validator needs an array' }
 
@@ -278,7 +278,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_not_in(value, args) {
+  validator_not_in (value, args) {
     let result = this.validator_in(value, args)
     return (result instanceof String) ? result : !result
   }
@@ -289,7 +289,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_integer(value) { return Number.isInteger(value) }
+  validator_integer (value) { return Number.isInteger(value) }
 
   /**
    * Check if the value is an IP.
@@ -297,7 +297,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_ip(value) { return /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/.test(value) }
+  validator_ip (value) { return /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/.test(value) }
 
   /**
    * Check if the field is a valid JSON.
@@ -305,7 +305,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_json(value) {
+  validator_json (value) {
     try {
       let o = JSON.parse(value)
 
@@ -322,7 +322,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_max(value, args) {
+  validator_max (value, args) {
     // the validator needs one argument
     if (args === undefined) { return 'validator need at least one argument' }
 
@@ -342,7 +342,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_min(value, args) {
+  validator_min (value, args) {
     // the validator needs one argument
     if (args === undefined) { return 'validator need at least one argument' }
 
@@ -361,7 +361,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_required(value) { return value !== undefined }
+  validator_required (value) { return value !== undefined }
 
   /**
    * Check if the value is numeric.
@@ -369,7 +369,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_numeric(value) { return typeof value === 'number' }
+  validator_numeric (value) { return typeof value === 'number' }
 
   /**
    * Check if the field is required taking into account the parameters.
@@ -378,7 +378,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_required_if(value, args) {
+  validator_required_if (value, args) {
     // check if we have the needs arguments
     if (!(args instanceof Array) || args.length < 2) { return 'validator need two arguments' }
 
@@ -399,7 +399,7 @@ class Validator {
    * @param attr
    * @returns {*}
    */
-  validator_required_unless(value, args, attr) {
+  validator_required_unless (value, args, attr) {
     // check if we have the needs arguments
     if (!(args instanceof Array) || args.length < 2) { return 'validator need two arguments' }
 
@@ -420,7 +420,7 @@ class Validator {
    * @param attr
    * @returns {*}
    */
-  validator_required_with(value, args, attr) {
+  validator_required_with (value, args, attr) {
     // check if we have the needs arguments
     if (!(args instanceof Array) || args.length < 2) { return 'validator need two arguments' }
 
@@ -446,7 +446,7 @@ class Validator {
    * @param attr
    * @returns {*}
    */
-  validator_required_with_all(value, args, attr) {
+  validator_required_with_all (value, args, attr) {
     // check if we have the needs arguments
     if (!(args instanceof Array) || args.length < 2) { return 'validator need two arguments' }
 
@@ -470,7 +470,7 @@ class Validator {
    * @param attr
    * @returns {*}
    */
-  validator_required_without(value, args, attr) {
+  validator_required_without (value, args, attr) {
     // check if we have the needs arguments
     if (!(args instanceof Array) || args.length < 2) { return 'validator need two arguments' }
 
@@ -493,7 +493,7 @@ class Validator {
    * @param attr
    * @returns {*}
    */
-  validator_required_without_all(value, args, attr) {
+  validator_required_without_all (value, args, attr) {
     // check if we have the needs arguments
     if (!(args instanceof Array) || args.length < 2) { return 'validator need two arguments' }
 
@@ -515,7 +515,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_same(value, args) {
+  validator_same (value, args) {
     // check if we have the needs arguments
     if (!(args instanceof Array) || args.length < 1) { return 'validator need one argument' }
 
@@ -528,7 +528,7 @@ class Validator {
    * @param value
    * @param args
    */
-  validator_size(value, args) {
+  validator_size (value, args) {
     // check if we have the needs arguments
     if (!(args instanceof Array) || isNaN(args[ 0 ])) { return 'validator need one numeric argument' }
 
@@ -547,7 +547,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_url(value) {
+  validator_url (value) {
     return /^(http|ftp|https):\/\/[\w-]+(\.[\w-]*)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?$/.test(value)
   }
 
@@ -571,7 +571,7 @@ export default class {
    * @param api   API reference object.
    * @param next  Callback function.
    */
-  static load(api, next) {
+  static load (api, next) {
     // load validator logic into the API object
     api.validator = new Validator(api)
 

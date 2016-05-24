@@ -18,7 +18,7 @@ export default class GenericServer extends EventEmitter {
   options;
   attributes;
 
-  constructor(api, name, options, attributes) {
+  constructor (api, name, options, attributes) {
     super();
 
     this.api = api;
@@ -34,7 +34,7 @@ export default class GenericServer extends EventEmitter {
     }
   }
 
-  buildConnection(data) {
+  buildConnection (data) {
     let self = this;
 
     let details = {
@@ -86,7 +86,7 @@ export default class GenericServer extends EventEmitter {
    *
    * @param connection
    */
-  processAction(connection) {
+  processAction (connection) {
     let self = this;
     let actionProcessor = new this.api.actionProcessor(self.api, connection, function (data) {
       self.emit('actionComplete', data);
@@ -95,14 +95,14 @@ export default class GenericServer extends EventEmitter {
     actionProcessor.processAction();
   }
 
-  processFile(connection) {
+  processFile (connection) {
     let self = this;
     self.api.staticFile.get(connection, function (connection, error, fileStream, mime, length, lastModified) {
       self.sendFile(connection, error, fileStream, mime, length, lastModified);
     });
   }
 
-  connections() {
+  connections () {
     let _connections = [];
 
     for (let i in this.api.connections.connections) {
@@ -115,7 +115,7 @@ export default class GenericServer extends EventEmitter {
     return _connections;
   }
 
-  log(message, severity, data) {
+  log (message, severity, data) {
     switch (severity) {
       case 'inform':
         this.api.log.inform(`[Server: ${this.type}] ${message}`, data);
@@ -126,14 +126,14 @@ export default class GenericServer extends EventEmitter {
   /**
    * Invoked as part of boot.
    */
-  start(next) {
+  start (next) {
     methodNotDefined();
   }
 
   /**
    * Invoked as aprt of shutdown.
    */
-  stop(next) {
+  stop (next) {
     methodNotDefined();
   }
 
@@ -143,7 +143,7 @@ export default class GenericServer extends EventEmitter {
    * @param connection
    * @param message
    */
-  sendMessage(connection, message) {
+  sendMessage (connection, message) {
     methodNotDefined();
   }
 
@@ -153,7 +153,7 @@ export default class GenericServer extends EventEmitter {
    * @param connection
    * @param reason
    */
-  goodbye(connection, reason) {
+  goodbye (connection, reason) {
     methodNotDefined();
   }
 

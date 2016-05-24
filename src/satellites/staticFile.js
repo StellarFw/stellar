@@ -19,7 +19,7 @@ class StaticFile {
    *
    * @param api API object reference.
    */
-  constructor(api) {
+  constructor (api) {
     this.api = api;
   }
 
@@ -30,7 +30,7 @@ class StaticFile {
    * @param counter
    * @returns {*}
    */
-  path(connection, counter = 0) {
+  path (connection, counter = 0) {
     let self = this;
 
     if (self.api.config.general.paths === undefined ||
@@ -49,7 +49,7 @@ class StaticFile {
    * @param callback
    * @param counter
    */
-  get(connection, callback, counter = 0) {
+  get (connection, callback, counter = 0) {
     let self = this;
 
     if (!connection.params.file || !self.path(connection, counter)) {
@@ -78,7 +78,7 @@ class StaticFile {
    * @param connection
    * @param callback
    */
-  sendFile(file, connection, callback) {
+  sendFile (file, connection, callback) {
     let self = this;
     let lastModified;
 
@@ -120,7 +120,7 @@ class StaticFile {
    * @param errorMessage
    * @param callback
    */
-  sendFileNotFound(connection, errorMessage, callback) {
+  sendFileNotFound (connection, errorMessage, callback) {
     let self = this;
 
     connection.error = new Error(errorMessage);
@@ -134,7 +134,7 @@ class StaticFile {
    * @param file
    * @param callback
    */
-  checkExistence(file, callback) {
+  checkExistence (file, callback) {
     let self = this;
 
     fs.stat(file, (err, stats) => {
@@ -171,7 +171,7 @@ class StaticFile {
    * @param duration
    * @param success
    */
-  logRequest(file, connection, length, duration, success) {
+  logRequest (file, connection, length, duration, success) {
     let self = this;
 
     self.api.log(`[ file @ ${connection.type}]`, 'debug', {
@@ -188,7 +188,7 @@ export default class {
 
   static loadPriority = 510;
 
-  static load(api, next) {
+  static load (api, next) {
     api.staticFile = new StaticFile(api);
     next();
   }

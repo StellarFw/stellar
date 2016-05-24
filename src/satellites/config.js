@@ -19,7 +19,7 @@ export default class {
    */
   static loadPriority = 0;
 
-  static load(api, next) {
+  static load (api, next) {
     // define env property
     api.env = 'development';
 
@@ -157,7 +157,7 @@ export default class {
    * @param api api object.
    * @param next callback function.
    */
-  static start(api, next) {
+  static start (api, next) {
     api.log(`environment: ${api.env}`, 'notice');
     next();
   }

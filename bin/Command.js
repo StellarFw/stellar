@@ -1,8 +1,8 @@
 'use strict'
 
 module.exports = class {
-  
-  constructor() {
+
+  constructor () {
     // define the console colors
     this.FgRed = "\x1b[31m"
     this.FgGreen = "\x1b[32m"
@@ -17,7 +17,7 @@ module.exports = class {
   /**
    * Print command usage.
    */
-  printUsage() {
+  printUsage () {
     console.log(`\n${this.FgYellow}Usage: ${this.FgGreen}${this.usage}\n`)
   }
 
@@ -26,7 +26,7 @@ module.exports = class {
    *
    * @param msg Message to be printed.
    */
-  printError(msg) {
+  printError (msg) {
     console.log(`\n${this.FgRed}Error: ${msg}\n`)
   }
 
@@ -35,7 +35,7 @@ module.exports = class {
    *
    * @param msg Message to be printed.
    */
-  printSuccess(msg) {
+  printSuccess (msg) {
     console.log(`\n${this.FgGreen}Success: ${msg}\n`)
   }
 

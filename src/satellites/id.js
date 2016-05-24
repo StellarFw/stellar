@@ -34,7 +34,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback.
    */
-  static load(api, next) {
+  static load (api, next) {
     if (argv.title) {
       api.id = argv.title;
     } else if (process.env.STELLAR_TITLE) {
@@ -74,7 +74,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback.
    */
-  static start(api, next) {
+  static start (api, next) {
     // print out the server ID
     api.log(`server ID: ${api.id}`, 'notice');
 

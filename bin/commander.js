@@ -14,7 +14,7 @@ const FgWhite = "\x1b[37m"
  * Class to represent a command.
  */
 class Command {
-  constructor(name, args, description, actionFn) {
+  constructor (name, args, description, actionFn) {
     this.name = name
     this.args = args || {}
     this.desc = description || ''
@@ -27,7 +27,7 @@ class Command {
    * @param  {String} desc Command description.
    * @return {Command}      This command instance.
    */
-  description(desc) {
+  description (desc) {
     this.desc = desc
     return this
   }
@@ -38,7 +38,7 @@ class Command {
    * @param  {Function} actionFn Command action.
    * @return {Command}      This command instance.
    */
-  action(actionFn) {
+  action (actionFn) {
     this.actionFn = actionFn
     return this
   }
@@ -50,7 +50,7 @@ class Command {
    * @param  {String} desc  Command description.
    * @return {Command}      This command instance.
    */
-  option(name, desc) {
+  option (name, desc) {
     this.args[ name ] = desc
     return this
   }
@@ -64,7 +64,7 @@ module.exports = class Commander {
   /**
    * Create a new Commander instance.
    */
-  constructor() {
+  constructor () {
     this.commands = new Map()
     this.args = null
   }
@@ -79,7 +79,7 @@ module.exports = class Commander {
    * @param  {Array} args         Command args.
    * @return {Command}            Return the command instance.
    */
-  command(name, actionFn, args) {
+  command (name, actionFn, args) {
     // check if the name is already registered
     if (this.commands.has(name)) {
       throw new Error('The command name are already registered!')
@@ -103,7 +103,7 @@ module.exports = class Commander {
    * @returns {*}     Normalized string.
    * @private
    */
-  static _normalizeString(str, length) {
+  static _normalizeString (str, length) {
     if (str.length < length) {
       str += ' '.repeat(length - str.length)
     }
@@ -114,7 +114,7 @@ module.exports = class Commander {
   /**
    * Print all available commands.
    */
-  printHelper() {
+  printHelper () {
     let self = this
 
     // print stellar version
@@ -138,7 +138,7 @@ module.exports = class Commander {
    *
    * @param  {String} name Command name.
    */
-  printCommandHelp(name) {
+  printCommandHelp (name) {
     // check if the command exists
     if (!this.commands.has(name)) {
       console.log(`\n${FgRed}Command "${name}" is not defined.\n`)
@@ -172,7 +172,7 @@ module.exports = class Commander {
   /**
    * Do some initialization operations.
    */
-  init() {
+  init () {
     // register the help command
     this.command('help')
       .description('show the command description')
@@ -186,7 +186,7 @@ module.exports = class Commander {
    *
    * @param args Console arguments.
    */
-  parse(args) {
+  parse (args) {
     // do some initialize operations
     this.init()
 
@@ -228,7 +228,7 @@ module.exports = class Commander {
    *
    * @param  {Object} args Command line arguments.
    */
-  helperCommand(args) {
+  helperCommand (args) {
     // check if was all the required arguments
     if (args._.length < 2) {
       console.log(`\n${FgYellow}Usage: stellar help <command name>\n`)

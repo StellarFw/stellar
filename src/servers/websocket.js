@@ -40,7 +40,7 @@ export default class WebSocketServer extends GenericServer {
    * @param api stellar engine interface.
    * @param options sever options.
    */
-  constructor(api, options) {
+  constructor (api, options) {
     super(api, type, options, attributes);
 
     let self = this;
@@ -68,7 +68,7 @@ export default class WebSocketServer extends GenericServer {
    *
    * @param next
    */
-  start(next) {
+  start (next) {
     let self = this;
     let webserver = self.api.servers.servers.web;
 
@@ -99,7 +99,7 @@ export default class WebSocketServer extends GenericServer {
    *
    * @param next Callback
    */
-  stop(next) {
+  stop (next) {
     let self = this;
 
     // disable the server
@@ -118,7 +118,7 @@ export default class WebSocketServer extends GenericServer {
     });
   }
 
-  sendMessage(connection, message, messageCount) {
+  sendMessage (connection, message, messageCount) {
     let self = this;
 
     // serialize the error if exists
@@ -151,7 +151,7 @@ export default class WebSocketServer extends GenericServer {
    * @param length
    * @param lastModified
    */
-  sendFile(connection, error, fileStream, mime, length, lastModified) {
+  sendFile (connection, error, fileStream, mime, length, lastModified) {
     let self = this;
     let content = '';
     let response = {
@@ -185,13 +185,13 @@ export default class WebSocketServer extends GenericServer {
    *
    * @param connection
    */
-  goodbye(connection) {
+  goodbye (connection) {
     connection.rawConnection.end();
   }
 
   //////////////////// [PRIVATE METHODS]
 
-  _compileClientJS() {
+  _compileClientJS () {
     let self = this;
 
     let clientSource = fs.readFileSync(__dirname + '/../client.js').toString();
@@ -213,7 +213,7 @@ export default class WebSocketServer extends GenericServer {
     return clientSource;
   }
 
-  _renderClientJs(minimize = false) {
+  _renderClientJs (minimize = false) {
     let self = this;
 
     let libSource = self.api.servers.servers.websocket.server.library();
@@ -237,7 +237,7 @@ export default class WebSocketServer extends GenericServer {
   /**
    * Write client js code.
    */
-  _writeClientJS() {
+  _writeClientJS () {
     let self = this;
 
     if (self.api.config.servers.websocket.clientJsName) {
@@ -258,7 +258,7 @@ export default class WebSocketServer extends GenericServer {
     }
   }
 
-  _handleConnection(rawConnection) {
+  _handleConnection (rawConnection) {
     let self = this;
 
     let parsedCookies = browser_fingerprint.parseCookies(rawConnection);
@@ -278,7 +278,7 @@ export default class WebSocketServer extends GenericServer {
    * @param rawConnection
    * @private
    */
-  _handleDisconnection(rawConnection) {
+  _handleDisconnection (rawConnection) {
     let self = this;
 
     for (let i in self.connections()) {
@@ -289,7 +289,7 @@ export default class WebSocketServer extends GenericServer {
     }
   }
 
-  _handleData(connection, data) {
+  _handleData (connection, data) {
     let self = this;
     let verb = data.event;
     delete data.event;

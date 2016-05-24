@@ -46,7 +46,7 @@ class Actions {
    *
    * @param api
    */
-  constructor(api) {
+  constructor (api) {
     this.api = api
   }
 
@@ -56,7 +56,7 @@ class Actions {
    * @param fullFilePath
    * @param reload
    */
-  loadFile(fullFilePath, reload = false) {
+  loadFile (fullFilePath, reload = false) {
     let self = this
 
     let loadMessage = function (action) {
@@ -130,7 +130,7 @@ class Actions {
    *
    * @param param
    */
-  validateAction(action) {
+  validateAction (action) {
     let self = this
 
     let fail = function (msg) { self.api.log(msg, 'error') }
@@ -174,7 +174,7 @@ export default class {
    * @param api   API reference
    * @param next  Callback function
    */
-  static load(api, next) {
+  static load (api, next) {
     // add the actions class to the api
     api.actions = new Actions(api)
 

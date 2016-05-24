@@ -15,7 +15,7 @@ export default {
       logger.transports.push((api, winston) => {
         return new (winston.transports.Console)({
           colorize: true,
-          level: 'info',
+          level: 'debug',
           timestamp: true
         });
       })

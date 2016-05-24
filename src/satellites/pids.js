@@ -28,7 +28,7 @@ class Pids {
    *
    * @param api API reference.
    */
-  constructor(api) {
+  constructor (api) {
     // save API reference
     this.api = api;
   }
@@ -36,7 +36,7 @@ class Pids {
   /**
    * Init the pid manager.
    */
-  init() {
+  init () {
     let self = this;
 
     // set the process id
@@ -62,7 +62,7 @@ class Pids {
   /**
    * Write pid file.
    */
-  writePidFile() {
+  writePidFile () {
     let self = this;
     fs.writeFileSync(`${self.path}/${self.title}`, self.pid.toString(), 'ascii');
   }
@@ -70,7 +70,7 @@ class Pids {
   /**
    * Clear pid file.
    */
-  clearPidFile() {
+  clearPidFile () {
     let self = this;
 
     try {
@@ -88,7 +88,7 @@ class Pids {
    * @returns {*}
    * @private
    */
-  _sanitizeId() {
+  _sanitizeId () {
     let self = this;
     let pidfile = self.api.id;
 
@@ -124,7 +124,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback.
    */
-  static load(api, next) {
+  static load (api, next) {
     // add pids class to the API
     api.pids = new Pids(api);
 
@@ -141,7 +141,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback.
    */
-  static start(api, next) {
+  static start (api, next) {
     // write pid file
     api.pids.writePidFile();
 

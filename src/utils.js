@@ -10,7 +10,7 @@ export default class Utils {
    * @param dir         Folder path to search.
    * @returns {Array}   Array with the files paths.
    */
-  static getFiles(dir) {
+  static getFiles (dir) {
     var results = [];
 
     fs.readdirSync(dir).forEach(function (file) {
@@ -32,7 +32,7 @@ export default class Utils {
    * @param extension
    * @returns {Array.<T>}
    */
-  static recursiveDirectoryGlob(dir, extension) {
+  static recursiveDirectoryGlob (dir, extension) {
     var results = [];
 
     if (!extension) {
@@ -82,7 +82,7 @@ export default class Utils {
    * @param arg
    * @returns {{}}
    */
-  static hashMerge(a, b, arg) {
+  static hashMerge (a, b, arg) {
     let c = {};
     let i, response;
 
@@ -127,7 +127,7 @@ export default class Utils {
    * @param o
    * @returns {boolean}
    */
-  static isPlainObject(o) {
+  static isPlainObject (o) {
     var safeTypes = [ Boolean, Number, String, Function, Array, Date, RegExp, Buffer ];
     var safeInstances = [ 'boolean', 'number', 'string', 'function' ];
     var expandPreventMatchKey = '_toExpand'; // set `_toExpand = false` within an object if you don't want to expand it
@@ -161,7 +161,7 @@ export default class Utils {
    * @param req
    * @returns {{}}
    */
-  static parseCookies(req) {
+  static parseCookies (req) {
     var cookies = {};
     if (req.headers.cookie) {
       req.headers.cookie.split(';').forEach(function (cookie) {
@@ -178,7 +178,7 @@ export default class Utils {
    * @param obj
    * @returns {*}
    */
-  static collapseObjectToArray(obj) {
+  static collapseObjectToArray (obj) {
     try {
       let keys = Object.keys(obj);
       if (keys.length < 1) {
@@ -214,7 +214,7 @@ export default class Utils {
    * @param array Array to be uniquefied.
    * @returns {Array} New array.
    */
-  static arrayUniqueify(array) {
+  static arrayUniqueify (array) {
     array.filter((value, index, self) => {
       return self.indexOf(value) === index;
     });
@@ -222,15 +222,15 @@ export default class Utils {
     return array;
   }
 
-  static isObject(arg) {
+  static isObject (arg) {
     return typeof arg === 'object' && arg !== null;
   }
 
-  static objectToString(o) {
+  static objectToString (o) {
     return Object.prototype.toString.call(o);
   }
 
-  static isError(e) {
+  static isError (e) {
     return Utils.isObject(e) && (Utils.objectToString(e) === '[object Error]' || e instanceof Error);
   }
 
@@ -239,7 +239,7 @@ export default class Utils {
    *
    * @param dir   Directory path.
    */
-  static removeDirectory(dir) {
+  static removeDirectory (dir) {
     let filesList;
 
     // get directory files
@@ -272,7 +272,7 @@ export default class Utils {
    * @param dir           Directory path.
    * @returns {boolean}   True if exists, false if not or the given path isn't a directory.
    */
-  static directoryExists(dir) {
+  static directoryExists (dir) {
     try {
       fs.statSync(dir).isDirectory()
     } catch (er) {
@@ -285,7 +285,7 @@ export default class Utils {
    *
    * @returns {String} Server external IP or false if not founded.
    */
-  static getExternalIPAddress() {
+  static getExternalIPAddress () {
     let ifaces = os.networkInterfaces();
     let ip = false;
 
@@ -306,7 +306,7 @@ export default class Utils {
    * @param obj         Object to be cloned.
    * @returns {Object}  New object reference.
    */
-  static objClone(obj) {
+  static objClone (obj) {
     return Object.create(Object.getPrototypeOf(obj), Object.getOwnPropertyNames(obj).reduce((memo, name) => {
       return (memo[ name ] = Object.getOwnPropertyDescriptor(obj, name)) && memo;
     }, {}));

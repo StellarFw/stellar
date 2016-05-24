@@ -32,7 +32,7 @@ export default {
 
       // there are many more connection options, including support for cluster and sentinel
       // learn more @ https://github.com/luin/ioredis
-      redisDetails.options = { password: process.env.REDIS_PASS || null }
+      redisDetails.options = {password: process.env.REDIS_PASS || null}
     }
 
     return redisDetails;

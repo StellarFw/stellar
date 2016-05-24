@@ -29,14 +29,14 @@ class Params {
    *
    * @param api API reference.
    */
-  constructor(api) { this.api = api }
+  constructor (api) { this.api = api }
 
   /**
    * Build the hash map with all safe application params.
    *
    * @returns {*}
    */
-  buildPostVariables() {
+  buildPostVariables () {
     let self = this
 
     let i, j
@@ -79,7 +79,7 @@ export default class {
    * @param api   Api reference.
    * @param next  Callback function.
    */
-  static load(api, next) {
+  static load (api, next) {
     // put the params API available to all platform
     api.params = new Params(api)
 

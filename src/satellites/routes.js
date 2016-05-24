@@ -32,7 +32,7 @@ class RoutesManager {
    *
    * @param api API reference.
    */
-  constructor(api) {
+  constructor (api) {
     let self = this
 
     // save the API object reference
@@ -45,7 +45,7 @@ class RoutesManager {
    * @param connection    Connection object.
    * @param pathParts     URI parts.
    */
-  processRoute(connection, pathParts) {
+  processRoute (connection, pathParts) {
     let self = this
 
     // check if the connection contains an action and that action are defined on the current context
@@ -95,7 +95,7 @@ class RoutesManager {
    * @param matchTrailingPathParts  Check the existence of the path in any part of the URL.
    * @returns {{match: boolean, params: {}}}
    */
-  matchURL(pathParts, match, matchTrailingPathParts) {
+  matchURL (pathParts, match, matchTrailingPathParts) {
     let response = {match: false, params: {}}
     let matchParts = match.split('/')
     let regexp = ''
@@ -152,7 +152,7 @@ class RoutesManager {
    * @param apiVersion                API version
    * @param matchTrailingPathParts
    */
-  registerRoute(method, path, action, apiVersion, matchTrailingPathParts = false) {
+  registerRoute (method, path, action, apiVersion, matchTrailingPathParts = false) {
     let self = this
 
     self.routes[ method ].push({
@@ -168,7 +168,7 @@ class RoutesManager {
    *
    * @param rawRoutes
    */
-  loadRoutes(rawRoutes) {
+  loadRoutes (rawRoutes) {
     let self = this
     let counter = 0
 
@@ -222,7 +222,7 @@ class RoutesManager {
    * If the modules have the 'routes.js' file on the module root
    * folder we load that file.
    */
-  loadModulesRoutes() {
+  loadModulesRoutes () {
     let self = this
 
     // iterate all active modules
@@ -269,7 +269,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  static load(api, next) {
+  static load (api, next) {
     // put the routes manager available to all platform
     api.routes = new RoutesManager(api);
 

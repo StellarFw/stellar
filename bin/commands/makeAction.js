@@ -13,7 +13,7 @@ class MakeAction extends Command {
    * Create a new MakeAction instance.
    * @param args
    */
-  constructor(args) {
+  constructor (args) {
     // execute the super class constructor method
     super()
 
@@ -27,7 +27,7 @@ class MakeAction extends Command {
   /**
    * Execute the command
    */
-  execute() {
+  execute () {
     // we need to have the action name and the module name
     // here the action must be created
     if (this.args._.length < 2) {
@@ -47,13 +47,13 @@ class MakeAction extends Command {
     }
 
     // build the new action file path
-    let newFilePath = Utils.getCurrentUniverse() + `/modules/${this.args.module}/actions/${this.args._[1]}.js`
+    let newFilePath = Utils.getCurrentUniverse() + `/modules/${this.args.module}/actions/${this.args._[ 1 ]}.js`
 
     // create the new action file
     Utils.createFile(newFilePath, Utils.getTemplate('action'))
 
     // print a success message
-    this.printSuccess(`The "${this.args._[1]}" action was created!`)
+    this.printSuccess(`The "${this.args._[ 1 ]}" action was created!`)
 
     return true
   }

@@ -33,7 +33,7 @@ export default class Tcp extends GenericServer {
 
   server;
 
-  constructor(api, options) {
+  constructor (api, options) {
     super(api, type, options, attributes);
 
     // define events
@@ -47,7 +47,7 @@ export default class Tcp extends GenericServer {
    *
    * @param next callback
    */
-  start(next) {
+  start (next) {
     let self = this;
 
     if (self.options.secure === false) {
@@ -78,7 +78,7 @@ export default class Tcp extends GenericServer {
    *
    * @param next
    */
-  stop(next) {
+  stop (next) {
     self._gracefulShutdown(next);
   }
 
@@ -89,7 +89,7 @@ export default class Tcp extends GenericServer {
    * @param message       Message to be sent.
    * @param messageCount  Number of messages already sent for this client.
    */
-  sendMessage(connection, message, messageCount) {
+  sendMessage (connection, message, messageCount) {
     let self = this;
 
     // if is an error message serialize the object
@@ -122,7 +122,7 @@ export default class Tcp extends GenericServer {
    *
    * @param connection  Client connection.
    */
-  goodbye(connection) {
+  goodbye (connection) {
     try {
       connection.rawConnection.end(JSON.stringify({status: 'Bye!', context: 'api'}) + '\r\n');
     } catch (e) {
@@ -138,7 +138,7 @@ export default class Tcp extends GenericServer {
    * @param error       Error object.
    * @param fileStream  FileStream object.
    */
-  sendFile(connection, error, fileStream) {
+  sendFile (connection, error, fileStream) {
     // if is an error response send a message with the error
     if (error) {
       server.sendMessage(connection, error, connection.messageCount);
@@ -155,7 +155,7 @@ export default class Tcp extends GenericServer {
    *
    * @private
    */
-  _defineEvents() {
+  _defineEvents () {
     let self = this;
 
     // on connection event
@@ -230,7 +230,7 @@ export default class Tcp extends GenericServer {
    * @param line        Request line to be parsed.
    * @private
    */
-  _parseRequest(connection, line) {
+  _parseRequest (connection, line) {
     let self = this;
 
     let words = line.split(' ');
@@ -288,7 +288,7 @@ export default class Tcp extends GenericServer {
    * @param rawConnection Client raw connection object.
    * @private
    */
-  _handleConnection(rawConnection) {
+  _handleConnection (rawConnection) {
     let self = this;
 
     // if the options are enabled, set keepAlive to true
@@ -314,7 +314,7 @@ export default class Tcp extends GenericServer {
    * @returns {boolean}   True if found, false otherwise.
    * @private
    */
-  _checkBreakChars(chunk) {
+  _checkBreakChars (chunk) {
     let found = false;
     let hexChunk = chunk.toString('hex', 0, chunk.length);
 
@@ -336,7 +336,7 @@ export default class Tcp extends GenericServer {
    * @param alreadyShutdown   Informs if the server was already shutdown.
    * @private
    */
-  _gracefulShutdown(next, alreadyShutdown = false) {
+  _gracefulShutdown (next, alreadyShutdown = false) {
     let self = this;
 
     // if the server isn't already shutdown do it now

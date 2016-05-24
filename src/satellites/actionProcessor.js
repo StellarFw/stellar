@@ -35,7 +35,7 @@ class ActionProcessor {
    * @param connection Connection object.
    * @param callback Callback function.
    */
-  constructor(api, connection, callback) {
+  constructor (api, connection, callback) {
     this.api = api
     this.connection = connection
     this.messageCount = connection.messageCount
@@ -48,21 +48,21 @@ class ActionProcessor {
    *
    * @param count
    */
-  incrementTotalActions(count = 1) { this.connection.totalActions += count }
+  incrementTotalActions (count = 1) { this.connection.totalActions += count }
 
   /**
    * Increment the pending actions for this connection.
    *
    * @param count
    */
-  incrementPendingActions(count = 1) { this.connection.pendingActions += count }
+  incrementPendingActions (count = 1) { this.connection.pendingActions += count }
 
   /**
    * Get the number of pending action for this connection.
    *
    * @returns {number|*}
    */
-  getPendingActionCount() { return this.connection.pendingActions }
+  getPendingActionCount () { return this.connection.pendingActions }
 
   /**
    * Complete the action execution.
@@ -71,7 +71,7 @@ class ActionProcessor {
    *
    * @param status
    */
-  completeAction(status) {
+  completeAction (status) {
     let self = this;
     let error = null;
 
@@ -124,7 +124,7 @@ class ActionProcessor {
    *
    * @param error
    */
-  logAction(error) {
+  logAction (error) {
     let self = this;
     let logLevel = 'info';
 
@@ -172,7 +172,7 @@ class ActionProcessor {
    *
    * @param callback
    */
-  preProcessAction(callback) {
+  preProcessAction (callback) {
     let self = this;
     let processors = [];
     let processorsNames = self.api.actions.globalMiddleware.slice(0);
@@ -202,7 +202,7 @@ class ActionProcessor {
    *
    * @param callback
    */
-  postProcessAction(callback) {
+  postProcessAction (callback) {
     let self = this;
     let processors = [];
     let processorNames = self.api.actions.globalMiddleware.slice(0);
@@ -229,7 +229,7 @@ class ActionProcessor {
   /**
    * Validate call params with the action requirements.
    */
-  validateParams() {
+  validateParams () {
     let self = this;
 
     // iterate inputs definitions of the called action
@@ -253,7 +253,7 @@ class ActionProcessor {
         if (typeof props.validator === 'function') {
           validatorResponse = props.validator(self.params[ key ])
         } else if (typeof props.validator === 'string') {
-          validatorResponse = self.api.validator.validate(props.validator, self.params, key, self.params[key])
+          validatorResponse = self.api.validator.validate(props.validator, self.params, key, self.params[ key ])
         } else {
           let pattern = new RegExp(props.validator)
           validatorResponse = pattern.test(self.params[ key ]) ? true : `Don't match with the validator.`
@@ -272,7 +272,7 @@ class ActionProcessor {
     }
   }
 
-  processAction() {
+  processAction () {
     let self = this;
 
     // initialize the processing environment
@@ -311,7 +311,7 @@ class ActionProcessor {
   /**
    * Run an action.
    */
-  runAction() {
+  runAction () {
     let self = this;
 
     self.preProcessAction(function (error) {
@@ -342,6 +342,9 @@ class ActionProcessor {
   }
 }
 
+/**
+ * Action processor Satellite.
+ */
 export default class {
 
   /**
@@ -349,13 +352,20 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 430;
+  static loadPriority = 430
 
-  static load(api, next) {
+  /**
+   * Satellite loading function.
+   *
+   * @param api   API reference object.
+   * @param next  Callback function.
+   */
+  static load (api, next) {
     // load action processor to the API
-    api.actionProcessor = ActionProcessor;
+    api.actionProcessor = ActionProcessor
 
-    next();
+    // finish the load
+    next()
   }
 
 }

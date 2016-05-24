@@ -40,7 +40,7 @@ class Models {
    *
    * @param api   API reference.
    */
-  constructor(api) {
+  constructor (api) {
     this.api = api
   }
 
@@ -49,7 +49,7 @@ class Models {
    *
    * @param callback  Callback function.
    */
-  openConnection(callback) {
+  openConnection (callback) {
     let self = this
 
     // if the connection has already open return and execute the callback
@@ -100,7 +100,7 @@ class Models {
    *
    * @param callback  Callback function.
    */
-  closeConnection(callback) {
+  closeConnection (callback) {
     let self = this
 
     // if there is not connection open return now
@@ -117,7 +117,7 @@ class Models {
    *
    * @returns {boolean}
    */
-  status() { return this.connected }
+  status () { return this.connected }
 
   /**
    * Add a new model.
@@ -127,7 +127,7 @@ class Models {
    * @param name    Model name
    * @param schema  Model schema.
    */
-  add(name, schema) { this.models.set(name, this.mongoose.model(name, schema)) }
+  add (name, schema) { this.models.set(name, this.mongoose.model(name, schema)) }
 
   /**
    * Get a model object from the repository.
@@ -135,14 +135,14 @@ class Models {
    * @param modelName   model name to get.
    * @returns {V}       model object.
    */
-  get(modelName) { return this.models.get(modelName) }
+  get (modelName) { return this.models.get(modelName) }
 
   /**
    * Remove a model from the repository.
    *
    * @param modelName   model name to be deleted.
    */
-  remove(modelName) { this.models.delete(modelName) }
+  remove (modelName) { this.models.delete(modelName) }
 
 }
 
@@ -178,7 +178,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  static load(api, next) {
+  static load (api, next) {
     // expose models class on the engine
     api.models = new Models(api)
 
@@ -192,7 +192,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  static start(api, next) {
+  static start (api, next) {
     // open connection
     api.models.openConnection(() => {
       // read models files from the modules
@@ -220,7 +220,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  static stop(api, next) {
+  static stop (api, next) {
     // close connection
     api.models.closeConnection(next)
   }

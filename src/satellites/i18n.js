@@ -19,7 +19,7 @@ class I18n {
    *
    * @param api   API reference.
    */
-  constructor(api) {
+  constructor (api) {
     let self = this;
 
     // save api reference
@@ -32,7 +32,7 @@ class I18n {
   /**
    * Configure i18n.
    */
-  configure() {
+  configure () {
     let self = this;
 
     // @todo - copy all modules locale folder to a temp folder '/tmp/locale'
@@ -73,7 +73,7 @@ class I18n {
    *
    * @param connection  Client connection object.
    */
-  determineConnectionLocale(connection) {
+  determineConnectionLocale (connection) {
     return this.api.config.i18n.defaultLocale;
   }
 
@@ -82,7 +82,7 @@ class I18n {
    *
    * @param connection  Client connection object.
    */
-  invokeConnectionLocale(connection) {
+  invokeConnectionLocale (connection) {
     let self = this;
 
     // split the command by '.'
@@ -125,7 +125,7 @@ export default class {
    * @param api   Stellar api object.
    * @param next  Callback.
    */
-  static load(api, next) {
+  static load (api, next) {
     // add i18n class to the api object
     api.i18n = new I18n(api);
 

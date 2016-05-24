@@ -61,7 +61,7 @@ class Connection {
    * @param api Stellar API reference
    * @param data hash map
    */
-  constructor(api, data) {
+  constructor (api, data) {
     let self = this;
     self.api = api;
     self._setup(data);
@@ -78,7 +78,7 @@ class Connection {
    * @param data
    * @private
    */
-  _setup(data) {
+  _setup (data) {
     let self = this;
 
     if (data.id) {
@@ -135,7 +135,7 @@ class Connection {
    * @returns {*}
    * @private
    */
-  _generateID() {
+  _generateID () {
     return UUID.v4();
   }
 
@@ -144,7 +144,7 @@ class Connection {
    *
    * @param message
    */
-  sendMessage(message) {
+  sendMessage (message) {
     throw new Error(`I should be replaced with a connection-specific method [${message}]`);
   }
 
@@ -153,7 +153,7 @@ class Connection {
    *
    * @param path
    */
-  sendFile(path) {
+  sendFile (path) {
     throw new Error(`I should be replaced with a connection-specific method [${path}]`);
   }
 
@@ -162,7 +162,7 @@ class Connection {
    *
    * @param message   Message to be localized.
    */
-  localize(message) {
+  localize (message) {
     let self = this;
 
     // this.locale will be sourced automatically
@@ -172,7 +172,7 @@ class Connection {
     return self.api.i18n.i18n.__.apply(this, message);
   }
 
-  destroy(callback) {
+  destroy (callback) {
     let self = this;
     self.destroyed = true;
 
@@ -202,7 +202,7 @@ class Connection {
    * @param key
    * @param value
    */
-  set(key, value) {
+  set (key, value) {
     let self = this;
     self[ key ] = value;
   }
@@ -213,7 +213,7 @@ class Connection {
    * @param words Words are optional.
    * @param callback
    */
-  verbs(verb, words, callback) {
+  verbs (verb, words, callback) {
     let self = this;
     let key, value, room;
     let server = self.api.servers.servers[ self.type ];
@@ -321,7 +321,7 @@ export default class {
    */
   static loadPriority = 400;
 
-  static load(api, next) {
+  static load (api, next) {
     // put Connections instance available to all platform
     api.connections = new Connections();
 

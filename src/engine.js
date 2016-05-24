@@ -35,7 +35,7 @@ export default class Engine {
    *
    * @param satellite Satellite instance to be normalized.
    */
-  static normalizeInitializerPriority(satellite) {
+  static normalizeInitializerPriority (satellite) {
     satellite.loadPriority = satellite.loadPriority || Engine.defaultPriorities.load
     satellite.startPriority = satellite.startPriority || Engine.defaultPriorities.start
     satellite.stopPriority = satellite.stopPriority || Engine.defaultPriorities.stop
@@ -47,7 +47,7 @@ export default class Engine {
    * @param collection  Satellites array to be ordered.
    * @returns {Array}   New ordered array.
    */
-  static flattenOrderedInitializer(collection) {
+  static flattenOrderedInitializer (collection) {
     let keys = []
     let output = []
 
@@ -73,7 +73,7 @@ export default class Engine {
    * @param errors  String or array with the fatal error(s).
    * @param type    String with the error type.
    */
-  static fatalError(api, errors, type) {
+  static fatalError (api, errors, type) {
     // if errors variables if not defined return
     if (!errors) { return }
 
@@ -166,7 +166,7 @@ export default class Engine {
    *
    * @param scope Initial scope
    */
-  constructor(scope) {
+  constructor (scope) {
     let self = this
 
     // save current execution scope
@@ -191,7 +191,7 @@ export default class Engine {
   /**
    * Start engine execution.
    */
-  start(callback = null) {
+  start (callback = null) {
     let self = this
 
     // print current execution path
@@ -209,7 +209,7 @@ export default class Engine {
    *
    * @param callback Callback function to be executed at the stop end execution.
    */
-  stop(callback = null) {
+  stop (callback = null) {
     let self = this
 
     // if this function has called outside of the Engine the 'this'
@@ -231,7 +231,7 @@ export default class Engine {
       }
 
       // add the final callback
-      self.stopSatellites.push(function finalStopInitializer(next) {
+      self.stopSatellites.push(function finalStopInitializer (next) {
         // stop watch for file changes
         self.api.unWatchAllFiles()
 
@@ -271,7 +271,7 @@ export default class Engine {
    *
    * @param callback Callback function to be executed at the restart end.s
    */
-  restart(callback = null) {
+  restart (callback = null) {
     let self = this
 
     // if this function has called outside of the Engine the 'this'
@@ -320,7 +320,7 @@ export default class Engine {
    *
    * @param callback This callback only are executed at the end of stage2.
    */
-  stage0(callback = null) {
+  stage0 (callback = null) {
     let self = this;
 
     // we need to load the config first
@@ -356,7 +356,7 @@ export default class Engine {
    *
    * @param callback This callback only is executed at the stage2 end.
    */
-  stage1(callback = null) {
+  stage1 (callback = null) {
     let self = this
 
     // ranked object for all stages
@@ -470,7 +470,7 @@ export default class Engine {
    *
    *  @param callback
    */
-  stage2(callback = null) {
+  stage2 (callback = null) {
     let self = this
 
     self.startSatellites.push(next => {
