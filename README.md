@@ -8,6 +8,8 @@
   <a href="https://raw.githubusercontent.com/gil0mendes/stellar/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
 </p>
 
+<p align="center"><b>Important: <i>The documentation and the examples aren't available at the moment, Stellar is a development preview, its't ready for production... yet!</i></b></p>
+
 ## Intro
 
 Stellar is a web framework that makes it easy to build modular APIs. It is designed to follow an action based pattern that makes it possible to isolate logic in small structures.
