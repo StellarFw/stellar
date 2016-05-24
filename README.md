@@ -8,7 +8,7 @@
   <a href="https://raw.githubusercontent.com/gil0mendes/stellar/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
 </p>
 
-<p align="center"><b>Important: <i>The documentation and the examples aren't available at the moment, Stellar is a development preview, its't ready for production... yet!</i></b></p>
+<p align="center"><b>Important: <i>The documentation and the examples aren't available at the moment, Stellar is a development preview, is not ready for production... yet!</i></b></p>
 
 ## Intro
 
