@@ -68,7 +68,7 @@ class Actions {
     };
 
     // watch for changes on the action file
-    self.api.watchFileAndAct(fullFilePath, function () {
+    self.api.configs.watchFileAndAct(fullFilePath, function () {
       self.loadFile(fullFilePath, true)
       self.api.params.buildPostVariables()
       self.api.routes.loadRoutes()

@@ -47,7 +47,7 @@ class TaskSatellite {
     }
 
     // start watch for file changes
-    self.api.watchFileAndAct(fullFilePath, () => self.loadFile(fullFilePath, true))
+    self.api.configs.watchFileAndAct(fullFilePath, () => self.loadFile(fullFilePath, true))
 
     // temporary task info
     let task = null
