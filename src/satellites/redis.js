@@ -135,7 +135,7 @@ class RedisManager {
       self.api.log('connected to redis (client)', 'debug')
       self.status.client = true
 
-      if (self.api.status.client === true && self.api.status.subscribed === true && self.status.calledback === false) {
+      if (self.status.client === true && self.status.subscribed === true && self.status.calledback === false) {
         self.status.calledback = true
         callback()
       }
