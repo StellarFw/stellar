@@ -25,7 +25,7 @@ export default class {
 
     // this config is required. If doesn't exists or is an empty array
     // an exception should be raised.
-    if (modules === undefined || modules.length === 0) { api.shutdown(true, 'At least one module needs to be active.') }
+    if (modules === undefined || modules.length === 0) { next(new Error('At least one module needs to be active.')) }
 
     // save the list of active modules
     api.config.activeModules = Utils.objClone(api.config.modules)
