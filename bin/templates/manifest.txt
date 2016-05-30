@@ -1,0 +1,6 @@
+{
+    "name": "%ProjectName%",
+    "version": "%ProjectVersion%",
+
+    "modules": [ ]
+}

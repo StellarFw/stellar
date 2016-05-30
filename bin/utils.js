@@ -69,5 +69,31 @@ module.exports = class Utils {
     // return the template content
     return Utils.fileContent(path)
   }
+
+  /**
+   * Check if a folder is empty.
+   *
+   * @param path        Path of the folder to be validated.
+   * @returns {boolean} True if the folder is empty, false otherwise.
+   */
+  static folderIsEmpty (path) {
+    let list = fs.readdirSync(path)
+    list = list.filter(item => !(/(^|\/)\.[^\/\.]/g).test(item));
+
+    return list.length <= 0
+  }
+
+  /**
+   * Create a new directory.
+   *
+   * @param path
+   */
+  static createFolder (path) {
+    try {
+      fs.mkdirSync(path)
+    } catch (e) {
+      if (e.code != 'EEXIST') { throw e }
+    }
+  }
 }
 

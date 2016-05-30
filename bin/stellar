@@ -33,5 +33,12 @@ commander.command('cluster')
   .description('Create a custer')
   .action(require('./commands/cluster'))
 
+// register init command
+commander.command('init')
+  .description('Create a new Stellar project')
+  .option('name', 'Project name')
+  .option('version', 'Project version')
+  .action(require('./commands/init'))
+
 // parse the command line argument an execute the requested action
 commander.parse(process.argv)
