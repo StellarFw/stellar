@@ -240,7 +240,7 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 0
+  loadPriority = 0
 
   /**
    * Load satellite function.
@@ -248,7 +248,7 @@ export default class {
    * @param api   API object reference.
    * @param next  Callback function.
    */
-  static load (api, next) {
+  load (api, next) {
     // put the config instance available on the API object
     api.configs = new ConfigManager(api)
 
@@ -262,7 +262,7 @@ export default class {
    * @param api   Api object reference.
    * @param next  Callback function.
    */
-  static start (api, next) {
+  start (api, next) {
     // print out the current environment
     api.log(`environment: ${api.env}`, 'notice')
 

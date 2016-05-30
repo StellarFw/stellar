@@ -563,7 +563,7 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 400
+  loadPriority = 400
 
   /**
    * Satellite load function.
@@ -571,7 +571,7 @@ export default class {
    * @param api   API reference object.
    * @param next  Callback function.
    */
-  static load (api, next) {
+  load (api, next) {
     // load validator logic into the API object
     api.validator = new Validator(api)
 

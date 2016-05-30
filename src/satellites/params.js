@@ -71,7 +71,7 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 420
+  loadPriority = 420
 
   /**
    * Action to the executed on the initializer loading.
@@ -79,7 +79,7 @@ export default class {
    * @param api   Api reference.
    * @param next  Callback function.
    */
-  static load (api, next) {
+  load (api, next) {
     // put the params API available to all platform
     api.params = new Params(api)
 

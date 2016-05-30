@@ -235,21 +235,21 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 200
+  loadPriority = 200
 
   /**
    * Initializer start priority.
    *
    * @type {number}
    */
-  static startPriority = 101
+  startPriority = 101
 
   /**
    * Initializer stop priority.
    *
    * @type {number}
    */
-  static stopPriority = 999
+  stopPriority = 999
 
   /**
    * Initializer load method.
@@ -257,7 +257,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback
    */
-  static load (api, next) {
+  load (api, next) {
     // put the redis manager available
     api.redis = new RedisManager(api)
 
@@ -271,7 +271,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback.
    */
-  static start (api, next) {
+  start (api, next) {
     // start manager
     api.redis.start(() => {
       api.redis.doCluster('api.log', `Stellar member ${api.id} has joined the cluster`, null, null)
@@ -287,7 +287,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback.
    */
-  static stop (api, next) {
+  stop (api, next) {
     // execute all existent timeouts and remove them
     for (let i in api.redis.clusterCallbacksTimeout) {
       clearTimeout(api.redis.clusterCallbacksTimeout[ i ])

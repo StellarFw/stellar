@@ -278,6 +278,8 @@ export default class Utils {
     } catch (er) {
       return false
     }
+
+    return true
   }
 
   /**

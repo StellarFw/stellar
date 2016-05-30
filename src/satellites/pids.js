@@ -109,14 +109,14 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 110;
+  loadPriority = 110;
 
   /**
    * Start priority.
    *
    * @type {number}
    */
-  static startPriority = 1;
+  startPriority = 1;
 
   /**
    * Load initializer.
@@ -124,7 +124,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback.
    */
-  static load (api, next) {
+  load (api, next) {
     // add pids class to the API
     api.pids = new Pids(api);
 
@@ -141,7 +141,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback.
    */
-  static start (api, next) {
+  start (api, next) {
     // write pid file
     api.pids.writePidFile();
 

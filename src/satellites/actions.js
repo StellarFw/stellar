@@ -166,7 +166,7 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 410;
+  loadPriority = 410
 
   /**
    * Initializer load function.
@@ -174,7 +174,7 @@ export default class {
    * @param api   API reference
    * @param next  Callback function
    */
-  static load (api, next) {
+  load (api, next) {
     // add the actions class to the api
     api.actions = new Actions(api)
 

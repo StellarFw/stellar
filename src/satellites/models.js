@@ -156,21 +156,21 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 100
+  loadPriority = 100
 
   /**
    * Initializer start priority.
    *
    * @type {number}
    */
-  static startPriority = 100
+  startPriority = 100
 
   /**
    * Initializer stop priority.
    *
    * @type {number}
    */
-  static stopPriority = 400
+  stopPriority = 400
 
   /**
    * Initializer loading function.
@@ -178,7 +178,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  static load (api, next) {
+  load (api, next) {
     // expose models class on the engine
     api.models = new Models(api)
 
@@ -192,7 +192,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  static start (api, next) {
+  start (api, next) {
     // open connection
     api.models.openConnection(() => {
       // read models files from the modules
@@ -220,7 +220,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  static stop (api, next) {
+  stop (api, next) {
     // close connection
     api.models.closeConnection(next)
   }

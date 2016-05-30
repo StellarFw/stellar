@@ -319,17 +319,17 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 400;
+  loadPriority = 400
 
-  static load (api, next) {
+  load (api, next) {
     // put Connections instance available to all platform
-    api.connections = new Connections();
+    api.connections = new Connections()
 
     // put the connection class available to all platform
-    api.connection = Connection;
+    api.connection = Connection
 
     // finish the initializer loaded
-    next();
+    next()
   }
 
-};
+}

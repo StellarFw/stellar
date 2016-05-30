@@ -117,7 +117,7 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 1;
+  loadPriority = 1
 
   /**
    * Load initializer method.
@@ -125,15 +125,15 @@ export default class {
    * @param api   Stellar api object.
    * @param next  Callback.
    */
-  static load (api, next) {
+  load (api, next) {
     // add i18n class to the api object
-    api.i18n = new I18n(api);
+    api.i18n = new I18n(api)
 
     // configure i18n
-    api.i18n.configure();
+    api.i18n.configure()
 
     // call callback
-    next();
+    next()
   }
 
-};
+}

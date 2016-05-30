@@ -186,9 +186,9 @@ class StaticFile {
 
 export default class {
 
-  static loadPriority = 510;
+  loadPriority = 510;
 
-  static load (api, next) {
+  load (api, next) {
     api.staticFile = new StaticFile(api);
     next();
   }

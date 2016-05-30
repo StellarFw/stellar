@@ -460,14 +460,14 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 699
+  loadPriority = 699
 
   /**
    * Satellite start priority.
    *
    * @type {number}
    */
-  static startPriority = 900
+  startPriority = 900
 
   /**
    * Load the logic intro the API object.
@@ -475,7 +475,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  static load (api, next) {
+  load (api, next) {
     // load task features to the API object
     api.tasks = new TaskSatellite(api)
 
@@ -492,7 +492,7 @@ export default class {
    * @param api   API object reference.
    * @param next  Callback function.
    */
-  static start (api, next) {
+  start (api, next) {
     if (api.config.tasks.scheduler === true) {
       api.tasks.enqueueAllRecurrentJobs((error) => next(error))
     } else {

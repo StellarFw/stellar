@@ -515,14 +515,14 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 520;
+  loadPriority = 520
 
   /**
    * Initializer start priority.
    *
    * @type {number}
    */
-  static startPriority = 200;
+  startPriority = 200
 
   /**
    * Initializer loading function.
@@ -530,12 +530,12 @@ export default class {
    * @param api   API reference.
    * @param next  Callback.
    */
-  static load (api, next) {
+  load (api, next) {
     // put the chat room interface available to all system
-    api.chatRoom = new ChatRooms(api);
+    api.chatRoom = new ChatRooms(api)
 
     // end the initializer loading
-    next();
+    next()
   }
 
   /**
@@ -544,20 +544,20 @@ export default class {
    * @param api   API reference.
    * @param next  Callback.
    */
-  static start (api, next) {
+  start (api, next) {
     // subscribe new chat messages on the redis server
-    api.redis.subscriptionHandlers.chat = (message) => { api.chatRoom.incomingMessage(message); };
+    api.redis.subscriptionHandlers.chat = (message) => { api.chatRoom.incomingMessage(message) }
 
     // check if we need to create some starting chat rooms
     if (api.config.general.startingChatRooms) {
       for (let room in api.config.general.startingChatRooms) {
-        api.log(`ensuring the existence of the chatRoom: ${room}`);
-        api.chatRoom.add(room);
+        api.log(`ensuring the existence of the chatRoom: ${room}`)
+        api.chatRoom.add(room)
       }
     }
 
     // end the initializer starting
-    next();
+    next()
   }
 
 }

@@ -261,7 +261,7 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 500;
+  loadPriority = 500;
 
   /**
    * Initializer loading function.
@@ -269,7 +269,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  static load (api, next) {
+  load (api, next) {
     // put the routes manager available to all platform
     api.routes = new RoutesManager(api);
 

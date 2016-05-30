@@ -1,4 +1,4 @@
-import async from 'async';
+import async from 'async'
 
 /**
  * This class process an action request.
@@ -352,7 +352,7 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 430
+  loadPriority = 430
 
   /**
    * Satellite loading function.
@@ -360,7 +360,7 @@ export default class {
    * @param api   API reference object.
    * @param next  Callback function.
    */
-  static load (api, next) {
+  load (api, next) {
     // load action processor to the API
     api.actionProcessor = ActionProcessor
 

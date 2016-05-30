@@ -11,7 +11,7 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 0
+  loadPriority = 0
 
   /**
    * Initializer load function.
@@ -19,7 +19,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  static load (api, next) {
+  load (api, next) {
     // get active modules
     let modules = api.config.modules
 

@@ -145,13 +145,13 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 550;
+  loadPriority = 550;
 
-  static startPriority = 900;
+  startPriority = 900;
 
-  static stopPriority = 100;
+  stopPriority = 100;
 
-  static load (api, next) {
+  load (api, next) {
     // instance the server manager
     api.servers = new Servers(api);
 
@@ -159,12 +159,12 @@ export default class {
     api.servers.loadServers(next);
   }
 
-  static start (api, next) {
+  start (api, next) {
     // start servers
     api.servers.startServers(next);
   }
 
-  static stop (api, next) {
+  stop (api, next) {
     // stop servers
     api.servers.stopServers(next);
   }

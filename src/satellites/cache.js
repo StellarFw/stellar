@@ -325,7 +325,7 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 300;
+  loadPriority = 300
 
   /**
    * Initializer load method.
@@ -333,12 +333,12 @@ export default class {
    * @param api
    * @param next
    */
-  static load (api, next) {
+  load (api, next) {
     // put cache manager available to all API
-    api.cache = new CacheManager(api);
+    api.cache = new CacheManager(api)
 
     // finish the initializer loading
-    next();
+    next()
   }
 
 }

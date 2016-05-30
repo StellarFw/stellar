@@ -217,21 +217,21 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 600
+  loadPriority = 600
 
   /**
    * Satellite start priority.
    *
    * @type {number}
    */
-  static startPriority = 200
+  startPriority = 200
 
   /**
    * Satellite stop priority.
    *
    * @type {number}
    */
-  static stopPriority = 100
+  stopPriority = 100
 
   /**
    * Satellite load methods.
@@ -239,7 +239,7 @@ export default class {
    * @param api   API reference object.
    * @param next  Callback function.
    */
-  static load (api, next) {
+  load (api, next) {
     // put resque manager available to the entire platform
     api.resque = new ResqueManager(api)
 
@@ -253,7 +253,7 @@ export default class {
    * @param api   API reference object.
    * @param next  Callback function.
    */
-  static start (api, next) {
+  start (api, next) {
     if (api.config.tasks.minTaskProcessors === 0 && api.config.tasks.maxTaskProcessors > 0) {
       api.config.tasks.minTaskProcessors = 1
     }
@@ -274,7 +274,7 @@ export default class {
    * @param api   API reference object.
    * @param next  Callback function.
    */
-  static stop (api, next) {
+  stop (api, next) {
     api.resque.stopScheduler(() => {
       api.resque.stopMultiWorker(() => {
         api.resque.queue.end(() => {
