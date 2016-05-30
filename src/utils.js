@@ -281,6 +281,19 @@ export default class Utils {
   }
 
   /**
+   * Create a new directory.
+   *
+   * @param path Path there the directory must be created.
+   */
+  static createFolder (path) {
+    try {
+      fs.mkdirSync(path)
+    } catch (e) {
+      if (e.code != 'EEXIST') { throw e }
+    }
+  }
+
+  /**
    * Get this servers external interface.
    *
    * @returns {String} Server external IP or false if not founded.

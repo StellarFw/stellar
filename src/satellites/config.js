@@ -33,6 +33,9 @@ class ConfigManager {
     // init the execution environment
     this._setupEnvironment()
 
+    // creates 'temp' folder if it does not exist
+    this._createTempFolder()
+
     // load manifest file, and core, project and modules configs
     this._loadConfigs()
 
@@ -208,6 +211,20 @@ class ConfigManager {
     }
   }
 
+  /**
+   * Creates the 'temp' folder if it does not exist.
+   *
+   * This folder is used to store the log files.
+   *
+   * @private
+   */
+  _createTempFolder () {
+    let self = this
+
+    if (!Utils.directoryExists(`${self.api.scope.rootPath}/temp`)) {
+      Utils.createFolder(`${self.api.scope.rootPath}/temp`)
+    }
+  }
 }
 
 /**
