@@ -188,7 +188,7 @@ class ConfigManager {
         // attempt configuration file load
         let localConfig = require(file)
         if (localConfig.default) { self.api.config = Utils.hashMerge(self.api.config, localConfig.default, self.api) }
-        if (localConfig[ self.env ]) { self.api.config = Utils.hashMerge(self.api.config, localConfig[ self.env ], self.api) }
+        if (localConfig[ self.api.env ]) { self.api.config = Utils.hashMerge(self.api.config, localConfig[ self.api.env ], self.api) }
 
         // configuration file load success: clear retries and errors since progress
         // has been made
