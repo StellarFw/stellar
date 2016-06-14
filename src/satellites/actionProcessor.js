@@ -251,7 +251,7 @@ class ActionProcessor {
         let validatorResponse = true;
 
         if (typeof props.validator === 'function') {
-          validatorResponse = props.validator(self.params[ key ])
+          validatorResponse = props.validator.call(self.api, self.params[ key ], self)
         } else if (typeof props.validator === 'string') {
           validatorResponse = self.api.validator.validate(props.validator, self.params, key, self.params[ key ])
         } else {

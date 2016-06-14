@@ -150,7 +150,7 @@ class ConfigManager {
       self.api.log('Project `manifest.json` file does not exists.', 'emergency')
 
       // end the engine execution
-      self.api.shutdown(true, 'manifest not found')
+      self.api.stop()
       return
     }
 

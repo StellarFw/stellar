@@ -97,7 +97,7 @@ export default {
       startingChatRooms: {
         'defaultRoom': {}
       }
-    };
+    }
   }
 }
 
@@ -117,7 +117,7 @@ export const test = {
       }
     }
   }
-};
+}
 
 /**
  * Production configs.
@@ -130,4 +130,4 @@ export const production = {
       developmentMode: false
     }
   }
-};
+}

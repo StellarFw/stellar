@@ -175,8 +175,8 @@ export default class Engine {
     // save the engine reference for external calls
     self.api._self = self;
 
-    // define a simple early custom logger
-    self.api.log = (msg, level = 'info') => console.log(`[${level}]`, msg)
+    // define a dummy logger
+    self.api.log = (msg, level = 'info') => { }
 
     // define the available engine commands
     self.api.commands = {
@@ -233,7 +233,7 @@ export default class Engine {
       // add the final callback
       self.stopSatellites.push(function finalStopInitializer (next) {
         // stop watch for file changes
-        self.api.unWatchAllFiles()
+        self.api.configs.unwatchAllFiles()
 
         // clear cluster PIDs
         self.api.pids.clearPidFile()

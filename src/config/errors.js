@@ -31,6 +31,13 @@ export default {
             } else {
               return error;
             }
+          },
+          helper: function (error) {
+            if (Utils.isError(error)) {
+              return 'Error: ' + String(error.message)
+            } else {
+              return error
+            }
           }
         }
       },
