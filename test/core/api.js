@@ -221,14 +221,6 @@ describe('Core: API', function () {
         done()
       })
     })
-
-    it('will filter params not set in the target action or global safelist', function (done) {
-      api.helpers.runAction('testAction', {requiredParam: true, randomParam: true}, response => {
-        should.exist(response.requesterInformation.receivedParams.requiredParam)
-        should.not.exist(response.requesterInformation.receivedParams.randomParam)
-        done()
-      })
-    })
   })
 
 })

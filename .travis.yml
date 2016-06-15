@@ -1,0 +1,19 @@
+sudo: false
+
+language: node_js
+
+node_js:
+  - "6"
+
+env:
+  - "FAKEREDIS=true"
+  - "FAKEREDIS=false"
+
+os:
+  - linux
+  - osx
+
+script: npm run-script test:travis
+
+services:
+  - redis-server
