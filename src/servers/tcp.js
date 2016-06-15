@@ -1,9 +1,9 @@
-import net from 'net';
-import tls from 'tls';
-import GenericServer from '../genericServer';
+import net from 'net'
+import tls from 'tls'
+import GenericServer from '../genericServer'
 
 // server type
-let type = 'tcp';
+let type = 'tcp'
 
 // server attributes
 let attributes = {

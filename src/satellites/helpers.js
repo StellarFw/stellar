@@ -1,5 +1,5 @@
 import uuid from 'node-uuid'
-import GenericServer from '../GenericServer'
+import GenericServer from '../genericServer'
 
 class TestServer extends GenericServer {
 
