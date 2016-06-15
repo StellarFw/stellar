@@ -13,6 +13,10 @@ os:
   - linux
   - osx
 
+before_script:
+  - npm install -g gulp
+  - gulp babel
+
 script: npm run-script test:travis
 
 services:
