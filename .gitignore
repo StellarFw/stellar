@@ -24,7 +24,7 @@ nbproject
 # Tests
 ############################
 testApp
-coverage
+coverage/*
 
 
 ############################

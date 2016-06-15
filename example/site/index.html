@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stellar - Client Test</title>
+</head>
+<body>
+
+<!-- load Stellar Client Lib -->
+<script src="http://0.0.0.0:8080/stellar-client"></script>
+
+<!-- test script -->
+<script>
+// create instance
+var stellar = new StellarClient({
+	url: 'http://0.0.0.0:8080/'
+})
+
+var test = function (msg) { console.log('[-] Test ' + msg + '...') }
+
+// add an action to be executed after the client connection
+test('"connected" event');
+stellar.on('connected', function () {
+  // call an existent action
+  test('calling an action')
+	stellar.action('randomNumber', function (res) {
+		console.log('=> randomNumber action', res)
+	})
+
+  // call an action who doesn't exists
+  test('test calling an action who doesn\'t exists')
+	stellar.action('notfound', function (res) {
+		console.log('=> not found action', res)
+	})
+
+  test('detailsView method')
+  stellar.detailsView(function (res) {
+    console.log('=> detailsView response', res)
+  })
+
+  // try join to a new room
+  test('roomAdd method');
+  stellar.roomAdd('defaultRoom', function(res) {
+    console.log('=> roomAdd response', res)
+
+    test('roomView method')
+    stellar.roomView('defaultRoom', function (res) {
+      console.log('=> roomView response', res)
+    })
+
+    // send a message
+    test('say method');
+    stellar.say('defaultRoom', 'something!', function (res) {
+      console.log('=> was "something!" sent to "defaultRoom"')
+      console.log(res)
+
+      // try live the room
+      test('roomLeave method')
+      stellar.roomLeave('defaultRoom', function (res) {
+        console.log('=> client was live the room')
+
+        // try disconnect
+        test('disconnect method')
+        stellar.disconnect()
+      })
+    })
+  })
+})
+
+// handler for disconnected event
+stellar.on('disconnected', function () {
+  console.log('=> The client has been disconnected')
+})
+
+// connect to the server
+test('connect method');
+stellar.connect()
+</script>
+
+</body>
+</html>
