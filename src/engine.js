@@ -190,9 +190,16 @@ export default class Engine {
 
   /**
    * Start engine execution.
+   *
+   * @param callback This function is called when the Engine finish their startup.
    */
   start (callback = null) {
     let self = this
+
+    // if this function has called outside of the Engine the 'this'
+    // variable has an invalid reference
+    if (this._self) { self = this._self }
+    self.api._self = self
 
     // print current execution path
     self.api.log(`Current universe "${self.api.scope.rootPath}"`, 'info')

@@ -97,7 +97,7 @@ export default class Web extends GenericServer {
     self.server.on('error', function (e) {
       bootAttempts++;
 
-      if (bootAttempts < api.config.servers.web.bootAttempts) {
+      if (bootAttempts < self.api.config.servers.web.bootAttempts) {
         self.log(`cannot boot web server; trying again [${String(e)}]`, 'error');
 
         if (bootAttempts === 1) {

@@ -1,7 +1,8 @@
 // module dependencies
-import _ from 'lodash';
-import path from 'path';
-import Utils from '../utils';
+import _ from 'lodash'
+import path from 'path'
+import async from 'async'
+import Utils from '../utils'
 
 /**
  * Manager for server instances.
@@ -30,110 +31,131 @@ class Servers {
     this.api = api;
   }
 
+  /**
+   * Load all servers.
+   *
+   * @param next  Callback function.
+   */
   loadServers (next) {
-    let self = this;
+    let self = this
+    let jobs = []
 
-    // get list with the server files
-    let serversFiles = Utils.getFiles(path.resolve(__dirname + '/../servers'));
+    // get the list of servers to load
+    let serversFiles = Utils.getFiles(path.resolve(__dirname + '/../servers'))
 
-    let started = 0;
+    for (let k in serversFiles) {
+      // get server filename
+      let file = serversFiles[ k ]
+      let parts = file.split(/[\/\\]+/)
+      let serverName = parts[ (parts.length - 1) ].split('.')[ 0 ]
 
-    // iterate all server files
-    _.forEach(serversFiles, function (file) {
-      let parts = file.split(/[\/\\]+/);
-      let server = _.last(parts).split('.')[ 0 ];
+      // only load .js files (in debug we also have .map files)
+      if (parts[ (parts.length - 1) ].match('\.map$')) { continue }
 
-      // only load `.js` files (in debug we also have `.map`files)
-      if (_.last(_.last(parts).split('.')) !== 'js') {
-        return;
+      // get server options if exists
+      let options = self.api.config.servers[ serverName ]
+
+      // only load the server if that was enabled
+      if (options && options.enable === true) {
+        // get server constructor
+        let serverConstructor = require(file).default
+
+        // push the new job to the queue
+        jobs.push(done => {
+          // instance the new server
+          self.servers[ serverName ] = new serverConstructor(self.api, options)
+
+          // log a debug message
+          self.api.log(`Initialized server: ${serverName}`, 'debug')
+
+          // execute the done function
+          return done()
+        })
       }
-
-      // check if the server is enabled on app config
-      if (self.api.config.servers[ server ] && self.api.config.servers[ server ].enable == true) {
-        // save the server instance
-        self.servers[ server ] = new (require(file).default)(self.api, self.api.config.servers[ server ]);
-        self.api.log(`initialized server: ${server}`, 'debug');
-        started++;
-
-        process.nextTick(function () {
-          started--;
-          if (started === 0) {
-            next();
-          }
-        });
-      }
-    });
-
-    if (started == 0) {
-      next();
     }
+
+    // execute all the jobs
+    async.series(jobs, next)
   }
 
+  /**
+   * Start all the existing servers.
+   *
+   * @param next  Callback function.
+   */
   startServers (next) {
-    let started = 0;
+    let self = this
 
-    // check if exists any server loaded
-    if (_.size(this.servers) === 0) {
-      next();
-    }
+    // array with all jobs
+    let jobs = []
 
-    for (let server in this.servers) {
-      started++;
+    // for each server create a new job
+    Object.keys(self.servers).forEach(serverName => {
+      // get server instance
+      let server = self.servers[ serverName ]
 
-      this.api.log(`starting server: ${server}`, 'notice');
-      this.servers[ server ].start(function (error) {
-        if (error) {
-          return next(error);
+      // only load the server if the server was enabled
+      if (server.options.enable === true) {
+        let message = `Starting server: ${serverName}`
+
+        // append the bind IP to log message
+        if (self.api.config.servers[ serverName ].bindIP) {
+          message += ` @ ${self.api.config.servers[ serverName ].bindIP}`
         }
 
-        process.nextTick(function () {
-          started--;
-          if (started === 0) {
-            next();
-          }
-        });
-      });
-    }
+        // append the port to log message
+        if (self.api.config.servers[ serverName ].port) {
+          message += ` @ ${self.api.config.servers[ serverName ].port}`
+        }
+
+        // push a new job
+        jobs.push(done => {
+          self.api.log(message, 'notice')
+          server.start(error => {
+            if (error) { return done(error) }
+            self.api.log(`Server started: ${serverName}`, 'debug')
+            return done()
+          })
+        })
+      }
+    })
+
+    // process all the jobs
+    async.series(jobs, next)
   }
 
+  /**
+   * Stop all running servers.
+   *
+   * @param next  Callback function.
+   */
   stopServers (next) {
-    let self = this;
-    let started = 0;
+    let self = this
 
-    // check if exists any started server
-    if (self.servers.length === 0) {
-      next();
-    }
+    // array with the jobs to stop all servers
+    let jobs = []
 
-    for (let server in self.servers) {
-      started++;
+    Object.keys(self.servers).forEach(serverName => {
+      // get server instance
+      let server = self.servers[ serverName ]
 
-      ((server) => {
-        if (self.api.config.servers[ server ] && self.api.config.servers[ server ].enabled === true || !self.api.config.servers[ server ]) {
-          self.api.log(`stopping server: ${server}`, 'notice');
-          self.servers[ server ].stop(function (err) {
-            if (err) {
-              return next(err);
-            }
+      // check if the server are enable
+      if ((server && server.options.enable === true) || !server) {
+        jobs.push(done => {
+          self.api.log(`Stopping server: ${serverName}`, 'notice')
 
-            process.nextTick(() => {
-              self.api.log(`server stopped: ${server}`, 'debug');
-              started--;
-              if (started === 0) {
-                next();
-              }
-            });
-          });
-        } else {
-          process.nextTick(() => {
-            started--;
-            if (started === 0) {
-              next();
-            }
-          });
-        }
-      })(server);
-    }
+          // call the server stop method
+          server.stop(error => {
+            if (error) { return done(error) }
+            self.api.log(`Server stopped ${serverName}`, 'debug')
+            return done()
+          })
+        })
+      }
+    })
+
+    // execute all jobs
+    async.series(jobs, next)
   }
 }
 
@@ -159,9 +181,15 @@ export default class {
     api.servers.loadServers(next);
   }
 
+  /**
+   * Satellite starting function.
+   *
+   * @param api   API object reference.
+   * @param next  Callback function.
+   */
   start (api, next) {
     // start servers
-    api.servers.startServers(next);
+    api.servers.startServers(next)
   }
 
   stop (api, next) {

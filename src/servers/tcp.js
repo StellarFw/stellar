@@ -78,9 +78,7 @@ export default class Tcp extends GenericServer {
    *
    * @param next
    */
-  stop (next) {
-    self._gracefulShutdown(next);
-  }
+  stop (next) { this._gracefulShutdown(next) }
 
   /**
    * Send a message to a client.
@@ -337,37 +335,36 @@ export default class Tcp extends GenericServer {
    * @private
    */
   _gracefulShutdown (next, alreadyShutdown = false) {
-    let self = this;
+    let self = this
 
     // if the server isn't already shutdown do it now
-    if (alreadyShutdown === false) {
-      self.server.close();
-    }
+    if (alreadyShutdown === false) { self.server.close() }
 
-    let pendingConnections = 0;
+    let pendingConnections = 0
 
     // finish all pending connections
     self.connections().forEach((connection) => {
+      // if there is no pending actions destroy the connection
       if (connection.pendingActions === 0) {
-        connection.destroy();
-      } else {
-        pendingConnections++;
-
-        if (!connection.rawConnection.shutDownTimer) {
-          connection.rawConnection.shutDownTimer = setTimeout(() => {
-            connection.destroy();
-          }, attributes.pendingShutdownWaitLimit);
-        }
+        connection.destroy()
+        return
       }
-    });
+
+      // increment the pending connections
+      pendingConnections++
+
+      if (!connection.rawConnection.shutDownTimer) {
+        connection.rawConnection.shutDownTimer = setTimeout(() => {
+          connection.destroy()
+        }, attributes.pendingShutdownWaitLimit)
+      }
+    })
 
     if (pendingConnections > 0) {
       self.log(`waiting on shutdown, there are still ${pendingConnections} connected clients waiting on a response`, 'notice');
-      setTimeout(() => {
-        self._gracefulShutdown(next, true);
-      }, 1000);
-    } else if (typeof  next === 'function') {
-      next();
+      setTimeout(() => { self._gracefulShutdown(next, true) }, 1000)
+    } else if (typeof next === 'function') {
+      next()
     }
   }
 
