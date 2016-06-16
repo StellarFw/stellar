@@ -21,3 +21,9 @@ script: npm run-script test:travis
 
 services:
   - redis-server
+
+after_script:
+  - npm run-script coverage
+
+after_failure:
+  - "cat /home/travis/builds/gil0mendes/stellar/npm-debug.log"
