@@ -58,6 +58,16 @@ class Models {
       return
     }
 
+    // hack: this fix a strange bug on the test environment
+    if (self.api.env === 'test' && mongoose.connections[ 0 ]._hasOpened === true) {
+      // save the mongoose instance
+      self.mongoose = mongoose
+
+      // execute the callback function and return
+      callback()
+      return
+    }
+
     // check if we are use a mock version of the package
     if (self.api.config.models.pkg === 'mockgoose') {
       // require mockgoose
@@ -127,7 +137,13 @@ class Models {
    * @param name    Model name
    * @param schema  Model schema.
    */
-  add (name, schema) { this.models.set(name, this.mongoose.model(name, schema)) }
+  add (name, schema) {
+    // if the model already exists that can't be overwrite
+    if (this.models.has(name)) { return }
+
+    // save the new model instance
+    this.models.set(name, this.mongoose.model(name, schema))
+  }
 
   /**
    * Get a model object from the repository.
@@ -193,10 +209,14 @@ export default class {
    * @param next  Callback function.
    */
   start (api, next) {
+    // cleanup mongoose cache
+    mongoose.models = {}
+    mongoose.modelSchemas = {}
+
     // open connection
     api.models.openConnection(() => {
       // read models files from the modules
-      api.config.activeModules.forEach((moduleName) => {
+      api.config.activeModules.forEach(moduleName => {
         Utils.recursiveDirectoryGlob(`${api.scope.rootPath}/modules/${moduleName}/models`).forEach((moduleFile) => {
           // get file basename
           let basename = path.basename(moduleFile, '.js')
