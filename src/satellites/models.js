@@ -63,6 +63,9 @@ class Models {
       // save the mongoose instance
       self.mongoose = mongoose
 
+      // mark mongoose was connected
+      self.connected = true
+
       // execute the callback function and return
       callback()
       return

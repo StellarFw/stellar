@@ -1,11 +1,10 @@
 'use strict'
 
 let should = require('should')
-let engine = new (require(__dirname + '/../../dist/engine').default)({
-  rootPath: process.cwd() + '/example'
-})
+let EngineClass = require(__dirname + '/../../dist/engine').default
+let engine = new EngineClass({rootPath: process.cwd() + '/example'})
 
-let api
+let api = null
 
 describe('Core: API', function () {
 
