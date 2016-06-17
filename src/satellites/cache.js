@@ -1,5 +1,4 @@
-import fs from 'fs'
-import Utils from '../utils'
+import async from 'async'
 
 /**
  * Cache manager class.
@@ -110,26 +109,24 @@ class CacheManager {
    *
    * @param next  Callback.
    */
-  clear (next) {
-    let self = this;
+  clear (callback) {
+    let self = this
 
     // get all cached keys
     self.keys((err, keys) => {
-      if (keys.length > 0) {
-        let started = 0;
+      if (err && typeof callback === 'function') { return callback(error) }
 
-        // iterate all cached keys and remove one by one
-        keys.forEach((key) => {
-          started++;
-          self.del(key, (err) => {
-            started--;
-            if (started === 0 && typeof  next === 'function') { next(err, keys.length); }
-          });
-        });
-      } else {
-        if (typeof next === 'function') { next(err, keys.length); }
-      }
-    });
+      // array with the jobs to be done
+      let jobs = []
+
+      // iterate all keys and push a new jobs for the array
+      keys.forEach(key => jobs.push(done => self.api.redis.client.del(key, done)))
+
+      // execute all the jobs, this can be done in parallel
+      async.parallel(jobs, error => {
+        if (typeof callback === 'function') { return callback(error) }
+      })
+    })
   }
 
   /**
