@@ -286,4 +286,89 @@ describe('Core: Cache', function () {
       })
     })
   })
+
+  describe('locks', function () {
+    let key = 'testKey'
+
+    // reset the lockName and unlock the key after each test
+    afterEach(done => {
+      api.cache.lockName = api.id
+      api.cache.unlock(key, done())
+    })
+
+    it('thing can be locked checked and unlocked', function (done) {
+      // lock a key
+      api.cache.lock(key, 100, (error, lock) => {
+        should.not.exist(error)
+        lock.should.equal(true)
+
+        // check the lock
+        api.cache.checkLock(key, (error, lock) => {
+          should.not.exist(error)
+          lock.should.equal(true)
+
+          // lock the key
+          api.cache.unlock(key, (error, unlock) => {
+            should.not.exist(error)
+            unlock.should.equal(true)
+
+            done()
+          })
+        })
+      })
+    })
+
+    it('locks have a TTL and the default will be assumed from config', function (done) {
+      // lock key
+      api.cache.lock(key, null, (error, lock) => {
+        lock.should.equal(true)
+
+        // check the lock TTL (Time To Live)
+        api.redis.client.ttl(api.cache.lockPrefix + key, (error, ttl) => {
+          (ttl >= 9).should.equal(true)
+          (ttl <= 10).should.equal(true)
+          done()
+        })
+      })
+    })
+
+    it('you can save an item if you do hold the lock', function (done) {
+      api.cache.lock(key, null, (error, lock) => {
+        lock.should.equal(true)
+
+        api.cache.save(key, 'value', (error, success) => {
+          success.should.equal(true)
+          done()
+        })
+      })
+    })
+
+    it('you cannot save a locked item if you do not hold the lock', function (done) {
+      api.cache.lock(key, null, (error, lock) => {
+        lock.should.equal(true)
+
+        // change the lock name
+        api.cache.lockName = 'otherId'
+
+        api.cache.save(key, 'someValue', error => {
+          String(error).should.equal('Error: Object locked')
+          done()
+        })
+      })
+    })
+
+    it('you cannot destroy a locked item if you do not hold the lock', function (done) {
+      api.cache.lock(key, null, (error, lock) => {
+        lock.should.equal(true)
+
+        // change the lock name
+        api.cache.lockName = 'otherId'
+
+        api.cache.destroy(key, 'someValue', error => {
+          String(error).should.equal('Error: Object locked')
+          done()
+        })
+      })
+    })
+  })
 })
