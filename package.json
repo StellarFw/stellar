@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "test": "node test.js",
-    "test:travis": "NODE_ENV=test ./node_modules/istanbul/lib/cli.js cover ./node_modules/.bin/_mocha -- --timeout 10000 --slow 500",
+    "test:travis": "NODE_ENV=test ./node_modules/istanbul/lib/cli.js cover ./node_modules/.bin/_mocha -- --timeout 20000 --slow 500",
     "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
   "dependencies": {

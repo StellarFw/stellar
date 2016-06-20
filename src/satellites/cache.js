@@ -310,6 +310,73 @@ class CacheManager {
       }
     });
   }
+
+  // ------------------------------------------------------------------------------------------------------------ [List]
+
+  /**
+   * Push a new object to a list.
+   *
+   * @param key       List key.
+   * @param item      Item to cache.
+   * @param callback  Callback function.
+   */
+  push (key, item, callback) {
+    let self = this
+
+    // stringify the data to save
+    let object = JSON.stringify({data: item})
+
+    // push the new item to Redis
+    self.api.redis.client.rpush(self.redisPrefix + key, object, error => {
+      if (typeof callback === 'function') { callback(error) }
+    })
+  }
+
+  /**
+   * Pop a value from a list.
+   *
+   * If the key not exists a null value will be returned.
+   *
+   * @param key       Key to search for.
+   * @param callback  Callback function.
+   */
+  pop (key, callback) {
+    let self = this
+
+    // pop the item from Redis
+    self.api.redis.client.lpop(self.redisPrefix + key, (error, object) => {
+      // check if an error occurred during the request
+      if (error) { return callback(error) }
+
+      // if the object not exist return null
+      if (!object) { return callback() }
+
+      // try parse the item and return it
+      let item = null
+
+      try {
+        item = JSON.parse(object)
+      } catch (e) {
+        return callback(error)
+      }
+
+      // return the parsed object
+      return callback(null, item.data)
+    })
+  }
+
+  /**
+   * Get the length of the list.
+   *
+   * @param key       Key to search for.
+   * @param callback  Callback function.
+   */
+  listLength (key, callback) {
+    let self = this
+
+    // request the list's length to Redis
+    self.api.redis.client.llen(self.redisPrefix + key, callback)
+  }
 }
 
 /**
