@@ -4,6 +4,8 @@ let should = require('should')
 let EngineClass = require(__dirname + '/../../dist/engine').default
 let engine = new EngineClass({rootPath: process.cwd() + '/example'})
 
+let async = require('async')
+
 let api = null
 
 describe('Core: Cache', function () {
@@ -210,6 +212,77 @@ describe('Core: Cache', function () {
             done()
           })
         })
+      })
+    })
+  })
+
+  describe('lists', function () {
+    it('can push and pop from an array', function (done) {
+      let jobs = []
+
+      jobs.push(next => api.cache.push('testListKey', 'a string', next))
+      jobs.push(next => api.cache.push('testListKey', [ 'an array' ], next))
+      jobs.push(next => api.cache.push('testListKey', {look: 'an object'}, next))
+
+      // process the operations in parallel
+      async.parallel(jobs, error => {
+        should.not.exist(error)
+
+        jobs = []
+
+        jobs.push(next => {
+          api.cache.pop('testListKey', (error, data) => {
+            data.should.equal('a string')
+            next()
+          })
+
+        })
+
+        jobs.push(next => {
+          api.cache.pop('testListKey', (error, data) => {
+            data.should.deepEqual([ 'an array' ])
+            next()
+          })
+        })
+
+        jobs.push(next => {
+          api.cache.pop('testListKey', (error, data) => {
+            data.should.deepEqual({look: 'an object'})
+            next()
+          })
+        })
+
+        // process all the tests in series
+        async.series(jobs, error => {
+          should.not.exist(error)
+          done()
+        })
+      })
+    })
+
+    it('will return null if the list is empty', function (done) {
+      api.cache.pop('emptyListKey', (error, data) => {
+        should.not.exist(error)
+        should.not.exist(data)
+        done()
+      })
+    })
+
+    it('can get the length of an array when full', function (done) {
+      api.cache.push('testListKeyTwo', 'a string', () => {
+        api.cache.listLength('testListKeyTwo', (error, size) => {
+          should.not.exist(error)
+          size.should.equal(1)
+          done()
+        })
+      })
+    })
+
+    it('will return 0 length when the key does not exist', function (done) {
+      api.cache.listLength('testListKeyNotExists', (error, size) => {
+        should.not.exist(error)
+        size.should.equal(0)
+        done()
       })
     })
   })
