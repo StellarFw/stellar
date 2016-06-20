@@ -71,41 +71,45 @@ class Models {
       return
     }
 
+    let connectCallback = () => {
+      // save mongoose object
+      self.mongoose = mongoose
+
+      // open the new connection
+      self.mongoose.connect(self.api.config.models.connectionString)
+
+      // define handler for connected event
+      self.mongoose.connection.on('connected', () => {
+        self.api.log('connected to MongoDB', 'debug')
+        self.connected = true
+        callback()
+      })
+
+      // define handler for error event
+      self.mongoose.connection.on('error', (err) => {
+        self.api.log(`MongoDB Error: ${err}`, 'emerg')
+      })
+
+      // define handler for disconnected event
+      self.mongoose.connection.on('disconnected', () => {
+        self.connected = false
+        self.api.log('MongoDB Connection Closed', 'debug')
+      })
+    }
+
     // check if we are use a mock version of the package
     if (self.api.config.models.pkg === 'mockgoose') {
       // require mockgoose
       let mockgoose = require('mockgoose')
 
       // wrap mongoose with mockgoose
-      mockgoose(mongoose)
+      mockgoose(mongoose).then(connectCallback)
 
       // log an warning
       self.api.log('running with mockgoose', 'warning')
+    } else {
+      connectCallback()
     }
-
-    // save mongoose object
-    self.mongoose = mongoose
-
-    // open the new connection
-    self.mongoose.connect(self.api.config.models.connectionString)
-
-    // define handler for connected event
-    self.mongoose.connection.on('connected', () => {
-      self.api.log('connected to MongoDB', 'debug')
-      self.connected = true
-      callback()
-    })
-
-    // define handler for error event
-    self.mongoose.connection.on('error', (err) => {
-      self.api.log(`MongoDB Error: ${err}`, 'emerg')
-    })
-
-    // define handler for disconnected event
-    self.mongoose.connection.on('disconnected', () => {
-      self.connected = false
-      self.api.log('MongoDB Connection Closed', 'debug')
-    })
   }
 
   /**
