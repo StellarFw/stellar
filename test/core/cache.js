@@ -291,19 +291,18 @@ describe('Core: Cache', function () {
     let key = 'testKey'
 
     // reset the lockName and unlock the key after each test
-    afterEach(done => {
+    afterEach(function (done) {
       api.cache.lockName = api.id
-      api.cache.unlock(key, done())
+      api.cache.unlock(key, done)
     })
 
     it('thing can be locked checked and unlocked', function (done) {
       // lock a key
       api.cache.lock(key, 100, (error, lock) => {
-        should.not.exist(error)
         lock.should.equal(true)
 
         // check the lock
-        api.cache.checkLock(key, (error, lock) => {
+        api.cache.checkLock(key, null, (error, lock) => {
           should.not.exist(error)
           lock.should.equal(true)
 
@@ -325,8 +324,7 @@ describe('Core: Cache', function () {
 
         // check the lock TTL (Time To Live)
         api.redis.client.ttl(api.cache.lockPrefix + key, (error, ttl) => {
-          (ttl >= 9).should.equal(true)
-          (ttl <= 10).should.equal(true)
+          (ttl <= 10).should.be.equal(true)
           done()
         })
       })
@@ -364,7 +362,7 @@ describe('Core: Cache', function () {
         // change the lock name
         api.cache.lockName = 'otherId'
 
-        api.cache.destroy(key, 'someValue', error => {
+        api.cache.destroy(key, error => {
           String(error).should.equal('Error: Object locked')
           done()
         })
