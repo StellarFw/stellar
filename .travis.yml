@@ -21,6 +21,7 @@ script: npm run-script test:travis
 
 services:
   - redis-server
+  - mongodb
 
 after_script:
   - npm run-script coverage
