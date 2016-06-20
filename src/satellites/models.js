@@ -76,18 +76,15 @@ class Models {
       self.mongoose = mongoose
 
       // open the new connection
-      self.mongoose.connect(self.api.config.models.connectionString)
+      self.mongoose.connect(self.api.config.models.connectionString, (error) => {
+        if (error) {
+          self.api.log(`MongoDB Error: ${err}`, 'emerg')
+          return
+        }
 
-      // define handler for connected event
-      self.mongoose.connection.on('connected', () => {
         self.api.log('connected to MongoDB', 'debug')
         self.connected = true
         callback()
-      })
-
-      // define handler for error event
-      self.mongoose.connection.on('error', (err) => {
-        self.api.log(`MongoDB Error: ${err}`, 'emerg')
       })
 
       // define handler for disconnected event
