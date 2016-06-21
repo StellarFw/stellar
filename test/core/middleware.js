@@ -85,7 +85,7 @@ describe('Core: Errors', function () {
       api.actions.addMiddleware({
         name: 'early test middleware',
         global: true,
-        priority: api.config.general.defaultProcessorPriority - 1,
+        priority: api.config.general.defaultMiddlewarePriority - 1,
         preProcessor: (data, next) => {
           data.response._preProcessorNote2 = 'early'
           data.response._preProcessorNote3 = 'early'
@@ -107,9 +107,9 @@ describe('Core: Errors', function () {
 
       // higher number priority (runs later)
       api.actions.addMiddleware({
-        name: 'early test middleware',
+        name: 'late test middleware',
         global: true,
-        priority: api.config.general.defaultProcessorPriority + 1,
+        priority: api.config.general.defaultMiddlewarePriority + 1,
         preProcessor: (data, next) => {
           data.response._preProcessorNote4 = 'late'
           next()
@@ -129,7 +129,7 @@ describe('Core: Errors', function () {
       api.actions.addMiddleware({
         name: 'first test middleware',
         global: true,
-        priority: api.config.general.defaultProcessorPriority - 1,
+        priority: api.config.general.defaultMiddlewarePriority - 1,
         preProcessor: (data, next) => {
           data.response._processorNoteFrist = 'first'
           next()
@@ -139,7 +139,7 @@ describe('Core: Errors', function () {
       api.actions.addMiddleware({
         name: 'second test middleware',
         global: true,
-        priority: api.config.general.defaultProcessorPriority - 1,
+        priority: api.config.general.defaultMiddlewarePriority - 1,
         preProcessor: (data, next) => {
           data.response._processorNoteSecond = 'second'
           next()
@@ -210,7 +210,7 @@ describe('Core: Errors', function () {
 
       // higher number priority (runs later)
       api.actions.addMiddleware({
-        name: 'early test middleware',
+        name: 'late test middleware',
         global: true,
         priority: api.config.general.defaultProcessorPriority + 1,
         postProcessor: (data, next) => {
@@ -232,7 +232,7 @@ describe('Core: Errors', function () {
       api.actions.addMiddleware({
         name: 'first test middleware',
         global: true,
-        priority: api.config.general.defaultProcessorPriority - 1,
+        priority: api.config.general.defaultMiddlewarePriority - 1,
         postProcessor: (data, next) => {
           data.response._processorNoteFrist = 'first'
           next()
@@ -242,7 +242,7 @@ describe('Core: Errors', function () {
       api.actions.addMiddleware({
         name: 'second test middleware',
         global: true,
-        priority: api.config.general.defaultProcessorPriority - 1,
+        priority: api.config.general.defaultMiddlewarePriority - 1,
         postProcessor: (data, next) => {
           data.response._processorNoteSecond = 'second'
           next()
