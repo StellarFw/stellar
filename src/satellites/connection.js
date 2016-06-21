@@ -2,10 +2,30 @@ import UUID from 'node-uuid';
 
 class Connections {
 
-  middleware = {};
+  /**
+   * API reference object.
+   */
+  api
 
-  globalMiddleware = {};
+  /**
+   * Hash with all registered middleware.
+   *
+   * @type {{}}
+   */
+  middleware = {}
 
+  /**
+   * Array with global middleware.
+   *
+   * @type {Array}
+   */
+  globalMiddleware = []
+
+  /**
+   * Array with the allowed verbs.
+   *
+   * @type {string[]}
+   */
   allowedVerbs = [
     'quit',
     'exit',
@@ -26,7 +46,47 @@ class Connections {
    *
    * @type {{}}
    */
-  connections = {};
+  connections = {}
+
+  /**
+   * Create a new class instance.
+   *
+   * @param api   API object reference.
+   */
+  constructor (api) { this.api = api }
+
+  /**
+   * Add a new middleware.
+   *
+   * @param data  Middleware to be added.
+   */
+  addMiddleware (data) {
+    let self = this
+
+    // middleware require a name
+    if (!data.name) { throw new Error('middleware.name is required')}
+
+    // if there is no defined priority use the default
+    if (!data.priority) { data.priority = self.api.config.general.defaultMiddlewarePriority }
+
+    // ensure the priority is a number
+    data.priority = Number(data.priority)
+
+    // save the new middleware
+    self.middleware[ data.name ] = data
+
+    // push the new middleware to the global list
+    self.globalMiddleware.push(data.name)
+
+    // sort the global middleware array
+    self.globalMiddleware.sort((a, b) => {
+      if (self.middleware[ a ].priority > self.middleware[ b ].priority) {
+        return 1
+      }
+
+      return -1
+    })
+  }
 }
 
 /**
@@ -62,14 +122,20 @@ class Connection {
    * @param data hash map
    */
   constructor (api, data) {
-    let self = this;
-    self.api = api;
-    self._setup(data);
+    let self = this
+
+    self.api = api
+    self._setup(data)
 
     // save this connection on the connection manager
-    api.connections.connections[ self.id ] = self;
+    api.connections.connections[ self.id ] = self
 
-    // @todo middleware
+    // execute the middleware
+    self.api.connections.globalMiddleware.forEach(m => {
+      if (typeof self.api.connections.middleware[ m ].create === 'function') {
+        self.api.connections.middleware[ m ].create(self)
+      }
+    })
   }
 
   /**
@@ -173,27 +239,27 @@ class Connection {
   }
 
   destroy (callback) {
-    let self = this;
-    self.destroyed = true;
+    let self = this
 
-    // todo - remove connection from middleware
+    self.destroyed = true
 
-    delete self.api.connections.connections[ self.id ];
-    let server = self.api.servers.servers[ self.type ];
+    // execute the destroy middleware
+    self.api.connections.globalMiddleware.forEach(m => {
+      if (typeof self.api.connections.middleware[ m ].destroy === 'function') {
+        self.api.connections.middleware[ m ].destroy(self)
+      }
+    })
+
+    delete self.api.connections.connections[ self.id ]
+    let server = self.api.servers.servers[ self.type ]
 
     if (server) {
-      if (server.attributes.logExits === true) {
-        server.log('connection closed', 'info', {to: self.remoteIP});
-      }
+      if (server.attributes.logExits === true) { server.log('connection closed', 'info', {to: self.remoteIP}) }
 
-      if (typeof server.goodbye === 'function') {
-        server.goodbye(self);
-      }
+      if (typeof server.goodbye === 'function') { server.goodbye(self) }
     }
 
-    if (typeof callback === 'function') {
-      callback();
-    }
+    if (typeof callback === 'function') { callback() }
   }
 
   /**
@@ -323,7 +389,7 @@ export default class {
 
   load (api, next) {
     // put Connections instance available to all platform
-    api.connections = new Connections()
+    api.connections = new Connections(api)
 
     // put the connection class available to all platform
     api.connection = Connection

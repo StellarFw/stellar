@@ -170,31 +170,24 @@ class ActionProcessor {
   /**
    * Operations to be performed before the real action execution.
    *
-   * @param callback
+   * @param callback Callback function.
    */
   preProcessAction (callback) {
-    let self = this;
-    let processors = [];
-    let processorsNames = self.api.actions.globalMiddleware.slice(0);
+    let self = this
+
+    let processors = []
+    let processorsNames = self.api.actions.globalMiddleware.slice(0)
 
     // get action processor names
-    if (self.actionTemplate.middleware) {
-      self.actionTemplate.middleware.forEach(function (m) {
-        processorsNames.push(m);
-      });
-    }
+    if (self.actionTemplate.middleware) { self.actionTemplate.middleware.forEach(m => { processorsNames.push(m) }) }
 
-    processorsNames.forEach(function (name) {
+    processorsNames.forEach(name => {
       if (typeof self.api.actions.middleware[ name ].preProcessor === 'function') {
-        processors.push(function (next) {
-          self.api.actions.middleware[ name ].preProcessor(self, next);
-        });
+        processors.push(next => { self.api.actions.middleware[ name ].preProcessor(self, next) })
       }
-    });
+    })
 
-    async.series(processors, function (err) {
-      callback(err);
-    });
+    async.series(processors, callback)
   }
 
   /**
@@ -203,27 +196,19 @@ class ActionProcessor {
    * @param callback
    */
   postProcessAction (callback) {
-    let self = this;
-    let processors = [];
-    let processorNames = self.api.actions.globalMiddleware.slice(0);
+    let self = this
+    let processors = []
+    let processorNames = self.api.actions.globalMiddleware.slice(0)
 
-    if (self.actionTemplate.middleware) {
-      self.actionTemplate.middleware.forEach(function (m) {
-        processorNames.push(m);
-      });
-    }
+    if (self.actionTemplate.middleware) { self.actionTemplate.middleware.forEach(m => { processorNames.push(m) }) }
 
-    processorNames.forEach(function (name) {
-      if (typeof api.actions.middleware[ name ].postProcessor === 'function') {
-        processors.push(function (next) {
-          self.api.actions.middleware[ name ].postProcessor(self, next);
-        });
+    processorNames.forEach(name => {
+      if (typeof self.api.actions.middleware[ name ].postProcessor === 'function') {
+        processors.push(next => { self.api.actions.middleware[ name ].postProcessor(self, next) })
       }
-    });
+    })
 
-    async.series(processors, function (err) {
-      callback(err);
-    });
+    async.series(processors, callback)
   }
 
   /**

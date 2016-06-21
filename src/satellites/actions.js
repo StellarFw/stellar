@@ -154,6 +154,42 @@ class Actions {
       return true
     }
   }
+
+  /**
+   * Add a new middleware.
+   *
+   * @param data  Middleware to be added.
+   */
+  addMiddleware (data) {
+    let self = this
+
+    // middleware require a name
+    if (!data.name) { throw new Error('middleware.name is required')}
+
+    // if there is no defined priority use the default
+    if (!data.priority) { data.priority = self.api.config.general.defaultMiddlewarePriority }
+
+    // ensure the priority is a number
+    data.priority = Number(data.priority)
+
+    // save the new middleware
+    self.middleware[ data.name ] = data
+
+    // if this is a local middleware return now
+    if (data.global !== true) { return }
+
+    // push the new middleware to the global list
+    self.globalMiddleware.push(data.name)
+
+    // sort the global middleware array
+    self.globalMiddleware.sort((a, b) => {
+      if (self.middleware[ a ].priority > self.middleware[ b ].priority) {
+        return 1
+      }
+
+      return -1
+    })
+  }
 }
 
 /**
