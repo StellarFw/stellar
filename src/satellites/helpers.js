@@ -102,6 +102,16 @@ class Helpers {
     next(new TestServer(api, type, options, attributes))
   }
 
+  /**
+   * Run an action.
+   *
+   * This creates a fake connection to process the action
+   * and return the result on the callback function.
+   *
+   * @param actionName  Action to be executed.
+   * @param input       Action parameters.
+   * @param next        Callback function.
+   */
   runAction (actionName, input, next) {
     let self = this
     let connection
@@ -124,9 +134,19 @@ class Helpers {
       connection.actionCallbacks[ (connection.messageCount) ] = next
     }
 
-    process.nextTick(function () {
-      self.api.servers.servers.testServer.processAction(connection)
-    })
+    process.nextTick(() => {self.api.servers.servers.testServer.processAction(connection) })
+  }
+
+  /**
+   * Execute a task.
+   *
+   * @param taskName  Task to be executed.
+   * @param params    Task parameters.
+   * @param next      Callback function.
+   */
+  runTask (taskName, params, next) {
+    let self = this
+    self.api.tasks.tasks[ taskName ].run(self.api, params, next)
   }
 }
 
