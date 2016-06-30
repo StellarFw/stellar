@@ -323,7 +323,7 @@ describe('Core: Cache', function () {
         lock.should.equal(true)
 
         // check the lock TTL (Time To Live)
-        api.redis.client.ttl(api.cache.lockPrefix + key, (error, ttl) => {
+        api.redis.clients.client.ttl(api.cache.lockPrefix + key, (error, ttl) => {
           (ttl <= 10).should.be.equal(true)
           done()
         })

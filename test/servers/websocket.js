@@ -271,7 +271,7 @@ describe('Servers: Web Socket', function () {
     it('connections are notified when a client join a room', function (done) {
       let listener = response => {
         client1.removeListener('say', listener)
-        response.context.should.equal('say', listener)
+        response.context.should.equal('user', listener)
         response.message.should.equal(`I have entered the room: ${client2.id}`)
         done()
       }
@@ -285,13 +285,13 @@ describe('Servers: Web Socket', function () {
     it('connections are notified when a client leave a room', function (done) {
       let listener = response => {
         client1.removeListener('say', listener)
-        response.context.should.equal('say', listener)
+        response.context.should.equal('user', listener)
         response.message.should.equal(`I have left the room: ${client2.id}`)
         done()
       }
 
       client1.on('say', listener)
-      client2.roomAdd('defaultRoom')
+      client2.roomLeave('defaultRoom')
     })
 
     it('client will not get messages form other rooms', function (done) {
@@ -381,7 +381,7 @@ describe('Servers: Web Socket', function () {
 
         let listener3 = response => {
           client1.removeListener('say', listener3)
-          response.message.should.equal(`Test Message - To: ${client1.id}`)
+          response.message.should.equal(`Test Message - To: ${client3.id}`)
         }
 
         client1.on('say', listener1)
