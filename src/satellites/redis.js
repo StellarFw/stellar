@@ -1,3 +1,4 @@
+import async from 'async'
 import uuid from 'node-uuid'
 import Utils from '../utils'
 
@@ -16,6 +17,13 @@ class RedisManager {
   api = null;
 
   /**
+   * Hash with all instantiate clients.
+   *
+   * @type {{}}
+   */
+  clients = {}
+
+  /**
    * Callbacks.
    *
    * @type {{}}
@@ -23,11 +31,11 @@ class RedisManager {
   clusterCallbacks = {}
 
   /**
-   * Luster callbacks timeouts.
+   * Cluster callback timeouts.
    *
    * @type {{}}
    */
-  clusterCallbacksTimeout = {}
+  clusterCallbackTimeouts = {}
 
   /**
    * Subscription handlers.
@@ -39,13 +47,10 @@ class RedisManager {
   /**
    * Redis manager status.
    *
-   * @type {{client: boolean, subscriber: boolean, subscribed: boolean, calledback: boolean}}
+   * @type {{subscribed: boolean}}
    */
   status = {
-    client: false,
-    subscriber: false,
-    subscribed: false,
-    calledback: false
+    subscribed: false
   }
 
   /**
@@ -56,16 +61,17 @@ class RedisManager {
   constructor (api) {
     let self = this
 
+    // save api reference object
     self.api = api
 
     // subscription handlers
 
-    self.subscriptionHandlers.do = (message) => {
+    self.subscriptionHandlers[ 'do' ] = message => {
       if (!message.connectionId || (self.api.connections.connections[ message.connectionId ])) {
         let cmdParts = message.method.split('.')
         let cmd = cmdParts.shift()
         if (cmd !== 'api') { throw new Error('cannot operate on a outside of the api object') }
-        let method = Utils.stringTohash(cmdParts.join('.'))
+        let method = Utils.stringToHash(api, cmdParts.join('.'))
 
         let callback = () => {
           let responseArgs = Array.apply(null, arguments).sort()
@@ -80,92 +86,75 @@ class RedisManager {
       }
     }
 
-    self.subscriptionHandlers.doResponse = (message) => {
+    self.subscriptionHandlers[ 'doResponse' ] = message => {
       if (self.clusterCallbacks[ message.requestId ]) {
-        clearTimeout(self.clusterCallbacksTimeout[ message.requestId ])
+        clearTimeout(self.clusterCallbackTimeouts[ message.requestId ])
         self.clusterCallbacks[ message.requestId ].apply(null, message.response)
         delete self.clusterCallbacks[ message.requestId ]
-        delete self.clusterCallbacksTimeout[ message.requestId ]
+        delete self.clusterCallbackTimeouts[ message.requestId ]
       }
-    };
+    }
   }
 
-  /**
-   * Boot redis server.
-   *
-   * @param callback  Callback function.
-   */
-  start (callback) {
+  initialize (callback) {
     let self = this
 
-    // get Redis package
-    let redisPackage = require(self.api.config.redis.pkg)
+    let jobs = [];
 
-    // check if is a fake redis server
-    if (self.api.config.redis.pkg === 'fakeredis') {
-      self.api.log('running with fakeredis', 'warning')
-      redisPackage.fast = true
+    [ 'client', 'subscriber', 'tasks' ].forEach(r => {
+      jobs.push(done => {
+        if (self.api.config.redis[ r ].buildNew === true) {
+          // get arguments
+          var args = self.api.config.redis[ r ].args
 
-      self.client = redisPackage.createClient(String(self.api.config.redis.host))
-      self.subscriber = redisPackage.createClient(String(self.api.config.redis.host))
-    } else {
-      self.client = redisPackage.createClient(self.api.config.redis.port, self.api.config.redis.host, self.api.config.redis.options)
-      self.subscriber = redisPackage.createClient(self.api.config.redis.port, self.api.config.redis.host, self.api.config.redis.options)
-    }
+          // create a new instance
+          self.clients[ r ] = new self.api.config.redis[ r ].constructor(args[ 0 ], args[ 1 ], args[ 2 ])
 
-    // define some event handlers
-    self.client.on('error', err => { self.api.log(`Redis Error (client): ${err}`, 'emerg') })
+          // on error event
+          self.clients[ r ].on('error', error => { self.api.log(`Redis connection ${r} error`, error) })
 
-    self.subscriber.on('error', err => { self.api.log(`Redis Error (subscriber): ${err}`, 'emerg') })
+          // on connect event
+          self.clients[ r ].on('connect', () => {
+            self.api.log(`Redis connection ${r} connected`, 'info')
+            done()
+          })
+        } else {
+          self.clients[ r ] = self.api.config.redis[ r ].constructor.apply(null, self.api.config.redis[ r ].args)
+          self.clients[ r ].on('error', error => { self.api.log(`Redis connection ${r} error`, 'error', error) })
+          self.api.log(`Redis connection ${r} connected`, 'info')
+          done();
+        }
+      })
+    })
 
-    self.client.on('end', () => { self.api.log('Redis Connection Closed (client)', 'debug') })
-
-    self.subscriber.on('end', () => {
-      self.api.log('Redis Connection Closed (subscriber)', 'debug')
-
-      self.status.subscriber = false
-      self.status.subscribed = false
-    });
-
-    self.client.on('connect', () => {
-      // select database
-      if (self.database) { self.client.select(self.api.config.redis.database) }
-
-      // mark client as connected
-      self.api.log('connected to redis (client)', 'debug')
-      self.status.client = true
-
-      if (self.status.client === true && self.status.subscribed === true && self.status.calledback === false) {
-        self.status.calledback = true
-        callback()
-      }
-    });
-
-    // subscribe a channel if that was not been done yet
     if (!self.status.subscribed) {
-      self.subscriber.subscribe(self.api.config.redis.channel)
-      self.status.subscribed = true
-    }
+      jobs.push(done => {
+        // ensures that clients subscribe the default channel
+        self.clients.subscriber.subscribe(self.api.config.general.channel)
+        self.status.subscribed = true
 
-    self.subscriber.on('connect', () => {
-      self.api.log('connected to redis (subscriber)', 'debug')
-      self.status.subscriber = true
+        // on 'message' event execute the handler
+        self.clients.subscriber.on('message', (messageChannel, message) => {
+          // parse the JSON message if exists
+          try {
+            message = JSON.parse(message)
+          } catch (e) {
+            message = {}
+          }
 
-      if (self.status.client === true && self.status.subscriber === true && self.status.calledback === false) {
-        self.status.calledback = true
-        callback()
-      }
-    });
+          if (messageChannel === self.api.config.general.channel && message.serverToken === self.api.config.general.serverToken) {
+            if (self.subscriptionHandlers[ message.messageType ]) {
+              self.subscriptionHandlers[ message.messageType ](message)
+            }
+          }
+        })
 
-    if (self.api.config.redis.pkg === 'fakeredis') {
-      self.status.client = true
-      self.status.subscriber = true
-
-      process.nextTick(() => {
-        self.status.calledback = true
-        callback()
+        // execute the callback
+        done()
       })
     }
+
+    async.series(jobs, callback)
   }
 
   /**
@@ -176,11 +165,14 @@ class RedisManager {
   publish (payload) {
     let self = this
 
-    let channel = self.api.config.redis.channel
-    self.client.publish(channel, JSON.stringify(payload))
+    // get default Redis channel
+    let channel = self.api.config.general.channel
+
+    // publish redis message
+    self.clients.client.publish(channel, JSON.stringify(payload))
   }
 
-  // RPC
+  // ------------------------------------------------------------------------------------------------------------- [RPC]
 
   doCluster (method, args, connectionId, callback) {
     let self = this
@@ -200,13 +192,13 @@ class RedisManager {
 
     if (typeof  callback === 'function') {
       self.clusterCallbacks[ requestId ] = callback
-      self.clusterCallbacksTimeout[ requestId ] = setTimeout((requestId) => {
+      self.clusterCallbackTimeouts[ requestId ] = setTimeout((requestId) => {
         if (typeof self.clusterCallbacks[ requestId ] === 'function') {
           self.clusterCallbacks[ requestId ](new Error('RPC Timeout'))
         }
-        delete self.clusterCallbacks[ message.requestId ]
-        delete self.clusterCallbacksTimeout[ message.requestId ]
-      }, self.api.config.redis.rpcTimeout, requestId)
+        delete self.clusterCallbacks[ requestId ]
+        delete self.clusterCallbackTimeouts[ requestId ]
+      }, self.api.config.general.rpcTimeout, requestId)
     }
   }
 
@@ -238,13 +230,6 @@ export default class {
   loadPriority = 200
 
   /**
-   * Initializer start priority.
-   *
-   * @type {number}
-   */
-  startPriority = 101
-
-  /**
    * Initializer stop priority.
    *
    * @type {number}
@@ -261,24 +246,16 @@ export default class {
     // put the redis manager available
     api.redis = new RedisManager(api)
 
-    // finish the loading
-    next()
-  }
+    // initialize redis manager
+    api.redis.initialize(error => {
+      // execute the callback if exists an error
+      if (error) { return next(error) }
 
-  /**
-   * Start the initializer.
-   *
-   * @param api   API reference.
-   * @param next  Callback.
-   */
-  start (api, next) {
-    // start manager
-    api.redis.start(() => {
       api.redis.doCluster('api.log', `Stellar member ${api.id} has joined the cluster`, null, null)
 
-      // end the initializer loading
+      // finish the loading
       process.nextTick(next)
-    });
+    })
   }
 
   /**
@@ -289,8 +266,8 @@ export default class {
    */
   stop (api, next) {
     // execute all existent timeouts and remove them
-    for (let i in api.redis.clusterCallbacksTimeout) {
-      clearTimeout(api.redis.clusterCallbacksTimeout[ i ])
+    for (let i in api.redis.clusterCallbackTimeouts) {
+      clearTimeout(api.redis.clusterCallbackTimeouts[ i ])
       delete api.redis.clusterCallbakTimeouts[ i ]
       delete api.redis.clusterCallbaks[ i ]
     }
@@ -300,7 +277,8 @@ export default class {
 
     // unsubscribe stellar instance and finish the stop method execution
     process.nextTick(() => {
-      api.redis.subscriber.unsubscribe()
+      api.redis.clients.subscriber.unsubscribe()
+      api.redis.status.subscribed = false
       next()
     });
   }

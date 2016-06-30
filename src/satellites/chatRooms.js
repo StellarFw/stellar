@@ -128,7 +128,7 @@ class ChatRooms {
           message: newPayload.message,
           sentAt: newPayload.sentAt,
           connection: {
-            id: newPayload.id,
+            id: newPayload.from,
             room: newPayload.room
           }
         }
@@ -200,7 +200,7 @@ class ChatRooms {
       }
 
       // create a new room
-      self.api.redis.client.sadd(self.keys.rooms, room, (err, count) => {
+      self.api.redis.clients.client.sadd(self.keys.rooms, room, (err, count) => {
         if (typeof callback === 'function') { callback(err, count) }
       })
     })
@@ -226,12 +226,12 @@ class ChatRooms {
       // broadcast the room destruction
       self.broadcast({}, room, self.api.config.errors.connectionRoomHasBeenDeleted(room), () => {
         // get all room members
-        self.api.redis.client.hgetall(self.keys.members + room, (error, memberHash) => {
+        self.api.redis.clients.client.hgetall(self.keys.members + room, (error, memberHash) => {
           // remove each member from the room
           for (let id in memberHash) { self.removeMember(id, room) }
 
           // delete de room on redis server
-          self.api.redis.client.srem(self.keys.rooms, room, () => {
+          self.api.redis.clients.client.srem(self.keys.rooms, room, () => {
             if (typeof callback === 'function') { callback() }
           })
         })
@@ -249,7 +249,7 @@ class ChatRooms {
     let self = this
 
     // make a call to the redis server to check if the room exists
-    self.api.redis.client.sismember(self.keys.rooms, room, (err, bool) => {
+    self.api.redis.clients.client.sismember(self.keys.rooms, room, (err, bool) => {
       let found = false
 
       if (bool === 1 || bool === true) { found = true }
@@ -286,7 +286,7 @@ class ChatRooms {
       let key = self.keys.members + room
 
       // get all channel members
-      self.api.redis.client.hgetall(key, (error, members) => {
+      self.api.redis.clients.client.hgetall(key, (error, members) => {
         let cleanedMembers = {}
         let count = 0
 
@@ -346,7 +346,7 @@ class ChatRooms {
         // generate the member details
         let memberDetails = self._generateMemberDetails(connection)
 
-        self.api.redis.client.hset(self.keys.members + room, connection.id, JSON.stringify(memberDetails), () => {
+        self.api.redis.clients.client.hset(self.keys.members + room, connection.id, JSON.stringify(memberDetails), () => {
           connection.rooms.push(room)
           if (typeof callback === 'function') { callback(null, true) }
         })
@@ -393,7 +393,7 @@ class ChatRooms {
         if (error) { return callback(error, false) }
 
         // remove the user
-        self.api.redis.client.hdel(self.keys.members + room, connection.id, () => {
+        self.api.redis.clients.client.hdel(self.keys.members + room, connection.id, () => {
           // get the room index
           let index = connection.rooms.indexOf(room)
 
@@ -417,13 +417,13 @@ class ChatRooms {
    * @private
    */
   _generateMemberDetails (connection) {
-    let self = this;
+    let self = this
 
     return {
       id: connection.id,
       joinedAt: new Date().getTime(),
       host: self.api.id
-    };
+    }
   }
 
   /**
@@ -439,7 +439,7 @@ class ChatRooms {
       room: message.connection.room,
       from: message.connection.id,
       context: 'user',
-      sendAt: message.sendAt
+      sentAt: message.sentAt
     }
   }
 
@@ -457,6 +457,7 @@ class ChatRooms {
    */
   _handleCallbacks (connection, room, direction, messagePayload, callback) {
     let self = this
+
     let jobs = []
     let newMessagePayload
 
@@ -511,7 +512,7 @@ class ChatRooms {
     return {
       id: memberData.id,
       joinedAt: memberData.joinedAt
-    };
+    }
   }
 
   /**
@@ -580,7 +581,7 @@ export default class {
    */
   start (api, next) {
     // subscribe new chat messages on the redis server
-    api.redis.subscriptionHandlers.chat = message => { api.chatRoom.incomingMessage(message) }
+    api.redis.subscriptionHandlers[ 'chat' ] = message => { api.chatRoom.incomingMessage(message) }
 
     // check if we need to create some starting chat rooms
     if (api.config.general.startingChatRooms) {

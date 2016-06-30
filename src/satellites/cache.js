@@ -72,7 +72,7 @@ class CacheManager {
    */
   keys (next) {
     let self = this;
-    self.api.redis.client.keys(this.redisPrefix + '*', (err, keys) => { next(err, keys); });
+    self.api.redis.clients.client.keys(this.redisPrefix + '*', (err, keys) => { next(err, keys); });
   }
 
   /**
@@ -110,7 +110,7 @@ class CacheManager {
       let jobs = []
 
       // iterate all keys and push a new jobs for the array
-      keys.forEach(key => jobs.push(done => self.api.redis.client.del(key, done)))
+      keys.forEach(key => jobs.push(done => self.api.redis.clients.client.del(key, done)))
 
       // execute all the jobs, this can be done in parallel
       async.parallel(jobs, error => {
@@ -160,9 +160,9 @@ class CacheManager {
       } else {
         // save the new key and value
         let keyToSave = self.redisPrefix + key
-        self.api.redis.client.set(keyToSave, JSON.stringify(cacheObj), (err) => {
+        self.api.redis.clients.client.set(keyToSave, JSON.stringify(cacheObj), (err) => {
           // if the new cache entry has been saved define the expire date if needed
-          if (err === null && expireTimeSeconds) { self.api.redis.client.expire(keyToSave, expireTimeSeconds) }
+          if (err === null && expireTimeSeconds) { self.api.redis.clients.client.expire(keyToSave, expireTimeSeconds) }
 
           // execute the callback
           if (typeof callback === 'function') { process.nextTick(() => { callback(err, true) }) }
@@ -187,7 +187,7 @@ class CacheManager {
     }
 
     // get the cache entry from redis server
-    self.api.redis.client.get(self.redisPrefix + key, (err, cacheObj) => {
+    self.api.redis.clients.client.get(self.redisPrefix + key, (err, cacheObj) => {
       // log the error if exists
       if (err) { self.api.log(err, 'error'); }
 
@@ -221,9 +221,9 @@ class CacheManager {
           if (err || lockOk !== true) {
             if (typeof next === 'function') { next(new Error('Object locked')); }
           } else {
-            self.api.redis.client.set(self.redisPrefix + key, JSON.stringify(cacheObj), (err) => {
+            self.api.redis.clients.client.set(self.redisPrefix + key, JSON.stringify(cacheObj), (err) => {
               if (typeof expireTimeSeconds === 'number') {
-                self.api.redis.client.expire(self.redisPrefix + key, expireTimeSeconds);
+                self.api.redis.clients.client.expire(self.redisPrefix + key, expireTimeSeconds);
               }
               if (typeof next === 'function') {
                 process.nextTick(function () { next(err, cacheObj.value, cacheObj.expireTimestamp, cacheObj.createdAt, lastReadAt); });
@@ -253,7 +253,7 @@ class CacheManager {
       if (err || lockOk !== true) {
         if (typeof next === 'function') { next(new Error('Object locked')); }
       } else {
-        self.api.redis.client.del(self.redisPrefix + key, (err, count) => {
+        self.api.redis.clients.client.del(self.redisPrefix + key, (err, count) => {
           if (err) { self.api.log(err, 'error'); }
           let resp = true;
           if (count !== 1) { resp = false; }
@@ -272,7 +272,7 @@ class CacheManager {
    */
   locks (next) {
     let self = this;
-    self.api.redis.client.keys(this.lockPrefix + '*', (err, keys) => { next(err, keys); });
+    self.api.redis.clients.client.keys(this.lockPrefix + '*', (err, keys) => { next(err, keys); });
   }
 
   /**
@@ -301,12 +301,12 @@ class CacheManager {
 
       // create a new lock
       let lockKey = self.lockPrefix + key
-      self.api.redis.client.setnx(lockKey, self.lockName, error => {
+      self.api.redis.clients.client.setnx(lockKey, self.lockName, error => {
         // return the error if exists
         if (error) { return callback(error) }
 
         // set an expire date for the lock
-        self.api.redis.client.expire(lockKey, Math.ceil(expireTimeMS / 1000), error => {
+        self.api.redis.clients.client.expire(lockKey, Math.ceil(expireTimeMS / 1000), error => {
           lock = !error;
           return callback(error, lock)
         })
@@ -328,7 +328,7 @@ class CacheManager {
       if (error || lock !== true) { return callback(error, false) }
 
       // remove the lock
-      self.api.redis.client.del(self.lockPrefix + key, error => {
+      self.api.redis.clients.client.del(self.lockPrefix + key, error => {
         lock = true
         if (error) { lock = false }
         return callback(error, lock)
@@ -351,7 +351,7 @@ class CacheManager {
     if (startTime === null) { startTime = new Date().getTime() }
 
     // get the cache entry
-    self.api.redis.client.get(self.lockPrefix + key, (error, lockedBy) => {
+    self.api.redis.clients.client.get(self.lockPrefix + key, (error, lockedBy) => {
       if (error) {
         return callback(error, false)
       } else if (lockedBy === self.lockName || lockedBy === null) {
@@ -385,7 +385,7 @@ class CacheManager {
     let object = JSON.stringify({data: item})
 
     // push the new item to Redis
-    self.api.redis.client.rpush(self.redisPrefix + key, object, error => {
+    self.api.redis.clients.client.rpush(self.redisPrefix + key, object, error => {
       if (typeof callback === 'function') { callback(error) }
     })
   }
@@ -402,7 +402,7 @@ class CacheManager {
     let self = this
 
     // pop the item from Redis
-    self.api.redis.client.lpop(self.redisPrefix + key, (error, object) => {
+    self.api.redis.clients.client.lpop(self.redisPrefix + key, (error, object) => {
       // check if an error occurred during the request
       if (error) { return callback(error) }
 
@@ -433,7 +433,7 @@ class CacheManager {
     let self = this
 
     // request the list's length to Redis
-    self.api.redis.client.llen(self.redisPrefix + key, callback)
+    self.api.redis.clients.client.llen(self.redisPrefix + key, callback)
   }
 }
 

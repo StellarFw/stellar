@@ -1,18 +1,18 @@
-import fs from 'fs';
-import i18n from 'i18n';
-import Utils from '../utils';
+import fs from 'fs'
+import i18n from 'i18n'
+import Utils from '../utils'
 
 class I18n {
 
   /**
    * Stellar api object.
    */
-  api;
+  api
 
   /**
    * i18n instance.
    */
-  i18n;
+  i18n
 
   /**
    * Constructor.
@@ -20,13 +20,13 @@ class I18n {
    * @param api   API reference.
    */
   constructor (api) {
-    let self = this;
+    let self = this
 
     // save api reference
-    self.api = api;
+    self.api = api
 
     // save i18n instance
-    self.i18n = i18n;
+    self.i18n = i18n
   }
 
   /**
@@ -101,6 +101,24 @@ class I18n {
 
     // set locale
     self.i18n.setLocale(connection, locale);
+  }
+
+  /**
+   * Localize a message.
+   *
+   * @param message   Message to be localized.
+   * @param options   Localization options.
+   * @returns {*}     Localized message.
+   */
+  localize (message, options) {
+    let self = this
+
+    // the arguments should be an array
+    if (!Array.isArray(message)) { message = [ message ] }
+
+    if (!options) { options = self.i18n }
+
+    return self.i18n.__.apply(options, message)
   }
 
 }

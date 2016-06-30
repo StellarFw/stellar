@@ -43,7 +43,7 @@ export default class GenericServer extends EventEmitter {
    */
   constructor (api, name, options, attributes) {
     // call super class constructor
-    super();
+    super()
 
     this.api = api
     this.type = name
@@ -73,6 +73,9 @@ export default class GenericServer extends EventEmitter {
       remoteIP: data.remoteAddress,
       rawConnection: data.rawConnection
     }
+
+    // if the server canChat enable the flag on the connection
+    if (self.attributes.canChat === true) { details.canChat = true }
 
     // if the connection doesn't have a fingerprint already create one
     if (data.fingerprint) { details.fingerprint = data.fingerprint }
@@ -107,7 +110,7 @@ export default class GenericServer extends EventEmitter {
         } catch (e) {
           self.api.log.error(e)
         }
-      }, self.attributes.sendWelcomentMessage)
+      }, self.attributes.sendWelcomeMessage)
     }
   }
 

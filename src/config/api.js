@@ -71,6 +71,16 @@ export default {
       missingParamChecks: [ null, '', undefined ],
 
       // ---------------------------------------------------------------------
+      // Which channel to use on redis pub/sub for RPC communication
+      // ---------------------------------------------------------------------
+      channel: 'stellar',
+
+      // ---------------------------------------------------------------------
+      // How long to wait for an RPC call before considering it a failure
+      // ---------------------------------------------------------------------
+      rpcTimeout: 5000,
+
+      // ---------------------------------------------------------------------
       // The default priority level given to middleware of all types
       // ---------------------------------------------------------------------
       defaultMiddlewarePriority: 100,

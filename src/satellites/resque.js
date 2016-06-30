@@ -52,7 +52,7 @@ class ResqueManager {
     self.api = api
 
     // define the connection details, we can use the redis property from the tasks
-    self.connectionDetails = api.config.tasks.redis || {}
+    self.connectionDetails = {redis: api.redis.clients.tasks}
   }
 
   /**
