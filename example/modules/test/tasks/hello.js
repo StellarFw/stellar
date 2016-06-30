@@ -4,7 +4,7 @@ exports.sayHello = {
   queue: 'default',
   frequency: 1000,
   run: function (api, params, next) {
-    api.log("hello")
+    api.log('hello', 'debug')
 
     next()
   }

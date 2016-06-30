@@ -11,7 +11,7 @@ let type = 'websocket'
 
 // server attributes
 let attributes = {
-  canChar: true,
+  canChat: true,
   logConnections: true,
   logExists: true,
   sendWelcomeMessage: true,

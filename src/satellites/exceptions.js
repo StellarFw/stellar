@@ -132,6 +132,32 @@ class ExceptionsManager {
       next();
     }
   }
+
+  /**
+   * Exception handler for tasks.
+   *
+   * @param error       Error object.
+   * @param queue       Queue here the error occurs
+   * @param task
+   * @param workerId
+   */
+  task (error, queue, task, workerId) {
+    let self = this
+
+    let simpleName
+
+    try {
+      simpleName = task[ 'class' ]
+    } catch (e) {
+      simpleName = error.message
+    }
+
+    self.api.exceptionHandlers.report(error, 'task', `task:${simpleName}`, name, {
+      task: task,
+      queue: queue,
+      workerId: workerId
+    }, self.api.config.tasks.workerLogging.failure)
+  }
 }
 
 export default class {
