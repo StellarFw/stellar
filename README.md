@@ -5,6 +5,8 @@
 </p>
 
 <p align="center">
+  <a href="https://travis-ci.org/gil0mendes/stellar"><img src="https://img.shields.io/travis/gil0mendes/stellar.svg?style=flat-square" alt="Build"></a>
+  <a href="https://coveralls.io/github/gil0mendes/stellar"><img src="https://img.shields.io/coveralls/gil0mendes/stellar.svg?style=flat-square" alt="Build"></a>
   <a href="https://raw.githubusercontent.com/gil0mendes/stellar/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
 </p>
 
