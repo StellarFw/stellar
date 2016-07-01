@@ -11,7 +11,7 @@ env:
 
 os:
   - linux
-  - osx
+  # - osx
 
 before_script:
   - npm install -g gulp
