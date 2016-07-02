@@ -2,7 +2,6 @@
 
 let fs = require('fs')
 let request = require('request')
-let EventEmitter = require('events').EventEmitter
 
 let should = require('should')
 let EngineClass = require(__dirname + '/../../dist/engine').default

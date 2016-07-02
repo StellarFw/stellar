@@ -99,6 +99,16 @@ export default {
       },
 
       // ---------------------------------------------------------------------
+      // data length is too big
+      //
+      // the limit can be configured using:
+      //  api.config.servers.tcp.maxDataLength
+      // ---------------------------------------------------------------------
+      dataLengthTooLarge: (maxLength, receivedLength) => {
+        return api.i18n.localize(`data length is too big (${maxLength} received/${receivedLength} max)`)
+      },
+
+      // ---------------------------------------------------------------------
       // a poorly designed action cloud try to call next() more than once
       // ---------------------------------------------------------------------
       doubleCallbackError: () => {

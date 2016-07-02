@@ -1,11 +1,11 @@
 export default {
   servers: {
-    tcp: function (api) {
+    tcp: api => {
       return {
         // ---------------------------------------------------------------------
         // Enable server?
         // ---------------------------------------------------------------------
-        enable: false,
+        enable: process.env.ENABLE_TCP_SERVER !== undefined,
 
         // ---------------------------------------------------------------------
         // TCP or TLS?
@@ -37,8 +37,35 @@ export default {
         //
         // Send pings on each connection.
         // ---------------------------------------------------------------------
-        setKeepAlive: false
-      };
+        setKeepAlive: false,
+
+        // ---------------------------------------------------------------------
+        // Delimiter string for incoming messages
+        // ---------------------------------------------------------------------
+        delimiter: '\n',
+
+        // ---------------------------------------------------------------------
+        // Maximum incoming message string length in Bytes (use 0 for Infinity)
+        // ---------------------------------------------------------------------
+        maxDataLength: 0,
+
+        // ---------------------------------------------------------------------
+        // What message to send down to a client who request a `quit`
+        // ---------------------------------------------------------------------
+        goodbyeMessage: 'Bye!'
+      }
+    }
+  }
+}
+
+export const test = {
+  servers: {
+    tcp: api => {
+      return {
+        enabled: true,
+        port: 5001,
+        secure: false
+      }
     }
   }
 }

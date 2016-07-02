@@ -411,16 +411,17 @@ class Connection {
           if (typeof callback === 'function') { callback(`not member of room ${room}`) }
         }
       } else if (verb === 'detailsView') {
-        let details = {}
-        details.id = self.id
-        details.fingerprint = self.fingerprint
-        details.remoteIP = self.remoteIP
-        details.remotePort = self.remotePort
-        details.params = self.params
-        details.connectedAt = self.connectedAt
-        details.rooms = self.rooms
-        details.totalActions = self.totalActions
-        details.pendingActions = self.pendingActions
+        let details = {
+          id: self.id,
+          fingerprint: self.fingerprint,
+          remoteIP: self.remoteIP,
+          remotePort: self.remotePort,
+          params: self.params,
+          connectedAt: self.connectedAt,
+          rooms: self.rooms,
+          totalActions: self.totalActions,
+          pendingActions: self.pendingActions
+        }
 
         // execute the callback function
         if (typeof callback === 'function') { callback(null, details) }

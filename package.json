@@ -54,8 +54,8 @@
     "gulp-sourcemaps": "^1.6.0",
     "istanbul": "^0.4.3",
     "mocha": "^2.5.3",
-    "should": "^9.0.1",
-    "request": "^2.65.0"
+    "request": "^2.65.0",
+    "should": "^9.0.1"
   },
   "repository": {
     "type": "git",
