@@ -202,13 +202,13 @@ class RoutesManager {
       let simplePaths = []
 
       // iterate all registered actions
-      self.api.actions.actions.forEach((action) => {
+      for (let action in self.api.actions.actions) {
         // push the action name to the simples paths
         simplePaths.push(`/${action}`)
 
         // iterate all verbs
-        self.verbs.forEach((verb) => { self.registerRoute(verb, `/${action}`, action) })
-      })
+        self.verbs.forEach(verb => { self.registerRoute(verb, `/${action}`, action) })
+      }
 
       // log the number of simple routes loaded
       self.api.log(`${simplePaths.length} simple routes loaded from action names`, 'debug')

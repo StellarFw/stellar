@@ -2,7 +2,8 @@
  * General configs.
  */
 export default {
-  general(api) {
+
+  general: api => {
     return {
       // ---------------------------------------------------------------------
       // API version
@@ -96,7 +97,7 @@ export default {
       },
 
       // ---------------------------------------------------------------------
-      // hash containing chat rooms to be created at server boot
+      // Hash containing chat rooms to be created at server boot
       //
       // Format:
       //  {roomName: {authKey, authValue}}
@@ -106,9 +107,16 @@ export default {
       // ---------------------------------------------------------------------
       startingChatRooms: {
         'defaultRoom': {}
-      }
+      },
+
+      // ---------------------------------------------------------------------
+      // This activates some system actions, these allow obtain the status of
+      // the server.
+      // ---------------------------------------------------------------------
+      enableSystemActions: true
     }
   }
+
 }
 
 /**
@@ -117,7 +125,7 @@ export default {
  * @type {{}}
  */
 export const test = {
-  general: (api) => {
+  general: api => {
     return {
       id: 'test-server',
       developmentMode: true,
@@ -135,7 +143,7 @@ export const test = {
  * @type {{}}
  */
 export const production = {
-  general: (api) => {
+  general: api => {
     return {
       developmentMode: false
     }

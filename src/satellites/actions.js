@@ -50,6 +50,29 @@ class Actions {
     this.api = api
   }
 
+  loadSystemActions () {
+    let self = this
+
+    // only load this if the system actions are enabled
+    //
+    // @see api.configs.enableSystemActions
+    if (self.api.config.enableSystemActions !== true) { return }
+
+    // add an action to give some information about the server status
+    self.versions.status = [ 1 ]
+    self.actions.status = {
+      '1': {
+        name: 'status',
+        description: 'Is a system action to show the server status',
+        run: (api, action, next) => {
+
+          // finish the action execution
+          next()
+        }
+      }
+    }
+  }
+
   /**
    * Load a new action file.
    *
@@ -213,6 +236,9 @@ export default class {
   load (api, next) {
     // add the actions class to the api
     api.actions = new Actions(api)
+
+    // load system actions
+    api.actions.loadSystemActions()
 
     // iterate all modules and load all actions
     api.config.activeModules.forEach((moduleName) => {

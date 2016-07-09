@@ -334,4 +334,32 @@ export default class Utils {
     return path.split('.').reduce(_index, object)
   }
 
+  /**
+   * Parse an IPv6 address.
+   *
+   * @param address   Address to be parsed.
+   * @returns {{host: string, port: Number}}
+   */
+  static parseIPv6URI (address) {
+    let host = '::1'
+    let port = 80
+    let regexp = new RegExp(/\[([0-9a-f:]+)\]:([0-9]{1,5})/)
+
+    // if we have brackets parse them and find a port
+    if (address.indexOf('[') > -1 && address.indexOf(']') > -1) {
+      // execute the regular expression
+      let res = regex.exec(address)
+
+      // if null this isn't a valid IPv6 address
+      if (res === null) { throw new Error('failed to parse address') }
+
+      host = res[ 1 ]
+      port = res[ 2 ]
+    } else {
+      host = address
+    }
+
+    return {host: host, port: parseInt(port, 10)}
+  }
+
 }
