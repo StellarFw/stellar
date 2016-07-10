@@ -260,6 +260,16 @@ class TaskSatellite {
     self.api.resque.queue.scheduledAt(q, taskName, args, callback)
   }
 
+  locks (callback) {
+    let self = this
+    self.api.resque.queue.locks(callback)
+  }
+
+  delLock (lock, callback) {
+    let self = this
+    self.api.resque.queue.delLock(lock, callback)
+  }
+
   timestamps (callback) {
     let self = this
     self.api.resque.queue.timestamps(callback)
