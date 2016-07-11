@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{project.name}} Docs</title>
+
+  <link rel="stylesheet" href="reset.css" media="screen" title="Main Stylesheet" charset="utf-8">
+  <link rel="stylesheet" href="style.css" media="screen" title="Main Stylesheet" charset="utf-8">
+</head>
+<body>
+<div class="wrapper">
+  <!-- include sidebar -->
+  <aside class="sidebar">
+    <h1>Documentation
+      <small>Beta</small>
+    </h1>
+
+    <ul class="actionsList">
+      {{#actions}}
+      <li><a href="./action_{{.}}.html">{{.}}</a></li>
+      {{/actions}}
+    </ul>
+  </aside>
+
+  <!-- main content -->
+  <div class="main">
+    <!-- project name -->
+    <div class="project-title">
+      <h1>Project: {{project.name}}</h1>
+      <h2>v{{project.version}}</h2>
+    </div>
+
+    <!-- project description -->
+    <div class="panel">
+      <div class="panel-header">Project Description</div>
+      <div class="panel-block">{{project.description}}</div>
+    </div>
+
+    <!-- action inputs
+    <div class="panel">
+      <div class="panel-header">Inputs</div>
+
+      <div class="panel-block">
+        {{#if action.inputs}}
+        <table class="table">
+          <thead>
+          <tr>
+            <th>Field Name</th>
+            <th>Description</th>
+            <th>Default</th>
+            <th>Validator</th>
+          </tr>
+          </thead>
+
+          <tbody>
+          {{#action.inputs}}
+          <tr>
+            <td>{{name}}</td>
+            <td>{{description}}</td>
+            <td>{{default}}</td>
+            <td>
+              <ul class="validators">
+                {{#validators}}
+                <li class="{{type}}">{{value}}</li>
+                {{/validators}}
+              </ul>
+            </td>
+          </tr>
+          {{/action.inputs}}
+          </tbody>
+        </table>
+        {{else}}
+        <p>No inputs!</p>
+        {{/if}}
+      </div>
+    </div>-->
+  </div>
+</div>
+
+</body>
+</html>

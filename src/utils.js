@@ -296,6 +296,18 @@ export default class Utils {
   }
 
   /**
+   * Copy a file.
+   *
+   * This only work with files.
+   *
+   * @param source        Source path.
+   * @param destination   Destination path.
+   */
+  static copyFile (source, destination) {
+    fs.createReadStream(source).pipe(fs.createWriteStream(destination))
+  }
+
+  /**
    * Get this servers external interface.
    *
    * @returns {String} Server external IP or false if not founded.

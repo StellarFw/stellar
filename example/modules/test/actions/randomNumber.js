@@ -12,7 +12,7 @@ exports.randomNumber = {
         // save the generated number on the response property
         data.response.number = number
 
-        // return a formated string
+        // return a formatted string
         data.response.formatedNumber = 'Your random number is ' + number
 
         // finish the action execution
