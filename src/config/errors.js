@@ -123,6 +123,13 @@ export default {
       },
 
       // ---------------------------------------------------------------------
+      // function to be executed when occurs a error during file reading
+      // ---------------------------------------------------------------------
+      fileReadError: (connection, error) => {
+        return connection.localize(`error reading file: ${String(error)}`)
+      },
+
+      // ---------------------------------------------------------------------
       // User didn't request a file
       // ---------------------------------------------------------------------
       fileNotProvided: () => {

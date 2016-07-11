@@ -463,21 +463,19 @@ export default class Web extends GenericServer {
     } else if (pathParts[ 0 ] && pathParts[ 0 ] === self.api.config.servers.websocket.clientJsName) {
       requestMode = 'client-lib'
       pathParts.shift()
-      // } else if (pathParts[ 0 ] && pathParts[ 0 ] === self.api.config.servers.web.urlPathForFiles) {
-      //   requestMode = 'file'
-      //   pathParts.shift()
+    } else if (pathParts[ 0 ] && pathParts[ 0 ] === self.api.config.servers.web.urlPathForFiles) {
+      requestMode = 'file'
+      pathParts.shift()
     } else if (pathParts[ 0 ] && pathname.indexOf(self.api.config.servers.web.urlPathForActions) === 0) {
       requestMode = 'api'
       matcherLength = self.api.config.servers.web.urlPathForActions.split('/').length
       for (i = 0; i < (matcherLength - 1); i++) { pathParts.shift() }
     }
-    // else if (pathParts[ 0 ] && pathname.indexOf(self.api.config.servers.web.urlPathForFiles) === 0) {
-    //   requestMode = 'file'
-    //   matcherLength = api.config.servers.web.urlPathForFiles.split('/').length
-    //   for (i = 0; i < (matcherLength - 1); i++) {
-    //     pathParts.shift()
-    //   }
-    // }
+    else if (pathParts[ 0 ] && pathname.indexOf(self.api.config.servers.web.urlPathForFiles) === 0) {
+      requestMode = 'file'
+      matcherLength = self.api.config.servers.web.urlPathForFiles.split('/').length
+      for (i = 0; i < (matcherLength - 1); i++) { pathParts.shift() }
+    }
 
     // split parsed URL by '.'
     var extensionParts = connection.rawConnection.parsedURL.pathname.split('.')
@@ -534,13 +532,13 @@ export default class Web extends GenericServer {
 
         callback(requestMode)
       }
-      //} else if (requestMode === 'file') {
-      //  if (!connection.params.file) { connection.params.file = pathParts.join(path.sep) }
-      //
-      //  if (connection.params.file === '' || connection.params.file[ connection.params.file.length - 1 ] === '/') {
-      //    connection.params.file = connection.params.file + self.api.config.general.directoryFileType
-      //  }
-      //  callback(requestMode)
+    } else if (requestMode === 'file') {
+      if (!connection.params.file) { connection.params.file = pathParts.join(path.sep) }
+
+      if (connection.params.file === '' || connection.params.file[ connection.params.file.length - 1 ] === '/') {
+        connection.params.file = connection.params.file + self.api.config.general.directoryFileType
+      }
+      callback(requestMode)
     } else if (requestMode === 'client-lib') {
       callback(requestMode)
     }

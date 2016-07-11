@@ -261,7 +261,7 @@ export default class {
    *
    * @type {number}
    */
-  loadPriority = 500;
+  loadPriority = 500
 
   /**
    * Initializer loading function.
@@ -271,13 +271,13 @@ export default class {
    */
   load (api, next) {
     // put the routes manager available to all platform
-    api.routes = new RoutesManager(api);
+    api.routes = new RoutesManager(api)
 
     // load routes from the config file
-    api.routes.loadModulesRoutes();
+    api.routes.loadModulesRoutes()
 
     // finish the initializer loading
-    next();
+    next()
   }
 
 }

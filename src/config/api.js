@@ -87,6 +87,11 @@ export default {
       defaultMiddlewarePriority: 100,
 
       // ---------------------------------------------------------------------
+      // Default filetype to serve when a user requests a directory
+      // ---------------------------------------------------------------------
+      directoryFileType: 'index.html',
+
+      // ---------------------------------------------------------------------
       // Configurations for Stellar project structure
       // ---------------------------------------------------------------------
       paths: {
@@ -113,7 +118,16 @@ export default {
       // This activates some system actions, these allow obtain the status of
       // the server.
       // ---------------------------------------------------------------------
-      enableSystemActions: true
+      enableSystemActions: true,
+
+      // ---------------------------------------------------------------------
+      // Documentation
+      //
+      // If active the Stellar will generate documentation , on the startup,
+      // for all loaded actions. This will be accessible from
+      // `:serverAddress/docs`.
+      // ---------------------------------------------------------------------
+      generateDocumentation: true
     }
   }
 
@@ -132,7 +146,8 @@ export const test = {
       startingChatRooms: {
         defaultRoom: {},
         otherRoom: {}
-      }
+      },
+      generateDocumentation: false
     }
   }
 }
