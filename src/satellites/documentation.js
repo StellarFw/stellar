@@ -225,7 +225,10 @@ export default class {
    */
   load (api, next) {
     // if the documentation generation was disabled finish now
-    if (api.config.general.generateDocumentation !== true) { next() }
+    if (api.config.general.generateDocumentation !== true) {
+      next()
+      return
+    }
 
     // build the documentation
     (new DocumentationGenerator(api)).generateDocumentation()
