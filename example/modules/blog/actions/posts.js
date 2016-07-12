@@ -1,10 +1,12 @@
-module.exports = [{
+'use strict'
+
+module.exports = [ {
   name: 'createPost',
   description: 'Create a new post',
 
   inputs: {
-    title: { required: true },
-    content: { required: true }
+    title: {required: true},
+    content: {required: true}
   },
 
   run: function (api, action, next) {
@@ -25,7 +27,7 @@ module.exports = [{
         // finish the action execution
         next()
       }
-    });
+    })
   }
 }, {
   name: 'getPosts',
@@ -38,22 +40,22 @@ module.exports = [{
     })
   }
 },
-{
-  name: 'getPost',
-  description: 'Get a post',
+  {
+    name: 'getPost',
+    description: 'Get a post',
 
-  inputs: {
-    id: { required: true }
-  },
+    inputs: {
+      id: {required: true}
+    },
 
-  run: function (api, action, next) {
-    // search for the request post on the DB
-    api.models.get('post').findById(action.params.id, function (err, post) {
-      // put post information in response object
-      action.response.post = post
+    run: function (api, action, next) {
+      // search for the request post on the DB
+      api.models.get('post').findById(action.params.id, function (err, post) {
+        // put post information in response object
+        action.response.post = post
 
-      // finish the action execution
-      next()
-    })
-  }
-}];
+        // finish the action execution
+        next()
+      })
+    }
+  } ]

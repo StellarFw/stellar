@@ -2,12 +2,12 @@
 
 class App {
 
-  constructor() {
+  constructor () {
     // setup application
     this._setup()
   }
 
-  _setup() {
+  _setup () {
     let self = this
 
     // get the visual elements
@@ -19,7 +19,7 @@ class App {
     this.sendBtn.addEventListener('click', this._callbackSendBtn.bind(this))
 
     // open a new connection with the Server
-    this.client = new StellarClient({ url: 'http://0.0.0.0:8080/' })
+    this.client = new StellarClient({url: 'http://0.0.0.0:8080/'})
 
     // define some connection events
     this.client.on('connected', () => {
@@ -41,14 +41,14 @@ class App {
     this.client.connect()
   }
 
-  _callbackSendBtn() {
+  _callbackSendBtn () {
     if (this.input.value === '') { return }
 
     // send the message
     this.client.say('defaultRoom', this.input.value)
   }
 
-  _printMessage(message) {
+  _printMessage (message) {
     // create a new message entry
     let messageEntry = document.createElement('p')
     messageEntry.className = 'messageEntry'

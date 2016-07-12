@@ -8,7 +8,7 @@ exports.status = {
     uptime: 10030
   },
 
-  run: function (api, data, next) {
+  run: (api, data, next) => {
     data.response.id = api.id
     data.response.stellarVersion = api.stellarVersion
     data.response.uptime = new Date().getTime() - api.bootTime

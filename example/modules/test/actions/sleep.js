@@ -16,13 +16,13 @@ exports.sleep = {
     sleepDuration: 10
   },
 
-  run: function (api, data, next) {
-    var sleepDuration = data.params.sleepDuration
-    var sleepStarted = new Date().getTime()
+  run: (api, data, next) => {
+    let sleepDuration = data.params.sleepDuration
+    let sleepStarted = new Date().getTime()
 
     setTimeout(function () {
-      var sleepEnded = new Date().getTime()
-      var sleepDelta = sleepEnded - sleepStarted
+      let sleepEnded = new Date().getTime()
+      let sleepDelta = sleepEnded - sleepStarted
 
       data.response.sleepStarted = sleepStarted
       data.response.sleepEnded = sleepEnded
