@@ -196,9 +196,17 @@ class Actions {
   validateAction (action) {
     let self = this
 
-    let fail = function (msg) { self.api.log(msg, 'error') }
+    // fail function
+    let fail = msg => self.api.log(msg, 'error')
 
+    // initialize inputs property
     if (action.inputs === undefined) { action.inputs = {} }
+
+    // initialize private property
+    if (action.private === undefined) { action.private = false }
+
+    // initialize protected property
+    if (action.protected === undefined) { action.protected = false }
 
     // the name, description, run properties are required
     if (typeof action.name !== 'string' || action.name.length < 1) {

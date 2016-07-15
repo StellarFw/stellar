@@ -54,6 +54,11 @@ export default {
       },
 
       // ---------------------------------------------------------------------
+      // When a client make a call to a private action
+      // ---------------------------------------------------------------------
+      privateActionCalled: actionName => `the action '${actionName}' is private`,
+
+      // ---------------------------------------------------------------------
       // When a params for an action is invalid
       // ---------------------------------------------------------------------
       invalidParams: params => {

@@ -123,6 +123,13 @@ describe('Servers: TCP', function () {
     })
   })
 
+  it('can not call private actions', done => {
+    makeSocketRequest(client1, JSON.stringify({action: 'sumANumber', params: {a: 3, b: 4}}), response => {
+      response.error.should.equal(api.config.errors.privateActionCalled('sumANumber'))
+      done()
+    })
+  })
+
   it('really long messages are OK', done => {
     // build a long message using v4 UUIDs
     let msg = {

@@ -58,6 +58,23 @@ describe('Servers: HTTP', function () {
     })
   })
 
+  it('can not call private actions', done => {
+    request(`${url}/api/sumANumber?a=3&b=4`, (error, response, body) => {
+      body = JSON.parse(body)
+      body.error.should.equal(api.config.errors.privateActionCalled('sumANumber'))
+      done()
+    })
+  })
+
+  it('can call actions who call private actions', done => {
+    request(`${url}/api/formattedSum?a=3&b=4`, (error, response, body) => {
+      body = JSON.parse(body)
+      should.not.exist(body.error)
+      body.formatted.should.equal('3 + 4 = 7')
+      done()
+    })
+  })
+
   describe('will properly destroy connections', function () {
 
     it('works for the API', done => {

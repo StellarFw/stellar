@@ -118,6 +118,13 @@ describe('Servers: Web Socket', function () {
     })
   })
 
+  it('can not call private actions', done => {
+    client1.action('sumANumber', {a: 3, b: 4}, response => {
+      response.error.should.equal(api.config.errors.privateActionCalled('sumANumber'))
+      done()
+    })
+  })
+
   it('will limit how many simultaneous connections a client can have', function (done) {
     let responses = []
     client1.action('sleep', {sleepDuration: 100}, response => responses.push(response))

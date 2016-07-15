@@ -15,6 +15,9 @@ module.exports = [
       }
     },
 
+    // make this action private (this only can be called internally)
+    private: true,
+
     run: (api, action, next) => {
       // make the sum calculation
       action.response.result = parseInt(action.params.a) + parseInt(action.params.b)

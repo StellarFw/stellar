@@ -175,6 +175,12 @@ class ActionProcessor {
   preProcessAction (callback) {
     let self = this
 
+    // if the action is private this can only be executed internally
+    if (self.actionTemplate.private === true && self.connection.type !== 'internal') {
+      callback(self.api.config.errors.privateActionCalled(self.actionTemplate.name))
+      return
+    }
+
     let processors = []
     let processorsNames = self.api.actions.globalMiddleware.slice(0)
 
@@ -257,38 +263,39 @@ class ActionProcessor {
     }
   }
 
+  /**
+   * Process the action.
+   */
   processAction () {
-    let self = this;
+    let self = this
 
     // initialize the processing environment
-    self.actionStartTime = new Date().getTime();
-    self.working = true;
-    self.incrementTotalActions();
-    self.incrementPendingActions();
-    self.action = self.params.action;
+    self.actionStartTime = new Date().getTime()
+    self.working = true
+    self.incrementTotalActions()
+    self.incrementPendingActions()
+    self.action = self.params.action
 
     if (self.api.actions.versions[ self.action ]) {
       if (!self.params.apiVersion) {
-        self.params.apiVersion = self.api.actions.versions[ self.action ][ self.api.actions.versions[ self.action ].length - 1 ];
+        self.params.apiVersion = self.api.actions.versions[ self.action ][ self.api.actions.versions[ self.action ].length - 1 ]
       }
-      self.actionTemplate = self.api.actions.actions[ self.action ][ self.params.apiVersion ];
+      self.actionTemplate = self.api.actions.actions[ self.action ][ self.params.apiVersion ]
     }
 
     if (self.api.running !== true) {
-      self.completeAction('server_shutting_down');
+      self.completeAction('server_shutting_down')
     } else if (self.getPendingActionCount(self.connection) > self.api.config.general.simultaneousActions) {
-      self.completeAction('too_many_requests');
+      self.completeAction('too_many_requests')
     } else if (!self.action || !self.actionTemplate) {
-      self.completeAction('unknown_action');
+      self.completeAction('unknown_action')
     } else if (self.actionTemplate.blockedConnectionTypes && self.actionTemplate.blockedConnectionTypes.indexOf(self.connection.type) >= 0) {
-      self.completeAction('unsupported_server_type');
+      self.completeAction('unsupported_server_type')
     } else {
       try {
-        self.runAction();
+        self.runAction()
       } catch (err) {
-        self.api.exceptionHandlers.action(err, self, function () {
-          self.completeAction('server_error');
-        });
+        self.api.exceptionHandlers.action(err, self, () => self.completeAction('server_error'))
       }
     }
   }
@@ -301,7 +308,7 @@ class ActionProcessor {
 
     self.preProcessAction(function (error) {
       // validate the request params with the action requirements
-      self.validateParams();
+      self.validateParams()
 
       if (error) {
         self.completeAction(error);
