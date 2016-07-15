@@ -75,6 +75,14 @@ describe('Servers: HTTP', function () {
     })
   })
 
+  it('will generate an error call an action with an invalid type', done => {
+    request(`${url}/api/formattedSum?a=3&b=thisIsInvalid`, (error, response, body) => {
+      body = JSON.parse(body)
+      body.error.should.equal(`param 'b' has an invalid type, expected integer`)
+      done()
+    })
+  })
+
   describe('will properly destroy connections', function () {
 
     it('works for the API', done => {

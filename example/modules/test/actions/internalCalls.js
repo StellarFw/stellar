@@ -7,10 +7,12 @@ module.exports = [
     inputs: {
       a: {
         description: 'First number',
+        convertTo: 'integer',
         required: true
       },
       b: {
         description: 'Second number',
+        convertTo: 'integer',
         required: true
       }
     },
@@ -23,7 +25,7 @@ module.exports = [
 
     run: (api, action, next) => {
       // make the sum calculation
-      action.response.result = parseInt(action.params.a) + parseInt(action.params.b)
+      action.response.result = action.params.a + action.params.b
 
       // finish the action execution
       next()
@@ -36,10 +38,12 @@ module.exports = [
     inputs: {
       a: {
         description: 'First number',
+        convertTo: 'integer',
         required: true
       },
       b: {
         description: 'Second number',
+        convertTo: 'integer',
         required: true
       }
     },

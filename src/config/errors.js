@@ -73,6 +73,11 @@ export default {
       },
 
       // ---------------------------------------------------------------------
+      // When a param was an invalid type
+      // ---------------------------------------------------------------------
+      paramInvalidType: (paramName, expected) => `param '${paramName}' has an invalid type, expected ${expected}`,
+
+      // ---------------------------------------------------------------------
       // user required an unknown action
       // ---------------------------------------------------------------------
       unknownAction: action => {

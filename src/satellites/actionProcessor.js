@@ -221,12 +221,12 @@ class ActionProcessor {
    * Validate call params with the action requirements.
    */
   validateParams () {
-    let self = this;
+    let self = this
 
     // iterate inputs definitions of the called action
     for (let key in self.actionTemplate.inputs) {
       // get input properties
-      let props = self.actionTemplate.inputs[ key ];
+      let props = self.actionTemplate.inputs[ key ]
 
       // default
       if (self.params[ key ] === undefined && props.default !== undefined) {
@@ -237,9 +237,28 @@ class ActionProcessor {
         }
       }
 
+      // convert
+      if (props.convertTo !== undefined) {
+        // Function
+        if (typeof props.convertTo === 'function') {
+          self.params[ key ] = props.convertTo.call(self.api, self.params[ key ], self)
+        } else if (props.convertTo === 'integer') {
+          self.params[ key ] = Number.parseInt(self.params[ key ])
+        } else if (props.convertTo === 'float') {
+          self.params[ key ] = Number.parseFloat(self.params[ key ])
+        } else if (props.convertTo === 'string') {
+          self.params[ key ] = String(self.params[ key ])
+        }
+
+        if (Number.isNaN(self.params[ key ])) {
+          self.validatorErrors.push(self.api.config.errors.paramInvalidType(key, props.convertTo))
+          return
+        }
+      }
+
       // validator
       if (props.validator !== undefined) {
-        let validatorResponse = true;
+        let validatorResponse = true
 
         if (typeof props.validator === 'function') {
           validatorResponse = props.validator.call(self.api, self.params[ key ], self)
@@ -257,7 +276,7 @@ class ActionProcessor {
       // required
       if (props.required === true) {
         if (self.api.config.general.missingParamChecks.indexOf(self.params[ key ]) >= 0) {
-          self.missingParams.push(key);
+          self.missingParams.push(key)
         }
       }
     }
@@ -304,33 +323,31 @@ class ActionProcessor {
    * Run an action.
    */
   runAction () {
-    let self = this;
+    let self = this
 
-    self.preProcessAction(function (error) {
+    self.preProcessAction(error => {
       // validate the request params with the action requirements
       self.validateParams()
 
       if (error) {
         self.completeAction(error);
       } else if (self.missingParams.length > 0) {
-        self.completeAction('missing_params');
+        self.completeAction('missing_params')
       } else if (self.validatorErrors.length > 0) {
-        self.completeAction('validator_errors');
+        self.completeAction('validator_errors')
       } else if (self.toProcess === true && !error) {
         // execute the action logic
-        self.actionTemplate.run(self.api, self, function (error) {
+        self.actionTemplate.run(self.api, self, error => {
           if (error) {
-            self.completeAction(error);
+            self.completeAction(error)
           } else {
-            self.postProcessAction(function (error) {
-              self.completeAction(error);
-            });
+            self.postProcessAction(error => self.completeAction(error))
           }
         });
       } else {
-        self.completeAction();
+        self.completeAction()
       }
-    });
+    })
   }
 }
 
