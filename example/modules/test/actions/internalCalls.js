@@ -3,7 +3,7 @@
 module.exports = [
   {
     name: 'sumANumber',
-    description: 'Sum two numbers',
+    description: 'Sum two integer numbers',
     inputs: {
       a: {
         description: 'First number',
@@ -14,6 +14,9 @@ module.exports = [
         required: true
       }
     },
+
+    // disable documentation
+    toDocument: false,
 
     // make this action private (this only can be called internally)
     private: true,
@@ -29,7 +32,7 @@ module.exports = [
 
   {
     name: 'formattedSum',
-    description: 'Show a formatted sum response',
+    description: 'Sum two numbers and return a formatted message with the result',
     inputs: {
       a: {
         description: 'First number',
@@ -39,6 +42,10 @@ module.exports = [
         description: 'Second number',
         required: true
       }
+    },
+
+    outputExample: {
+      formatted: '3 + 3 = 6'
     },
 
     run: (api, action, next) => {

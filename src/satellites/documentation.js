@@ -47,6 +47,38 @@ class DocumentationGenerator {
   }
 
   /**
+   * Get all actions who have toDocument different than false.
+   *
+   * @returns {{}}  Actions to generate documentation.
+   * @private
+   */
+  _getActionToGenerateDoc () {
+    let self = this
+
+    // array to store the actions
+    let actions = {}
+
+    // iterate all actions
+    for (let actionName in self.api.actions.actions) {
+      let count = 0
+
+      actions[ actionName ] = {}
+
+      // iterate all action versions
+      for (let versionNumber in self.api.actions.actions[ actionName ]) {
+        if (self.api.actions.actions[ actionName ][ versionNumber ].toDocument !== false) {
+          count++
+          actions[ actionName ][ versionNumber ] = self.api.actions.actions[ actionName ][ versionNumber ]
+        }
+      }
+
+      if (count === 0) { delete actions[ actionName ] }
+    }
+
+    return actions
+  }
+
+  /**
    * Generate the documentation.
    */
   generateDocumentation () {
@@ -58,16 +90,17 @@ class DocumentationGenerator {
     // create the directory again
     Utils.createFolder(self.docsFolder)
 
+    // get actions to generate documentation
+    let actions = self._getActionToGenerateDoc()
+
     // object with the template data
-    let data = {
-      actions: Object.keys(self.api.actions.actions)
-    }
+    let data = {actions: Object.keys(actions)}
 
     // get base template
     let source = fs.readFileSync(`${self.staticFolder}/action.html`).toString()
 
     // iterate all loaded actions
-    for (let actionName in self.api.actions.actions) {
+    for (let actionName in actions) {
       // set action name
       data.actionName = actionName
 
@@ -75,9 +108,9 @@ class DocumentationGenerator {
       data.actionVersions = []
 
       // iterate all versions
-      for (let versionNumber in self.api.actions.actions[ actionName ]) {
+      for (let versionNumber in actions[ actionName ]) {
         // get action object
-        let action = self._prepareActionToPrint(self.api.actions.actions[ actionName ][ versionNumber ])
+        let action = self._prepareActionToPrint(actions[ actionName ][ versionNumber ])
 
         // push the version number
         action.version = versionNumber
@@ -110,7 +143,7 @@ class DocumentationGenerator {
 
     // build data object
     let data = {
-      actions: Object.keys(self.api.actions.actions),
+      actions: Object.keys(self._getActionToGenerateDoc()),
       project: {}
     }
     data.project.name = self.api.config.name
