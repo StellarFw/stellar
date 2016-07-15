@@ -46,10 +46,50 @@ class Actions {
    *
    * @param api
    */
-  constructor (api) {
-    this.api = api
+  constructor (api) { this.api = api }
+
+  /**
+   * Execute an action.
+   *
+   * This allow developers call actions internally.
+   *
+   * @param actionName  Name of the action to be called.
+   * @param params      Action parameters.
+   * @param callback    Callback function.
+   */
+  call (actionName, params, callback) {
+    let self = this
+
+    // create a new connection object
+    let connection = new self.api.connection(self.api, {
+      type: 'internal',
+      remotePort: 0,
+      remoteIP: 0,
+      rawConnection: {}
+    })
+
+    // set connection params
+    connection.params = params
+
+    // set action who must be called
+    connection.params.action = actionName
+
+    // create a new ActionProcessor instance
+    let actionProcessor = new self.api.actionProcessor(self.api, connection, data => {
+      // execute the callback on the connection destroy event
+      connection.destroy(() => callback(data.response.error, data.response))
+    })
+
+    // process the action
+    actionProcessor.processAction()
   }
 
+  /**
+   * This loads some system action.
+   *
+   * Available action:
+   *  - status: give information about the name and the server status.
+   */
   loadSystemActions () {
     let self = this
 
@@ -151,7 +191,7 @@ class Actions {
   /**
    * Validate some action requirements.
    *
-   * @param param
+   * @param action  Action object to be validated.
    */
   validateAction (action) {
     let self = this
