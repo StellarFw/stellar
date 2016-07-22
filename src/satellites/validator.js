@@ -1,3 +1,16 @@
+/**
+ * This class allow developers testes values against a
+ * set of validators.
+ *
+ * This is used by the ActionProcessor to validator the
+ * action input params.
+ *
+ * You can use this manually like this:
+ *
+ * <code>
+ *   api.validator.validate(validatorString, params, keyToValidate)
+ * </code>
+ */
 class Validator {
 
   /**
@@ -35,20 +48,28 @@ class Validator {
    *
    * @param api API reference object.
    */
-  constructor (api) {
-    this.api = api
-  }
+  constructor (api) { this.api = api }
 
   /**
    * Validate a set of parameters using a validator string.
    *
-   * @returns {*}
+   *
+   * @param validatorString   Validator string
+   * @param params            Set of params.
+   * @param key               Param under validation.
+   * @returns {*}             Validator response. True if it's okay
    */
-  validate (validatorString, params, key, value) {
+  validate (validatorString, params, key) {
     let self = this
+
+    // the key must be present, otherwise return an error string
+    if (key === undefined || key === null || key === '') { return 'a key must be specified' }
 
     // save parameters request parameters
     self.params = params
+
+    // gets the value of the parameter to be validated
+    let value = params[key]
 
     // the validator string can have many validators separated by '|', we need to split them
     let validators = validatorString.split('|')

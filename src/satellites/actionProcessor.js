@@ -263,7 +263,7 @@ class ActionProcessor {
         if (typeof props.validator === 'function') {
           validatorResponse = props.validator.call(self.api, self.params[ key ], self)
         } else if (typeof props.validator === 'string') {
-          validatorResponse = self.api.validator.validate(props.validator, self.params, key, self.params[ key ])
+          validatorResponse = self.api.validator.validate(props.validator, self.params, key)
         } else {
           let pattern = new RegExp(props.validator)
           validatorResponse = pattern.test(self.params[ key ]) ? true : `Don't match with the validator.`
