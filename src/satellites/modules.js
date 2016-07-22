@@ -23,9 +23,17 @@ export default class {
     // get active modules
     let modules = api.config.modules
 
+    // check if the private module folder exists
+    if (Utils.directoryExists(`${api.scope.rootPath}/modules/private`)) { modules.push('private') }
+
     // this config is required. If doesn't exists or is an empty array
     // an exception should be raised.
-    if (modules === undefined || modules.length === 0) { next(new Error('At least one module needs to be active.')) }
+    if (modules === undefined || modules.length === 0) {
+      next(new Error('At least one module needs to be active.'))
+
+      // engine don't finish the starting wet, soo we need to finish the process
+      process.exit(1)
+    }
 
     // save the list of active modules
     api.config.activeModules = Utils.objClone(api.config.modules)

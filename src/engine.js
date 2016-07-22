@@ -2,10 +2,10 @@
 import 'source-map-support/register'
 
 // Module Dependencies
-import _ from 'lodash';
-import path from 'path';
-import async from 'async';
-import Utils from './utils';
+import _ from 'lodash'
+import path from 'path'
+import async from 'async'
+import Utils from './utils'
 
 /**
  * Main Stellar entry point class.
@@ -61,7 +61,7 @@ export default class Engine {
     keys.forEach(key => collection[ key ].forEach(d => output.push(d)))
 
     // return the new ordered object
-    return output;
+    return output
   }
 
   /**
@@ -87,7 +87,7 @@ export default class Engine {
     errors.forEach(err => api.log(err.stack, 'emergency'))
 
     // finish the process execution
-    process.exit(1);
+    process.exit(1)
   }
 
   // ----------------------------------------------------------------------------------------------------------- [Class]
@@ -118,21 +118,21 @@ export default class Engine {
     log: null,
 
     scope: {}
-  };
+  }
 
   /**
    * List with all satellites.
    *
    * @type {{}}
    */
-  satellites = {};
+  satellites = {}
 
   /**
    * Array with the initial satellites.
    *
    * @type {Array}
    */
-  initialSatellites = [];
+  initialSatellites = []
 
   /**
    * Array with the load satellites.
@@ -141,7 +141,7 @@ export default class Engine {
    *
    * @type {Array}
    */
-  loadSatellites = [];
+  loadSatellites = []
 
   /**
    * Array with the start satellites.
@@ -150,7 +150,7 @@ export default class Engine {
    *
    * @type {Array}
    */
-  startSatellites = [];
+  startSatellites = []
 
   /**
    * Array with the stop satellites.
@@ -159,7 +159,7 @@ export default class Engine {
    *
    * @type {Array}
    */
-  stopSatellites = [];
+  stopSatellites = []
 
   /**
    * Create a new instance of the Engine.
@@ -170,13 +170,19 @@ export default class Engine {
     let self = this
 
     // save current execution scope
-    self.api.scope = scope;
+    self.api.scope = scope
 
     // save the engine reference for external calls
-    self.api._self = self;
+    self.api._self = self
 
     // define a dummy logger
-    self.api.log = (msg, level = 'info') => { }
+    //
+    // this only should print error, emergency levels
+    self.api.log = (msg, level = 'info') => {
+      if (level === 'emergency' || level === 'error') {
+        console.log(`\x1b[31m[-] ${msg}\x1b[37m`)
+      }
+    }
 
     // define the available engine commands
     self.api.commands = {
@@ -246,8 +252,8 @@ export default class Engine {
         self.api.pids.clearPidFile()
 
         // log a shutdown message
-        self.api.log('Stellar has been stopped', 'alert');
-        self.api.log('***', 'debug');
+        self.api.log('Stellar has been stopped', 'alert')
+        self.api.log('***', 'debug')
 
         // execute the callback on the next tick
         process.nextTick(() => {
@@ -296,7 +302,7 @@ export default class Engine {
           if (err) { self.api.log(err, 'error') }
 
           // log a restart message
-          self.api.log('*** Stellar Restarted ***', 'info');
+          self.api.log('*** Stellar Restarted ***', 'info')
 
           // exists a callback
           if (callback !== null) { callback(null, self.api) }
@@ -308,7 +314,7 @@ export default class Engine {
         if (err) { self.api.log(err, 'error') }
 
         // log a restart message
-        self.api.log('*** Stellar Restarted ***', 'info');
+        self.api.log('*** Stellar Restarted ***', 'info')
 
         // exists a callback
         if (callback !== null) { callback(null, self.api) }
@@ -328,10 +334,11 @@ export default class Engine {
    * @param callback This callback only are executed at the end of stage2.
    */
   stage0 (callback = null) {
-    let self = this;
+    let self = this
 
     // we need to load the config first
-    [ path.resolve(__dirname + '/satellites/config.js') ].forEach(function (file) {
+    let initialSatellites = [ path.resolve(__dirname + '/satellites/config.js') ]
+    initialSatellites.forEach(file => {
       // get full file name
       let filename = file.replace(/^.*[\\\/]/, '')
 
@@ -435,7 +442,7 @@ export default class Engine {
           } else {
             next()
           }
-        };
+        }
 
         // normalize satellite priorities
         Engine.normalizeInitializerPriority(self.satellites[ initializer ])

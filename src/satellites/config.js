@@ -101,7 +101,7 @@ class ConfigManager {
     self._watchedFiles.push(file)
 
     // say to the FS to start watching for changes in this file with an interval of 1 seconds
-    fs.watchFile(file, {interval: 1000}, (curr, prev) => {
+    fs.watchFile(file, { interval: 1000 }, (curr, prev) => {
       if (curr.mtime > prev.mtime && self.api.config.general.developmentMode === true) {
         process.nextTick(() => {
           let cleanPath = file
@@ -149,9 +149,8 @@ class ConfigManager {
       // and the engine instance is terminated
       self.api.log('Project `manifest.json` file does not exists.', 'emergency')
 
-      // end the engine execution
-      self.api.stop()
-      return
+      // finish process (we can not stop the Engine because it can not be run)
+      process.exit(1)
     }
 
     // load the default config files from the Stellar core
