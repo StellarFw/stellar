@@ -46,10 +46,10 @@ class InitCommand extends Command {
     let projVersion = this.args.version || '1.0.0'
 
     // create manifest.json file
-    let manifest = Utils.getTemplate('manifest')
-    manifest = manifest.replace('%ProjectName%', this.args.name)
-    manifest = manifest.replace('%ProjectVersion%', projVersion)
-    Utils.createFile(process.cwd() + '/manifest.json', manifest)
+    Utils.generateFileFromTemplate('manifest', {
+      projectName: this.args.name,
+      projectVersion: projVersion
+    }, `${process.cwd()}/manifest.json`)
 
     // create modules folder
     Utils.createFolder(process.cwd() + '/modules')

@@ -3,6 +3,7 @@
 // ----------------------------------------------------------------------------------------------------------- [Imports]
 
 let fs = require('fs')
+let Handlebars = require('handlebars')
 
 // ------------------------------------------------------------------------------------------------------------- [Class]
 
@@ -46,7 +47,7 @@ module.exports = class Utils {
    * @param content   Content to be written.
    * @returns {*}
    */
-  static createFile (path, content) { return fs.writeFileSync(path, content) }
+  static createFile (path, content) { return fs.writeFileSync(path, content, 'utf8') }
 
   /**
    * Read and return the file content.
@@ -94,6 +95,28 @@ module.exports = class Utils {
     } catch (e) {
       if (e.code != 'EEXIST') { throw e }
     }
+  }
+
+  /**
+   * Build a file using a template.
+   *
+   * This uses the handlebars template engine to build
+   * the template. The `templateName` must be present
+   * on the template folder.
+   *
+   * @param templateName  Template name
+   * @param data          Data to use in the template
+   * @param outputPath    Output file path
+   */
+  static generateFileFromTemplate (templateName, data, outputPath) {
+    // get template source
+    let templateSource = Utils.getTemplate(templateName)
+
+    // compile template
+    let template = Handlebars.compile(templateSource)
+
+    // output the result to the outputPath
+    Utils.createFile(outputPath, template(data))
   }
 }
 

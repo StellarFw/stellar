@@ -59,19 +59,17 @@ class MakeModel extends Command {
 
     // check if is to create an action file with the crud operations
     if (this.args.crud !== undefined) {
-      // get template
-      let template = Utils.getTemplate('actionCrud')
+      // hash with the data to use on the template
+      let data = {
+        modelName: modelNameNormalized,
+        modelNameCapitalize: modelNameNormalized.charAt(0).toUpperCase() + modelNameNormalized.slice(1)
+      }
 
-      // capitalize model name
-      let modelNameCapitalize = modelNameNormalized.charAt(0).toUpperCase() + modelNameNormalized.slice(1)
-
-      // replace all the model names
-      template = template.replace(/%ModelName%/g, modelNameCapitalize)
-      template = template.replace(/%ModelNameLC%/g, modelNameNormalized)
-
-      // create the new action file
+      // build the output path
       let actionFilePath = Utils.getCurrentUniverse() + `/modules/${this.args.module}/actions/${modelNameNormalized}.js`
-      Utils.createFile(actionFilePath, template)
+
+      // process the template
+      Utils.generateFileFromTemplate('actionCrud', data, actionFilePath)
 
       // print success message
       this.printSuccess(`The CRUD operations for the "${this.args._[ 1 ]}" model was created!`)

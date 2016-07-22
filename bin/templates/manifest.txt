@@ -1,6 +1,6 @@
 {
-    "name": "%ProjectName%",
-    "version": "%ProjectVersion%",
+    "name": "{{projectName}}",
+    "version": "{{projectVersion}}",
 
     "modules": [ ]
 }
