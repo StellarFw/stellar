@@ -7,15 +7,15 @@ exports.randomNumber = {
     number: 0.40420848364010453
   },
 
-  run: (api, data, next) => {
+  run: (api, action, next) => {
     // generate a random number
     var number = Math.random()
 
     // save the generated number on the response property
-    data.response.number = number
+    action.response.number = number
 
     // return a formatted string
-    data.response.formatedNumber = 'Your random number is ' + number
+    action.response.formatedNumber = 'Your random number is ' + number
 
     // finish the action execution
     next()
