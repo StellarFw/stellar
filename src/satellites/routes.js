@@ -226,7 +226,7 @@ class RoutesManager {
     let self = this
 
     // iterate all active modules
-    self.api.config.activeModules.forEach((moduleName) => {
+    self.api.modules.activeModules.forEach((moduleName) => {
       try {
         // build the file path
         let path = `${self.api.scope.rootPath}/modules/${moduleName}/routes.js`

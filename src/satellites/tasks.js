@@ -189,7 +189,7 @@ class TaskSatellite {
     let self = this
 
     // get all active modules
-    self.api.config.modulesPaths.forEach(modulePath => {
+    self.api.modules.modulesPaths.forEach(modulePath => {
       // build the task folder path for the current module
       let tasksFolder = `${modulePath}/tasks`
 

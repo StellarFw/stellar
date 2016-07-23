@@ -254,9 +254,7 @@ class Actions {
 
     // sort the global middleware array
     self.globalMiddleware.sort((a, b) => {
-      if (self.middleware[ a ].priority > self.middleware[ b ].priority) {
-        return 1
-      }
+      if (self.middleware[ a ].priority > self.middleware[ b ].priority) { return 1 }
 
       return -1
     })
@@ -289,12 +287,9 @@ export default class {
     api.actions.loadSystemActions()
 
     // iterate all modules and load all actions
-    api.config.activeModules.forEach((moduleName) => {
+    api.modules.modulesPaths.forEach(modulePath => {
       // get all files from the module "actions" folder
-      Utils.recursiveDirectoryGlob(`${api.scope.rootPath}/modules/${moduleName}/actions`).forEach((actionFile) => {
-        // load action file
-        api.actions.loadFile(actionFile)
-      })
+      Utils.recursiveDirectoryGlob(`${modulePath}/actions`).forEach(actionFile => api.actions.loadFile(actionFile))
     })
 
     // finish initializer loading

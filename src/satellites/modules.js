@@ -16,6 +16,23 @@ class Modules {
   api = null
 
   /**
+   * Map with the active modules.
+   *
+   * Keys are the modules slugs and the values are
+   * their manifests.
+   *
+   * @type {Map}
+   */
+  activeModules = new Map()
+
+  /**
+   * Map with the modules paths.
+   *
+   * @type {Map}
+   */
+  modulesPaths = new Map()
+
+  /**
    * Create a new class instance.
    *
    * @param api
@@ -46,17 +63,8 @@ class Modules {
       process.exit(1)
     }
 
-    // save the list of active modules
-    self.api.config.activeModules = Utils.objClone(self.api.config.modules)
-
-    // save the modules
-    self.api.config.modules = new Map()
-
-    // create  anew object to save the modules full path
-    self.api.config.modulesPaths = new Map()
-
     // load all modules manifests
-    self.api.config.activeModules.forEach(moduleName => {
+    modules.forEach(moduleName => {
       // build the full path
       let path = `${self.api.scope.rootPath}/modules/${moduleName}`
 
@@ -64,10 +72,10 @@ class Modules {
       let manifest = require(`${path}/manifest.json`)
 
       // save the module config on the engine instance
-      self.api.config.modules.set(manifest.id, manifest)
+      self.activeModules.set(manifest.id, manifest)
 
       // save the module full path
-      self.api.config.modulesPaths.set(manifest.id, path)
+      self.modulesPaths.set(manifest.id, path)
     })
   }
 
@@ -89,7 +97,7 @@ class Modules {
     let npmDependencies = {}
 
     // iterate all active modules
-    self.api.config.modules.forEach(manifest => {
+    self.activeModules.forEach(manifest => {
       // check if the module have NPM dependencies
       if (manifest.npmDependencies !== undefined) {
         // merge the two hashes
@@ -140,7 +148,7 @@ export default class {
    *
    * @type {number}
    */
-  loadPriority = 0
+  loadPriority = 1
 
   /**
    * Initializer load function.

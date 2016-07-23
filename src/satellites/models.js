@@ -220,8 +220,8 @@ export default class {
     // open connection
     api.models.openConnection(() => {
       // read models files from the modules
-      api.config.activeModules.forEach(moduleName => {
-        Utils.recursiveDirectoryGlob(`${api.scope.rootPath}/modules/${moduleName}/models`).forEach((moduleFile) => {
+      api.modules.modulesPaths.forEach(modulePath => {
+        Utils.recursiveDirectoryGlob(`${modulePath}/models`).forEach(moduleFile => {
           // get file basename
           let basename = path.basename(moduleFile, '.js')
 
