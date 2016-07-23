@@ -179,8 +179,13 @@ export default class Engine {
     //
     // this only should print error, emergency levels
     self.api.log = (msg, level = 'info') => {
+      // if we are on test environment don't use the console
+      if (process.env.NODE_ENV === 'test') { return }
+
       if (level === 'emergency' || level === 'error') {
         console.log(`\x1b[31m[-] ${msg}\x1b[37m`)
+      } else if (level === 'info') {
+        console.log(`[!] ${msg}`)
       }
     }
 

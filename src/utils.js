@@ -283,6 +283,22 @@ export default class Utils {
   }
 
   /**
+   * Check if a file exists.
+   *
+   * @param path          Path to check.
+   * @returns {boolean}   True if the file exists, false otherwise.
+   */
+  static fileExists (path) {
+    try {
+      fs.statSync(path).isFile()
+    } catch (error) {
+      return false
+    }
+
+    return true
+  }
+
+  /**
    * Create a new directory.
    *
    * @param path Path there the directory must be created.
@@ -360,7 +376,7 @@ export default class Utils {
     // if we have brackets parse them and find a port
     if (address.indexOf('[') > -1 && address.indexOf(']') > -1) {
       // execute the regular expression
-      let res = regex.exec(address)
+      let res = regexp.exec(address)
 
       // if null this isn't a valid IPv6 address
       if (res === null) { throw new Error('failed to parse address') }
@@ -371,7 +387,7 @@ export default class Utils {
       host = address
     }
 
-    return {host: host, port: parseInt(port, 10)}
+    return { host: host, port: parseInt(port, 10) }
   }
 
 }

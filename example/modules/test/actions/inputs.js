@@ -1,3 +1,5 @@
+'use strict'
+
 module.exports = [ {
   name: 'input-require',
   description: 'Test input require property',
