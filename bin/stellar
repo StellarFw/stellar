@@ -19,6 +19,7 @@ commander.command('makeModel')
   .option('module', 'Module here the model must be created')
   .option('crud', 'Create a set of actions with the CRUD operations')
   .option('actionName', 'Overwrite the action file name')
+  .option('rest', 'Generate RESTfull URLs for the generated actions')
   .action(require('./commands/makeModel'))
 
 // register makeTask command

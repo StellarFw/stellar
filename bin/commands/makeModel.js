@@ -47,9 +47,16 @@ class MakeModel extends Command {
       return false
     }
 
+    // build module path
+    let modulePath = `${Utils.getCurrentUniverse()}/modules/${this.args.module}`
+
+    // ensure the models folder exists
+    Utils.createFolder(`${modulePath}/models`)
+
     // build the new model file path
     let modelNameNormalized = this.args._[ 1 ].toLowerCase()
-    let newFilePath = Utils.getCurrentUniverse() + `/modules/${this.args.module}/models/${modelNameNormalized}.js`
+    let modelNameCapitalize = modelNameNormalized.charAt(0).toUpperCase() + modelNameNormalized.slice(1)
+    let newFilePath = `${modulePath}/models/${modelNameNormalized}.js`
 
     // create the new model file
     Utils.createFile(newFilePath, Utils.getTemplate('model'))
@@ -62,17 +69,45 @@ class MakeModel extends Command {
       // hash with the data to use on the template
       let data = {
         modelName: modelNameNormalized,
-        modelNameCapitalize: modelNameNormalized.charAt(0).toUpperCase() + modelNameNormalized.slice(1)
+        modelNameCapitalize: modelNameCapitalize,
+        rest: (this.args.rest !== undefined)
       }
 
       // build the output path
-      let actionFilePath = Utils.getCurrentUniverse() + `/modules/${this.args.module}/actions/${modelNameNormalized}.js`
+      let actionFilePath = `${modulePath}/actions/${modelNameNormalized}.js`
 
       // process the template
       Utils.generateFileFromTemplate('actionCrud', data, actionFilePath)
 
       // print success message
       this.printSuccess(`The CRUD operations for the "${this.args._[ 1 ]}" model was created!`)
+    }
+
+    // if the crud and rest options are present generate actions
+    if (this.args.crud !== undefined && this.args.rest !== undefined) {
+      let routes = {
+        all: [],
+        get: [],
+        post: [],
+        put: [],
+        delete: []
+      }
+
+      // if the routes.json file exists load it
+      if (Utils.exists(`${modulePath}/routes.json`)) { routes = require(`${modulePath}/routes.json`) }
+
+      // add the new routes
+      routes.get.push({ path: `/${modelNameNormalized}`, action: `get${modelNameCapitalize}s` })
+      routes.get.push({ path: `/${modelNameNormalized}/:id`, action: `get${modelNameCapitalize}` })
+      routes.post.push({ path: `/${modelNameNormalized}`, action: `create${modelNameCapitalize}` })
+      routes.put.push({ path: `/${modelNameNormalized}/:id`, action: `edit${modelNameCapitalize}` })
+      routes.delete.push({ path: `/${modelNameNormalized}/:id`, action: `remove${modelNameCapitalize}` })
+
+      // save the new file
+      Utils.createFile(`${modulePath}/routes.json`, JSON.stringify(routes, null, 2))
+
+      // success
+      this.printSuccess(`The routes for the "${this.args._[ 1 ]}" model was created!`)
     }
 
     return true

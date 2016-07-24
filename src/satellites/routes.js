@@ -18,7 +18,7 @@ class RoutesManager {
    *
    * @type {{}}
    */
-  routes = {'get': [], 'post': [], 'put': [], 'patch': [], 'delete': []}
+  routes = { 'get': [], 'post': [], 'put': [], 'patch': [], 'delete': [] }
 
   /**
    * Available verbs.
@@ -96,7 +96,7 @@ class RoutesManager {
    * @returns {{match: boolean, params: {}}}
    */
   matchURL (pathParts, match, matchTrailingPathParts) {
-    let response = {match: false, params: {}}
+    let response = { match: false, params: {} }
     let matchParts = match.split('/')
     let regexp = ''
     let variable = ''
@@ -226,19 +226,16 @@ class RoutesManager {
     let self = this
 
     // iterate all active modules
-    self.api.modules.activeModules.forEach((moduleName) => {
+    self.api.modules.modulesPaths.forEach(modulePath => {
       try {
         // build the file path
-        let path = `${self.api.scope.rootPath}/modules/${moduleName}/routes.js`
+        let path = `${modulePath}/routes.json`
 
         // check if the module have a 'routes.js' file
         fs.accessSync(path, fs.F_OK)
 
-        // get the file content
-        let routes = require(path).default
-
         // load the routes on the engine
-        self.loadRoutes(routes)
+        self.loadRoutes(require(path))
       } catch (e) {
         // do nothing
       }
