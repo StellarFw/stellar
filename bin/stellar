@@ -21,6 +21,12 @@ commander.command('makeModel')
   .option('actionName', 'Overwrite the action file name')
   .action(require('./commands/makeModel'))
 
+// register makeTask command
+commander.command('makeTask')
+  .description('Create a new task')
+  .option('module', 'Module here the model must be created')
+  .action(require('./commands/makeTask'))
+
 // register run command
 commander.command('run')
   .description('Run a Stellar instance')
