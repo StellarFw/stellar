@@ -87,6 +87,11 @@ export default {
       defaultMiddlewarePriority: 100,
 
       // ---------------------------------------------------------------------
+      // Default priority level given to listeners
+      // ---------------------------------------------------------------------
+      defaultListenerPriority: 100,
+
+      // ---------------------------------------------------------------------
       // Default filetype to serve when a user requests a directory
       // ---------------------------------------------------------------------
       directoryFileType: 'index.html',
