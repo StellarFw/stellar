@@ -46,8 +46,14 @@ class MakeAction extends Command {
       return false
     }
 
+    // build actions folder path
+    let actionsPath = `${Utils.getCurrentUniverse()}/modules/${this.args.module}/actions`
+
+    // create the actions folder is not exists
+    if (!Utils.exists()) { Utils.createFolder(actionsPath) }
+
     // build the new action file path
-    let newFilePath = Utils.getCurrentUniverse() + `/modules/${this.args.module}/actions/${this.args._[ 1 ]}.js`
+    let newFilePath = `${actionsPath}/${this.args._[ 1 ]}.js`
 
     // create the new action file
     Utils.createFile(newFilePath, Utils.getTemplate('action'))
