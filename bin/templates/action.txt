@@ -1,7 +1,7 @@
 'use strict'
 
 module.exports = [{
-    name: 'exampleAction',
+    name: '{{actionName}}',
     description: 'This action was generated using the command line tool',
 
     inputs: {

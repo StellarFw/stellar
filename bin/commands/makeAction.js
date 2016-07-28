@@ -46,20 +46,19 @@ class MakeAction extends Command {
       return false
     }
 
-    // build actions folder path
+    // get useful action information
+    let actionName = this.args._[ 1 ]
     let actionsPath = `${Utils.getCurrentUniverse()}/modules/${this.args.module}/actions`
+    let outputPath = `${actionsPath}/${actionName.replace('.', '_')}.js`
 
     // create the actions folder is not exists
     if (!Utils.exists()) { Utils.createFolder(actionsPath) }
 
-    // build the new action file path
-    let newFilePath = `${actionsPath}/${this.args._[ 1 ]}.js`
-
-    // create the new action file
-    Utils.createFile(newFilePath, Utils.getTemplate('action'))
+    // generate action file
+    Utils.generateFileFromTemplate('action', { actionName: actionName }, outputPath)
 
     // print a success message
-    this.printSuccess(`The "${this.args._[ 1 ]}" action was created!`)
+    this.printSuccess(`The "${actionName}" action was created!`)
 
     return true
   }
