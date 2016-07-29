@@ -95,7 +95,7 @@ class ConfigManager {
     if (!fs.existsSync(file)) { throw new Error(`${file} does not exist, and cannot be watched`) }
 
     // the watch for files change only works on development mode
-    if (self.api.config.general.developmentMode !== true && self._watchedFiles.indexOf(file) > 0) { return }
+    if (self.api.config.general.developmentMode !== true || self._watchedFiles.indexOf(file) > 0) { return }
 
     // push the new file to the array of watched files
     self._watchedFiles.push(file)
