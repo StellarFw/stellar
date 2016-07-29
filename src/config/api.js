@@ -132,7 +132,22 @@ export default {
       // for all loaded actions. This will be accessible from
       // `:serverAddress/docs`.
       // ---------------------------------------------------------------------
-      generateDocumentation: true
+      generateDocumentation: true,
+
+      // ---------------------------------------------------------------------
+      // Predefined salt to use in the hash functions
+      // ---------------------------------------------------------------------
+      salt: null,
+
+      // ---------------------------------------------------------------------
+      // Predefined salt length to use in the salt generation
+      // ---------------------------------------------------------------------
+      saltLength: 10,
+
+      // ---------------------------------------------------------------------
+      // Number of round to use on the salt generation
+      // ---------------------------------------------------------------------
+      saltRounds: 10,
     }
   }
 
