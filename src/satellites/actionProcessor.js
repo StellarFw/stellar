@@ -81,21 +81,21 @@ class ActionProcessor {
     if (status instanceof Error) {
       error = status;
     } else if (status === 'server_error') {
-      error = self.api.config.errors.serverErrorMessage;
+      error = self.api.config.errors.serverErrorMessage
     } else if (status === 'server_shutting_down') {
-      error = self.api.config.errors.serverShuttingDown;
+      error = self.api.config.errors.serverShuttingDown
     } else if (status === 'too_many_requests') {
       error = self.api.config.errors.tooManyPendingActions()
     } else if (status === 'unknown_action') {
       error = self.api.config.errors.unknownAction(self.connection.action);
     } else if (status === 'unsupported_server_type') {
-      error = self.api.config.errors.unsupportedServerType(self.connection.type);
+      error = self.api.config.errors.unsupportedServerType(self.connection.type)
     } else if (status === 'missing_params') {
-      error = self.api.config.errors.missingParams(self.missingParams);
+      error = self.api.config.errors.missingParams(self.missingParams)
     } else if (status === 'validator_errors') {
-      error = self.api.config.errors.invalidParams(self.validatorErrors);
+      error = self.api.config.errors.invalidParams(self.validatorErrors)
     } else if (status) {
-      error = status;
+      error = status
     }
 
     if (error && typeof error === 'string') {

@@ -104,7 +104,7 @@ class ExceptionsManager {
   loader (fullFilePath, err) {
     let self = this;
     let name = `loader ${fullFilePath}`;
-    self.report(err, 'loader', name, {fullFilePath: fullFilePath}, 'alert');
+    self.report(err, 'loader', name, { fullFilePath: fullFilePath }, 'alert');
   }
 
   /**
@@ -125,7 +125,7 @@ class ExceptionsManager {
     }
 
     let name = `action ${simpleName}`;
-    self.report(err, 'action', name, {connection: data.connection}, 'error');
+    self.report(err, 'action', name, { connection: data.connection }, 'error');
     // remove already processed responses
     data.response = {};
     if (typeof next === 'function') {

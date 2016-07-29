@@ -122,20 +122,27 @@ class Actions {
   loadFile (fullFilePath, reload = false) {
     let self = this
 
-    let loadMessage = function (action) {
+    let loadMessage = action => {
+      let level = reload ? 'info' : 'debug'
+      let msg = null
+
       if (reload) {
-        self.api.log(`action (re)loaded: ${action.name} @ v${action.version}, ${fullFilePath}`, 'debug')
+        msg = `action (re)loaded: ${action.name} @ v${action.version}, ${fullFilePath}`
       } else {
-        self.api.log(`action loaded: ${action.name} @ v${action.version}, ${fullFilePath}`, 'debug')
+        msg = `action loaded: ${action.name} @ v${action.version}, ${fullFilePath}`
       }
-    };
+
+      self.api.log(msg, level)
+    }
 
     // watch for changes on the action file
-    self.api.configs.watchFileAndAct(fullFilePath, function () {
+    self.api.configs.watchFileAndAct(fullFilePath, () => {
       self.loadFile(fullFilePath, true)
       self.api.params.buildPostVariables()
       self.api.routes.loadRoutes()
     });
+
+    let action = null
 
     // try load the action
     try {
@@ -145,12 +152,10 @@ class Actions {
       // iterate all collection definitions
       for (let i in collection) {
         // get action object
-        let action = collection[ i ]
+        action = collection[ i ]
 
         // if there is no version defined set it to 1.0
-        if (action.version === null || action.version === undefined) {
-          action.version = 1.0
-        }
+        if (action.version === null || action.version === undefined) { action.version = 1.0 }
 
         // if the action not exists create a new entry on the hash map
         if (self.actions[ action.name ] === null || self.actions[ action.name ] === undefined) {
@@ -259,6 +264,51 @@ class Actions {
       return -1
     })
   }
+
+  loadMiddlewareFromFile (path, reload = false) {
+    let self = this
+
+    /**
+     * Function to log the load ou reload message
+     *
+     * @param middleware  Middleware object
+     */
+    let loadMessage = middleware => {
+      let level = reload ? 'info' : 'debug'
+      let msg = null
+
+      if (reload) {
+        msg = `middleware (re)loaded: ${middleware.name}, ${path}`
+      } else {
+        msg = `middleware loaded: ${middleware.name}, ${path}`
+      }
+
+      self.api.log(msg, level)
+    }
+
+    // watch for changes on the middleware file
+    self.api.configs.watchFileAndAct(path, () => self.loadMiddlewareFromFile(path, true))
+
+    // try load the middleware
+    try {
+      // load middleware file
+      let collection = require(path)
+
+      // iterate all collection definitions
+      for (let index in collection) {
+        // get middleware object
+        let middleware = collection[ index ]
+
+        // try load middleware object
+        self.addMiddleware(middleware)
+
+        // send a log message
+        loadMessage(middleware)
+      }
+    } catch (error) {
+      self.api.exceptionHandlers.loader(path, error)
+    }
+  }
 }
 
 /**
@@ -288,6 +338,9 @@ export default class {
 
     // iterate all modules and load all actions
     api.modules.modulesPaths.forEach(modulePath => {
+      // load modules middleware
+      Utils.recursiveDirectoryGlob(`${modulePath}/middleware`).forEach(path => api.actions.loadMiddlewareFromFile(path))
+
       // get all files from the module "actions" folder
       Utils.recursiveDirectoryGlob(`${modulePath}/actions`).forEach(actionFile => api.actions.loadFile(actionFile))
     })
