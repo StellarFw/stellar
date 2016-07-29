@@ -1,0 +1,1 @@
+{"version":3,"sources":["config/routes.js"],"names":[],"mappings":";;;;;kBAAe;AACb,UAAQ,gBAAU,GAAV,EAAe;AACrB,WAAO,EAAP;AACD;AAHY,C","file":"config/routes.js","sourcesContent":["export default {\n  routes: function (api) {\n    return {};\n  }\n};\n"],"sourceRoot":"/source/"}
