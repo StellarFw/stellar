@@ -1,18 +1,19 @@
 {
-  "name": "stellar",
+  "name": "stellar-fw",
   "author": "Gil Mendes <gil00mendes@gmail.com>",
   "version": "1.0.0",
   "description": "A modules system based web framework based on actions to create WEB APIs in NodeJS",
   "keywords": [
     "api",
-    "web-framework",
+    "web framework",
     "stellar",
     "rest",
     "http",
     "https",
     "tcp",
     "action",
-    "task"
+    "task",
+    "websocket"
   ],
   "scripts": {
     "test": "node test.js",
@@ -68,9 +69,10 @@
   "bugs": {
     "url": "https://github.com/gil0mendes/stellar/issues"
   },
+  "homepage": "https://stellar-framework.com",
   "engines": {
-    "node": ">= 0.10.0",
-    "npm": ">= 1.4.0"
+    "node": ">= 6.0.0",
+    "npm": ">= 3.0.0"
   },
   "bin": {
     "stellar": "./bin/stellar"
