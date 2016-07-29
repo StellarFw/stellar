@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Docs > {{actionName}}</title>
+
+  <link rel="stylesheet" href="reset.css" media="screen" title="Main Stylesheet" charset="utf-8">
+  <link rel="stylesheet" href="style.css" media="screen" title="Main Stylesheet" charset="utf-8">
+</head>
+<body>
+<div class="wrapper">
+  <!-- include sidebar -->
+  <aside class="sidebar">
+    <h1>
+      <a href="./index.html">Documentation</a>
+      <small>Beta</small>
+    </h1>
+
+    <ul class="actionsList">
+      {{#actions}}
+      <li><a href="./action_{{.}}.html">{{.}}</a></li>
+      {{/actions}}
+    </ul>
+  </aside>
+
+  <!-- main content -->
+  <div class="main">
+    <!-- action title -->
+    <h1 class="action-title">{{actionName}}</h1>
+
+    {{#each actionVersions}}
+
+    <h3 class="action-version">Version: {{version}}</h3>
+
+    <!-- action description -->
+    <div class="panel">
+      <div class="panel-header">Description</div>
+
+      <div class="panel-block">
+        <p>{{description}}</p>
+      </div>
+    </div>
+
+    <!-- action inputs -->
+    <div class="panel">
+      <div class="panel-header">Inputs</div>
+
+      <div class="panel-block">
+        {{#if inputs}}
+        <table class="table">
+          <thead>
+          <tr>
+            <th>Field Name</th>
+            <th>Description</th>
+            <th>Default</th>
+            <th>Validator</th>
+          </tr>
+          </thead>
+
+          <tbody>
+          {{#inputs}}
+          <tr>
+            <td>{{name}}</td>
+            <td>{{description}}</td>
+            <td>{{default}}</td>
+            <td>
+              <ul class="validators">
+                {{#validators}}
+                <li class="{{type}}">{{value}}</li>
+                {{/validators}}
+              </ul>
+            </td>
+          </tr>
+          {{/inputs}}
+          </tbody>
+        </table>
+        {{else}}
+        <p>No inputs!</p>
+        {{/if}}
+      </div>
+    </div>
+
+    <!-- action output example -->
+    {{#if outputExample}}
+    <div class="panel">
+      <div class="panel-header">
+        Output Example
+      </div>
+
+      <div class="panel-block">
+            <pre>
+              <code class="json">{{outputExample}}</code>
+            </pre>
+      </div>
+    </div>
+    {{/if}}
+
+    {{/each}}
+  </div>
+</div>
+
+<!-- load highlight -->
+<script src="highlight.js" charset="utf-8"></script>
+
+<!-- start code highlight -->
+<script type="text/javascript">
+  hljs.initHighlightingOnLoad()
+</script>
+
+</body>
+</html>

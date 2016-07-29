@@ -18,7 +18,7 @@ class RoutesManager {
    *
    * @type {{}}
    */
-  routes = {'get': [], 'post': [], 'put': [], 'patch': [], 'delete': []}
+  routes = { 'get': [], 'post': [], 'put': [], 'patch': [], 'delete': [] }
 
   /**
    * Available verbs.
@@ -96,7 +96,7 @@ class RoutesManager {
    * @returns {{match: boolean, params: {}}}
    */
   matchURL (pathParts, match, matchTrailingPathParts) {
-    let response = {match: false, params: {}}
+    let response = { match: false, params: {} }
     let matchParts = match.split('/')
     let regexp = ''
     let variable = ''
@@ -202,13 +202,13 @@ class RoutesManager {
       let simplePaths = []
 
       // iterate all registered actions
-      self.api.actions.actions.forEach((action) => {
+      for (let action in self.api.actions.actions) {
         // push the action name to the simples paths
         simplePaths.push(`/${action}`)
 
         // iterate all verbs
-        self.verbs.forEach((verb) => { self.registerRoute(verb, `/${action}`, action) })
-      })
+        self.verbs.forEach(verb => { self.registerRoute(verb, `/${action}`, action) })
+      }
 
       // log the number of simple routes loaded
       self.api.log(`${simplePaths.length} simple routes loaded from action names`, 'debug')
@@ -226,19 +226,16 @@ class RoutesManager {
     let self = this
 
     // iterate all active modules
-    self.api.config.activeModules.forEach((moduleName) => {
+    self.api.modules.modulesPaths.forEach(modulePath => {
       try {
         // build the file path
-        let path = `${self.api.scope.rootPath}/modules/${moduleName}/routes.js`
+        let path = `${modulePath}/routes.json`
 
         // check if the module have a 'routes.js' file
         fs.accessSync(path, fs.F_OK)
 
-        // get the file content
-        let routes = require(path).default
-
         // load the routes on the engine
-        self.loadRoutes(routes)
+        self.loadRoutes(require(path))
       } catch (e) {
         // do nothing
       }
@@ -261,7 +258,7 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 500;
+  loadPriority = 500
 
   /**
    * Initializer loading function.
@@ -269,15 +266,15 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  static load (api, next) {
+  load (api, next) {
     // put the routes manager available to all platform
-    api.routes = new RoutesManager(api);
+    api.routes = new RoutesManager(api)
 
     // load routes from the config file
-    api.routes.loadModulesRoutes();
+    api.routes.loadModulesRoutes()
 
     // finish the initializer loading
-    next();
+    next()
   }
 
 }

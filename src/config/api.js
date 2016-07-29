@@ -2,7 +2,8 @@
  * General configs.
  */
 export default {
-  general(api) {
+
+  general: api => {
     return {
       // ---------------------------------------------------------------------
       // API version
@@ -71,9 +72,29 @@ export default {
       missingParamChecks: [ null, '', undefined ],
 
       // ---------------------------------------------------------------------
+      // Which channel to use on redis pub/sub for RPC communication
+      // ---------------------------------------------------------------------
+      channel: 'stellar',
+
+      // ---------------------------------------------------------------------
+      // How long to wait for an RPC call before considering it a failure
+      // ---------------------------------------------------------------------
+      rpcTimeout: 5000,
+
+      // ---------------------------------------------------------------------
       // The default priority level given to middleware of all types
       // ---------------------------------------------------------------------
       defaultMiddlewarePriority: 100,
+
+      // ---------------------------------------------------------------------
+      // Default priority level given to listeners
+      // ---------------------------------------------------------------------
+      defaultListenerPriority: 100,
+
+      // ---------------------------------------------------------------------
+      // Default filetype to serve when a user requests a directory
+      // ---------------------------------------------------------------------
+      directoryFileType: 'index.html',
 
       // ---------------------------------------------------------------------
       // Configurations for Stellar project structure
@@ -86,7 +107,7 @@ export default {
       },
 
       // ---------------------------------------------------------------------
-      // hash containing chat rooms to be created at server boot
+      // Hash containing chat rooms to be created at server boot
       //
       // Format:
       //  {roomName: {authKey, authValue}}
@@ -96,9 +117,40 @@ export default {
       // ---------------------------------------------------------------------
       startingChatRooms: {
         'defaultRoom': {}
-      }
-    };
+      },
+
+      // ---------------------------------------------------------------------
+      // This activates some system actions, these allow obtain the status of
+      // the server.
+      // ---------------------------------------------------------------------
+      enableSystemActions: true,
+
+      // ---------------------------------------------------------------------
+      // Documentation
+      //
+      // If active the Stellar will generate documentation , on the startup,
+      // for all loaded actions. This will be accessible from
+      // `:serverAddress/docs`.
+      // ---------------------------------------------------------------------
+      generateDocumentation: true,
+
+      // ---------------------------------------------------------------------
+      // Predefined salt to use in the hash functions
+      // ---------------------------------------------------------------------
+      salt: null,
+
+      // ---------------------------------------------------------------------
+      // Predefined salt length to use in the salt generation
+      // ---------------------------------------------------------------------
+      saltLength: 10,
+
+      // ---------------------------------------------------------------------
+      // Number of round to use on the salt generation
+      // ---------------------------------------------------------------------
+      saltRounds: 10,
+    }
   }
+
 }
 
 /**
@@ -107,17 +159,18 @@ export default {
  * @type {{}}
  */
 export const test = {
-  general: (api) => {
+  general: api => {
     return {
       id: 'test-server',
       developmentMode: true,
       startingChatRooms: {
         defaultRoom: {},
         otherRoom: {}
-      }
+      },
+      generateDocumentation: false
     }
   }
-};
+}
 
 /**
  * Production configs.
@@ -125,9 +178,9 @@ export const test = {
  * @type {{}}
  */
 export const production = {
-  general: (api) => {
+  general: api => {
     return {
       developmentMode: false
     }
   }
-};
+}

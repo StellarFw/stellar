@@ -278,6 +278,49 @@ export default class Utils {
     } catch (er) {
       return false
     }
+
+    return true
+  }
+
+  /**
+   * Check if a file exists.
+   *
+   * @param path          Path to check.
+   * @returns {boolean}   True if the file exists, false otherwise.
+   */
+  static fileExists (path) {
+    try {
+      fs.statSync(path).isFile()
+    } catch (error) {
+      return false
+    }
+
+    return true
+  }
+
+  /**
+   * Create a new directory.
+   *
+   * @param path Path there the directory must be created.
+   */
+  static createFolder (path) {
+    try {
+      fs.mkdirSync(path)
+    } catch (e) {
+      if (e.code != 'EEXIST') { throw e }
+    }
+  }
+
+  /**
+   * Copy a file.
+   *
+   * This only work with files.
+   *
+   * @param source        Source path.
+   * @param destination   Destination path.
+   */
+  static copyFile (source, destination) {
+    fs.createReadStream(source).pipe(fs.createWriteStream(destination))
   }
 
   /**
@@ -310,6 +353,41 @@ export default class Utils {
     return Object.create(Object.getPrototypeOf(obj), Object.getOwnPropertyNames(obj).reduce((memo, name) => {
       return (memo[ name ] = Object.getOwnPropertyDescriptor(obj, name)) && memo;
     }, {}));
+  }
+
+  static stringToHash (api, path, object) {
+    if (!object) { object = api }
+    function _index (obj, i) { return obj[ i ] }
+
+    return path.split('.').reduce(_index, object)
+  }
+
+  /**
+   * Parse an IPv6 address.
+   *
+   * @param address   Address to be parsed.
+   * @returns {{host: string, port: Number}}
+   */
+  static parseIPv6URI (address) {
+    let host = '::1'
+    let port = 80
+    let regexp = new RegExp(/\[([0-9a-f:]+)\]:([0-9]{1,5})/)
+
+    // if we have brackets parse them and find a port
+    if (address.indexOf('[') > -1 && address.indexOf(']') > -1) {
+      // execute the regular expression
+      let res = regexp.exec(address)
+
+      // if null this isn't a valid IPv6 address
+      if (res === null) { throw new Error('failed to parse address') }
+
+      host = res[ 1 ]
+      port = res[ 2 ]
+    } else {
+      host = address
+    }
+
+    return { host: host, port: parseInt(port, 10) }
   }
 
 }

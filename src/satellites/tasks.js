@@ -47,7 +47,7 @@ class TaskSatellite {
     }
 
     // start watch for file changes
-    self.api.watchFileAndAct(fullFilePath, () => self.loadFile(fullFilePath, true))
+    self.api.configs.watchFileAndAct(fullFilePath, () => self.loadFile(fullFilePath, true))
 
     // temporary task info
     let task = null
@@ -189,7 +189,7 @@ class TaskSatellite {
     let self = this
 
     // get all active modules
-    self.api.config.modulesPaths.forEach(modulePath => {
+    self.api.modules.modulesPaths.forEach(modulePath => {
       // build the task folder path for the current module
       let tasksFolder = `${modulePath}/tasks`
 
@@ -258,6 +258,16 @@ class TaskSatellite {
   scheduledAt (q, taskName, args, callback) {
     let self = this
     self.api.resque.queue.scheduledAt(q, taskName, args, callback)
+  }
+
+  locks (callback) {
+    let self = this
+    self.api.resque.queue.locks(callback)
+  }
+
+  delLock (lock, callback) {
+    let self = this
+    self.api.resque.queue.delLock(lock, callback)
   }
 
   timestamps (callback) {
@@ -460,14 +470,14 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 699
+  loadPriority = 699
 
   /**
    * Satellite start priority.
    *
    * @type {number}
    */
-  static startPriority = 900
+  startPriority = 900
 
   /**
    * Load the logic intro the API object.
@@ -475,7 +485,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  static load (api, next) {
+  load (api, next) {
     // load task features to the API object
     api.tasks = new TaskSatellite(api)
 
@@ -492,7 +502,7 @@ export default class {
    * @param api   API object reference.
    * @param next  Callback function.
    */
-  static start (api, next) {
+  start (api, next) {
     if (api.config.tasks.scheduler === true) {
       api.tasks.enqueueAllRecurrentJobs((error) => next(error))
     } else {

@@ -1,0 +1,15 @@
+'use strict'
+
+exports.{{taskName}} = {
+  name: '{{taskName}}',
+  description: 'Change this to describe your task',
+
+  queue: 'default',
+  frequency: 1000,
+
+  run: (api, param, next) => {
+    // do stuff...
+
+    next()
+  }
+}

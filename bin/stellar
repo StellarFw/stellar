@@ -19,19 +19,34 @@ commander.command('makeModel')
   .option('module', 'Module here the model must be created')
   .option('crud', 'Create a set of actions with the CRUD operations')
   .option('actionName', 'Overwrite the action file name')
+  .option('rest', 'Generate RESTfull URLs for the generated actions')
   .action(require('./commands/makeModel'))
+
+// register makeTask command
+commander.command('makeTask')
+  .description('Create a new task')
+  .option('module', 'Module here the model must be created')
+  .action(require('./commands/makeTask'))
 
 // register run command
 commander.command('run')
   .description('Run a Stellar instance')
   .option('prod', 'Enable production mode')
   .option('port', 'Define the port here the server will listening')
+  .option('clean', 'Remove all temporary files and node modules')
   .action(require('./commands/run'))
 
 // register cluster command
 commander.command('cluster')
   .description('Create a custer')
   .action(require('./commands/cluster'))
+
+// register init command
+commander.command('init')
+  .description('Create a new Stellar project')
+  .option('name', 'Project name')
+  .option('version', 'Project version')
+  .action(require('./commands/init'))
 
 // parse the command line argument an execute the requested action
 commander.parse(process.argv)

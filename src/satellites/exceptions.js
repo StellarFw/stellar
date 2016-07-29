@@ -104,7 +104,7 @@ class ExceptionsManager {
   loader (fullFilePath, err) {
     let self = this;
     let name = `loader ${fullFilePath}`;
-    self.report(err, 'loader', name, {fullFilePath: fullFilePath}, 'alert');
+    self.report(err, 'loader', name, { fullFilePath: fullFilePath }, 'alert');
   }
 
   /**
@@ -125,22 +125,48 @@ class ExceptionsManager {
     }
 
     let name = `action ${simpleName}`;
-    self.report(err, 'action', name, {connection: data.connection}, 'error');
+    self.report(err, 'action', name, { connection: data.connection }, 'error');
     // remove already processed responses
     data.response = {};
     if (typeof next === 'function') {
       next();
     }
   }
+
+  /**
+   * Exception handler for tasks.
+   *
+   * @param error       Error object.
+   * @param queue       Queue here the error occurs
+   * @param task
+   * @param workerId
+   */
+  task (error, queue, task, workerId) {
+    let self = this
+
+    let simpleName
+
+    try {
+      simpleName = task[ 'class' ]
+    } catch (e) {
+      simpleName = error.message
+    }
+
+    self.api.exceptionHandlers.report(error, 'task', `task:${simpleName}`, name, {
+      task: task,
+      queue: queue,
+      workerId: workerId
+    }, self.api.config.tasks.workerLogging.failure)
+  }
 }
 
 export default class {
 
-  static loadPriority = 130;
+  loadPriority = 130
 
-  static load (api, next) {
-    api.exceptionHandlers = new ExceptionsManager(api);
-    next();
+  load (api, next) {
+    api.exceptionHandlers = new ExceptionsManager(api)
+    next()
   }
 
-};
+}

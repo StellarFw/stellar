@@ -1,0 +1,4 @@
+temp/
+public/
+npm-debug.log
+package.json

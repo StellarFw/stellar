@@ -2,9 +2,9 @@ import winston from 'winston';
 
 export default class {
 
-  static loadPriority = 120;
+  loadPriority = 120
 
-  static load (api, next) {
+  load (api, next) {
     let transports = [];
 
     // load all transports
@@ -52,4 +52,4 @@ export default class {
     next();
   }
 
-};
+}

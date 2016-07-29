@@ -2,10 +2,10 @@
 import 'source-map-support/register'
 
 // Module Dependencies
-import _ from 'lodash';
-import path from 'path';
-import async from 'async';
-import Utils from './utils';
+import _ from 'lodash'
+import path from 'path'
+import async from 'async'
+import Utils from './utils'
 
 /**
  * Main Stellar entry point class.
@@ -61,7 +61,7 @@ export default class Engine {
     keys.forEach(key => collection[ key ].forEach(d => output.push(d)))
 
     // return the new ordered object
-    return output;
+    return output
   }
 
   /**
@@ -87,7 +87,7 @@ export default class Engine {
     errors.forEach(err => api.log(err.stack, 'emergency'))
 
     // finish the process execution
-    process.exit(1);
+    process.exit(1)
   }
 
   // ----------------------------------------------------------------------------------------------------------- [Class]
@@ -118,21 +118,21 @@ export default class Engine {
     log: null,
 
     scope: {}
-  };
+  }
 
   /**
    * List with all satellites.
    *
    * @type {{}}
    */
-  satellites = {};
+  satellites = {}
 
   /**
    * Array with the initial satellites.
    *
    * @type {Array}
    */
-  initialSatellites = [];
+  initialSatellites = []
 
   /**
    * Array with the load satellites.
@@ -141,7 +141,7 @@ export default class Engine {
    *
    * @type {Array}
    */
-  loadSatellites = [];
+  loadSatellites = []
 
   /**
    * Array with the start satellites.
@@ -150,7 +150,7 @@ export default class Engine {
    *
    * @type {Array}
    */
-  startSatellites = [];
+  startSatellites = []
 
   /**
    * Array with the stop satellites.
@@ -159,7 +159,7 @@ export default class Engine {
    *
    * @type {Array}
    */
-  stopSatellites = [];
+  stopSatellites = []
 
   /**
    * Create a new instance of the Engine.
@@ -170,13 +170,24 @@ export default class Engine {
     let self = this
 
     // save current execution scope
-    self.api.scope = scope;
+    self.api.scope = scope
 
     // save the engine reference for external calls
-    self.api._self = self;
+    self.api._self = self
 
-    // define a simple early custom logger
-    self.api.log = (msg, level = 'info') => console.log(`[${level}]`, msg)
+    // define a dummy logger
+    //
+    // this only should print error, emergency levels
+    self.api.log = (msg, level = 'info') => {
+      // if we are on test environment don't use the console
+      if (process.env.NODE_ENV === 'test') { return }
+
+      if (level === 'emergency' || level === 'error') {
+        console.log(`\x1b[31m[-] ${msg}\x1b[37m`)
+      } else if (level === 'info') {
+        console.log(`[!] ${msg}`)
+      }
+    }
 
     // define the available engine commands
     self.api.commands = {
@@ -190,9 +201,16 @@ export default class Engine {
 
   /**
    * Start engine execution.
+   *
+   * @param callback This function is called when the Engine finish their startup.
    */
   start (callback = null) {
     let self = this
+
+    // if this function has called outside of the Engine the 'this'
+    // variable has an invalid reference
+    if (this._self) { self = this._self }
+    self.api._self = self
 
     // print current execution path
     self.api.log(`Current universe "${self.api.scope.rootPath}"`, 'info')
@@ -233,14 +251,14 @@ export default class Engine {
       // add the final callback
       self.stopSatellites.push(function finalStopInitializer (next) {
         // stop watch for file changes
-        self.api.unWatchAllFiles()
+        self.api.configs.unwatchAllFiles()
 
         // clear cluster PIDs
         self.api.pids.clearPidFile()
 
         // log a shutdown message
-        self.api.log('Stellar has been stopped', 'alert');
-        self.api.log('***', 'debug');
+        self.api.log('Stellar has been stopped', 'alert')
+        self.api.log('***', 'debug')
 
         // execute the callback on the next tick
         process.nextTick(() => {
@@ -289,7 +307,7 @@ export default class Engine {
           if (err) { self.api.log(err, 'error') }
 
           // log a restart message
-          self.api.log('*** Stellar Restarted ***', 'info');
+          self.api.log('*** Stellar Restarted ***', 'info')
 
           // exists a callback
           if (callback !== null) { callback(null, self.api) }
@@ -301,7 +319,7 @@ export default class Engine {
         if (err) { self.api.log(err, 'error') }
 
         // log a restart message
-        self.api.log('*** Stellar Restarted ***', 'info');
+        self.api.log('*** Stellar Restarted ***', 'info')
 
         // exists a callback
         if (callback !== null) { callback(null, self.api) }
@@ -321,10 +339,11 @@ export default class Engine {
    * @param callback This callback only are executed at the end of stage2.
    */
   stage0 (callback = null) {
-    let self = this;
+    let self = this
 
     // we need to load the config first
-    [ path.resolve(__dirname + '/satellites/config.js') ].forEach(function (file) {
+    let initialSatellites = [ path.resolve(__dirname + '/satellites/config.js') ]
+    initialSatellites.forEach(file => {
       // get full file name
       let filename = file.replace(/^.*[\\\/]/, '')
 
@@ -332,7 +351,7 @@ export default class Engine {
       let initializer = filename.split('.')[ 0 ]
 
       // get the initializer
-      self.satellites[ initializer ] = require(file).default
+      self.satellites[ initializer ] = new (require(file)).default()
 
       // add it to array
       self.initialSatellites.push(next => self.satellites[ initializer ].load(self.api, next))
@@ -367,81 +386,93 @@ export default class Engine {
     // reset satellites arrays
     self.satellites = {}
 
-    // get an array with all satellites
-    let satellitesFiles = Utils.getFiles(__dirname + '/satellites')
+    // function to load the satellites in the right place
+    let loadSatellitesInPlace = satellitesFiles => {
+      // iterate all files
+      for (let key in satellitesFiles) {
+        let f = satellitesFiles[ key ]
 
-    // iterate all files
-    for (let key in satellitesFiles) {
-      let f = satellitesFiles[ key ]
+        // get satellite normalized file name and
+        let file = path.normalize(f)
+        let initializer = path.basename(f).split('.')[ 0 ]
+        let ext = _.last(file.split('.'))
 
-      // get satellite normalized file name and
-      let file = path.normalize(f)
-      let initializer = path.basename(f).split('.')[ 0 ]
-      let ext = _.last(file.split('.'))
+        // only load files with the `.js` extension
+        if (ext !== 'js') { continue }
 
-      // only load files with the `.js` extension
-      if (ext !== 'js') { continue }
+        // get initializer module and instantiate it
+        self.satellites[ initializer ] = new (require(file).default)()
 
-      // get initializer module
-      self.satellites[ initializer ] = require(file).default
+        // initializer load function
+        let loadFunction = next => {
+          // check if the initializer have a load function
+          if (typeof self.satellites[ initializer ].load === 'function') {
+            self.api.log(` > load: ${initializer}`, 'debug')
 
-      // initializer load function
-      let loadFunction = next => {
-        // check if the initializer have a load function
-        if (typeof self.satellites[ initializer ].load === 'function') {
-          self.api.log(` > load: ${initializer}`, 'debug')
-
-          // call `load` property
-          self.satellites[ initializer ].load(self.api, err => {
-            self.api.log(`   loaded: ${initializer}`, 'debug')
-            next(err)
-          })
-        } else {
-          next()
+            // call `load` property
+            self.satellites[ initializer ].load(self.api, err => {
+              self.api.log(`   loaded: ${initializer}`, 'debug')
+              next(err)
+            })
+          } else {
+            next()
+          }
         }
-      };
 
-      // initializer start function
-      let startFunction = next => {
-        // check if the initializer have a start function
-        if (typeof self.satellites[ initializer ].start === 'function') {
-          self.api.log(` > start: ${initializer}`, 'debug')
+        // initializer start function
+        let startFunction = next => {
+          // check if the initializer have a start function
+          if (typeof self.satellites[ initializer ].start === 'function') {
+            self.api.log(` > start: ${initializer}`, 'debug')
 
-          // execute start routine
-          self.satellites[ initializer ].start(self.api, err => {
-            self.api.log(`   started: ${initializer}`, 'debug')
-            next(err)
-          })
-        } else {
-          next()
+            // execute start routine
+            self.satellites[ initializer ].start(self.api, err => {
+              self.api.log(`   started: ${initializer}`, 'debug')
+              next(err)
+            })
+          } else {
+            next()
+          }
         }
+
+        // initializer stop function
+        let stopFunction = next => {
+          if (typeof  self.satellites[ initializer ].stop === 'function') {
+            self.api.log(` > stop: ${initializer}`, 'debug')
+
+            self.satellites[ initializer ].stop(self.api, err => {
+              self.api.log(`   stopped: ${initializer}`, 'debug')
+              next(err)
+            })
+          } else {
+            next()
+          }
+        }
+
+        // normalize satellite priorities
+        Engine.normalizeInitializerPriority(self.satellites[ initializer ])
+        loadSatellitesRankings[ self.satellites[ initializer ].loadPriority ] = loadSatellitesRankings[ self.satellites[ initializer ].loadPriority ] || []
+        startSatellitesRankings[ self.satellites[ initializer ].startPriority ] = startSatellitesRankings[ self.satellites[ initializer ].startPriority ] || []
+        stopSatellitesRankings[ self.satellites[ initializer ].stopPriority ] = stopSatellitesRankings[ self.satellites[ initializer ].stopPriority ] || []
+
+        // push loader state function to ranked arrays
+        loadSatellitesRankings[ self.satellites[ initializer ].loadPriority ].push(loadFunction)
+        startSatellitesRankings[ self.satellites[ initializer ].startPriority ].push(startFunction)
+        stopSatellitesRankings[ self.satellites[ initializer ].stopPriority ].push(stopFunction)
       }
-
-      // initializer stop function
-      let stopFunction = next => {
-        if (typeof  self.satellites[ initializer ].stop === 'function') {
-          self.api.log(` > stop: ${initializer}`, 'debug')
-
-          self.satellites[ initializer ].stop(self.api, err => {
-            self.api.log(`   stopped: ${initializer}`, 'debug')
-            next(err)
-          })
-        } else {
-          next()
-        }
-      };
-
-      // normalize satellite priorities
-      Engine.normalizeInitializerPriority(self.satellites[ initializer ])
-      loadSatellitesRankings[ self.satellites[ initializer ].loadPriority ] = loadSatellitesRankings[ self.satellites[ initializer ].loadPriority ] || []
-      startSatellitesRankings[ self.satellites[ initializer ].startPriority ] = startSatellitesRankings[ self.satellites[ initializer ].startPriority ] || []
-      stopSatellitesRankings[ self.satellites[ initializer ].stopPriority ] = stopSatellitesRankings[ self.satellites[ initializer ].stopPriority ] || []
-
-      // push loader state function to ranked arrays
-      loadSatellitesRankings[ self.satellites[ initializer ].loadPriority ].push(loadFunction)
-      startSatellitesRankings[ self.satellites[ initializer ].startPriority ].push(startFunction)
-      stopSatellitesRankings[ self.satellites[ initializer ].stopPriority ].push(stopFunction)
     }
+
+    // get an array with all satellites
+    loadSatellitesInPlace(Utils.getFiles(__dirname + '/satellites'))
+
+    // load satellites from all the active modules
+    self.api.config.modules.forEach(moduleName => {
+      // build the full path to the satellites folder
+      let moduleSatellitePaths = `${self.api.scope.rootPath}/modules/${moduleName}/satellites`
+
+      // check if the folder exists
+      if (Utils.directoryExists(moduleSatellitePaths)) { loadSatellitesInPlace(Utils.getFiles(moduleSatellitePaths)) }
+    })
 
     // organize final array to match the satellites priorities
     self.loadSatellites = Engine.flattenOrderedInitializer(loadSatellitesRankings)

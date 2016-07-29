@@ -1,0 +1,38 @@
+sudo: false
+
+language: node_js
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gcc-4.8
+    - g++-4.8
+
+node_js:
+  - "6"
+
+env:
+  - "FAKEREDIS=true CXX=g++-4.8"
+  - "FAKEREDIS=false CXX=g++-4.8"
+
+os:
+  - linux
+  # - osx
+
+before_script:
+  - npm install -g gulp
+  - gulp babel
+
+script: npm run-script test:travis
+
+services:
+  - redis-server
+  - mongodb
+
+after_script:
+  - npm run-script coverage
+
+after_failure:
+  - "cat /home/travis/build/gil0mendes/stellar/npm-debug.log"

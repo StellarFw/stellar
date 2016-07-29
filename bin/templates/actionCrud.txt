@@ -1,14 +1,14 @@
 'use strict'
 
 module.exports = [ {
-    name: 'create%ModelName%',
-    description: 'Create a new %ModelName%',
+    name: 'create{{modelNameCapitalize}}',
+    description: 'Create a new {{modelNameCapitalize}}',
 
     inputs: {},
 
     run: (api, action, next) => {
         // create a new model instance
-        var newModel = new (api.models.get('%ModelNameLC%'))(action.params.%ModelNameLC%)
+        var newModel = new (api.models.get('{{modelName}}'))(action.params.{{modelName}})
 
         // save it
         newModel.save(err => {
@@ -19,25 +19,25 @@ module.exports = [ {
             }
 
             // append the new model on the response object
-            action.response.%ModelNameLC% = newModel
+            action.response.{{modelName}} = newModel
 
             // finish the action execution
             next()
         })
     }
 }, {
-    name: 'get%ModelName%s',
-    description: 'Get all %ModelName%s',
+    name: 'get{{modelNameCapitalize}}s',
+    description: 'Get all {{modelNameCapitalize}}s',
 
     run: (api, action, next) => {
-        api.models.get('%ModelNameLC%').find({}, (err, resources) => {
-            action.response.%ModelNameLC%s = resources
+        api.models.get('{{modelName}}').find({}, (err, resources) => {
+            action.response.{{modelName}}s = resources
             next()
         })
     }
 }, {
-    name: 'get%ModelName%',
-    description: 'Get a %ModelName%',
+    name: 'get{{modelNameCapitalize}}',
+    description: 'Get a {{modelNameCapitalize}}',
 
     inputs: {
         id: {required: true}
@@ -45,25 +45,25 @@ module.exports = [ {
 
     run: (api, action, next) => {
         // search for the request post on the DB
-        api.models.get('%ModelNameLC%').findById(action.params.id, (err, resource) => {
+        api.models.get('{{modelName}}').findById(action.params.id, (err, resource) => {
             // put model information in response object
-            action.response.%ModelName% = resource
+            action.response.{{modelNameCapitalize}} = resource
 
             // finish the action execution
             next()
         })
     }
 }, {
-    name: 'edit%ModelName%',
-    description: 'Edit a %ModelName%',
+    name: 'edit{{modelNameCapitalize}}',
+    description: 'Edit a {{modelNameCapitalize}}',
 
     inputs: {
         id: {required: true}
     },
 
     run: (api, action, next) => {
-        // search for the %ModelName% and update it
-        api.models.get('%ModelNameLC%').findOneAndUpdate({_id: action.params.id}, action.params.%ModelNameLC%, {upsert: true}, (err, model) => {
+        // search for the {{modelNameCapitalize}} and update it
+        api.models.get('{{modelName}}').findOneAndUpdate({_id: action.params.id}, action.params.{{modelName}}, {upsert: true}, (err, model) => {
             if (err) {
                 // return an error message to the client
                 next(new Error('We could not find the resource you were looking for'))
@@ -71,15 +71,15 @@ module.exports = [ {
             }
 
             // put the updated model on the response object
-            action.response.%ModelNameLC% = model
+            action.response.{{modelName}} = model
 
             // finish the action execution
             next()
         })
     }
 }, {
-    name: 'remove%ModelName%',
-    description: 'Remove a %ModelName%',
+    name: 'remove{{modelNameCapitalize}}',
+    description: 'Remove a {{modelNameCapitalize}}',
 
     inputs: {
         id: {required: true}
@@ -87,7 +87,7 @@ module.exports = [ {
 
     run: (api, action, next) => {
         // search and remove the model
-        api.models.get('%ModelNameLC%').findByIdAndRemove(action.params.id, err => {
+        api.models.get('{{modelName}}').findByIdAndRemove(action.params.id, err => {
             if (err) {
                   // return an error message to the client
                   next(new Error('We could not remove the requested resource'))

@@ -3,10 +3,6 @@ import cluster from 'cluster';
 
 export default {
 
-  consoleLevel: function (api) {
-    return 'debug';
-  },
-
   logger: function (api) {
     let logger = {transports: []};
 
@@ -15,7 +11,7 @@ export default {
       logger.transports.push((api, winston) => {
         return new (winston.transports.Console)({
           colorize: true,
-          level: 'debug',
+          level: 'info',
           timestamp: true
         });
       })
@@ -46,4 +42,12 @@ export default {
     return logger;
   }
 
-};
+}
+
+export const test = {
+  logger: api => {
+    return {
+      transports: null
+    }
+  }
+}

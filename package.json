@@ -1,35 +1,47 @@
 {
-  "name": "stellar",
+  "name": "stellar-fw",
   "author": "Gil Mendes <gil00mendes@gmail.com>",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A modules system based web framework based on actions to create WEB APIs in NodeJS",
   "keywords": [
     "api",
-    "web-framework",
+    "web framework",
     "stellar",
-    "rest"
+    "rest",
+    "http",
+    "https",
+    "tcp",
+    "action",
+    "task",
+    "websocket"
   ],
   "scripts": {
-    "stellar": "./bin/stellar"
+    "test": "node test.js",
+    "test:travis": "NODE_ENV=test ./node_modules/istanbul/lib/cli.js cover ./node_modules/.bin/_mocha",
+    "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
   "dependencies": {
     "async": "^1.5.0",
+    "bcrypt": "^0.8.7",
     "browser_fingerprint": "0.0.6",
+    "etag": "^1.7.0",
     "fakeredis": "^1.0.2",
     "formidable": "^1.0.17",
-    "i18n": "^0.8.1",
-    "ioredis": "^1.15.1",
+    "handlebars": "^4.0.5",
+    "i18n": "^0.8.3",
+    "ioredis": "^2.1.0",
     "is-running": "^2.0.0",
     "lodash": "^3.10.1",
     "log": "^1.4.0",
-    "mockgoose": "^5.4.1",
+    "mime": "^1.3.4",
+    "mockgoose": "^6.0.3",
     "mongoose": "^4.4.10",
-    "node-resque": "^2.0.0",
+    "node-resque": "^2.0.9",
     "node-uuid": "^1.4.7",
-    "primus": "^4.0.4",
-    "qs": "latest",
+    "primus": "^5.2.2",
+    "qs": "^6.0.1",
     "source-map-support": "^0.4.0",
-    "uglify-js": "latest",
+    "uglify-js": "^2.6.4",
     "winston": "^2.1.1",
     "ws": "^1.0.1",
     "yargs": "^4.2.0"
@@ -37,12 +49,17 @@
   "devDependencies": {
     "babel-plugin-transform-class-properties": "^6.3.13",
     "babel-preset-es2015": "^6.3.13",
+    "coveralls": "^2.11.9",
     "eslint": "^1.10.3",
     "gulp": "^3.9.0",
     "gulp-babel": "^6.1.1",
     "gulp-eslint": "^1.1.1",
     "gulp-notify": "^2.2.0",
-    "gulp-sourcemaps": "^1.6.0"
+    "gulp-sourcemaps": "^1.6.0",
+    "istanbul": "^0.4.3",
+    "mocha": "^2.5.3",
+    "request": "^2.65.0",
+    "should": "^9.0.1"
   },
   "repository": {
     "type": "git",
@@ -52,8 +69,12 @@
   "bugs": {
     "url": "https://github.com/gil0mendes/stellar/issues"
   },
+  "homepage": "https://stellar-framework.com",
   "engines": {
-    "node": ">= 0.10.0",
-    "npm": ">= 1.4.0"
+    "node": ">= 6.0.0",
+    "npm": ">= 3.0.0"
+  },
+  "bin": {
+    "stellar": "./bin/stellar"
   }
 }

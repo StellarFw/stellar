@@ -1,7 +1,6 @@
-import path from 'path';
-import {argv} from 'yargs';
-import cluster from 'cluster';
-import Utils from  '../utils';
+import {argv} from 'yargs'
+import cluster from 'cluster'
+import Utils from  '../utils'
 
 /**
  * Setup the server ID.
@@ -19,14 +18,14 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 100;
+  loadPriority = 100
 
   /**
    * Start priority.
    *
    * @type {number}
    */
-  static startPriority = 2;
+  startPriority = 2
 
   /**
    * Initializer load functions.
@@ -34,7 +33,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback.
    */
-  static load (api, next) {
+  load (api, next) {
     if (argv.title) {
       api.id = argv.title;
     } else if (process.env.STELLAR_TITLE) {
@@ -74,7 +73,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback.
    */
-  static start (api, next) {
+  start (api, next) {
     // print out the server ID
     api.log(`server ID: ${api.id}`, 'notice');
 

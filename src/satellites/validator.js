@@ -1,3 +1,16 @@
+/**
+ * This class allow developers testes values against a
+ * set of validators.
+ *
+ * This is used by the ActionProcessor to validator the
+ * action input params.
+ *
+ * You can use this manually like this:
+ *
+ * <code>
+ *   api.validator.validate(validatorString, params, keyToValidate)
+ * </code>
+ */
 class Validator {
 
   /**
@@ -35,20 +48,28 @@ class Validator {
    *
    * @param api API reference object.
    */
-  constructor (api) {
-    this.api = api
-  }
+  constructor (api) { this.api = api }
 
   /**
    * Validate a set of parameters using a validator string.
    *
-   * @returns {*}
+   *
+   * @param validatorString   Validator string
+   * @param params            Set of params.
+   * @param key               Param under validation.
+   * @returns {*}             Validator response. True if it's okay
    */
-  validate (validatorString, params, key, value) {
+  validate (validatorString, params, key) {
     let self = this
+
+    // the key must be present, otherwise return an error string
+    if (key === undefined || key === null || key === '') { return 'a key must be specified' }
 
     // save parameters request parameters
     self.params = params
+
+    // gets the value of the parameter to be validated
+    let value = params[key]
 
     // the validator string can have many validators separated by '|', we need to split them
     let validators = validatorString.split('|')
@@ -63,7 +84,7 @@ class Validator {
 
       // if the property has undefined only implicit validators can be applied
       if (value === undefined && Validator.implicitValidators.indexOf(validatorParts[ 0 ]) === -1) {
-        continue;
+        continue
       }
 
       // call the validator
@@ -74,7 +95,7 @@ class Validator {
 
       // if the validator fails return a fail message
       if (validatorResponse === false) {
-        validatorResponse = `Don't match with the validator.`
+        validatorResponse = `don't match with the validator`
         break
       }
     }
@@ -188,7 +209,6 @@ class Validator {
    * Check if the value is a boolean.
    *
    * @param value
-   * @param args
    * @returns {boolean}
    */
   validator_boolean (value) { return typeof value === 'boolean' }
@@ -236,7 +256,7 @@ class Validator {
     // check if the validator has the correct parameter number
     if (args === undefined) { return 'the validator need one argument' }
 
-    return value === this.params[ args ]
+    return value !== this.params[ args ]
   }
 
   /**
@@ -279,8 +299,11 @@ class Validator {
    * @returns {*}
    */
   validator_not_in (value, args) {
-    let result = this.validator_in(value, args)
-    return (result instanceof String) ? result : !result
+    // check if the validator have a name
+    if (args === undefined && !Array.isArray(args)) { return 'validator needs an array' }
+
+    // check if the array not contains the value
+    return args.indexOf(String(value)) === -1
   }
 
   /**
@@ -289,7 +312,13 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_integer (value) { return Number.isInteger(value) }
+  validator_integer (value) {
+    // try parse to pin
+    let parsedValue = Number.parseInt(value)
+
+    // check if is a number
+    return Number.isInteger(parsedValue)
+  }
 
   /**
    * Check if the value is an IP.
@@ -372,7 +401,8 @@ class Validator {
   validator_numeric (value) { return typeof value === 'number' }
 
   /**
-   * Check if the field is required taking into account the parameters.
+   * Check if the field is required taking into account
+   * the parameters.
    *
    * @param value
    * @param args
@@ -386,20 +416,20 @@ class Validator {
     let parameterToCheck = args.shift()
 
     // if the args[0] param value is present in the values array the value is required
-    if (args.indexOf(String(this.params[ parameterToCheck ])) > -1) { return this.validator_required(value, args, attr) }
+    if (args.indexOf(String(this.params[ parameterToCheck ])) > -1) { return this.validator_filled(value) }
 
     return true
   }
 
   /**
-   * The field under validation must be present unless the args[0] is equal to any value.
+   * The field under validation must be present unless
+   * the args[0] is equal to any value.
    *
    * @param value
    * @param args
-   * @param attr
    * @returns {*}
    */
-  validator_required_unless (value, args, attr) {
+  validator_required_unless (value, args) {
     // check if we have the needs arguments
     if (!(args instanceof Array) || args.length < 2) { return 'validator need two arguments' }
 
@@ -407,46 +437,44 @@ class Validator {
     let parameterToCheck = args.shift()
 
     // if the parameter not have a valid value the current parameter is required
-    if (args.indexOf(String(this.params[ parameterToCheck ])) === -1) { return this.validator_required(value, args, attr) }
+    if (args.indexOf(String(this.params[ parameterToCheck ])) === -1) { return this.validator_filled(value) }
 
     return true
   }
 
   /**
-   * The field under validation must be present only if any of the other specified fields are present.
+   * The field under validation must be present only if
+   * any of the other specified fields are present.
    *
    * @param value
    * @param args
-   * @param attr
    * @returns {*}
    */
-  validator_required_with (value, args, attr) {
+  validator_required_with (value, args) {
     // check if we have the needs arguments
     if (!(args instanceof Array) || args.length < 2) { return 'validator need two arguments' }
 
     // check if one of the parameters are present
     for (let index in args) {
       // get parameter name
-      let paramName = args[ index ];
+      let paramName = args[ index ]
 
-      //
-      if (this.params[ paramName ] !== undefined) {
-        return this.validator_required(value, args, attr)
-      }
+      // check if the value is filled
+      if (this.params[ paramName ] !== undefined) { return this.validator_filled(value) }
     }
 
     return true
   }
 
   /**
-   * The field under validation must be present only if all of the other specified fields are present.
+   * The field under validation must be present only if
+   * all of the other specified fields are present.
    *
    * @param value
    * @param args
-   * @param attr
    * @returns {*}
    */
-  validator_required_with_all (value, args, attr) {
+  validator_required_with_all (value, args) {
     // check if we have the needs arguments
     if (!(args instanceof Array) || args.length < 2) { return 'validator need two arguments' }
 
@@ -459,18 +487,18 @@ class Validator {
     }
 
     // if all the fields are present the fields under validation is required
-    return this.validator_required(value, args, attr)
+    return this.validator_filled(value)
   }
 
   /**
-   * The field under validation must be present only when any of the other specified fields are not present.
+   * The field under validation must be present only when
+   * any of the other specified fields are not present.
    *
    * @param value
    * @param args
-   * @param attr
    * @returns {*}
    */
-  validator_required_without (value, args, attr) {
+  validator_required_without (value, args) {
     // check if we have the needs arguments
     if (!(args instanceof Array) || args.length < 2) { return 'validator need two arguments' }
 
@@ -479,21 +507,21 @@ class Validator {
       // get parameter name
       let paramName = args[ index ]
 
-      if (this.params[ paramName ] === undefined) { return this.validator_required(value, args, attr) }
+      if (this.params[ paramName ] === undefined) { return this.validator_filled(value) }
     }
 
     return true
   }
 
   /**
-   * The field under validation must be present only when all of the other specified fields are not present.
+   * The field under validation must be present only when
+   * all of the other specified fields are not present.
    *
    * @param value
    * @param args
-   * @param attr
    * @returns {*}
    */
-  validator_required_without_all (value, args, attr) {
+  validator_required_without_all (value, args) {
     // check if we have the needs arguments
     if (!(args instanceof Array) || args.length < 2) { return 'validator need two arguments' }
 
@@ -505,7 +533,7 @@ class Validator {
       if (this.params[ paramName ] !== undefined) { return true }
     }
 
-    return this.validator_required(value, args, attr)
+    return this.validator_filled(value)
   }
 
   /**
@@ -563,7 +591,7 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 400
+  loadPriority = 400
 
   /**
    * Satellite load function.
@@ -571,7 +599,7 @@ export default class {
    * @param api   API reference object.
    * @param next  Callback function.
    */
-  static load (api, next) {
+  load (api, next) {
     // load validator logic into the API object
     api.validator = new Validator(api)
 

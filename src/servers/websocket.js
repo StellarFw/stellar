@@ -7,32 +7,31 @@ import GenericServer from '../genericServer';
 import browser_fingerprint from 'browser_fingerprint';
 
 // server type
-let type = 'websocket';
+let type = 'websocket'
 
 // server attributes
 let attributes = {
-  canChar: true,
+  canChat: true,
   logConnections: true,
   logExists: true,
   sendWelcomeMessage: true,
   verbs: [
     'quit',
     'exit',
-    'documentation',
     'roomAdd',
     'roomLeave',
     'roomView',
     'detailsView',
     'say'
   ]
-};
+}
 
 export default class WebSocketServer extends GenericServer {
 
   /**
    * Server instance.
    */
-  server;
+  server
 
   /**
    * Creates a new server instance.
@@ -41,24 +40,22 @@ export default class WebSocketServer extends GenericServer {
    * @param options sever options.
    */
   constructor (api, options) {
-    super(api, type, options, attributes);
+    super(api, type, options, attributes)
 
-    let self = this;
+    let self = this
 
     // connection event
-    self.on('connection', (connection) => {
-      connection.rawConnection.on('data', (data) => {
-        self._handleData(connection, data);
-      })
-    });
+    self.on('connection', connection => {
+      connection.rawConnection.on('data', data => { self._handleData(connection, data) })
+    })
 
     // action complete event
-    self.on('actionComplete', (data) => {
+    self.on('actionComplete', data => {
       if (data.toRender !== false) {
-        data.connection.response.messageCount = data.messageCount;
-        self.sendMessage(data.connection, data.response, data.messageCount);
+        data.connection.response.messageCount = data.messageCount
+        self.sendMessage(data.connection, data.response, data.messageCount)
       }
-    });
+    })
   }
 
   // ------------------------------------------------------------------------------------------------ [REQUIRED METHODS]
@@ -66,40 +63,35 @@ export default class WebSocketServer extends GenericServer {
   /**
    * Start the server
    *
-   * @param next
+   * @param callback
    */
-  start (next) {
-    let self = this;
-    let webserver = self.api.servers.servers.web;
+  start (callback) {
+    let self = this
+    let webserver = self.api.servers.servers.web
 
     // create a new primus instance
-    self.server = new Primus(webserver.server, self.api.config.servers.websocket.server);
+    self.server = new Primus(webserver.server, self.api.config.servers.websocket.server)
 
     // define some event handlers
-    self.server.on('connection', function (rawConnection) {
-      self._handleConnection(rawConnection);
-    });
+    self.server.on('connection', rawConnection => self._handleConnection(rawConnection))
+    self.server.on('disconnection', rawConnection => self._handleDisconnection(rawConnection))
 
-    self.server.on('disconnection', function (rawConnection) {
-      self._handleDisconnection(rawConnection);
-    });
-
-    self.api.log(`webSocket bound to ${webserver.options.bindIP}:${webserver.options.port}`, 'debug');
-    self.server.active = true;
+    self.api.log(`webSocket bound to ${webserver.options.bindIP}:${webserver.options.port}`, 'debug')
+    self.server.active = true
 
     // write client js
-    self._writeClientJS();
+    self._writeClientJS()
 
     // execute the callback
-    next();
+    callback()
   }
 
   /**
    * Shutdown the websocket server.
    *
-   * @param next Callback
+   * @param callback Callback
    */
-  stop (next) {
+  stop (callback) {
     let self = this;
 
     // disable the server
@@ -113,106 +105,118 @@ export default class WebSocketServer extends GenericServer {
     }
 
     // execute the callback on the next tick
-    process.nextTick(() => {
-      next();
-    });
+    process.nextTick(callback);
   }
 
+  /**
+   * Send a message.
+   *
+   * @param connection      Connection where the message must be sent.
+   * @param message         Message to send.
+   * @param messageCount    Message number.
+   */
   sendMessage (connection, message, messageCount) {
-    let self = this;
+    let self = this
 
     // serialize the error if exists
     if (message.error) {
-      message.error = self.api.config.errors.serializers.servers.websocket(message.error);
+      message.error = self.api.config.errors.serializers.servers.websocket(message.error)
     }
 
-    if (!message.context) {
-      message.context = 'response';
-    }
+    // if the message don't have a context set to 'response'
+    if (!message.context) { message.context = 'response' }
 
-    if (!messageCount) {
-      messageCount = connection.messageCount;
-    }
+    // if the messageCount isn't defined, get it from the connection object
+    if (!messageCount) { messageCount = connection.messageCount }
 
-    if (message.context === 'response' && !message.messageCount) {
-      message.messageCount = messageCount;
-    }
+    if (message.context === 'response' && !message.messageCount) { message.messageCount = messageCount }
 
-    connection.rawConnection.write(message);
+    // write the message to socket
+    connection.rawConnection.write(message)
   }
 
   /**
    * Action to be executed on a file request.
    *
-   * @param connection
-   * @param error
-   * @param fileStream
-   * @param mime
-   * @param length
-   * @param lastModified
+   * @param connection      Client connection object.
+   * @param error           Error, if exists.
+   * @param fileStream      FileStream.
+   * @param mime            Mime type.
+   * @param length          File size.
+   * @param lastModified    Last file modification timestamp.
    */
   sendFile (connection, error, fileStream, mime, length, lastModified) {
-    let self = this;
-    let content = '';
+    let self = this
+
+    let content = ''
     let response = {
       error: error,
       content: null,
       mime: mime,
       length: length,
       lastModified: lastModified
-    };
+    }
 
     try {
       if (!error) {
-        fileStream.on('data', function (d) {
-          content += d;
-        });
-        fileStream.on('end', function () {
-          response.content = content;
-          self.server.sendMessage(connection, response, connection.messageCount);
-        });
+        fileStream.on('data', d => { content += d })
+        fileStream.on('end', () => {
+          response.content = content
+          self.server.sendMessage(connection, response, connection.messageCount)
+        })
       } else {
-        self.server.sendMessage(connection, response, connection.messageCount);
+        self.server.sendMessage(connection, response, connection.messageCount)
       }
     } catch (e) {
-      self.api.log(e, 'warning');
-      self.server.sendMessage(connection, response, connection.messageCount);
+      self.api.log(e, 'warning')
+      self.server.sendMessage(connection, response, connection.messageCount)
     }
   }
 
   /**
    * Action to be executed on the goodbye.
    *
-   * @param connection
+   * @param connection Client connection to be closed.
    */
-  goodbye (connection) {
-    connection.rawConnection.end();
-  }
+  goodbye (connection) { connection.rawConnection.end() }
 
   //////////////////// [PRIVATE METHODS]
 
+  /**
+   * Compile client JS.
+   *
+   * @returns {*}
+   * @private
+   */
   _compileClientJS () {
-    let self = this;
+    let self = this
 
-    let clientSource = fs.readFileSync(__dirname + '/../client.js').toString();
-    let url = self.api.config.servers.websocket.clientUrl;
+    let clientSource = fs.readFileSync(__dirname + '/../client.js').toString()
+    let url = self.api.config.servers.websocket.clientUrl
 
     // replace any url by client url
-    clientSource = clientSource.replace(/\'%%URL%%\'/g, url);
+    clientSource = clientSource.replace(/\'%%URL%%\'/g, url)
 
-    let defaults = {};
+    let defaults = {}
     for (var i in self.api.config.servers.websocket.client) {
-      defaults[ i ] = self.api.config.servers.websocket.client[ i ];
+      defaults[ i ] = self.api.config.servers.websocket.client[ i ]
     }
-    defaults.url = url;
+    defaults.url = url
 
-    let defaultsString = util.inspect(defaults);
-    defaultsString = defaultsString.replace('\'window.location.origin\'', 'window.location.origin');
-    clientSource = clientSource.replace('\'%%DEFAULTS%%\'', defaultsString);
+    let defaultsString = util.inspect(defaults)
+    defaultsString = defaultsString.replace('\'window.location.origin\'', 'window.location.origin')
+    clientSource = clientSource.replace('\'%%DEFAULTS%%\'', defaultsString)
 
-    return clientSource;
+    return clientSource
   }
 
+  /**
+   * Render client JS.
+   *
+   * @param minimize
+   * @returns {*}
+   * @private
+   */
   _renderClientJs (minimize = false) {
     let self = this;
 
@@ -258,18 +262,24 @@ export default class WebSocketServer extends GenericServer {
     }
   }
 
+  /**
+   * Handle connection.
+   *
+   * @param rawConnection   Raw connection object.
+   * @private
+   */
   _handleConnection (rawConnection) {
-    let self = this;
+    let self = this
 
-    let parsedCookies = browser_fingerprint.parseCookies(rawConnection);
-    let fingerPrint = parsedCookies[ self.api.config.servers.web.fingerprintOptions.cookieKey ];
+    let parsedCookies = browser_fingerprint.parseCookies(rawConnection)
+    let fingerPrint = parsedCookies[ self.api.config.servers.web.fingerprintOptions.cookieKey ]
 
     self.buildConnection({
       rawConnection: rawConnection,
       remoteAddress: rawConnection.address.ip,
       remotePort: rawConnection.address.port,
       fingerprint: fingerPrint
-    });
+    })
   }
 
   /**
@@ -279,66 +289,67 @@ export default class WebSocketServer extends GenericServer {
    * @private
    */
   _handleDisconnection (rawConnection) {
-    let self = this;
+    let self = this
 
     for (let i in self.connections()) {
       if (self.connections()[ i ] && rawConnection.id == self.connections()[ i ].rawConnection.id) {
-        self.connections()[ i ].destroy();
-        break;
+        self.connections()[ i ].destroy()
+        break
       }
     }
   }
 
   _handleData (connection, data) {
-    let self = this;
-    let verb = data.event;
-    delete data.event;
+    let self = this
 
-    connection.messageCount++;
-    connection.params = {};
+    let verb = data.event
+    delete data.event
+
+    connection.messageCount++
+    connection.params = {}
 
     switch (verb) {
       case 'action':
-        for (let v in data.params) {
-          connection.params[ v ] = data.params[ v ];
-        }
+        for (let v in data.params) { connection.params[ v ] = data.params[ v ] }
 
-        connection.error = null;
-        connection.response = {};
-        self.processAction(connection);
-        break;
+        connection.error = null
+        connection.response = {}
+        self.processAction(connection)
+        break
 
       case 'file':
+        // setup the connection parameters
         connection.params = {
           file: data.file
-        };
+        }
 
-        self.processFile(connection);
-        break;
+        // process the file request
+        self.processFile(connection)
+        break
 
       default:
-        let words = [];
-        let message;
+        let words = []
+        let message
 
         if (data.room) {
-          words.push(data.room);
-          delete data.room;
+          words.push(data.room)
+          delete data.room
         }
 
-        for (let i in data) {
-          words.push(data[ i ]);
-        }
+        for (let i in data) { words.push(data[ i ]) }
 
         connection.verbs(verb, words, (error, data) => {
-          if (!error) {
-            message = {status: 'OK', context: 'response', data: data};
-            self.sendMessage(connection, message);
-          } else {
-            message = {status: error, context: 'response', data: data};
-            self.sendMessage(connection, message);
+          // if exists an error, send it to the client
+          if (error) {
+            message = {status: error, context: 'response', data: data}
+            self.sendMessage(connection, message)
+            return
           }
-        });
+
+          message = {status: 'OK', context: 'response', data: data}
+          self.sendMessage(connection, message)
+        })
+        break
     }
   }
-
 }

@@ -2,14 +2,15 @@
 
 // ----------------------------------------------------------------------------------------------------------- [Imports]
 
-let os = require('os');
-let cluster = require('cluster');
-let pkg = require('../../package.json');
-let Engine = require('../../dist/engine').default;
+let os = require('os')
+let Utils = require('../utils')
+let cluster = require('cluster')
+let pkg = require('../../package.json')
+let Engine = require('../../dist/engine').default
 
 // ------------------------------------------------------------------------------------------------------------ [Module]
 
-module.exports = function () {
+module.exports = function (args) {
   // build initial scope
   let scope = {
     rootPath: process.cwd(),
@@ -19,6 +20,18 @@ module.exports = function () {
   // number of ms to wait to do a force shutdown if the Stellar won't stop gracefully
   let shutdownTimeout = 1000 * 30
   if (process.env.STELLAR_SHUTDOWN_TIMEOUT) { shutdownTimeout = parseInt(process.env.STELLAR_SHUTDOWN_TIMEOUT) }
+
+  // if args contains `clean` options, we must remove all temporary files
+  if (args.clean !== undefined) {
+    let tempFilesLocations = [
+      `${scope.rootPath}/temp`,
+      `${scope.rootPath}/package.json`,
+      `${scope.rootPath}/node_modules`
+    ]
+
+    // iterate all temp paths and remove all
+    tempFilesLocations.forEach(path => Utils.removePath(path))
+  }
 
   // API reference
   let api = null
@@ -46,7 +59,7 @@ module.exports = function () {
     checkForInternalStopTimer = setTimeout(checkForInternalStop, shutdownTimeout)
   }
 
-  // -------------------------------------------------------------------------------------------------- [Actions Server]
+  // --------------------------------------------------------------------------------------------------------- [Actions]
 
   /**
    * Start the server execution.
@@ -58,7 +71,7 @@ module.exports = function () {
     state = 'starting'
 
     // inform the new work start to the master
-    if (cluster.isWorker) { process.send({state: state}) }
+    if (cluster.isWorker) { process.send({ state: state }) }
 
     // start the engine
     engine.start((err, apiFromCallback) => {
@@ -72,7 +85,7 @@ module.exports = function () {
       state = 'started'
 
       // inform the new work start to the master
-      if (cluster.isWorker) { process.send({state: state}) }
+      if (cluster.isWorker) { process.send({ state: state }) }
 
       // save the api instance
       api = apiFromCallback
@@ -93,11 +106,11 @@ module.exports = function () {
   let stopServer = function (callback) {
     state = 'stopping'
 
-    if (cluster.isWorker) { process.send({state: state}) }
+    if (cluster.isWorker) { process.send({ state: state }) }
 
     engine.stop(() => {
       state = 'stopped'
-      if (cluster.isWorker) { process.send({state: state}) }
+      if (cluster.isWorker) { process.send({ state: state }) }
       api = null
       if (typeof  callback === 'function') { callback(null, api) }
     })
@@ -113,7 +126,7 @@ module.exports = function () {
     state = 'restarting'
 
     // if this process is a worker, inform the new state to the master
-    if (process.isWorker) { process.send({state: state}) }
+    if (process.isWorker) { process.send({ state: state }) }
 
     // restart the server
     engine.restart((err, apiFromCallback) => {
@@ -121,7 +134,7 @@ module.exports = function () {
       state = 'started'
 
       // if this process is a worker, inform the new state to the master
-      if (process.isWorker) { process.send({state: state}) }
+      if (process.isWorker) { process.send({ state: state }) }
 
       // save the new api object
       api = apiFromCallback
@@ -185,7 +198,7 @@ module.exports = function () {
     // define action to te performed on 'unhandledRejection' event
     process.on('unhandledRejection', (reason, p) => {
       // send the reason the the master
-      process.send({unhandledRejection: {reason: reason, p: p}})
+      process.send({ unhandledRejection: { reason: reason, p: p } })
 
       // finish the process on the next tick
       process.nextTick(process.exit)

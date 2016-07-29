@@ -58,41 +58,55 @@ class Models {
       return
     }
 
+    // hack: this fix a strange bug on the test environment
+    if (self.api.env === 'test' && mongoose.connections[ 0 ]._hasOpened === true) {
+      // save the mongoose instance
+      self.mongoose = mongoose
+
+      // mark mongoose was connected
+      self.connected = true
+
+      // execute the callback function and return
+      callback()
+      return
+    }
+
+    let connectCallback = () => {
+      // save mongoose object
+      self.mongoose = mongoose
+
+      // open the new connection
+      self.mongoose.connect(self.api.config.models.connectionString, (error) => {
+        if (error) {
+          self.api.log(`MongoDB Error: ${err}`, 'emerg')
+          return
+        }
+
+        self.api.log('connected to MongoDB', 'debug')
+        self.connected = true
+        callback()
+      })
+
+      // define handler for disconnected event
+      self.mongoose.connection.on('disconnected', () => {
+        self.connected = false
+        self.api.log('MongoDB Connection Closed', 'debug')
+      })
+    }
+
     // check if we are use a mock version of the package
     if (self.api.config.models.pkg === 'mockgoose') {
       // require mockgoose
       let mockgoose = require('mockgoose')
 
       // wrap mongoose with mockgoose
-      mockgoose(mongoose)
+      mockgoose(mongoose).then(connectCallback)
 
       // log an warning
       self.api.log('running with mockgoose', 'warning')
+    } else {
+      connectCallback()
     }
-
-    // save mongoose object
-    self.mongoose = mongoose
-
-    // open the new connection
-    self.mongoose.connect(self.api.config.models.connectionString)
-
-    // define handler for connected event
-    self.mongoose.connection.on('connected', () => {
-      self.api.log('connected to MongoDB', 'debug')
-      self.connected = true
-      callback()
-    })
-
-    // define handler for error event
-    self.mongoose.connection.on('error', (err) => {
-      self.api.log(`MongoDB Error: ${err}`, 'emerg')
-    })
-
-    // define handler for disconnected event
-    self.mongoose.connection.on('disconnected', () => {
-      self.connected = false
-      self.api.log('MongoDB Connection Closed', 'debug')
-    })
   }
 
   /**
@@ -127,7 +141,13 @@ class Models {
    * @param name    Model name
    * @param schema  Model schema.
    */
-  add (name, schema) { this.models.set(name, this.mongoose.model(name, schema)) }
+  add (name, schema) {
+    // if the model already exists that can't be overwrite
+    if (this.models.has(name)) { return }
+
+    // save the new model instance
+    this.models.set(name, this.mongoose.model(name, schema))
+  }
 
   /**
    * Get a model object from the repository.
@@ -156,21 +176,21 @@ export default class {
    *
    * @type {number}
    */
-  static loadPriority = 100
+  loadPriority = 100
 
   /**
    * Initializer start priority.
    *
    * @type {number}
    */
-  static startPriority = 100
+  startPriority = 100
 
   /**
    * Initializer stop priority.
    *
    * @type {number}
    */
-  static stopPriority = 400
+  stopPriority = 400
 
   /**
    * Initializer loading function.
@@ -178,7 +198,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  static load (api, next) {
+  load (api, next) {
     // expose models class on the engine
     api.models = new Models(api)
 
@@ -192,12 +212,16 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  static start (api, next) {
+  start (api, next) {
+    // cleanup mongoose cache
+    mongoose.models = {}
+    mongoose.modelSchemas = {}
+
     // open connection
     api.models.openConnection(() => {
       // read models files from the modules
-      api.config.activeModules.forEach((moduleName) => {
-        Utils.recursiveDirectoryGlob(`${api.scope.rootPath}/modules/${moduleName}/models`).forEach((moduleFile) => {
+      api.modules.modulesPaths.forEach(modulePath => {
+        Utils.recursiveDirectoryGlob(`${modulePath}/models`).forEach(moduleFile => {
           // get file basename
           let basename = path.basename(moduleFile, '.js')
 
@@ -220,7 +244,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  static stop (api, next) {
+  stop (api, next) {
     // close connection
     api.models.closeConnection(next)
   }
