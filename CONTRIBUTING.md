@@ -2,23 +2,36 @@
 
 Hi! I'm really excited that you are interested in contributing to Stellar. Before submitting your contribution through, please make sure to take a moment and read through the following guidelines.
 
-## Pull Request Guidlines
+- [Pull Request Guidelines](#pull-request-guidelines)
+- [Code Style](#code-style)
+- [Development Setup](#development-setup)
+- [Project Structure](#project-structure)
 
-- Checkout a topic branch from `dev` and merge back against `dev`.
+## Pull Request Guidelines
+
+- The `master` branch is basically just a snapshot of the latest stable release. All development should be done in dedicated branches. **Do not submit PRs against the `master` branch**
+
+- Checkout a topic branch from the relevant branch, e.g. `dev`, and merge back against that branch.
 
 - Work in the `src` or `bin` folders and **DO NOT** checkin `dist` in the commits.
 
-- Squash the commit if there are too many small ones.
+- It's OK to have multiple small commits as you work on the PR - we will let GitHub automatically squash it before merging.
+
+- Make sure `npm test` passes. (see [development setup](#development-setup))
 
 - Follow the [code style](#code-style).
 
-- If adding new feature provide convincing reason to add this feature. Ideally you should open a suggestion issue first and have it greenlighted before working on it.
+- If adding new feature:
+  - Add accompanying test case.
+  - Provide convincing reason to add this feature. Ideally you should open a suggestion issue first and have it greenlighted before working on it.
 
 - If fixing a bug provide detailed description of the bug in the PR.
 
 ## Code Style
 
 - [No semicolons unless necessary](http://inimino.org/~inimino/blog/javascript_semicolons).
+
+- Never starts a line with an array.
 
 - Follow JSDoc.
 
@@ -32,28 +45,54 @@ Hi! I'm really excited that you are interested in contributing to Stellar. Befor
 
 - Use Arrow functions whenever possible.
 
-- You can use ES6 JavaScript.
+- You must use ES6 JavaScript.
 
 - When in doubt, read the source code.
 
 ## Development Setup
 
-You will need [Node.js](http://nodejs.org).
+You will need [Node.js](http://nodejs.org) in version 6 ou higher.
+
+After cloning the repo, run:
 
 ```bash
+$ npm install -g gulp-cli
 $ npm install
 ```
 
-Stellar is written in JavaScript ES6 with some additional features like class properties, so the source code needs to be transpiled to ES5 in order to be interpreted by the Node.Js 6.
-
-Dev mode: watch and auto-build during the development:
+## Commonly used NPM scripts
 
 ```bash
+# watch and auto re-build during the development
 $ gulp watch
-```
 
-To build:
-
-```bash
+# build all dist files
 $ gulp babel
+
+# run the full test suit
+$ npm test
 ```
+
+> Note: Stellar is written in JavaScript ES6 with some additional features like class properties, so the source code needs to be transpiled to ES5 in order to be interpreted by the Node.Js 6 or higher.
+
+## Project Structure
+
+- **`bin`**: contains the binary utility to start and execute stellar commands
+
+  - **`commands`**: contains the available commands.
+
+- **`dist`**: contains built files for distribution. Note this directory is only updated when a release happens; they do not reflect the last changes in development branches.
+
+- **`example`**: contains a sample application to be used in the test environment and as an example for developers.
+
+- **`test`**: contains all testes. The unit testes are written with [Should.js](http://shouldjs.github.io) and run with [Mocha](https://mochajs.org).
+
+- **`src`**: contains the source code, obviously. The codebase is written in ES6.
+
+  - **`config`**: contains the Stellar's default configuration.
+
+  - **`satellites`**: contains all core satellites.
+
+  - **`servers`**: contains the code related to servers implementations.
+
+- **`staticFiles`**: contains static files to be used on documentation generation.
