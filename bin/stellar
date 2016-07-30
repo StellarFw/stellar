@@ -11,6 +11,7 @@ let commander = new Commander()
 commander.command('makeAction')
   .description('Create a new action file')
   .option('module', 'Module here the action must be created')
+  .option('force', 'Existent actions will be overwritten')
   .action(require('./commands/makeAction'))
 
 // register makeModel command

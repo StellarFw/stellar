@@ -51,6 +51,13 @@ class MakeAction extends Command {
     let actionsPath = `${Utils.getCurrentUniverse()}/modules/${this.args.module}/actions`
     let outputPath = `${actionsPath}/${actionName.replace('.', '_')}.js`
 
+    // if there is not force param and the file already
+    // exists return an error message
+    if (this.args.force === undefined && Utils.exists(outputPath)) {
+      this.printError(`The action file already exists. Use --force param to overwrite.`)
+      return false
+    }
+
     // create the actions folder is not exists
     if (!Utils.exists()) { Utils.createFolder(actionsPath) }
 
