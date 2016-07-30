@@ -35,4 +35,4 @@ after_script:
   - npm run-script coverage
 
 after_failure:
-  - "cat /home/travis/build/stellar-fw/stellar/npm-debug.log"
+  - "cat /home/travis/build/StellarFw/stellar/npm-debug.log"
