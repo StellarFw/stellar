@@ -22,8 +22,7 @@ os:
   # - osx
 
 before_script:
-  - npm install -g gulp
-  - gulp babel
+  - npm run build
 
 script: npm run-script test:travis
 

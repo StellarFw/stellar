@@ -56,7 +56,6 @@ You will need [Node.js](http://nodejs.org) in version 6 ou higher.
 After cloning the repo, run:
 
 ```bash
-$ npm install -g gulp-cli
 $ npm install
 ```
 
@@ -64,10 +63,10 @@ $ npm install
 
 ```bash
 # watch and auto re-build during the development
-$ gulp watch
+$ npm run dev
 
 # build all dist files
-$ gulp babel
+$ npm run build
 
 # run the full test suit
 $ npm test
