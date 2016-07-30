@@ -2,7 +2,6 @@
 import 'source-map-support/register'
 
 // Module Dependencies
-import _ from 'lodash'
 import path from 'path'
 import async from 'async'
 import Utils from './utils'
@@ -395,7 +394,7 @@ export default class Engine {
         // get satellite normalized file name and
         let file = path.normalize(f)
         let initializer = path.basename(f).split('.')[ 0 ]
-        let ext = _.last(file.split('.'))
+        let ext = file.split('.').pop()
 
         // only load files with the `.js` extension
         if (ext !== 'js') { continue }

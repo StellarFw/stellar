@@ -1,5 +1,4 @@
 // module dependencies
-import _ from 'lodash'
 import path from 'path'
 import async from 'async'
 import Utils from '../utils'
