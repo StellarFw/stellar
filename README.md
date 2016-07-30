@@ -29,11 +29,11 @@ For questions and support use the issue list of this repository. The issue list 
 
 ## Contribution
 
-Please make sure to read the [Contributing Guide](https://github.com/gil0mendes/stellar/blob/dev/CONTRIBUTING.md) before making a pull request.
+Please make sure to read the [Contributing Guide](https://github.com/stellarFw/stellar/blob/dev/CONTRIBUTING.md) before making a pull request.
 
 ## Changelog
 
-Details changes for each release are documented in the [release notes](https://github.com/gil0mendes/stellar/releases) and the [Changelog](https://github.com/gil0mendes/stellar/blob/dev/CHANGELOG.md) file.
+Details changes for each release are documented in the [release notes](https://github.com/stellarFw/stellar/releases) and the [Changelog](https://github.com/stellarFw/stellar/blob/dev/CHANGELOG.md) file.
 
 ## Stay In Touch
 

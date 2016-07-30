@@ -63,11 +63,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:gil0mendes/stellar.git"
+    "url": "https://github.com/StellarFw/stellar"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/gil0mendes/stellar/issues"
+    "url": "https://github.com/StellarFw/stellar/issues"
   },
   "homepage": "https://stellar-framework.com",
   "engines": {
