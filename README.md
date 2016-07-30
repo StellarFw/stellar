@@ -5,9 +5,9 @@
 </p>
 
 <p align="center">
-  <a href="https://travis-ci.org/gil0mendes/stellar"><img src="https://img.shields.io/travis/gil0mendes/stellar.svg?style=flat-square" alt="Build"></a>
-  <a href="https://coveralls.io/github/gil0mendes/stellar"><img src="https://img.shields.io/coveralls/gil0mendes/stellar.svg?style=flat-square" alt="Build"></a>
-  <a href="https://raw.githubusercontent.com/gil0mendes/stellar/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
+  <a href="https://travis-ci.org/StellarFw/stellar"><img src="https://img.shields.io/travis/StellarFw/stellar.svg?style=flat-square" alt="Build"></a>
+  <a href="https://coveralls.io/github/StellarFw/stellar"><img src="https://img.shields.io/coveralls/StellarFw/stellar.svg?style=flat-square" alt="Build"></a>
+  <a href="https://raw.githubusercontent.com/stellar-fw/stellar/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
 </p>
 
 <p align="center"><b>Important: <i>The documentation and the examples aren't available at the moment, Stellar is a development preview, is not ready for production... yet!</i></b></p>
