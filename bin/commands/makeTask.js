@@ -47,8 +47,12 @@ class MakeTask extends Command {
       return false
     }
 
+    // ensure the task folder exists
+    let tasksFolder = `${Utils.getCurrentUniverse()}/modules/${this.args.module}/tasks`
+    if (!Utils.exists(tasksFolder)) { Utils.createFolder(tasksFolder) }
+
     // build the output path
-    let newFilePath = Utils.getCurrentUniverse() + `/modules/${this.args.module}/tasks/${this.args._[ 1 ]}.js`
+    let newFilePath = `${tasksFolder}/${this.args._[ 1 ]}.js`
 
     // generate the new file
     Utils.generateFileFromTemplate('task', { taskName: this.args._[ 1 ] }, newFilePath)
