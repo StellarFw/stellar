@@ -90,6 +90,9 @@ class Modules {
   processNpmDependencies (next) {
     let self = this
 
+    // don't use NPM on test environment
+    if (self.api.env === 'test') { return next() }
+
     // if the `package.json` file already exists don't search for NPM dependencies
     if (Utils.fileExists(`${self.api.scope.rootPath}/package.json`)) { return next() }
 
