@@ -1,4 +1,4 @@
-import UUID from 'node-uuid';
+import UUID from 'node-uuid'
 
 /**
  * Create a clean connection.
@@ -200,32 +200,36 @@ class Connection {
     let self = this
 
     if (data.id) {
-      self.id = data.id;
+      self.id = data.id
     } else {
       // generate an unique ID for this connection
       self.id = self._generateID()
     }
 
     // set the connection timestamp
-    self.connectedAt = new Date().getTime();
+    self.connectedAt = new Date().getTime()
 
-    [ 'type', 'rawConnection' ].forEach(req => {
+    let requiredFields = [ 'type', 'rawConnection' ]
+
+    requiredFields.forEach(req => {
       if (data[ req ] === null || data[ req ] === undefined) {
         throw new Error(`${req} is required to create a new connection object`)
       }
       self[ req ] = data[ req ]
-    });
+    })
 
-    [ 'remotePort', 'remoteIP' ].forEach(req => {
+    let enforcedConnectionProperties = [ 'remotePort', 'remoteIP' ]
+
+    enforcedConnectionProperties.forEach(req => {
       if (data[ req ] === null || data[ req ] === undefined) {
         if (self.api.config.general.enforceConnectionProperties === true) {
           throw new Error(`${req} is required to create a new connection object`)
         } else {
-          data[ req ] = 0; // could be a random uuid as well?
+          data[ req ] = 0 // could be a random uuid as well?
         }
       }
       self[ req ] = data[ req ]
-    });
+    })
 
     // set connection defaults
     let connectionDefaults = {
@@ -306,7 +310,7 @@ class Connection {
 
     if (server) {
       if (server.attributes.logExits === true) {
-        server.log('connection closed', 'info', {to: self.remoteIP})
+        server.log('connection closed', 'info', { to: self.remoteIP })
       }
 
       if (typeof server.goodbye === 'function') { server.goodbye(self) }
@@ -353,7 +357,7 @@ class Connection {
 
     if (server && allowedVerbs.indexOf(verb) >= 0) {
       // log verb message
-      server.log('verb', 'debug', {verb: verb, to: self.remoteIP, params: JSON.stringify(words)})
+      server.log('verb', 'debug', { verb: verb, to: self.remoteIP, params: JSON.stringify(words) })
 
       if (verb === 'quit' || verb === 'exit') {
         server.goodbye(self)

@@ -1,3 +1,5 @@
+/*eslint handle-callback-err: 0*/
+
 import async from 'async'
 import Utils from '../utils'
 
@@ -165,7 +167,7 @@ class ChatRooms {
 
     // iterate all connection
     for (let i in self.api.connections.connections) {
-      self._incomingMessagePerConnection(self.api.connections.connections[ i ], messagePayload);
+      self._incomingMessagePerConnection(self.api.connections.connections[ i ], messagePayload)
     }
   }
 
@@ -192,7 +194,7 @@ class ChatRooms {
     let self = this
 
     // check if the room already exists
-    self.exists(room, (err, found) => {
+    self.exists(room, (error, found) => {
       // if the room already exists return an error
       if (found === true) {
         if (typeof callback === 'function') { callback(self.api.config.errors.connectionRoomExists(room), null) }
@@ -470,7 +472,7 @@ class ChatRooms {
       let m = self.middleware[ name ]
 
       // the middleware should be a function
-      if (typeof  m[ direction ] !== 'function') { return }
+      if (typeof m[ direction ] !== 'function') { return }
 
       // push a new job to the queue
       jobs.push(callback => {

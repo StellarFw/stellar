@@ -22,7 +22,7 @@ class TestServer extends GenericServer {
         id: data.connection.id,
         remoteIP: data.connection.remoteIP,
         receivedParams: {}
-      };
+      }
 
       if (data.response.error) {
         data.response.error = api.config.errors.serializers.servers.helper(data.response.error)
@@ -190,7 +190,7 @@ export default class {
    */
   start (api, next) {
     if (api.env === 'test') {
-      new api.helpers.initialize(api, {}, serverObject => {
+      api.helpers.initialize(api, {}, serverObject => {
         api.servers.servers.testServer = serverObject
         api.servers.servers.testServer.start(() => next())
       })

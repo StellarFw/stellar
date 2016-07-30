@@ -1,5 +1,5 @@
 import fs from 'fs'
-import Utils from '../utils';
+import Utils from '../utils'
 
 /**
  * Class to manage the HTTP action routes.
@@ -61,7 +61,7 @@ class RoutesManager {
         let route = self.routes[ method ][ i ]
 
         // check if exists an URL match
-        let match = self.matchURL(pathParts, route.path, route.matchTrailingPathParts);
+        let match = self.matchURL(pathParts, route.path, route.matchTrailingPathParts)
 
         if (match.match === true) {
           if (route.apiVersion) {

@@ -45,7 +45,7 @@ class Modules {
    * The private module is always loaded even if not present on the
    * activeModules property.
    */
-  loadModules () {
+  loadModules (next) {
     let self = this
 
     // get active modules
@@ -164,7 +164,7 @@ export default class {
     api.modules = new Modules(api)
 
     // load modules into memory
-    api.modules.loadModules()
+    api.modules.loadModules(next)
 
     // process NPM dependencies
     api.modules.processNpmDependencies(next)

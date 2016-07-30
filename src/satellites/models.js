@@ -77,10 +77,7 @@ class Models {
 
       // open the new connection
       self.mongoose.connect(self.api.config.models.connectionString, (error) => {
-        if (error) {
-          self.api.log(`MongoDB Error: ${err}`, 'emerg')
-          return
-        }
+        if (error) { return self.api.log(`MongoDB Error: ${error}`, 'emerg') }
 
         self.api.log('connected to MongoDB', 'debug')
         self.connected = true

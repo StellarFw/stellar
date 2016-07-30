@@ -436,7 +436,7 @@ export default class Engine {
 
         // initializer stop function
         let stopFunction = next => {
-          if (typeof  self.satellites[ initializer ].stop === 'function') {
+          if (typeof self.satellites[ initializer ].stop === 'function') {
             self.api.log(` > stop: ${initializer}`, 'debug')
 
             self.satellites[ initializer ].stop(self.api, err => {

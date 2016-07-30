@@ -1,10 +1,10 @@
-import fs from 'fs';
-import util from 'util';
-import path from 'path';
-import Primus from 'primus';
-import UglifyJS from 'uglify-js';
-import GenericServer from '../genericServer';
-import browser_fingerprint from 'browser_fingerprint';
+import fs from 'fs'
+import util from 'util'
+import path from 'path'
+import Primus from 'primus'
+import UglifyJS from 'uglify-js'
+import GenericServer from '../genericServer'
+import browser_fingerprint from 'browser_fingerprint'
 
 // server type
 let type = 'websocket'
@@ -92,20 +92,20 @@ export default class WebSocketServer extends GenericServer {
    * @param callback Callback
    */
   stop (callback) {
-    let self = this;
+    let self = this
 
     // disable the server
-    self.active = false;
+    self.active = false
 
     // destroy clients connections
     if (self.api.config.servers.websocket.destroyClientOnShutdown === true) {
       self.connections().forEach((connection) => {
-        connection.destroy();
-      });
+        connection.destroy()
+      })
     }
 
     // execute the callback on the next tick
-    process.nextTick(callback);
+    process.nextTick(callback)
   }
 
   /**
@@ -180,7 +180,7 @@ export default class WebSocketServer extends GenericServer {
    */
   goodbye (connection) { connection.rawConnection.end() }
 
-  //////////////////// [PRIVATE METHODS]
+  // ------------------------------------------------------------------------------------------------- [PRIVATE METHODS]
 
   /**
    * Compile client JS.
@@ -218,10 +218,10 @@ export default class WebSocketServer extends GenericServer {
    * @private
    */
   _renderClientJs (minimize = false) {
-    let self = this;
+    let self = this
 
-    let libSource = self.api.servers.servers.websocket.server.library();
-    let clientSource = self._compileClientJS();
+    let libSource = self.api.servers.servers.websocket.server.library()
+    let clientSource = self._compileClientJS()
 
     clientSource =
       ';;;\r\n' +
@@ -229,12 +229,12 @@ export default class WebSocketServer extends GenericServer {
       clientSource +
       '\r\n' +
       'exports.StellarClient = StellarClient; \r\n' +
-      '})(typeof exports === \'undefined\' ? window : exports);';
+      '})(typeof exports === \'undefined\' ? window : exports);'
 
     if (minimize) {
-      return UglifyJS.minify(`${libSource}\r\n\r\n\r\n${clientSource}`, {fromString: true}).code;
+      return UglifyJS.minify(`${libSource}\r\n\r\n\r\n${clientSource}`, { fromString: true }).code
     } else {
-      return `${libSource}\r\n\r\n\r\n${clientSource}`;
+      return `${libSource}\r\n\r\n\r\n${clientSource}`
     }
   }
 
@@ -242,22 +242,22 @@ export default class WebSocketServer extends GenericServer {
    * Write client js code.
    */
   _writeClientJS () {
-    let self = this;
+    let self = this
 
     if (self.api.config.servers.websocket.clientJsName) {
       let base = path.normalize(
         self.api.config.general.paths.temp + path.sep +
-        self.api.config.servers.websocket.clientJsName);
+        self.api.config.servers.websocket.clientJsName)
 
       try {
-        fs.writeFileSync(`${base}.js`, self._renderClientJs(false));
-        self.api.log(`write ${base}.js`, 'debug');
-        fs.writeFileSync(`${base}.min.js`, self._renderClientJs(true));
-        self.api.log(`wrote ${base}.min.js`, 'debug');
+        fs.writeFileSync(`${base}.js`, self._renderClientJs(false))
+        self.api.log(`write ${base}.js`, 'debug')
+        fs.writeFileSync(`${base}.min.js`, self._renderClientJs(true))
+        self.api.log(`wrote ${base}.min.js`, 'debug')
       } catch (e) {
-        self.api.log(`Cannot write client-side JS for websocket server:`, 'warning');
-        self.api.log(e, 'warning');
-        throw e;
+        self.api.log(`Cannot write client-side JS for websocket server:`, 'warning')
+        self.api.log(e, 'warning')
+        throw e
       }
     }
   }
@@ -292,7 +292,7 @@ export default class WebSocketServer extends GenericServer {
     let self = this
 
     for (let i in self.connections()) {
-      if (self.connections()[ i ] && rawConnection.id == self.connections()[ i ].rawConnection.id) {
+      if (self.connections()[ i ] && rawConnection.id === self.connections()[ i ].rawConnection.id) {
         self.connections()[ i ].destroy()
         break
       }
@@ -341,12 +341,12 @@ export default class WebSocketServer extends GenericServer {
         connection.verbs(verb, words, (error, data) => {
           // if exists an error, send it to the client
           if (error) {
-            message = {status: error, context: 'response', data: data}
+            message = { status: error, context: 'response', data: data }
             self.sendMessage(connection, message)
             return
           }
 
-          message = {status: 'OK', context: 'response', data: data}
+          message = { status: 'OK', context: 'response', data: data }
           self.sendMessage(connection, message)
         })
         break

@@ -1,3 +1,5 @@
+/*eslint handle-callback-err: 0*/
+
 import fs from 'fs'
 import qs from 'qs'
 import url from 'url'
@@ -51,7 +53,7 @@ export default class Web extends GenericServer {
       throw new Error(`api.config.servers.web.rootEndpointType can only be 'api' or 'file'.`)
     }
 
-    //////////////////// [EVENTS]
+    // -------------------------------------------------------------------------------------------------------- [EVENTS]
     self.on('connection', connection => {
       self._determineRequestParams(connection, requestMode => {
         switch (requestMode) {
@@ -78,7 +80,7 @@ export default class Web extends GenericServer {
 
   }
 
-  //////////////////// [REQUIRED METHODS]
+  // ------------------------------------------------------------------------------------------------ [REQUIRED METHODS]
 
   /**
    * Start the server instance.
@@ -232,7 +234,7 @@ export default class Web extends GenericServer {
       let fileBuffer = !Buffer.isBuffer(fileStream) ? new Buffer(fileStream.toString(), 'utf8') : fileStream
 
       // build the ETag header
-      let fileEtag = etag(fileBuffer, {weak: true})
+      let fileEtag = etag(fileBuffer, { weak: true })
 
       // push the header to the response
       connection.rawConnection.responseHeaders.push([ 'ETag', fileEtag ])
@@ -318,7 +320,7 @@ export default class Web extends GenericServer {
       }
     } else {
       if (stringEncoder) {
-        stringEncoder(stringResponse, function (error, zippedString) {
+        stringEncoder(stringResponse, (error, zippedString) => {
           headers.push([ 'Content-Length', zippedString.length ])
           connection.rawConnection.res.writeHead(responseHttpCode, headers)
           connection.rawConnection.res.end(zippedString)
@@ -470,8 +472,7 @@ export default class Web extends GenericServer {
       requestMode = 'api'
       matcherLength = self.api.config.servers.web.urlPathForActions.split('/').length
       for (i = 0; i < (matcherLength - 1); i++) { pathParts.shift() }
-    }
-    else if (pathParts[ 0 ] && pathname.indexOf(self.api.config.servers.web.urlPathForFiles) === 0) {
+    } else if (pathParts[ 0 ] && pathname.indexOf(self.api.config.servers.web.urlPathForFiles) === 0) {
       requestMode = 'file'
       matcherLength = self.api.config.servers.web.urlPathForFiles.split('/').length
       for (i = 0; i < (matcherLength - 1); i++) { pathParts.shift() }
@@ -486,10 +487,7 @@ export default class Web extends GenericServer {
     if (connection.rawConnection.method === 'OPTIONS') {
       requestMode = 'options'
       callback(requestMode)
-    }
-
-    // API
-    else if (requestMode === 'api') {
+    } else if (requestMode === 'api') { // API
       // enable trace mode
       if (connection.rawConnection.method === 'TRACE') { requestMode = 'trace' }
 
@@ -572,7 +570,7 @@ export default class Web extends GenericServer {
 
     if (collapsedVarsHash !== false) {
       // post was an array, lets call it "payload"
-      varsHash = {payload: collapsedVarsHash}
+      varsHash = { payload: collapsedVarsHash }
     }
 
     // copy requests params to connection object

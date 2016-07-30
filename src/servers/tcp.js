@@ -133,9 +133,9 @@ export default class Tcp extends GenericServer {
 
     try {
       connection.rawConnection.end(JSON.stringify({
-          status: connection.localize(self.api.config.servers.tcp.goodbeyMessage),
-          context: 'api'
-        }) + '\r\n')
+        status: connection.localize(self.api.config.servers.tcp.goodbeyMessage),
+        context: 'api'
+      }) + '\r\n')
     } catch (e) {}
   }
 
@@ -156,7 +156,7 @@ export default class Tcp extends GenericServer {
       self.server.sendMessage(connection, error, connection.messageCount)
     } else {
       // send the file to client
-      fileStream.pipe(connection.rawConnection, {end: false})
+      fileStream.pipe(connection.rawConnection, { end: false })
     }
   }
 
@@ -182,7 +182,7 @@ export default class Tcp extends GenericServer {
           if (bufferLen > self.api.config.servers.tcp.maxDataLength) {
             let error = self.api.config.errors.dataLengthTooLarge(self.api.config.servers.tcp.maxDataLength, bufferLen)
             self.log(error, 'error')
-            return self.sendMessage(connection, {status: 'error', error: error, context: 'response'})
+            return self.sendMessage(connection, { status: 'error', error: error, context: 'response' })
           }
         }
 
@@ -234,8 +234,8 @@ export default class Tcp extends GenericServer {
           } catch (e) {}
           connection.destroy()
         }
-      });
-    });
+      })
+    })
 
     // on actionComplete event
     self.on('actionComplete', (data) => {
@@ -272,7 +272,7 @@ export default class Tcp extends GenericServer {
     connection.verbs(verb, words, (error, data) => {
       if (!error) {
         // send an success response message
-        self.sendMessage(connection, {status: 'OK', context: 'response', data: data})
+        self.sendMessage(connection, { status: 'OK', context: 'response', data: data })
       } else if (error.match('verb not found or not allowed')) {
         // check for and attempt to check single-use params
         try {
@@ -298,7 +298,7 @@ export default class Tcp extends GenericServer {
         self.processAction(connection)
       } else {
         // send an error message
-        self.sendMessage(connection, {status: error, context: 'response', data: data})
+        self.sendMessage(connection, { status: error, context: 'response', data: data })
       }
     })
   }
@@ -310,7 +310,7 @@ export default class Tcp extends GenericServer {
    * @private
    */
   _handleConnection (rawConnection) {
-    let self = this;
+    let self = this
 
     // if the options are enabled, set keepAlive to true
     if (self.api.config.servers.tcp.setKeepAlive === true) { rawConnection.setKeepAlive(true) }

@@ -1,3 +1,5 @@
+/*global Primus XMLHttpRequest*/
+
 /**
  * Interface for WebSocket client interact with the server.
  *
@@ -6,115 +8,113 @@
  * @constructor
  */
 var StellarClient = function (opts, client) {
-  var self = this;
+  var self = this
 
-  self.callbacks = {};
-  self.id = null;
-  self.events = {};
-  self.rooms = [];
-  self.state = 'disconnected';
+  self.callbacks = {}
+  self.id = null
+  self.events = {}
+  self.rooms = []
+  self.state = 'disconnected'
 
-  self.options = self.defaults() || {};
+  self.options = self.defaults() || {}
 
   // override default options
   for (var i in opts) {
-    self.options[ i ] = opts[ i ];
+    self.options[ i ] = opts[ i ]
   }
 
   if (client) {
-    self.externalClient = true;
-    self.client = client;
+    self.externalClient = true
+    self.client = client
   }
-};
+}
 
 if (typeof Primus === 'undefined') {
-  var util = require('util');
-  var EventEmitter = require('events').EventEmitter;
-  util.inherits(StellarClient, EventEmitter);
+  var util = require('util')
+  var EventEmitter = require('events').EventEmitter
+  util.inherits(StellarClient, EventEmitter)
 } else {
-  StellarClient.prototype = new Primus.EventEmitter();
+  StellarClient.prototype = new Primus.EventEmitter()
 }
 
 StellarClient.prototype.defaults = function () {
-  return '%%DEFAULTS%%';
-};
+  return '%%DEFAULTS%%'
+}
 
 StellarClient.prototype.connect = function (callback) {
-  var self = this;
-  self.messageCount = 0;
+  var self = this
+  self.messageCount = 0
 
   if (self.client && self.externalClient !== true) {
-    self.client.end();
-    self.client.removeAllListeners();
-    self.client = Primus.connect(self.options.url, self.options);
+    self.client.end()
+    self.client.removeAllListeners()
+    self.client = Primus.connect(self.options.url, self.options)
   } else if (self.client !== null && self.externalClient === true) {
-    self.client.end();
-    self.client.open();
+    self.client.end()
+    self.client.open()
   } else {
-    self.client = Primus.connect(self.options.url, self.options);
+    self.client = Primus.connect(self.options.url, self.options)
   }
 
-  /// define client event handlers
+  // --- define client event handlers
 
   // open
   self.client.on('open', () => {
     self.configure((details) => {
       if (self.state !== 'connected') {
-        self.state = 'connected';
-        if (typeof  callback === 'function') {
-          callback(null, details);
-        }
+        self.state = 'connected'
+        if (typeof callback === 'function') { callback(null, details) }
       }
 
-      self.emit('connected');
-    });
-  });
+      self.emit('connected')
+    })
+  })
 
   // error
   self.client.on('error', (err) => {
-    self.emit('error', err);
-  });
+    self.emit('error', err)
+  })
 
   // reconnect
   self.client.on('reconnect', () => {
-    self.messageCount = 0;
-    self.emit('reconnect');
-  });
+    self.messageCount = 0
+    self.emit('reconnect')
+  })
 
   // reconnecting
   self.client.on('reconnecting', () => {
-    self.emit('reconnecting');
-    self.state = 'reconnecting';
-    self.emit('disconnected');
-  });
+    self.emit('reconnecting')
+    self.state = 'reconnecting'
+    self.emit('disconnected')
+  })
 
   // timeout
   self.client.on('timeout', () => {
-    self.state = 'timeout';
-    self.emit('timeout');
-  });
+    self.state = 'timeout'
+    self.emit('timeout')
+  })
 
   // end
   self.client.on('end', () => {
-    self.messageCount = 0;
+    self.messageCount = 0
 
     if (self.state !== 'disconnected') {
-      self.state = 'disconnected';
-      self.emit('disconnected');
+      self.state = 'disconnected'
+      self.emit('disconnected')
     }
-  });
+  })
 
   // data
   self.client.on('data', (data) => {
-    self.handleMessage(data);
-  });
+    self.handleMessage(data)
+  })
 
-};
+}
 
 StellarClient.prototype.configure = function (callback) {
   var self = this
 
-  self.rooms.forEach(room => { self.send({event: 'roomAdd', room: room}) })
+  self.rooms.forEach(room => { self.send({ event: 'roomAdd', room: room }) })
 
   self.detailsView(details => {
     self.id = details.data.id
@@ -134,13 +134,13 @@ StellarClient.prototype.configure = function (callback) {
  */
 StellarClient.prototype.send = function (args, callback) {
   // primus will buffer messages when nor connected
-  var self = this;
-  self.messageCount++;
+  var self = this
+  self.messageCount++
 
-  if (typeof callback == 'function') { self.callbacks[ self.messageCount ] = callback; }
+  if (typeof callback === 'function') { self.callbacks[ self.messageCount ] = callback }
 
-  self.client.write(args);
-};
+  self.client.write(args)
+}
 
 /**
  * Handle message.
@@ -159,16 +159,16 @@ StellarClient.prototype.handleMessage = function (message) {
 
     delete self.callbacks[ message.messageCount ]
   } else if (message.context === 'user') {
-    self.emit('say', message);
+    self.emit('say', message)
   } else if (message.context === 'alert') {
-    self.emit('alert', message);
+    self.emit('alert', message)
   } else if (message.welcome && message.context === 'api') {
-    self.welcomeMessage = message.welcome;
-    self.emit('welcome', message);
+    self.welcomeMessage = message.welcome
+    self.emit('welcome', message)
   } else if (message.context === 'api') {
-    self.emit('api', message);
+    self.emit('api', message)
   }
-};
+}
 
 // ----------------------------------------------------------------------------------------------------------- [Actions]
 
@@ -184,27 +184,27 @@ StellarClient.prototype.handleMessage = function (message) {
  * @param callback Function who will be called when we receive the response.
  */
 StellarClient.prototype.action = function (action, params = {}, callback) {
-  let self = this;
+  let self = this
 
   if (!callback && typeof params === 'function') {
-    callback = params;
-    params = null;
+    callback = params
+    params = null
   }
 
   // define params to be a Map if it is null
-  if (!params) { params = {}; }
+  if (!params) { params = {} }
 
   // sets the parameter action, in case of the action call be done over HTTP.
-  params.action = action;
+  params.action = action
 
   // if the client is connected the connection should be done by WebSocket
   // otherwise we need to use HTTP
   if (self.state !== 'connected') {
-    self._actionWeb(params, callback);
+    self._actionWeb(params, callback)
   } else {
-    self._actionWebSocket(params, callback);
+    self._actionWebSocket(params, callback)
   }
-};
+}
 
 /**
  * Call a action using a normal HTTP connection.
@@ -214,14 +214,14 @@ StellarClient.prototype.action = function (action, params = {}, callback) {
  * @private
  */
 StellarClient.prototype._actionWeb = function (params, callback) {
-  let self = this;
+  let self = this
 
   // create a new XMLHttpRequest instance
-  let xmlhttp = new XMLHttpRequest();
+  let xmlhttp = new XMLHttpRequest()
 
   // define the action to be executed at the end of the request
   xmlhttp.onreadystatechange = function () {
-    let response;
+    let response
 
     // the response only are received if the readyState is equals to 4
     if (xmlhttp.readyState === 4) {
@@ -231,42 +231,42 @@ StellarClient.prototype._actionWeb = function (params, callback) {
       // a JSON parser too, but it can fail so we catch the exception
       // and we make our own error message
       if (xmlhttp.status === 200) {
-        response = JSON.parse(xmlhttp.responseText);
+        response = JSON.parse(xmlhttp.responseText)
       } else {
         try {
-          response = JSON.parse(xmlhttp.responseText);
+          response = JSON.parse(xmlhttp.responseText)
         } catch (e) {
-          response = {error: {statusText: xmlhttp.statusText, responseText: xmlhttp.responseText}};
+          response = { error: { statusText: xmlhttp.statusText, responseText: xmlhttp.responseText } }
         }
       }
 
       // execute the callback function
-      callback(response);
+      callback(response)
     }
-  };
+  }
 
   // define the HTTP method to be used (by default we use POST)
-  let method = (params.httpMethod || 'POST').toUpperCase();
+  let method = (params.httpMethod || 'POST').toUpperCase()
 
   // define the URL to be called and append the action on the query params
-  let url = self.options.url + self.options.apiPath + '?action=' + params.action;
+  let url = self.options.url + self.options.apiPath + '?action=' + params.action
 
   if (method === 'GET') {
     for (let param in params) {
-      if (~[ 'action', 'httpMethod' ].indexOf(param)) { continue; }
-      url += `&${param}=${params[ param ]}`;
+      if (~[ 'action', 'httpMethod' ].indexOf(param)) { continue }
+      url += `&${param}=${params[ param ]}`
     }
   }
 
   // open a new connection
-  xmlhttp.open(method, url, true);
+  xmlhttp.open(method, url, true)
 
   // det the content type to JSON
-  xmlhttp.setRequestHeader('Content-Type', 'application/json');
+  xmlhttp.setRequestHeader('Content-Type', 'application/json')
 
   // send the request
-  xmlhttp.send(JSON.stringify(params));
-};
+  xmlhttp.send(JSON.stringify(params))
+}
 
 /**
  * Send an action call request by WebSocket.
@@ -276,9 +276,9 @@ StellarClient.prototype._actionWeb = function (params, callback) {
  * @private
  */
 StellarClient.prototype._actionWebSocket = function (params, callback) {
-  let self = this;
-  self.send({event: 'action', params: params}, callback);
-};
+  let self = this
+  self.send({ event: 'action', params: params }, callback)
+}
 
 // ---------------------------------------------------------------------------------------------------------- [Commands]
 
@@ -290,8 +290,8 @@ StellarClient.prototype._actionWebSocket = function (params, callback) {
  * @param callback  Function to be executed to receive the server response.
  */
 StellarClient.prototype.say = function (room, message, callback) {
-  this.send({event: 'say', room: room, message: message}, callback);
-};
+  this.send({ event: 'say', room: room, message: message }, callback)
+}
 
 /**
  * Make a file request.
@@ -300,8 +300,8 @@ StellarClient.prototype.say = function (room, message, callback) {
  * @param callback  Function to be executed to receive the server response.
  */
 StellarClient.prototype.file = function (file, callback) {
-  this.send({event: 'file', file: file}, callback);
-};
+  this.send({ event: 'file', file: file }, callback)
+}
 
 /**
  * Request the details view.
@@ -309,8 +309,8 @@ StellarClient.prototype.file = function (file, callback) {
  * @param callback  Function to be executed when the server respond.
  */
 StellarClient.prototype.detailsView = function (callback) {
-  this.send({event: 'detailsView'}, callback);
-};
+  this.send({ event: 'detailsView' }, callback)
+}
 
 /**
  * Request a room state.
@@ -319,9 +319,9 @@ StellarClient.prototype.detailsView = function (callback) {
  * @param callback  Function to be executed to receive the server response.
  */
 StellarClient.prototype.roomView = function (room, callback) {
-  let self = this;
-  self.send({event: 'roomView', room: room}, callback);
-};
+  let self = this
+  self.send({ event: 'roomView', room: room }, callback)
+}
 
 /**
  * Create a new room.
@@ -332,7 +332,7 @@ StellarClient.prototype.roomView = function (room, callback) {
 StellarClient.prototype.roomAdd = function (room, callback) {
   let self = this
 
-  self.send({event: 'roomAdd', room: room}, data => {
+  self.send({ event: 'roomAdd', room: room }, data => {
     self.configure(() => { if (typeof callback === 'function') { callback(data) } })
   })
 }
@@ -353,7 +353,7 @@ StellarClient.prototype.roomLeave = function (room, callback) {
   if (index > -1) { self.rooms.splice(index, 1) }
 
   // make a server request to remove the client from the room
-  self.send({event: 'roomLeave', room: room}, (data) => {
+  self.send({ event: 'roomLeave', room: room }, (data) => {
     self.configure(() => { if (typeof callback === 'function') { callback(data) } })
   })
 }
@@ -362,16 +362,16 @@ StellarClient.prototype.roomLeave = function (room, callback) {
  * Disconnect client from the server.
  */
 StellarClient.prototype.disconnect = function () {
-  let self = this;
+  let self = this
 
   // change the connection state to disconnected
-  self.state = 'disconnected';
+  self.state = 'disconnected'
 
   // finish the connection between the client and the server
-  self.client.end();
+  self.client.end()
 
   // emit the 'disconnected' event
-  self.emit('disconnected');
-};
+  self.emit('disconnected')
+}
 
 exports.StellarClient = StellarClient

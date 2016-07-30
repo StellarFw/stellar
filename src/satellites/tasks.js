@@ -1,3 +1,5 @@
+/*eslint handle-callback-err: 0*/
+
 import async from 'async'
 import Utils from '../utils'
 
@@ -74,7 +76,7 @@ class TaskSatellite {
         loadMessage(task.name)
       }
     } catch (err) {
-      api.log(`[TaskSatellite::loadFile] ${err}`)
+      self.api.log(`[TaskSatellite::loadFile] ${err}`)
 
       // handle the exception
       self.api.exceptionHandlers.loader(fullFilePath, err)
@@ -122,7 +124,7 @@ class TaskSatellite {
         let cb = args.pop()
 
         // if there is no arguments
-        if (args.length == 0) { args.push({}) }
+        if (args.length === 0) { args.push({}) }
 
         // enqueue the task again
         args.push((error, resp) => {
@@ -219,30 +221,29 @@ class TaskSatellite {
     let self = this
 
     if (typeof queue === 'function' && callback === undefined) {
-      callback = queue;
-      queue = this.tasks[ taskName ].queue;
+      callback = queue
+      queue = this.tasks[ taskName ].queue
+    } else if (typeof params === 'function' && callback === undefined && queue === undefined) {
+      callback = params
+      queue = this.tasks[ taskName ].queue
+      params = {}
     }
-    else if (typeof params === 'function' && callback === undefined && queue === undefined) {
-      callback = params;
-      queue = this.tasks[ taskName ].queue;
-      params = {};
-    }
-    self.api.resque.queue.enqueueAt(timestamp, queue, taskName, params, callback);
+    self.api.resque.queue.enqueueAt(timestamp, queue, taskName, params, callback)
   }
 
   enqueueIn (time, taskName, params, queue, callback) {
     let self = this
 
     if (typeof queue === 'function' && callback === undefined) {
-      callback = queue;
-      queue = self.tasks[ taskName ].queue;
+      callback = queue
+      queue = self.tasks[ taskName ].queue
     } else if (typeof params === 'function' && callback === undefined && queue === undefined) {
-      callback = params;
-      queue = self.tasks[ taskName ].queue;
-      params = {};
+      callback = params
+      queue = self.tasks[ taskName ].queue
+      params = {}
     }
 
-    self.api.resque.queue.enqueueIn(time, queue, taskName, params, callback);
+    self.api.resque.queue.enqueueIn(time, queue, taskName, params, callback)
   }
 
   del (q, taskName, args, count, callback) {
@@ -346,7 +347,7 @@ class TaskSatellite {
     self.del(task.queue, taskName, {}, () => {
       self.delDelayed(task.queue, taskName, {}, () => {
         self.enqueueIn(task.frequency, taskName, () => {
-          self.api.log(`re-enqueued recurrent job ${taskName}`, self.api.config.tasks.schedulerLogging.reEnqueue);
+          self.api.log(`re-enqueued recurrent job ${taskName}`, self.api.config.tasks.schedulerLogging.reEnqueue)
           callback()
         })
       })
@@ -407,11 +408,11 @@ class TaskSatellite {
     let removedCount = 0
 
     // remove the task from the recurrent queue
-    self.del(task.queue, task.name, {}, 1, (err, count) => {
+    self.del(task.queue, task.name, {}, 1, (error, count) => {
       removedCount = removedCount + count
-      self.delDelayed(task.queue, task.name, {}, (err, timestamps) => {
+      self.delDelayed(task.queue, task.name, {}, (error, timestamps) => {
         removedCount = removedCount + timestamps.length
-        callback(err, removedCount)
+        callback(error, removedCount)
       })
     })
   }
@@ -424,7 +425,7 @@ class TaskSatellite {
   details (callback) {
     let self = this
 
-    let result = {'queues': {}, 'workers': {}}
+    let result = { 'queues': {}, 'workers': {} }
     let jobs = []
 
     // push all the workers to the result var
@@ -445,7 +446,7 @@ class TaskSatellite {
           queueJobs.push(qDone => {
             self.resque.queue.length(queue, (error, length) => {
               if (error) { return qDone(error) }
-              result.queues[ queue ] = {length: length}
+              result.queues[ queue ] = { length: length }
               return qDone()
             })
           })

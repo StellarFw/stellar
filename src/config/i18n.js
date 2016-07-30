@@ -30,7 +30,6 @@ export default {
       // By default, every request will be in the 'en' locale
       // ---------------------------------------------------------------------
       determineConnectionLocale: 'api.i18n.determineConnectionLocale'
-    };
+    }
   }
-
 }

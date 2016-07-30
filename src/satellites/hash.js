@@ -42,7 +42,7 @@ class Hash {
    *
    * @param rounds  Number of rounds
    */
-  generateSaltSync(rounds = this.api.config.general.saltRounds) { return bcrypt.genSaltSync(rounds) }
+  generateSaltSync (rounds = this.api.config.general.saltRounds) { return bcrypt.genSaltSync(rounds) }
 
   /**
    * Hash data

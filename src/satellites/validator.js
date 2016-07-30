@@ -69,7 +69,7 @@ class Validator {
     self.params = params
 
     // gets the value of the parameter to be validated
-    let value = params[key]
+    let value = params[ key ]
 
     // the validator string can have many validators separated by '|', we need to split them
     let validators = validatorString.split('|')
@@ -338,7 +338,7 @@ class Validator {
     try {
       let o = JSON.parse(value)
 
-      if (o && typeof o === "object" && o !== null) { return true }
+      if (o && typeof o === 'object' && o !== null) { return true }
     } catch (e) {}
 
     return false
@@ -560,10 +560,12 @@ class Validator {
     // check if we have the needs arguments
     if (!(args instanceof Array) || isNaN(args[ 0 ])) { return 'validator need one numeric argument' }
 
+    let length = parseInt(args[0])
+
     if (typeof value === 'string' || value instanceof Array) {
-      return value.length == args[ 0 ]
+      return value.length === length
     } else if (typeof value === 'number') {
-      return value == args[ 0 ]
+      return value === length
     } else {
       return 'invalid type'
     }

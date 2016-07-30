@@ -1,11 +1,9 @@
-import {EventEmitter} from 'events'
+import { EventEmitter } from 'events'
 
 /**
  * This function is called when the method is not implemented.
  */
-let methodNotDefined = function () {
-  throw new Error('The containing method should be defined for this server type')
-}
+let methodNotDefined = () => { throw new Error('The containing method should be defined for this server type') }
 
 /**
  * This is the prototypical generic server class that all other types
@@ -80,8 +78,11 @@ export default class GenericServer extends EventEmitter {
     // if the connection doesn't have a fingerprint already create one
     if (data.fingerprint) { details.fingerprint = data.fingerprint }
 
+    // get connection class
+    let ConnectionClass = self.api.connection
+
     // create a new connection instance
-    let connection = new self.api.connection(self.api, details)
+    let connection = new ConnectionClass(self.api, details)
 
     // define sendMessage method
     connection.sendMessage = message => { self.sendMessage(connection, message) }
@@ -96,17 +97,17 @@ export default class GenericServer extends EventEmitter {
     self.emit('connection', connection)
 
     // check if the lod for this type of connection is active
-    if (self.attributes.logConnections === true) { self.log('new connection', 'info', {to: connection.remoteIP}) }
+    if (self.attributes.logConnections === true) { self.log('new connection', 'info', { to: connection.remoteIP }) }
 
     // bidirectional connection can have a welcome message
     if (self.attributes.sendWelcomeMessage === true) {
-      connection.sendMessage({welcome: self.api.config.general.welcomeMessage, context: 'api'})
+      connection.sendMessage({ welcome: self.api.config.general.welcomeMessage, context: 'api' })
     }
 
     if (typeof self.attributes.sendWelcomeMessage === 'number') {
       setTimeout(() => {
         try {
-          connection.sendMessage({welcome: self.api.config.general.welcomeMessage, context: 'api'})
+          connection.sendMessage({ welcome: self.api.config.general.welcomeMessage, context: 'api' })
         } catch (e) {
           self.api.log.error(e)
         }

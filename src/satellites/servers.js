@@ -12,14 +12,14 @@ class Servers {
    * Engine API instance.
    * @type {null}
    */
-  api = null;
+  api = null
 
   /**
    * Array with all running server instances.
    *
    * @type {{}}
    */
-  servers = {};
+  servers = {}
 
   /**
    * Class constructor.
@@ -27,7 +27,7 @@ class Servers {
    * @param api engine api instance.
    */
   constructor (api) {
-    this.api = api;
+    this.api = api
   }
 
   /**
@@ -57,12 +57,12 @@ class Servers {
       // only load the server if that was enabled
       if (options && options.enable === true) {
         // get server constructor
-        let serverConstructor = require(file).default
+        let ServerConstructor = require(file).default
 
         // push the new job to the queue
         jobs.push(done => {
           // instance the new server
-          self.servers[ serverName ] = new serverConstructor(self.api, options)
+          self.servers[ serverName ] = new ServerConstructor(self.api, options)
 
           // log a debug message
           self.api.log(`Initialized server: ${serverName}`, 'debug')
@@ -166,18 +166,18 @@ export default class {
    *
    * @type {number}
    */
-  loadPriority = 550;
+  loadPriority = 550
 
-  startPriority = 900;
+  startPriority = 900
 
-  stopPriority = 100;
+  stopPriority = 100
 
   load (api, next) {
     // instance the server manager
-    api.servers = new Servers(api);
+    api.servers = new Servers(api)
 
     // load enabled servers
-    api.servers.loadServers(next);
+    api.servers.loadServers(next)
   }
 
   /**
@@ -193,7 +193,7 @@ export default class {
 
   stop (api, next) {
     // stop servers
-    api.servers.stopServers(next);
+    api.servers.stopServers(next)
   }
 
 }

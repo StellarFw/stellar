@@ -1,27 +1,27 @@
-import fs from 'fs';
-import cluster from 'cluster';
+import fs from 'fs'
+import cluster from 'cluster'
 
 class Pids {
 
   /**
    * API reference.
    */
-  api;
+  api
 
   /**
    * Process ID.
    */
-  pid;
+  pid
 
   /**
    * Pids folder.
    */
-  path;
+  path
 
   /**
    * Process title.
    */
-  title;
+  title
 
   /**
    * Class constructor.
@@ -30,31 +30,31 @@ class Pids {
    */
   constructor (api) {
     // save API reference
-    this.api = api;
+    this.api = api
   }
 
   /**
    * Init the pid manager.
    */
   init () {
-    let self = this;
+    let self = this
 
     // set the process id
-    self.pid = process.pid;
+    self.pid = process.pid
 
     // save pids folder to syntax sugar
-    self.path = self.api.config.general.paths.pid;
+    self.path = self.api.config.general.paths.pid
 
     // define the process name
     if (cluster.isMaster) {
       self.title = `stellar-${self._sanitizeId()}`
     } else {
-      self.title = self._sanitizeId();
+      self.title = self._sanitizeId()
     }
 
     // create the 'pids' directory if not exists
     try {
-      fs.mkdirSync(self.path);
+      fs.mkdirSync(self.path)
     } catch (e) {
     }
   }
@@ -63,20 +63,20 @@ class Pids {
    * Write pid file.
    */
   writePidFile () {
-    let self = this;
-    fs.writeFileSync(`${self.path}/${self.title}`, self.pid.toString(), 'ascii');
+    let self = this
+    fs.writeFileSync(`${self.path}/${self.title}`, self.pid.toString(), 'ascii')
   }
 
   /**
    * Clear pid file.
    */
   clearPidFile () {
-    let self = this;
+    let self = this
 
     try {
-      fs.unlinkSync(`${self.path}/${self.title}`);
+      fs.unlinkSync(`${self.path}/${self.title}`)
     } catch (e) {
-      self.api.log('Unable to remove pidfile', 'error', e);
+      self.api.log('Unable to remove pidfile', 'error', e)
     }
   }
 
@@ -89,15 +89,15 @@ class Pids {
    * @private
    */
   _sanitizeId () {
-    let self = this;
-    let pidfile = self.api.id;
+    let self = this
+    let pidfile = self.api.id
 
-    pidfile = pidfile.replace(/:/g, '-');
-    pidfile = pidfile.replace(/\s/g, '-');
-    pidfile = pidfile.replace(/\r/g, '');
-    pidfile = pidfile.replace(/\n/g, '');
+    pidfile = pidfile.replace(/:/g, '-')
+    pidfile = pidfile.replace(/\s/g, '-')
+    pidfile = pidfile.replace(/\r/g, '')
+    pidfile = pidfile.replace(/\n/g, '')
 
-    return pidfile;
+    return pidfile
   }
 
 }
@@ -109,14 +109,14 @@ export default class {
    *
    * @type {number}
    */
-  loadPriority = 110;
+  loadPriority = 110
 
   /**
    * Start priority.
    *
    * @type {number}
    */
-  startPriority = 1;
+  startPriority = 1
 
   /**
    * Load initializer.
@@ -126,13 +126,13 @@ export default class {
    */
   load (api, next) {
     // add pids class to the API
-    api.pids = new Pids(api);
+    api.pids = new Pids(api)
 
     // init pid manager
-    api.pids.init();
+    api.pids.init()
 
     // finish the initializer load
-    next();
+    next()
   }
 
   /**
@@ -143,13 +143,13 @@ export default class {
    */
   start (api, next) {
     // write pid file
-    api.pids.writePidFile();
+    api.pids.writePidFile()
 
     // log the process pid
-    api.log(`pid: ${process.pid}`, 'notice');
+    api.log(`pid: ${process.pid}`, 'notice')
 
     // finish the initializer start
-    next();
+    next()
   }
 
 }

@@ -155,32 +155,31 @@ class StaticFile {
     let self = this
 
     fs.stat(file, (error, stats) => {
-        // if exists an error execute the callback
-        // function and return
-        if (error) {
-          callback(false, file)
-          return
-        }
-
-        if (stats.isDirectory()) {
-          let indexPath = file + '/' + self.api.config.general.directoryFileType
-          self.checkExistence(indexPath, callback)
-        } else if (stats.isSymbolicLink()) {
-          fs.readlink(file, (error, truePath) => {
-            if (error) {
-              callback(false, file);
-            } else {
-              truePath = path.normalize(truePath)
-              self.checkExistence(truePath, callback)
-            }
-          })
-        } else if (stats.isFile()) {
-          callback(true, file)
-        } else {
-          callback(false, file)
-        }
+      // if exists an error execute the callback
+      // function and return
+      if (error) {
+        callback(false, file)
+        return
       }
-    )
+
+      if (stats.isDirectory()) {
+        let indexPath = file + '/' + self.api.config.general.directoryFileType
+        self.checkExistence(indexPath, callback)
+      } else if (stats.isSymbolicLink()) {
+        fs.readlink(file, (error, truePath) => {
+          if (error) {
+            callback(false, file)
+          } else {
+            truePath = path.normalize(truePath)
+            self.checkExistence(truePath, callback)
+          }
+        })
+      } else if (stats.isFile()) {
+        callback(true, file)
+      } else {
+        callback(false, file)
+      }
+    })
   }
 
   /**

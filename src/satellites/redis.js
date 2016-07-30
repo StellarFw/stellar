@@ -14,7 +14,7 @@ class RedisManager {
    *
    * @type {null}
    */
-  api = null;
+  api = null
 
   /**
    * Hash with all instantiate clients.
@@ -99,9 +99,12 @@ class RedisManager {
   initialize (callback) {
     let self = this
 
-    let jobs = [];
+    let jobs = []
 
-    [ 'client', 'subscriber', 'tasks' ].forEach(r => {
+    // array with the queues to create
+    let queuesToCreate = [ 'client', 'subscriber', 'tasks' ]
+
+    queuesToCreate.forEach(r => {
       jobs.push(done => {
         if (self.api.config.redis[ r ].buildNew === true) {
           // get arguments
@@ -122,7 +125,7 @@ class RedisManager {
           self.clients[ r ] = self.api.config.redis[ r ].constructor.apply(null, self.api.config.redis[ r ].args)
           self.clients[ r ].on('error', error => { self.api.log(`Redis connection ${r} error`, 'error', error) })
           self.api.log(`Redis connection ${r} connected`, 'info')
-          done();
+          done()
         }
       })
     })
@@ -186,11 +189,11 @@ class RedisManager {
       method: method,
       connectionId: connectionId,
       args: args
-    };
+    }
 
     self.publish(payload)
 
-    if (typeof  callback === 'function') {
+    if (typeof callback === 'function') {
       self.clusterCallbacks[ requestId ] = callback
       self.clusterCallbackTimeouts[ requestId ] = setTimeout((requestId) => {
         if (typeof self.clusterCallbacks[ requestId ] === 'function') {
@@ -211,7 +214,7 @@ class RedisManager {
       serverToken: self.api.config.general.serverToken,
       requestId: requestId,
       response: response // args to pass back, including error
-    };
+    }
 
     self.publish(payload)
   }
@@ -280,7 +283,7 @@ export default class {
       api.redis.clients.subscriber.unsubscribe()
       api.redis.status.subscribed = false
       next()
-    });
+    })
   }
 
 }

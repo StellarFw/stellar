@@ -1,6 +1,6 @@
-import os from 'os';
-import fs from 'fs';
-import path from 'path';
+import os from 'os'
+import fs from 'fs'
+import path from 'path'
 
 export default class Utils {
 
@@ -11,18 +11,18 @@ export default class Utils {
    * @returns {Array}   Array with the files paths.
    */
   static getFiles (dir) {
-    var results = [];
+    var results = []
 
-    fs.readdirSync(dir).forEach(function (file) {
-      file = `${dir}/${file}`;
-      var stat = fs.statSync(file);
+    fs.readdirSync(dir).forEach(file => {
+      file = `${dir}/${file}`
+      var stat = fs.statSync(file)
 
       if (stat && !stat.isDirectory()) {
-        results.push(file);
+        results.push(file)
       }
-    });
+    })
 
-    return results;
+    return results
   }
 
   /**
@@ -33,45 +33,37 @@ export default class Utils {
    * @returns {Array.<T>}
    */
   static recursiveDirectoryGlob (dir, extension) {
-    var results = [];
+    var results = []
 
-    if (!extension) {
-      extension = 'js';
-    }
-    extension = extension.replace('.', '');
-    if (dir[ dir.length - 1 ] !== '/') {
-      dir += '/'
-    }
+    if (!extension) { extension = 'js' }
+
+    extension = extension.replace('.', '')
+    if (dir[ dir.length - 1 ] !== '/') { dir += '/' }
 
     if (fs.existsSync(dir)) {
-      fs.readdirSync(dir).forEach(function (file) {
-        var fullFilePath = path.normalize(dir + file);
+      fs.readdirSync(dir).forEach(file => {
+        let fullFilePath = path.normalize(dir + file)
         if (file[ 0 ] !== '.') { // ignore 'system' files
-          var stats = fs.statSync(fullFilePath);
-          var child;
+          let stats = fs.statSync(fullFilePath)
+          let child
+
           if (stats.isDirectory()) {
-            child = Utils.recursiveDirectoryGlob(fullFilePath, extension);
-            child.forEach(function (c) {
-              results.push(c);
-            })
+            child = Utils.recursiveDirectoryGlob(fullFilePath, extension)
+            child.forEach(c => results.push(c))
           } else if (stats.isSymbolicLink()) {
-            var realPath = fs.readlinkSync(fullFilePath);
-            child = Utils.recursiveDirectoryGlob(realPath);
-            child.forEach(function (c) {
-              results.push(c);
-            })
+            let realPath = fs.readlinkSync(fullFilePath)
+            child = Utils.recursiveDirectoryGlob(realPath)
+            child.forEach(c => results.push(c))
           } else if (stats.isFile()) {
-            var fileParts = file.split('.');
-            var ext = fileParts[ (fileParts.length - 1) ];
-            if (ext === extension) {
-              results.push(fullFilePath);
-            }
+            let fileParts = file.split('.')
+            let ext = fileParts[ (fileParts.length - 1) ]
+            if (ext === extension) { results.push(fullFilePath) }
           }
         }
-      });
+      })
     }
 
-    return results.sort();
+    return results.sort()
   }
 
   /**
@@ -83,42 +75,42 @@ export default class Utils {
    * @returns {{}}
    */
   static hashMerge (a, b, arg) {
-    let c = {};
-    let i, response;
+    let c = {}
+    let i, response
 
     for (i in a) {
       if (Utils.isPlainObject(a[ i ]) && Object.keys(a[ i ]).length > 0) {
-        c[ i ] = Utils.hashMerge(c[ i ], a[ i ], arg);
+        c[ i ] = Utils.hashMerge(c[ i ], a[ i ], arg)
       } else {
         if (typeof a[ i ] === 'function') {
-          response = a[ i ](arg);
+          response = a[ i ](arg)
           if (Utils.isPlainObject(response)) {
-            c[ i ] = Utils.hashMerge(c[ i ], response, arg);
+            c[ i ] = Utils.hashMerge(c[ i ], response, arg)
           } else {
-            c[ i ] = response;
+            c[ i ] = response
           }
         } else {
-          c[ i ] = a[ i ];
+          c[ i ] = a[ i ]
         }
       }
     }
     for (i in b) {
       if (Utils.isPlainObject(b[ i ]) && Object.keys(b[ i ]).length > 0) {
-        c[ i ] = Utils.hashMerge(c[ i ], b[ i ], arg);
+        c[ i ] = Utils.hashMerge(c[ i ], b[ i ], arg)
       } else {
         if (typeof b[ i ] === 'function') {
-          response = b[ i ](arg);
+          response = b[ i ](arg)
           if (Utils.isPlainObject(response)) {
-            c[ i ] = Utils.hashMerge(c[ i ], response, arg);
+            c[ i ] = Utils.hashMerge(c[ i ], response, arg)
           } else {
-            c[ i ] = response;
+            c[ i ] = response
           }
         } else {
-          c[ i ] = b[ i ];
+          c[ i ] = b[ i ]
         }
       }
     }
-    return c;
+    return c
   }
 
   /**
@@ -128,10 +120,10 @@ export default class Utils {
    * @returns {boolean}
    */
   static isPlainObject (o) {
-    var safeTypes = [ Boolean, Number, String, Function, Array, Date, RegExp, Buffer ];
-    var safeInstances = [ 'boolean', 'number', 'string', 'function' ];
-    var expandPreventMatchKey = '_toExpand'; // set `_toExpand = false` within an object if you don't want to expand it
-    var i;
+    let safeTypes = [ Boolean, Number, String, Function, Array, Date, RegExp, Buffer ]
+    let safeInstances = [ 'boolean', 'number', 'string', 'function' ]
+    let expandPreventMatchKey = '_toExpand' // set `_toExpand = false` within an object if you don't want to expand it
+    let i
 
     if (!o) {
       return false
@@ -152,7 +144,7 @@ export default class Utils {
     if (o[ expandPreventMatchKey ] === false) {
       return false
     }
-    return (o.toString() === '[object Object]');
+    return (o.toString() === '[object Object]')
   }
 
   /**
@@ -162,14 +154,14 @@ export default class Utils {
    * @returns {{}}
    */
   static parseCookies (req) {
-    var cookies = {};
+    let cookies = {}
     if (req.headers.cookie) {
       req.headers.cookie.split(';').forEach(function (cookie) {
-        var parts = cookie.split('=');
-        cookies[ parts[ 0 ].trim() ] = ( parts[ 1 ] || '' ).trim();
-      });
+        let parts = cookie.split('=')
+        cookies[ parts[ 0 ].trim() ] = ( parts[ 1 ] || '' ).trim()
+      })
     }
-    return cookies;
+    return cookies
   }
 
   /**
@@ -180,7 +172,7 @@ export default class Utils {
    */
   static collapseObjectToArray (obj) {
     try {
-      let keys = Object.keys(obj);
+      let keys = Object.keys(obj)
       if (keys.length < 1) {
         return false
       }
@@ -191,18 +183,17 @@ export default class Utils {
         return false
       }
 
-      let arr = [];
+      let arr = []
       for (let i in keys) {
-        let key = keys[ i ];
+        let key = keys[ i ]
         if (String(parseInt(key)) !== key) {
           return false
-        }
-        else {
-          arr.push(obj[ key ]);
+        } else {
+          arr.push(obj[ key ])
         }
       }
 
-      return arr;
+      return arr
     } catch (e) {
       return false
     }
@@ -216,22 +207,22 @@ export default class Utils {
    */
   static arrayUniqueify (array) {
     array.filter((value, index, self) => {
-      return self.indexOf(value) === index;
-    });
+      return self.indexOf(value) === index
+    })
 
-    return array;
+    return array
   }
 
   static isObject (arg) {
-    return typeof arg === 'object' && arg !== null;
+    return typeof arg === 'object' && arg !== null
   }
 
   static objectToString (o) {
-    return Object.prototype.toString.call(o);
+    return Object.prototype.toString.call(o)
   }
 
   static isError (e) {
-    return Utils.isObject(e) && (Utils.objectToString(e) === '[object Error]' || e instanceof Error);
+    return Utils.isObject(e) && (Utils.objectToString(e) === '[object Error]' || e instanceof Error)
   }
 
   /**
@@ -240,30 +231,30 @@ export default class Utils {
    * @param dir   Directory path.
    */
   static removeDirectory (dir) {
-    let filesList;
+    let filesList
 
     // get directory files
     try {
-      filesList = fs.readdirSync(dir);
+      filesList = fs.readdirSync(dir)
     } catch (e) {
-      return;
+      return
     }
 
     // iterate all folders and files on the directory
     filesList.forEach((file) => {
       // get full file path
-      let filePath = `${dir}/${file}`;
+      let filePath = `${dir}/${file}`
 
       // check if it's a file
       if (fs.statSync(filePath).isFile()) {
-        fs.unlinkSync(filePath);
+        fs.unlinkSync(filePath)
       } else {
-        Utils.removeDirectory(filePath);
+        Utils.removeDirectory(filePath)
       }
-    });
+    })
 
     // remove current directory
-    fs.rmdirSync(dir);
+    fs.rmdirSync(dir)
   }
 
   /**
@@ -307,7 +298,7 @@ export default class Utils {
     try {
       fs.mkdirSync(path)
     } catch (e) {
-      if (e.code != 'EEXIST') { throw e }
+      if (e.code !== 'EEXIST') { throw e }
     }
   }
 
@@ -329,18 +320,18 @@ export default class Utils {
    * @returns {String} Server external IP or false if not founded.
    */
   static getExternalIPAddress () {
-    let ifaces = os.networkInterfaces();
-    let ip = false;
+    let ifaces = os.networkInterfaces()
+    let ip = false
 
-    for (var dev in ifaces) {
+    for (let dev in ifaces) {
       ifaces[ dev ].forEach((details) => {
         if (details.family === 'IPv4' && details.address !== '127.0.0.1') {
-          ip = details.address;
+          ip = details.address
         }
-      });
+      })
     }
 
-    return ip;
+    return ip
   }
 
   /**
@@ -351,8 +342,8 @@ export default class Utils {
    */
   static objClone (obj) {
     return Object.create(Object.getPrototypeOf(obj), Object.getOwnPropertyNames(obj).reduce((memo, name) => {
-      return (memo[ name ] = Object.getOwnPropertyDescriptor(obj, name)) && memo;
-    }, {}));
+      return (memo[ name ] = Object.getOwnPropertyDescriptor(obj, name)) && memo
+    }, {}))
   }
 
   static stringToHash (api, path, object) {

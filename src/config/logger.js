@@ -1,10 +1,10 @@
-import fs from 'fs';
-import cluster from 'cluster';
+import fs from 'fs'
+import cluster from 'cluster'
 
 export default {
 
   logger: function (api) {
-    let logger = {transports: []};
+    let logger = {transports: []}
 
     // check if this Stellar instance is the Master
     if (cluster.isMaster) {
@@ -13,18 +13,18 @@ export default {
           colorize: true,
           level: 'info',
           timestamp: true
-        });
+        })
       })
     }
 
     // add a file logger
-    let logDirectory = api.config.general.paths.log;
+    let logDirectory = api.config.general.paths.log
 
     try {
-      fs.mkdirSync(logDirectory);
+      fs.mkdirSync(logDirectory)
     } catch (e) {
       if (e.code !== 'EEXIST') {
-        throw new Error(`Cannot create log directory @ ${logDirectory}`);
+        throw new Error(`Cannot create log directory @ ${logDirectory}`)
       }
     }
 
@@ -33,13 +33,13 @@ export default {
         filename: `${logDirectory}/${api.pids.title}.log`,
         level: 'info',
         timestamp: true
-      });
-    });
+      })
+    })
 
     // define the maximum length of params to log (we will truncate)
-    logger.maxLogStringLength = 100;
+    logger.maxLogStringLength = 100
 
-    return logger;
+    return logger
   }
 
 }

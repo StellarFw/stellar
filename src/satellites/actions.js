@@ -1,4 +1,3 @@
-// initializer modules
 import Utils from '../utils'
 
 /**
@@ -60,8 +59,11 @@ class Actions {
   call (actionName, params, callback) {
     let self = this
 
+    // get connection class
+    let ConnectionClass = self.api.connection
+
     // create a new connection object
-    let connection = new self.api.connection(self.api, {
+    let connection = new ConnectionClass(self.api, {
       type: 'internal',
       remotePort: 0,
       remoteIP: 0,
@@ -74,8 +76,11 @@ class Actions {
     // set action who must be called
     connection.params.action = actionName
 
+    // get action processor class
+    let ActionProcessor = self.api.actionProcessor
+
     // create a new ActionProcessor instance
-    let actionProcessor = new self.api.actionProcessor(self.api, connection, data => {
+    let actionProcessor = new ActionProcessor(self.api, connection, data => {
       // execute the callback on the connection destroy event
       connection.destroy(() => callback(data.response.error, data.response))
     })
@@ -140,7 +145,7 @@ class Actions {
       self.loadFile(fullFilePath, true)
       self.api.params.buildPostVariables()
       self.api.routes.loadRoutes()
-    });
+    })
 
     let action = null
 
@@ -170,11 +175,11 @@ class Actions {
         }
 
         // put the action on correct version slot
-        self.actions[ action.name ][ action.version ] = action;
+        self.actions[ action.name ][ action.version ] = action
         if (self.versions[ action.name ] === null || self.versions[ action.name ] === undefined) {
           self.versions[ action.name ] = []
         }
-        self.versions[ action.name ].push(action.version);
+        self.versions[ action.name ].push(action.version)
         self.versions[ action.name ].sort()
 
         // validate the action data

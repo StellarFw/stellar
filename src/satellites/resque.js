@@ -52,7 +52,7 @@ class ResqueManager {
     self.api = api
 
     // define the connection details, we can use the redis property from the tasks
-    self.connectionDetails = {redis: api.redis.clients.tasks}
+    self.connectionDetails = { redis: api.redis.clients.tasks }
   }
 
   /**
@@ -63,7 +63,10 @@ class ResqueManager {
   startQueue (callback) {
     let self = this
 
-    self.queue = new NR.queue({connection: self.connectionDetails}, self.api.tasks.jobs)
+    // we do this because the lint error
+    let Queue = NR.queue
+
+    self.queue = new Queue({ connection: self.connectionDetails }, self.api.tasks.jobs)
     self.queue.on('error', error => { self.api.log(error, 'error', '[api.resque.scheduler]') })
     self.queue.connect(callback)
   }
@@ -76,16 +79,15 @@ class ResqueManager {
   startScheduler (callback) {
     let self = this
 
-    if (self.api.config.tasks.scheduler !== true) {
-      callback()
-      return
-    }
+    // check if the scheduler are enabled
+    if (self.api.config.tasks.scheduler !== true) { return callback() }
 
     // get the scheduler logger
-    self.schedulerLogging = self.api.config.tasks.schedulerLogging;
+    self.schedulerLogging = self.api.config.tasks.schedulerLogging
 
     // create a new scheduler instance
-    self.scheduler = new NR.scheduler({connection: self.connectionDetails, timeout: self.api.config.tasks.timeout})
+    let Scheduler = NR.scheduler
+    self.scheduler = new Scheduler({ connection: self.connectionDetails, timeout: self.api.config.tasks.timeout })
 
     // define the handler for the on error event
     self.scheduler.on('error', error => self.api.log(error, 'error', '[api.resque.scheduler]'))
@@ -140,7 +142,8 @@ class ResqueManager {
     self.schedulerLogging = self.api.config.tasks.schedulerLogging
 
     // create a new multiworker instance
-    self.multiWorker = new NR.multiWorker({
+    let MultiWorker = NR.multiWorker
+    self.multiWorker = new MultiWorker({
       connection: self.connectionDetails,
       queues: self.api.config.tasks.queues,
       timeout: self.api.config.tasks.timeout,
@@ -152,25 +155,25 @@ class ResqueManager {
     }, self.api.tasks.jobs)
 
     // normal worker emitters
-    self.multiWorker.on('start', workerId => self.api.log('worker: started', self.workerLogging.start, {workerId: workerId}))
-    self.multiWorker.on('end', workerId => self.api.log('worker: ended', self.workerLogging.end, {workerId: workerId}))
+    self.multiWorker.on('start', workerId => self.api.log('worker: started', self.workerLogging.start, { workerId: workerId }))
+    self.multiWorker.on('end', workerId => self.api.log('worker: ended', self.workerLogging.end, { workerId: workerId }))
     self.multiWorker.on('cleaning_worker', (workerId, worker, pid) => self.api.log(`worker: cleaning old worker ${worker}, (${pid})`, self.workerLogging.cleaning_worker))
     // for debug: self.multiWorker.on('poll', (queue) => self.api.log(`worker: polling ${queue}`, self.workerLogging.poll))
     self.multiWorker.on('job', (workerId, queue, job) => self.api.log(`worker: working job ${queue}`, self.workerLogging.job, {
       workerId: workerId,
-      job: {class: job.class, queue: job.queue}
+      job: { class: job.class, queue: job.queue }
     }))
     self.multiWorker.on('reEnqueue', (workerId, queue, job, plugin) => self.api.log('worker: reEnqueue job', self.workerLogging.reEnqueue, {
       workerId: workerId,
       plugin: plugin,
-      job: {class: job.class, queue: job.queue}
+      job: { class: job.class, queue: job.queue }
     }))
     self.multiWorker.on('success', (workerId, queue, job, result) => self.api.log(`worker: job success ${queue}`, self.workerLogging.success, {
       workerId: workerId,
-      job: {class: job.class, queue: job.queue},
+      job: { class: job.class, queue: job.queue },
       result: result
     }))
-    self.multiWorker.on('pause', workerId => self.api.log('worker: paused', self.workerLogging.pause, {workerId: workerId}))
+    self.multiWorker.on('pause', workerId => self.api.log('worker: paused', self.workerLogging.pause, { workerId: workerId }))
 
     self.multiWorker.on('failure', (workerId, queue, job, failure) => self.api.exceptionHandlers.task(failure, queue, job))
     self.multiWorker.on('error', (workerId, queue, job, error) => self.api.exceptionHandlers.task(error, queue, job))

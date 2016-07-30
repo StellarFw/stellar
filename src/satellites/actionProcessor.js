@@ -72,14 +72,14 @@ class ActionProcessor {
    * @param status
    */
   completeAction (status) {
-    let self = this;
-    let error = null;
+    let self = this
+    let error = null
 
     // define the action status
-    self.actionStatus = String(status);
+    self.actionStatus = String(status)
 
     if (status instanceof Error) {
-      error = status;
+      error = status
     } else if (status === 'server_error') {
       error = self.api.config.errors.serverErrorMessage
     } else if (status === 'server_shutting_down') {
@@ -87,7 +87,7 @@ class ActionProcessor {
     } else if (status === 'too_many_requests') {
       error = self.api.config.errors.tooManyPendingActions()
     } else if (status === 'unknown_action') {
-      error = self.api.config.errors.unknownAction(self.connection.action);
+      error = self.api.config.errors.unknownAction(self.connection.action)
     } else if (status === 'unsupported_server_type') {
       error = self.api.config.errors.unsupportedServerType(self.connection.type)
     } else if (status === 'missing_params') {
@@ -99,24 +99,24 @@ class ActionProcessor {
     }
 
     if (error && typeof error === 'string') {
-      error = new Error(error);
+      error = new Error(error)
     }
 
     if (error && !self.response.error) {
-      self.response.error = error;
+      self.response.error = error
     }
 
-    self.incrementPendingActions(-1);
-    self.duration = new Date().getTime() - self.actionStartTime;
+    self.incrementPendingActions(-1)
+    self.duration = new Date().getTime() - self.actionStartTime
 
     process.nextTick(function () {
       if (typeof self.callback === 'function') {
-        self.callback(self);
+        self.callback(self)
       }
-    });
+    })
 
-    self.working = false;
-    self.logAction(error);
+    self.working = false
+    self.logAction(error)
   }
 
   /**
@@ -125,20 +125,20 @@ class ActionProcessor {
    * @param error
    */
   logAction (error) {
-    let self = this;
-    let logLevel = 'info';
+    let self = this
+    let logLevel = 'info'
 
     // check if the action have a specific log level
     if (self.actionTemplate && self.actionTemplate.logLevel) {
-      logLevel = self.actionTemplate.logLevel;
+      logLevel = self.actionTemplate.logLevel
     }
 
-    let filteredParams = {};
+    let filteredParams = {}
     for (let i in self.params) {
       if (self.api.config.general.filteredParams && self.api.config.general.filteredParams.indexOf(i) >= 0) {
-        filteredParams[ i ] = '[FILTERED]';
+        filteredParams[ i ] = '[FILTERED]'
       } else if (typeof self.params[ i ] === 'string') {
-        filteredParams[ i ] = self.params[ i ].substring(0, self.api.config.logger.maxLogStringLength);
+        filteredParams[ i ] = self.params[ i ].substring(0, self.api.config.logger.maxLogStringLength)
       } else {
         filteredParams[ i ] = self.params[ i ]
       }
@@ -149,22 +149,22 @@ class ActionProcessor {
       action: self.action,
       params: JSON.stringify(filteredParams),
       duration: self.duration
-    };
+    }
 
     if (error) {
       if (error instanceof Error) {
-        logLine.error = String(error);
+        logLine.error = String(error)
       } else {
         try {
-          logLine.error = JSON.stringify(error);
+          logLine.error = JSON.stringify(error)
         } catch (e) {
-          logLine.error = String(error);
+          logLine.error = String(error)
         }
       }
     }
 
     // log the action execution
-    self.api.log(`[ action @  ${self.connection.type}]`, logLevel, logLine);
+    self.api.log(`[ action @  ${self.connection.type}]`, logLevel, logLine)
   }
 
   /**
@@ -231,9 +231,9 @@ class ActionProcessor {
       // default
       if (self.params[ key ] === undefined && props.default !== undefined) {
         if (typeof props.default === 'function') {
-          self.params[ key ] = props.default(self.params[ key ], self);
+          self.params[ key ] = props.default(self.params[ key ], self)
         } else {
-          self.params[ key ] = props.default;
+          self.params[ key ] = props.default
         }
       }
 
@@ -330,7 +330,7 @@ class ActionProcessor {
       self.validateParams()
 
       if (error) {
-        self.completeAction(error);
+        self.completeAction(error)
       } else if (self.missingParams.length > 0) {
         self.completeAction('missing_params')
       } else if (self.validatorErrors.length > 0) {
@@ -343,7 +343,7 @@ class ActionProcessor {
           } else {
             self.postProcessAction(error => self.completeAction(error))
           }
-        });
+        })
       } else {
         self.completeAction()
       }
