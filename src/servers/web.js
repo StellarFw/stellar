@@ -547,7 +547,7 @@ export default class Web extends GenericServer {
 
     // client lib
     let file = path.normalize(
-      self.api.config.general.paths.temp + path.sep +
+      self.api.config.general.paths.public + path.sep +
       self.api.config.servers.websocket.clientJsName + '.js')
 
     // define the file to be loaded

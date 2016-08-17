@@ -246,7 +246,7 @@ export default class WebSocketServer extends GenericServer {
 
     if (self.api.config.servers.websocket.clientJsName) {
       let base = path.normalize(
-        self.api.config.general.paths.temp + path.sep +
+        self.api.config.general.paths.public + path.sep +
         self.api.config.servers.websocket.clientJsName)
 
       try {
