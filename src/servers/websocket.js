@@ -2,6 +2,7 @@ import fs from 'fs'
 import util from 'util'
 import path from 'path'
 import Primus from 'primus'
+import Utils from '../utils'
 import UglifyJS from 'uglify-js'
 import GenericServer from '../genericServer'
 import browser_fingerprint from 'browser_fingerprint'
@@ -243,6 +244,11 @@ export default class WebSocketServer extends GenericServer {
    */
   _writeClientJS () {
     let self = this
+
+    // ensure the public folder exists
+    if (!Utils.directoryExists(`${self.api.config.general.paths.public}`)) {
+      Utils.createFolder(`${self.api.config.general.paths.public}`)
+    }
 
     if (self.api.config.servers.websocket.clientJsName) {
       let base = path.normalize(
