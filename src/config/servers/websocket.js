@@ -26,7 +26,15 @@ export default {
         // Should the server signal clients to not reconnect when the server is
         // shutdown/reboot.
         // ---------------------------------------------------------------------
-        destroyClientsOnShutdown: false
+        destroyClientsOnShutdown: false,
+
+        // ---------------------------------------------------------------------
+        // WebSocket client options
+        // ---------------------------------------------------------------------
+        client: {
+            // the api base endpoint on your actionhero server
+            apiPath: '/api', 
+        }
       }
     }
   }
