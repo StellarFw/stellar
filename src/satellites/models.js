@@ -142,6 +142,10 @@ class Models {
     // if the model already exists that can't be overwrite
     if (this.models.has(name)) { return }
 
+    // the schema definition can be a function, pass the api reference and 
+    // the mongoose object
+    if (typeof schema === 'function') { schema = schema(this.api, mongoose) }
+
     // save the new model instance
     this.models.set(name, this.mongoose.model(name, schema))
   }
