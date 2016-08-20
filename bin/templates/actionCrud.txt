@@ -8,7 +8,7 @@ module.exports = [ {
 
     run: (api, action, next) => {
         // create a new model instance
-        var newModel = new (api.models.get('{{modelName}}'))(action.params.{{modelName}})
+        var newModel = new (api.models.get('{{modelName}}'))(action.params)
 
         // save it
         newModel.save(err => {
@@ -47,7 +47,7 @@ module.exports = [ {
         // search for the request post on the DB
         api.models.get('{{modelName}}').findById(action.params.id, (err, resource) => {
             // put model information in response object
-            action.response.{{modelNameCapitalize}} = resource
+            action.response.{{modelName}} = resource
 
             // finish the action execution
             next()
@@ -63,7 +63,7 @@ module.exports = [ {
 
     run: (api, action, next) => {
         // search for the {{modelNameCapitalize}} and update it
-        api.models.get('{{modelName}}').findOneAndUpdate({_id: action.params.id}, action.params.{{modelName}}, {upsert: true}, (err, model) => {
+        api.models.get('{{modelName}}').findOneAndUpdate({_id: action.params.id}, action.params, {upsert: true}, (err, model) => {
             if (err) {
                 // return an error message to the client
                 next(new Error('We could not find the resource you were looking for'))
