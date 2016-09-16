@@ -54,8 +54,7 @@ class Models {
 
     // if the connection has already open return and execute the callback
     if (self.status()) {
-      callback(new Error('Connection is already open'))
-      return
+      return callback(new Error('Connection is already open'))
     }
 
     // hack: this fix a strange bug on the test environment
@@ -67,8 +66,7 @@ class Models {
       self.connected = true
 
       // execute the callback function and return
-      callback()
-      return
+      return callback()
     }
 
     let connectCallback = () => {
@@ -142,7 +140,7 @@ class Models {
     // if the model already exists that can't be overwrite
     if (this.models.has(name)) { return }
 
-    // the schema definition can be a function, pass the api reference and 
+    // the schema definition can be a function, pass the api reference and
     // the mongoose object
     if (typeof schema === 'function') { schema = schema(this.api, mongoose) }
 

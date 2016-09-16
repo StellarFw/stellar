@@ -202,6 +202,14 @@ class TaskSatellite {
 
   // -------------------------------------------------------------------------------------------- [ways to queue a task]
 
+  /**
+   * Enqueue a new job, normally.
+   * 
+   * @param  {String}   taskName Unique task identifier.
+   * @param  {Array}    params   Parameters to be passed to the task.
+   * @param  {String}   queue    Queue here the task must be enqueued.
+   * @param  {Function} callback Callback function.
+   */
   enqueue (taskName, params, queue, callback) {
     let self = this
 
@@ -217,6 +225,15 @@ class TaskSatellite {
     self.api.resque.queue.enqueue(queue, taskName, params, callback)
   }
 
+  /**
+   * Enqueue a task and execute them in a given timestamp.
+   * 
+   * @param  {Decimal}  timestamp Timestamp when the task must be executed.
+   * @param  {String}   taskName  Unique task identifier of the task to add.
+   * @param  {Object}   params    Parameters to be passed to the task.
+   * @param  {String}   queue     Queue where the task must be enqueued.
+   * @param  {Function} callback  Callback function.
+   */
   enqueueAt (timestamp, taskName, params, queue, callback) {
     let self = this
 
@@ -231,6 +248,15 @@ class TaskSatellite {
     self.api.resque.queue.enqueueAt(timestamp, queue, taskName, params, callback)
   }
 
+  /**
+   * Enqueue a tasks and execute them with a delay.
+   * 
+   * @param  {Decimal}  time     Delay in milliseconds.
+   * @param  {String}   taskName Unique identifier for the task to enqueue.
+   * @param  {Object}   params   Parameters to be passed to the task.
+   * @param  {String}   queue    Queue where the task will be enqueued.
+   * @param  {Function} callback Callback function.
+   */
   enqueueIn (time, taskName, params, queue, callback) {
     let self = this
 
@@ -246,26 +272,88 @@ class TaskSatellite {
     self.api.resque.queue.enqueueIn(time, queue, taskName, params, callback)
   }
 
-  del (q, taskName, args, count, callback) {
+  /**
+   * Remove a task by name.
+   * 
+   * @param  {String}   queue    Queue here the task are located.
+   * @param  {String}   taskName Unique identifier of the task to be removed.
+   * @param  {Object}   args     Arguments to pass to node-resque.
+   * @param  {Number}   count    Number of task entries to be removed.
+   * @param  {Function} callback Callback function.
+   */
+  del (queue, taskName, args, count, callback) {
     let self = this
-    self.api.resque.queue.del(q, taskName, args, count, callback)
+    self.api.resque.queue.del(queue, taskName, args, count, callback)
   }
 
-  delDelayed (q, taskName, args, callback) {
+  /**
+   * Remove a delayed task by name.
+   * 
+   * @param  {String}   queue    Queue where the task must be removed.
+   * @param  {String}   taskName Task unique identifier.
+   * @param  {Object}   args     Arguments to pass to node-resque.
+   * @param  {Function} callback Callback function.
+   */
+  delDelayed (queue, taskName, args, callback) {
     let self = this
-    self.api.resque.queue.delDelayed(q, taskName, args, callback)
+    self.api.resque.queue.delDelayed(queue, taskName, args, callback)
   }
 
-  scheduledAt (q, taskName, args, callback) {
+  /**
+   * Get the timestamps when a task will be executed.
+   * 
+   * @param  {String}   queue    Queue identifier.
+   * @param  {String}   taskName Task unique identifier.
+   * @param  {Object}   args     Arguments to pass to node-resque.
+   * @param  {Function} callback Callback function.
+   */
+  scheduledAt (queue, taskName, args, callback) {
     let self = this
-    self.api.resque.queue.scheduledAt(q, taskName, args, callback)
+    self.api.resque.queue.scheduledAt(queue, taskName, args, callback)
   }
 
+  stats (callback){
+    api.resque.queue.stats(callback)
+  },
+
+  /**
+   * Get works queued between the given time interval.
+   * 
+   * @param  {String}   queue    Queue to check.
+   * @param  {Decimal}  start    Start timestamp.
+   * @param  {Decimal}  stop     End timestamp.
+   * @param  {Function} callback Callback function.
+   */
+  queued (queue, start, stop, callback){
+    api.resque.queue.queued(queue, start, stop, callback)
+  },
+
+  /**
+   * Remove a queue.
+   * 
+   * @param  {String}   queue    Queue to be removed.
+   * @param  {Function} callback Callback function.
+   */
+  delQueue (queue, callback){
+    api.resque.queue.delQueue(queue, callback)
+  },
+
+  /**
+   * Get the locks.
+   * 
+   * @param  {Function} callback Callback function.
+   */
   locks (callback) {
     let self = this
     self.api.resque.queue.locks(callback)
   }
 
+  /**
+   * Remove a lock.
+   * 
+   * @param  {String}   lock     Lock to be removed.
+   * @param  {Function} callback Callback function.
+   */
   delLock (lock, callback) {
     let self = this
     self.api.resque.queue.delLock(lock, callback)
