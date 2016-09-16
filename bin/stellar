@@ -38,9 +38,9 @@ commander.command('run')
   .action(require('./commands/run'))
 
 // register cluster command
-commander.command('cluster')
+commander.command('startCluster')
   .description('Create a custer')
-  .action(require('./commands/cluster'))
+  .action(require('./commands/startCluster'))
 
 // register init command
 commander.command('init')

@@ -9,6 +9,7 @@ module.exports = class {
     this.FgYellow = "\x1b[33m"
     this.FgBlue = "\x1b[34m"
     this.FgWhite = "\x1b[37m"
+    this.FgDefault = "\x1b[39m"
 
     // create an usage variable
     this.usage = ''
