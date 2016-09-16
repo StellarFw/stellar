@@ -9,6 +9,7 @@ const FgGreen = "\x1b[32m"
 const FgYellow = "\x1b[33m"
 const FgBlue = "\x1b[34m"
 const FgWhite = "\x1b[37m"
+const FgDefault = "\x1b[39m"
 
 /**
  * Class to represent a command.
@@ -199,7 +200,7 @@ module.exports = class Commander {
     // if the '-V' or '--version' options are present the version should be
     // printed out and the execution finished
     if (this.args.hasOwnProperty('V') || this.args.hasOwnProperty('version')) {
-      console.log(`${FgBlue}> Stellar Framework ${FgWhite}version ${FgYellow}${pkg.version}`)
+      console.log(`\n${FgBlue}> Stellar Framework ${FgWhite}version ${FgYellow}${pkg.version}\n`)
       return
     }
 
@@ -217,6 +218,9 @@ module.exports = class Commander {
 
     // execute the command
     this.commands.get(this.args._[ 0 ]).actionFn.bind(this)(this.args)
+
+    // reset the console colors
+    console.log(FgDefault)
   }
 
   // ---------------------------------------------------------------- [Commands]
@@ -231,7 +235,7 @@ module.exports = class Commander {
   helperCommand (args) {
     // check if was all the required arguments
     if (args._.length < 2) {
-      console.log(`\n${FgYellow}Usage: stellar help <command name>\n`)
+      console.log(`\n${FgYellow}Usage: stellar help <command name>`)
       return
     }
 
