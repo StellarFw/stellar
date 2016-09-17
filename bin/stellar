@@ -46,6 +46,10 @@ commander.command('run')
 // register cluster command
 commander.command('startCluster')
   .description('Create a custer')
+  .option('id', 'Cluster identifier')
+  .option('silent', 'No messages will be printed to the console')
+  .option('workers', 'Number of workers')
+  .option('workerPrefix', `Worker's name prefix. If the value is equals to 'hostname' the computer hostname will be used`)
   .action(require('./commands/startCluster'))
 
 // register init command
