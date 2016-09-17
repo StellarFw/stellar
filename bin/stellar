@@ -14,6 +14,12 @@ commander.command('makeAction')
   .option('force', 'Existent actions will be overwritten')
   .action(require('./commands/makeAction'))
 
+// register makeListener command
+commander.command('makeListener')
+  .description('Create a new event listener')
+  .option('module', 'Module here the listener must be created')
+  .action(require('./commands/makeListener'))
+
 // register makeModel command
 commander.command('makeModel')
   .description('Create a new model')

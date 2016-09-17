@@ -31,6 +31,15 @@ module.exports = class Utils {
   }
 
   /**
+   * Create a folder if not exists.
+   *
+   * @param path Path to check.
+   */
+  static createFolderIfNotExists (path) {
+    if (!Utils.exists(path)) { Utils.createFolder(path) }
+  }
+
+  /**
    * Remove a directory.
    *
    * @param path   Directory path.

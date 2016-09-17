@@ -59,7 +59,7 @@ class MakeAction extends Command {
     }
 
     // create the actions folder is not exists
-    if (!Utils.exists()) { Utils.createFolder(actionsPath) }
+    Utils.createFolderIfNotExists(actionsPath)
 
     // generate action file
     Utils.generateFileFromTemplate('action', { actionName: actionName }, outputPath)

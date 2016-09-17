@@ -1,0 +1,13 @@
+'use strict'
+
+exports.{{ name }} = {
+  event: '{{ name }}',
+  description: 'This was automatically generated',
+
+  run: (api, params, next) => {
+    // todo - implement the listener behaviour
+
+    // finish the event execution
+    next()
+  }
+}
