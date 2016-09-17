@@ -204,7 +204,7 @@ class TaskSatellite {
 
   /**
    * Enqueue a new job, normally.
-   * 
+   *
    * @param  {String}   taskName Unique task identifier.
    * @param  {Array}    params   Parameters to be passed to the task.
    * @param  {String}   queue    Queue here the task must be enqueued.
@@ -227,7 +227,7 @@ class TaskSatellite {
 
   /**
    * Enqueue a task and execute them in a given timestamp.
-   * 
+   *
    * @param  {Decimal}  timestamp Timestamp when the task must be executed.
    * @param  {String}   taskName  Unique task identifier of the task to add.
    * @param  {Object}   params    Parameters to be passed to the task.
@@ -250,7 +250,7 @@ class TaskSatellite {
 
   /**
    * Enqueue a tasks and execute them with a delay.
-   * 
+   *
    * @param  {Decimal}  time     Delay in milliseconds.
    * @param  {String}   taskName Unique identifier for the task to enqueue.
    * @param  {Object}   params   Parameters to be passed to the task.
@@ -274,7 +274,7 @@ class TaskSatellite {
 
   /**
    * Remove a task by name.
-   * 
+   *
    * @param  {String}   queue    Queue here the task are located.
    * @param  {String}   taskName Unique identifier of the task to be removed.
    * @param  {Object}   args     Arguments to pass to node-resque.
@@ -288,7 +288,7 @@ class TaskSatellite {
 
   /**
    * Remove a delayed task by name.
-   * 
+   *
    * @param  {String}   queue    Queue where the task must be removed.
    * @param  {String}   taskName Task unique identifier.
    * @param  {Object}   args     Arguments to pass to node-resque.
@@ -301,7 +301,7 @@ class TaskSatellite {
 
   /**
    * Get the timestamps when a task will be executed.
-   * 
+   *
    * @param  {String}   queue    Queue identifier.
    * @param  {String}   taskName Task unique identifier.
    * @param  {Object}   args     Arguments to pass to node-resque.
@@ -312,35 +312,35 @@ class TaskSatellite {
     self.api.resque.queue.scheduledAt(queue, taskName, args, callback)
   }
 
-  stats (callback){
-    api.resque.queue.stats(callback)
-  },
+  stats (callback) {
+    this.api.resque.queue.stats(callback)
+  }
 
   /**
    * Get works queued between the given time interval.
-   * 
+   *
    * @param  {String}   queue    Queue to check.
    * @param  {Decimal}  start    Start timestamp.
    * @param  {Decimal}  stop     End timestamp.
    * @param  {Function} callback Callback function.
    */
-  queued (queue, start, stop, callback){
-    api.resque.queue.queued(queue, start, stop, callback)
-  },
+  queued (queue, start, stop, callback) {
+    this.api.resque.queue.queued(queue, start, stop, callback)
+  }
 
   /**
    * Remove a queue.
-   * 
+   *
    * @param  {String}   queue    Queue to be removed.
    * @param  {Function} callback Callback function.
    */
-  delQueue (queue, callback){
-    api.resque.queue.delQueue(queue, callback)
-  },
+  delQueue (queue, callback) {
+    this.api.resque.queue.delQueue(queue, callback)
+  }
 
   /**
    * Get the locks.
-   * 
+   *
    * @param  {Function} callback Callback function.
    */
   locks (callback) {
@@ -350,7 +350,7 @@ class TaskSatellite {
 
   /**
    * Remove a lock.
-   * 
+   *
    * @param  {String}   lock     Lock to be removed.
    * @param  {Function} callback Callback function.
    */
