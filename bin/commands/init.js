@@ -51,6 +51,9 @@ class InitCommand extends Command {
       projectVersion: projVersion
     }, `${process.cwd()}/manifest.json`)
 
+    // create .gitignore file
+    Utils.generateFileFromTemplate('gitignore', {}, `${process.cwd()}/.gitignore`)
+
     // create modules folder
     Utils.createFolder(process.cwd() + '/modules')
     let privateModulePath = process.cwd() + '/modules/private'
