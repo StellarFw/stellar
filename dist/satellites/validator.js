@@ -23,7 +23,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  *   api.validator.validate(validatorString, params, keyToValidate)
  * </code>
  */
-
 var Validator = function () {
 
   /**
@@ -38,7 +37,6 @@ var Validator = function () {
    *
    * @type {{}}
    */
-
   function Validator(api) {
     _classCallCheck(this, Validator);
 
@@ -454,7 +452,7 @@ var Validator = function () {
       try {
         var o = JSON.parse(value);
 
-        if (o && (typeof o === 'undefined' ? 'undefined' : _typeof(o)) === "object" && o !== null) {
+        if (o && (typeof o === 'undefined' ? 'undefined' : _typeof(o)) === 'object' && o !== null) {
           return true;
         }
       } catch (e) {}
@@ -750,10 +748,12 @@ var Validator = function () {
         return 'validator need one numeric argument';
       }
 
+      var length = parseInt(args[0]);
+
       if (typeof value === 'string' || value instanceof Array) {
-        return value.length == args[0];
+        return value.length === length;
       } else if (typeof value === 'number') {
-        return value == args[0];
+        return value === length;
       } else {
         return 'invalid type';
       }
@@ -821,4 +821,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=validator.js.map

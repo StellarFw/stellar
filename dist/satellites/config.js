@@ -36,7 +36,6 @@ var ConfigManager = function () {
    *
    * @type {null}
    */
-
   function ConfigManager(api) {
     _classCallCheck(this, ConfigManager);
 
@@ -357,4 +356,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=config.js.map

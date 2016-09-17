@@ -70,6 +70,7 @@ var Utils = function () {
       if (!extension) {
         extension = 'js';
       }
+
       extension = extension.replace('.', '');
       if (dir[dir.length - 1] !== '/') {
         dir += '/';
@@ -81,17 +82,18 @@ var Utils = function () {
           if (file[0] !== '.') {
             // ignore 'system' files
             var stats = _fs2.default.statSync(fullFilePath);
-            var child;
+            var child = void 0;
+
             if (stats.isDirectory()) {
               child = Utils.recursiveDirectoryGlob(fullFilePath, extension);
               child.forEach(function (c) {
-                results.push(c);
+                return results.push(c);
               });
             } else if (stats.isSymbolicLink()) {
               var realPath = _fs2.default.readlinkSync(fullFilePath);
               child = Utils.recursiveDirectoryGlob(realPath);
               child.forEach(function (c) {
-                results.push(c);
+                return results.push(c);
               });
             } else if (stats.isFile()) {
               var fileParts = file.split('.');
@@ -171,7 +173,7 @@ var Utils = function () {
       var safeTypes = [Boolean, Number, String, Function, Array, Date, RegExp, Buffer];
       var safeInstances = ['boolean', 'number', 'string', 'function'];
       var expandPreventMatchKey = '_toExpand'; // set `_toExpand = false` within an object if you don't want to expand it
-      var i;
+      var i = void 0;
 
       if (!o) {
         return false;
@@ -370,7 +372,7 @@ var Utils = function () {
       try {
         _fs2.default.mkdirSync(path);
       } catch (e) {
-        if (e.code != 'EEXIST') {
+        if (e.code !== 'EEXIST') {
           throw e;
         }
       }
@@ -479,4 +481,3 @@ var Utils = function () {
 }();
 
 exports.default = Utils;
-//# sourceMappingURL=utils.js.map

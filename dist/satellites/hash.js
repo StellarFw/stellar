@@ -24,7 +24,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * This allow users hash data and compare plain data with
  * and hash to validate them.
  */
-
 var Hash = function () {
 
   /**
@@ -32,7 +31,6 @@ var Hash = function () {
    *
    * @param api   API object reference.
    */
-
   function Hash(api) {
     _classCallCheck(this, Hash);
 
@@ -227,4 +225,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=hash.js.map

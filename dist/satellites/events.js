@@ -26,7 +26,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * to existing logic. The listeners must be stored in
  * <moduleName>/listeners.
  */
-
 var EventsManager = function () {
 
   /**
@@ -41,7 +40,6 @@ var EventsManager = function () {
    *
    * @type {null}
    */
-
   function EventsManager(api) {
     _classCallCheck(this, EventsManager);
 
@@ -264,4 +262,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=events.js.map

@@ -19,7 +19,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  *
  * This class provides an easy way for developers to make use of a cache system.
  */
-
 var CacheManager = function () {
 
   /**
@@ -48,7 +47,6 @@ var CacheManager = function () {
    *
    * @type {null}
    */
-
   function CacheManager(api) {
     _classCallCheck(this, CacheManager);
 
@@ -142,8 +140,8 @@ var CacheManager = function () {
       var self = this;
 
       // get all cached keys
-      self.keys(function (err, keys) {
-        if (err && typeof callback === 'function') {
+      self.keys(function (error, keys) {
+        if (error && typeof callback === 'function') {
           return callback(error);
         }
 
@@ -613,4 +611,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=cache.js.map

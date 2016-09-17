@@ -21,7 +21,6 @@ var ExceptionsManager = function () {
    *
    * @type {null}
    */
-
   function ExceptionsManager(api) {
     _classCallCheck(this, ExceptionsManager);
 
@@ -172,7 +171,7 @@ var ExceptionsManager = function () {
         simpleName = error.message;
       }
 
-      self.api.exceptionHandlers.report(error, 'task', 'task:' + simpleName, name, {
+      self.api.exceptionHandlers.report(error, 'task', 'task:' + simpleName, simpleName, {
         task: _task,
         queue: queue,
         workerId: workerId
@@ -183,6 +182,11 @@ var ExceptionsManager = function () {
   return ExceptionsManager;
 }();
 
+/**
+ * Satellite definition.
+ */
+
+
 var _class = function () {
   function _class() {
     _classCallCheck(this, _class);
@@ -190,10 +194,28 @@ var _class = function () {
     this.loadPriority = 130;
   }
 
+  /**
+   * Satellite load priority.
+   *
+   * @type {number}
+   */
+
+
   _createClass(_class, [{
     key: 'load',
+
+
+    /**
+     * Satellite load function.
+     *
+     * @param api     API reference
+     * @param next    Callback function
+     */
     value: function load(api, next) {
+      // put the exception handlers available in all platform
       api.exceptionHandlers = new ExceptionsManager(api);
+
+      // finish the satellite load
       next();
     }
   }]);
@@ -202,4 +224,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=exceptions.js.map

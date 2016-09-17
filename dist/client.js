@@ -1,5 +1,7 @@
 'use strict';
 
+/*global Primus XMLHttpRequest*/
+
 /**
  * Interface for WebSocket client interact with the server.
  *
@@ -56,7 +58,7 @@ StellarClient.prototype.connect = function (callback) {
     self.client = Primus.connect(self.options.url, self.options);
   }
 
-  /// define client event handlers
+  // --- define client event handlers
 
   // open
   self.client.on('open', function () {
@@ -140,7 +142,7 @@ StellarClient.prototype.send = function (args, callback) {
   var self = this;
   self.messageCount++;
 
-  if (typeof callback == 'function') {
+  if (typeof callback === 'function') {
     self.callbacks[self.messageCount] = callback;
   }
 
@@ -397,4 +399,3 @@ StellarClient.prototype.disconnect = function () {
 };
 
 exports.StellarClient = StellarClient;
-//# sourceMappingURL=client.js.map

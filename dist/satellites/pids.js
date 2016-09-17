@@ -28,14 +28,18 @@ var Pids = function () {
 
 
   /**
-   * Pids folder.
+   * API reference.
    */
 
 
   /**
-   * API reference.
+   * Process ID.
    */
 
+
+  /**
+   * Pids folder.
+   */
   function Pids(api) {
     _classCallCheck(this, Pids);
 
@@ -50,11 +54,6 @@ var Pids = function () {
 
   /**
    * Process title.
-   */
-
-
-  /**
-   * Process ID.
    */
 
 
@@ -204,4 +203,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=pids.js.map

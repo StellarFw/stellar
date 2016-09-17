@@ -27,7 +27,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  *
  * This creates a interface to connect with a redis server.
  */
-
 var RedisManager = function () {
 
   /**
@@ -56,7 +55,6 @@ var RedisManager = function () {
    *
    * @type {null}
    */
-
   function RedisManager(api) {
     var _arguments = arguments;
 
@@ -144,7 +142,10 @@ var RedisManager = function () {
 
       var jobs = [];
 
-      ['client', 'subscriber', 'tasks'].forEach(function (r) {
+      // array with the queues to create
+      var queuesToCreate = ['client', 'subscriber', 'tasks'];
+
+      queuesToCreate.forEach(function (r) {
         jobs.push(function (done) {
           if (self.api.config.redis[r].buildNew === true) {
             // get arguments
@@ -361,4 +362,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=redis.js.map

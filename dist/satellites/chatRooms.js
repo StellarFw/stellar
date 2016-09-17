@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*eslint handle-callback-err: 0*/
 
 var _async = require('async');
 
@@ -39,7 +39,6 @@ var ChatRooms = function () {
    *
    * @type {null}
    */
-
   function ChatRooms(api) {
     _classCallCheck(this, ChatRooms);
 
@@ -246,7 +245,7 @@ var ChatRooms = function () {
       var self = this;
 
       // check if the room already exists
-      self.exists(room, function (err, found) {
+      self.exists(room, function (error, found) {
         // if the room already exists return an error
         if (found === true) {
           if (typeof callback === 'function') {
@@ -752,4 +751,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=chatRooms.js.map

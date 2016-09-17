@@ -52,12 +52,10 @@ var Tcp = function (_GenericServer) {
    * @param api       API object reference.
    * @param options   Server options.
    */
-
   function Tcp(api, options) {
     _classCallCheck(this, Tcp);
 
     // define events
-
     var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Tcp).call(this, api, type, options, attributes));
     // call super constructor
 
@@ -465,4 +463,3 @@ var Tcp = function (_GenericServer) {
 }(_genericServer2.default);
 
 exports.default = Tcp;
-//# sourceMappingURL=tcp.js.map

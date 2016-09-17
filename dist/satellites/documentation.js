@@ -36,7 +36,6 @@ var DocumentationGenerator = function () {
    *
    * @type {string}
    */
-
   function DocumentationGenerator(api) {
     _classCallCheck(this, DocumentationGenerator);
 
@@ -333,4 +332,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=documentation.js.map

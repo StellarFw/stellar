@@ -102,7 +102,6 @@ var Helpers = function () {
    *
    * @param api
    */
-
   function Helpers(api) {
     _classCallCheck(this, Helpers);
 
@@ -259,7 +258,7 @@ var _class = function () {
     key: 'start',
     value: function start(api, next) {
       if (api.env === 'test') {
-        new api.helpers.initialize(api, {}, function (serverObject) {
+        api.helpers.initialize(api, {}, function (serverObject) {
           api.servers.servers.testServer = serverObject;
           api.servers.servers.testServer.start(function () {
             return next();
@@ -278,4 +277,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=helpers.js.map

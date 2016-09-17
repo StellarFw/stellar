@@ -31,9 +31,24 @@ exports.default = {
         // Should the server signal clients to not reconnect when the server is
         // shutdown/reboot.
         // ---------------------------------------------------------------------
-        destroyClientsOnShutdown: false
+        destroyClientsOnShutdown: false,
+
+        // ---------------------------------------------------------------------
+        // WebSocket client options
+        // ---------------------------------------------------------------------
+        client: {
+          // the api base endpoint on your actionhero server
+          apiPath: '/api'
+        },
+
+        // ---------------------------------------------------------------------
+        // WebSocket server options
+        // ---------------------------------------------------------------------
+        server: {
+          // this disable Primus warning on cluster environments
+          iknowclusterwillbreakconnections: true
+        }
       };
     }
   }
 };
-//# sourceMappingURL=websocket.js.map

@@ -25,7 +25,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 /**
  * Manage the models.
  */
-
 var Models = function () {
 
   /**
@@ -47,7 +46,6 @@ var Models = function () {
    *
    * @type {null}
    */
-
   function Models(api) {
     _classCallCheck(this, Models);
 
@@ -87,8 +85,7 @@ var Models = function () {
 
       // if the connection has already open return and execute the callback
       if (self.status()) {
-        callback(new Error('Connection is already open'));
-        return;
+        return callback(new Error('Connection is already open'));
       }
 
       // hack: this fix a strange bug on the test environment
@@ -100,8 +97,7 @@ var Models = function () {
         self.connected = true;
 
         // execute the callback function and return
-        callback();
-        return;
+        return callback();
       }
 
       var connectCallback = function connectCallback() {
@@ -111,8 +107,7 @@ var Models = function () {
         // open the new connection
         self.mongoose.connect(self.api.config.models.connectionString, function (error) {
           if (error) {
-            self.api.log('MongoDB Error: ' + err, 'emerg');
-            return;
+            return self.api.log('MongoDB Error: ' + error, 'emerg');
           }
 
           self.api.log('connected to MongoDB', 'debug');
@@ -189,6 +184,12 @@ var Models = function () {
       // if the model already exists that can't be overwrite
       if (this.models.has(name)) {
         return;
+      }
+
+      // the schema definition can be a function, pass the api reference and
+      // the mongoose object
+      if (typeof schema === 'function') {
+        schema = schema(this.api, _mongoose2.default);
       }
 
       // save the new model instance
@@ -331,4 +332,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=models.js.map

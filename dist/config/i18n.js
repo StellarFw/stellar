@@ -37,6 +37,4 @@ exports.default = {
       determineConnectionLocale: 'api.i18n.determineConnectionLocale'
     };
   }
-
 };
-//# sourceMappingURL=i18n.js.map

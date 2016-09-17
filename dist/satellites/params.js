@@ -17,7 +17,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 /**
  * Manage the application secure params.
  */
-
 var Params = function () {
 
   /**
@@ -32,7 +31,6 @@ var Params = function () {
    *
    * @type {string[]}
    */
-
   function Params(api) {
     _classCallCheck(this, Params);
 
@@ -138,4 +136,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=params.js.map

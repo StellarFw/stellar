@@ -64,4 +64,3 @@ var test = exports.test = {
     };
   }
 };
-//# sourceMappingURL=logger.js.map

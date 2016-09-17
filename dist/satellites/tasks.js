@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*eslint handle-callback-err: 0*/
 
 var _async = require('async');
 
@@ -32,7 +32,6 @@ var TaskSatellite = function () {
    *
    * @type {{}}
    */
-
   function TaskSatellite(api) {
     _classCallCheck(this, TaskSatellite);
 
@@ -109,7 +108,7 @@ var TaskSatellite = function () {
           loadMessage(task.name);
         }
       } catch (err) {
-        api.log('[TaskSatellite::loadFile] ' + err);
+        self.api.log('[TaskSatellite::loadFile] ' + err);
 
         // handle the exception
         self.api.exceptionHandlers.loader(fullFilePath, err);
@@ -166,7 +165,7 @@ var TaskSatellite = function () {
           var cb = args.pop();
 
           // if there is no arguments
-          if (args.length == 0) {
+          if (args.length === 0) {
             args.push({});
           }
 
@@ -256,6 +255,15 @@ var TaskSatellite = function () {
 
     // -------------------------------------------------------------------------------------------- [ways to queue a task]
 
+    /**
+     * Enqueue a new job, normally.
+     *
+     * @param  {String}   taskName Unique task identifier.
+     * @param  {Array}    params   Parameters to be passed to the task.
+     * @param  {String}   queue    Queue here the task must be enqueued.
+     * @param  {Function} callback Callback function.
+     */
+
   }, {
     key: 'enqueue',
     value: function enqueue(taskName, params, queue, callback) {
@@ -272,6 +280,17 @@ var TaskSatellite = function () {
 
       self.api.resque.queue.enqueue(queue, taskName, params, callback);
     }
+
+    /**
+     * Enqueue a task and execute them in a given timestamp.
+     *
+     * @param  {Decimal}  timestamp Timestamp when the task must be executed.
+     * @param  {String}   taskName  Unique task identifier of the task to add.
+     * @param  {Object}   params    Parameters to be passed to the task.
+     * @param  {String}   queue     Queue where the task must be enqueued.
+     * @param  {Function} callback  Callback function.
+     */
+
   }, {
     key: 'enqueueAt',
     value: function enqueueAt(timestamp, taskName, params, queue, callback) {
@@ -287,6 +306,17 @@ var TaskSatellite = function () {
       }
       self.api.resque.queue.enqueueAt(timestamp, queue, taskName, params, callback);
     }
+
+    /**
+     * Enqueue a tasks and execute them with a delay.
+     *
+     * @param  {Decimal}  time     Delay in milliseconds.
+     * @param  {String}   taskName Unique identifier for the task to enqueue.
+     * @param  {Object}   params   Parameters to be passed to the task.
+     * @param  {String}   queue    Queue where the task will be enqueued.
+     * @param  {Function} callback Callback function.
+     */
+
   }, {
     key: 'enqueueIn',
     value: function enqueueIn(time, taskName, params, queue, callback) {
@@ -303,30 +333,109 @@ var TaskSatellite = function () {
 
       self.api.resque.queue.enqueueIn(time, queue, taskName, params, callback);
     }
+
+    /**
+     * Remove a task by name.
+     *
+     * @param  {String}   queue    Queue here the task are located.
+     * @param  {String}   taskName Unique identifier of the task to be removed.
+     * @param  {Object}   args     Arguments to pass to node-resque.
+     * @param  {Number}   count    Number of task entries to be removed.
+     * @param  {Function} callback Callback function.
+     */
+
   }, {
     key: 'del',
-    value: function del(q, taskName, args, count, callback) {
+    value: function del(queue, taskName, args, count, callback) {
       var self = this;
-      self.api.resque.queue.del(q, taskName, args, count, callback);
+      self.api.resque.queue.del(queue, taskName, args, count, callback);
     }
+
+    /**
+     * Remove a delayed task by name.
+     *
+     * @param  {String}   queue    Queue where the task must be removed.
+     * @param  {String}   taskName Task unique identifier.
+     * @param  {Object}   args     Arguments to pass to node-resque.
+     * @param  {Function} callback Callback function.
+     */
+
   }, {
     key: 'delDelayed',
-    value: function delDelayed(q, taskName, args, callback) {
+    value: function delDelayed(queue, taskName, args, callback) {
       var self = this;
-      self.api.resque.queue.delDelayed(q, taskName, args, callback);
+      self.api.resque.queue.delDelayed(queue, taskName, args, callback);
     }
+
+    /**
+     * Get the timestamps when a task will be executed.
+     *
+     * @param  {String}   queue    Queue identifier.
+     * @param  {String}   taskName Task unique identifier.
+     * @param  {Object}   args     Arguments to pass to node-resque.
+     * @param  {Function} callback Callback function.
+     */
+
   }, {
     key: 'scheduledAt',
-    value: function scheduledAt(q, taskName, args, callback) {
+    value: function scheduledAt(queue, taskName, args, callback) {
       var self = this;
-      self.api.resque.queue.scheduledAt(q, taskName, args, callback);
+      self.api.resque.queue.scheduledAt(queue, taskName, args, callback);
     }
+  }, {
+    key: 'stats',
+    value: function stats(callback) {
+      this.api.resque.queue.stats(callback);
+    }
+
+    /**
+     * Get works queued between the given time interval.
+     *
+     * @param  {String}   queue    Queue to check.
+     * @param  {Decimal}  start    Start timestamp.
+     * @param  {Decimal}  stop     End timestamp.
+     * @param  {Function} callback Callback function.
+     */
+
+  }, {
+    key: 'queued',
+    value: function queued(queue, start, stop, callback) {
+      this.api.resque.queue.queued(queue, start, stop, callback);
+    }
+
+    /**
+     * Remove a queue.
+     *
+     * @param  {String}   queue    Queue to be removed.
+     * @param  {Function} callback Callback function.
+     */
+
+  }, {
+    key: 'delQueue',
+    value: function delQueue(queue, callback) {
+      this.api.resque.queue.delQueue(queue, callback);
+    }
+
+    /**
+     * Get the locks.
+     *
+     * @param  {Function} callback Callback function.
+     */
+
   }, {
     key: 'locks',
     value: function locks(callback) {
       var self = this;
       self.api.resque.queue.locks(callback);
     }
+
+    /**
+     * Remove a lock.
+     *
+     * @param  {String}   lock     Lock to be removed.
+     * @param  {Function} callback Callback function.
+     */
+
   }, {
     key: 'delLock',
     value: function delLock(lock, callback) {
@@ -495,11 +604,11 @@ var TaskSatellite = function () {
       var removedCount = 0;
 
       // remove the task from the recurrent queue
-      self.del(task.queue, task.name, {}, 1, function (err, count) {
+      self.del(task.queue, task.name, {}, 1, function (error, count) {
         removedCount = removedCount + count;
-        self.delDelayed(task.queue, task.name, {}, function (err, timestamps) {
+        self.delDelayed(task.queue, task.name, {}, function (error, timestamps) {
           removedCount = removedCount + timestamps.length;
-          callback(err, removedCount);
+          callback(error, removedCount);
         });
       });
     }
@@ -631,4 +740,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=tasks.js.map

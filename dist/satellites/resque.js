@@ -17,7 +17,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 /**
  * Node-Resque manager.
  */
-
 var ResqueManager = function () {
 
   /**
@@ -39,7 +38,6 @@ var ResqueManager = function () {
    *
    * @type {null}
    */
-
   function ResqueManager(api) {
     _classCallCheck(this, ResqueManager);
 
@@ -91,7 +89,10 @@ var ResqueManager = function () {
     value: function startQueue(callback) {
       var self = this;
 
-      self.queue = new _nodeResque2.default.queue({ connection: self.connectionDetails }, self.api.tasks.jobs);
+      // we do this because the lint error
+      var Queue = _nodeResque2.default.queue;
+
+      self.queue = new Queue({ connection: self.connectionDetails }, self.api.tasks.jobs);
       self.queue.on('error', function (error) {
         self.api.log(error, 'error', '[api.resque.scheduler]');
       });
@@ -109,16 +110,17 @@ var ResqueManager = function () {
     value: function startScheduler(callback) {
       var self = this;
 
+      // check if the scheduler are enabled
       if (self.api.config.tasks.scheduler !== true) {
-        callback();
-        return;
+        return callback();
       }
 
       // get the scheduler logger
       self.schedulerLogging = self.api.config.tasks.schedulerLogging;
 
       // create a new scheduler instance
-      self.scheduler = new _nodeResque2.default.scheduler({ connection: self.connectionDetails, timeout: self.api.config.tasks.timeout });
+      var Scheduler = _nodeResque2.default.scheduler;
+      self.scheduler = new Scheduler({ connection: self.connectionDetails, timeout: self.api.config.tasks.timeout });
 
       // define the handler for the on error event
       self.scheduler.on('error', function (error) {
@@ -191,7 +193,8 @@ var ResqueManager = function () {
       self.schedulerLogging = self.api.config.tasks.schedulerLogging;
 
       // create a new multiworker instance
-      self.multiWorker = new _nodeResque2.default.multiWorker({
+      var MultiWorker = _nodeResque2.default.multiWorker;
+      self.multiWorker = new MultiWorker({
         connection: self.connectionDetails,
         queues: self.api.config.tasks.queues,
         timeout: self.api.config.tasks.timeout,
@@ -389,4 +392,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=resque.js.map

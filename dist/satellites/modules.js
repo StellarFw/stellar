@@ -24,7 +24,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * This class is responsible to manage all modules, process
  * the NPM dependencies.
  */
-
 var Modules = function () {
 
   /**
@@ -42,7 +41,6 @@ var Modules = function () {
    *
    * @type {Map}
    */
-
   function Modules(api) {
     _classCallCheck(this, Modules);
 
@@ -76,7 +74,7 @@ var Modules = function () {
 
   _createClass(Modules, [{
     key: 'loadModules',
-    value: function loadModules() {
+    value: function loadModules(next) {
       var self = this;
 
       // get active modules
@@ -125,6 +123,11 @@ var Modules = function () {
     key: 'processNpmDependencies',
     value: function processNpmDependencies(next) {
       var self = this;
+
+      // don't use NPM on test environment
+      if (self.api.env === 'test') {
+        return next();
+      }
 
       // if the `package.json` file already exists don't search for NPM dependencies
       if (_utils2.default.fileExists(self.api.scope.rootPath + '/package.json')) {
@@ -212,7 +215,7 @@ var _class = function () {
       api.modules = new Modules(api);
 
       // load modules into memory
-      api.modules.loadModules();
+      api.modules.loadModules(next);
 
       // process NPM dependencies
       api.modules.processNpmDependencies(next);
@@ -223,4 +226,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=modules.js.map

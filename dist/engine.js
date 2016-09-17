@@ -12,10 +12,6 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 require('source-map-support/register');
 
-var _lodash = require('lodash');
-
-var _lodash2 = _interopRequireDefault(_lodash);
-
 var _path = require('path');
 
 var _path2 = _interopRequireDefault(_path);
@@ -40,7 +36,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * engine instance or perform a set of instruction to accomplish
  * a certain goal.
  */
-
 var Engine = function () {
   _createClass(Engine, null, [{
     key: 'normalizeInitializerPriority',
@@ -194,7 +189,6 @@ var Engine = function () {
    *
    * @param scope Initial scope
    */
-
   function Engine(scope) {
     _classCallCheck(this, Engine);
 
@@ -508,7 +502,7 @@ var Engine = function () {
           // get satellite normalized file name and
           var file = _path2.default.normalize(f);
           var initializer = _path2.default.basename(f).split('.')[0];
-          var ext = _lodash2.default.last(file.split('.'));
+          var ext = file.split('.').pop();
 
           // only load files with the `.js` extension
           if (ext !== 'js') {
@@ -665,4 +659,3 @@ Engine.defaultPriorities = {
   stop: 100
 };
 exports.default = Engine;
-//# sourceMappingURL=engine.js.map

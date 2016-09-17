@@ -8,13 +8,13 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _yargs = require('yargs');
 
-var _cluster = require('cluster');
-
-var _cluster2 = _interopRequireDefault(_cluster);
-
 var _utils = require('../utils');
 
 var _utils2 = _interopRequireDefault(_utils);
+
+var _cluster = require('cluster');
+
+var _cluster2 = _interopRequireDefault(_cluster);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -29,7 +29,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * - 'STELLAR_TITLE' environment variable;
  * - or one can be generated automatically using the external server IP.
  */
-
 var _class = function () {
   function _class() {
     _classCallCheck(this, _class);
@@ -118,4 +117,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=id.js.map

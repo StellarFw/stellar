@@ -21,7 +21,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 /**
  * Class to manage the HTTP action routes.
  */
-
 var RoutesManager = function () {
 
   /**
@@ -36,7 +35,6 @@ var RoutesManager = function () {
    *
    * @type {{}}
    */
-
   function RoutesManager(api) {
     _classCallCheck(this, RoutesManager);
 
@@ -362,4 +360,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=routes.js.map

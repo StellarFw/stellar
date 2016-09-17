@@ -53,7 +53,6 @@ var Connections = function () {
    *
    * @type {{}}
    */
-
   function Connections(api) {
     _classCallCheck(this, Connections);
 
@@ -195,7 +194,6 @@ var Connection = function () {
   /**
    * Timestamp of the connection.
    */
-
   function Connection(api, data) {
     _classCallCheck(this, Connection);
 
@@ -247,14 +245,18 @@ var Connection = function () {
       // set the connection timestamp
       self.connectedAt = new Date().getTime();
 
-      ['type', 'rawConnection'].forEach(function (req) {
+      var requiredFields = ['type', 'rawConnection'];
+
+      requiredFields.forEach(function (req) {
         if (data[req] === null || data[req] === undefined) {
           throw new Error(req + ' is required to create a new connection object');
         }
         self[req] = data[req];
       });
 
-      ['remotePort', 'remoteIP'].forEach(function (req) {
+      var enforcedConnectionProperties = ['remotePort', 'remoteIP'];
+
+      enforcedConnectionProperties.forEach(function (req) {
         if (data[req] === null || data[req] === undefined) {
           if (self.api.config.general.enforceConnectionProperties === true) {
             throw new Error(req + ' is required to create a new connection object');
@@ -586,4 +588,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=connection.js.map

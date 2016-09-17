@@ -17,7 +17,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 /**
  * This class process an action request.
  */
-
 var ActionProcessor = function () {
 
   /**
@@ -34,7 +33,6 @@ var ActionProcessor = function () {
    *
    * @type {null}
    */
-
   function ActionProcessor(api, connection, callback) {
     _classCallCheck(this, ActionProcessor);
 
@@ -472,4 +470,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=actionProcessor.js.map

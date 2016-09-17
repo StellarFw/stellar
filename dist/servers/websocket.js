@@ -22,6 +22,10 @@ var _primus = require('primus');
 
 var _primus2 = _interopRequireDefault(_primus);
 
+var _utils = require('../utils');
+
+var _utils2 = _interopRequireDefault(_utils);
+
 var _uglifyJs = require('uglify-js');
 
 var _uglifyJs2 = _interopRequireDefault(_uglifyJs);
@@ -63,7 +67,6 @@ var WebSocketServer = function (_GenericServer) {
    * @param api stellar engine interface.
    * @param options sever options.
    */
-
   function WebSocketServer(api, options) {
     _classCallCheck(this, WebSocketServer);
 
@@ -245,7 +248,7 @@ var WebSocketServer = function (_GenericServer) {
       connection.rawConnection.end();
     }
 
-    //////////////////// [PRIVATE METHODS]
+    // ------------------------------------------------------------------------------------------------- [PRIVATE METHODS]
 
     /**
      * Compile client JS.
@@ -314,8 +317,13 @@ var WebSocketServer = function (_GenericServer) {
     value: function _writeClientJS() {
       var self = this;
 
+      // ensure the public folder exists
+      if (!_utils2.default.directoryExists('' + self.api.config.general.paths.public)) {
+        _utils2.default.createFolder('' + self.api.config.general.paths.public);
+      }
+
       if (self.api.config.servers.websocket.clientJsName) {
-        var base = _path2.default.normalize(self.api.config.general.paths.temp + _path2.default.sep + self.api.config.servers.websocket.clientJsName);
+        var base = _path2.default.normalize(self.api.config.general.paths.public + _path2.default.sep + self.api.config.servers.websocket.clientJsName);
 
         try {
           _fs2.default.writeFileSync(base + '.js', self._renderClientJs(false));
@@ -366,7 +374,7 @@ var WebSocketServer = function (_GenericServer) {
       var self = this;
 
       for (var i in self.connections()) {
-        if (self.connections()[i] && rawConnection.id == self.connections()[i].rawConnection.id) {
+        if (self.connections()[i] && rawConnection.id === self.connections()[i].rawConnection.id) {
           self.connections()[i].destroy();
           break;
         }
@@ -439,4 +447,3 @@ var WebSocketServer = function (_GenericServer) {
 }(_genericServer2.default);
 
 exports.default = WebSocketServer;
-//# sourceMappingURL=websocket.js.map

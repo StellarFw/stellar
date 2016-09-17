@@ -52,7 +52,6 @@ var GenericServer = function (_EventEmitter) {
   /**
    * Connection options.
    */
-
   function GenericServer(api, name, options, attributes) {
     _classCallCheck(this, GenericServer);
 
@@ -109,8 +108,11 @@ var GenericServer = function (_EventEmitter) {
         details.fingerprint = data.fingerprint;
       }
 
+      // get connection class
+      var ConnectionClass = self.api.connection;
+
       // create a new connection instance
-      var connection = new self.api.connection(self.api, details);
+      var connection = new ConnectionClass(self.api, details);
 
       // define sendMessage method
       connection.sendMessage = function (message) {
@@ -272,4 +274,3 @@ var GenericServer = function (_EventEmitter) {
 }(_events.EventEmitter);
 
 exports.default = GenericServer;
-//# sourceMappingURL=genericServer.js.map

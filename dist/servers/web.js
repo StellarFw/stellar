@@ -60,7 +60,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*eslint handle-callback-err: 0*/
 
 // server type
 var type = 'web';
@@ -89,7 +89,6 @@ var Web = function (_GenericServer) {
    * @param api       api instance.
    * @param options   map with the server options.
    */
-
   function Web(api, options) {
     _classCallCheck(this, Web);
 
@@ -106,7 +105,7 @@ var Web = function (_GenericServer) {
       throw new Error('api.config.servers.web.rootEndpointType can only be \'api\' or \'file\'.');
     }
 
-    //////////////////// [EVENTS]
+    // -------------------------------------------------------------------------------------------------------- [EVENTS]
     self.on('connection', function (connection) {
       self._determineRequestParams(connection, function (requestMode) {
         switch (requestMode) {
@@ -136,7 +135,7 @@ var Web = function (_GenericServer) {
     return _this;
   }
 
-  //////////////////// [REQUIRED METHODS]
+  // ------------------------------------------------------------------------------------------------ [REQUIRED METHODS]
 
   /**
    * Start the server instance.
@@ -633,48 +632,36 @@ var Web = function (_GenericServer) {
       if (connection.rawConnection.method === 'OPTIONS') {
         requestMode = 'options';
         callback(requestMode);
-      }
+      } else if (requestMode === 'api') {
+        // API
+        // enable trace mode
+        if (connection.rawConnection.method === 'TRACE') {
+          requestMode = 'trace';
+        }
 
-      // API
-      else if (requestMode === 'api') {
-          // enable trace mode
-          if (connection.rawConnection.method === 'TRACE') {
-            requestMode = 'trace';
+        var search = connection.rawConnection.parsedURL.search.slice(1);
+        self._fillParamsFromWebRequest(connection, _qs2.default.parse(search, self.api.config.servers.web.queryParseOptions));
+
+        connection.rawConnection.params.query = connection.rawConnection.parsedURL.query;
+
+        if (connection.rawConnection.method !== 'GET' && connection.rawConnection.method !== 'HEAD' && (connection.rawConnection.req.headers['content-type'] || connection.rawConnection.req.headers['Content-Type'])) {
+          connection.rawConnection.form = new _formidable2.default.IncomingForm();
+
+          for (i in self.api.config.servers.web.formOptions) {
+            connection.rawConnection.form[i] = self.api.config.servers.web.formOptions[i];
           }
 
-          var search = connection.rawConnection.parsedURL.search.slice(1);
-          self._fillParamsFromWebRequest(connection, _qs2.default.parse(search, self.api.config.servers.web.queryParseOptions));
-
-          connection.rawConnection.params.query = connection.rawConnection.parsedURL.query;
-
-          if (connection.rawConnection.method !== 'GET' && connection.rawConnection.method !== 'HEAD' && (connection.rawConnection.req.headers['content-type'] || connection.rawConnection.req.headers['Content-Type'])) {
-            connection.rawConnection.form = new _formidable2.default.IncomingForm();
-
-            for (i in self.api.config.servers.web.formOptions) {
-              connection.rawConnection.form[i] = self.api.config.servers.web.formOptions[i];
+          connection.rawConnection.form.parse(connection.rawConnection.req, function (error, fields, files) {
+            if (error) {
+              self.log('error processing form: ' + String(error), 'error');
+              connection.error = new Error('There was an error processing this form.');
+            } else {
+              connection.rawConnection.params.body = fields;
+              connection.rawConnection.params.files = files;
+              self._fillParamsFromWebRequest(connection, files);
+              self._fillParamsFromWebRequest(connection, fields);
             }
 
-            connection.rawConnection.form.parse(connection.rawConnection.req, function (error, fields, files) {
-              if (error) {
-                self.log('error processing form: ' + String(error), 'error');
-                connection.error = new Error('There was an error processing this form.');
-              } else {
-                connection.rawConnection.params.body = fields;
-                connection.rawConnection.params.files = files;
-                self._fillParamsFromWebRequest(connection, files);
-                self._fillParamsFromWebRequest(connection, fields);
-              }
-
-              if (self.api.config.servers.web.queryRouting !== true) {
-                connection.params.action = null;
-              }
-
-              // process route
-              self.api.routes.processRoute(connection, pathParts);
-
-              callback(requestMode);
-            });
-          } else {
             if (self.api.config.servers.web.queryRouting !== true) {
               connection.params.action = null;
             }
@@ -683,19 +670,29 @@ var Web = function (_GenericServer) {
             self.api.routes.processRoute(connection, pathParts);
 
             callback(requestMode);
-          }
-        } else if (requestMode === 'file') {
-          if (!connection.params.file) {
-            connection.params.file = pathParts.join(_path2.default.sep);
+          });
+        } else {
+          if (self.api.config.servers.web.queryRouting !== true) {
+            connection.params.action = null;
           }
 
-          if (connection.params.file === '' || connection.params.file[connection.params.file.length - 1] === '/') {
-            connection.params.file = connection.params.file + self.api.config.general.directoryFileType;
-          }
-          callback(requestMode);
-        } else if (requestMode === 'client-lib') {
+          // process route
+          self.api.routes.processRoute(connection, pathParts);
+
           callback(requestMode);
         }
+      } else if (requestMode === 'file') {
+        if (!connection.params.file) {
+          connection.params.file = pathParts.join(_path2.default.sep);
+        }
+
+        if (connection.params.file === '' || connection.params.file[connection.params.file.length - 1] === '/') {
+          connection.params.file = connection.params.file + self.api.config.general.directoryFileType;
+        }
+        callback(requestMode);
+      } else if (requestMode === 'client-lib') {
+        callback(requestMode);
+      }
     }
   }, {
     key: 'processClientLib',
@@ -703,7 +700,7 @@ var Web = function (_GenericServer) {
       var self = this;
 
       // client lib
-      var file = _path2.default.normalize(self.api.config.general.paths.temp + _path2.default.sep + self.api.config.servers.websocket.clientJsName + '.js');
+      var file = _path2.default.normalize(self.api.config.general.paths.public + _path2.default.sep + self.api.config.servers.websocket.clientJsName + '.js');
 
       // define the file to be loaded
       connection.params.file = file;
@@ -977,4 +974,3 @@ var Web = function (_GenericServer) {
 }(_genericServer2.default);
 
 exports.default = Web;
-//# sourceMappingURL=web.js.map

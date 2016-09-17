@@ -4,8 +4,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // initializer modules
-
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _utils = require('../utils');
 
@@ -18,7 +17,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 /**
  * This class manage all actions.
  */
-
 var Actions = function () {
 
   /**
@@ -40,7 +38,6 @@ var Actions = function () {
    *
    * @type {{}}
    */
-
   function Actions(api) {
     _classCallCheck(this, Actions);
 
@@ -89,8 +86,11 @@ var Actions = function () {
     value: function call(actionName, params, callback) {
       var self = this;
 
+      // get connection class
+      var ConnectionClass = self.api.connection;
+
       // create a new connection object
-      var connection = new self.api.connection(self.api, {
+      var connection = new ConnectionClass(self.api, {
         type: 'internal',
         remotePort: 0,
         remoteIP: 0,
@@ -103,8 +103,11 @@ var Actions = function () {
       // set action who must be called
       connection.params.action = actionName;
 
+      // get action processor class
+      var ActionProcessor = self.api.actionProcessor;
+
       // create a new ActionProcessor instance
-      var actionProcessor = new self.api.actionProcessor(self.api, connection, function (data) {
+      var actionProcessor = new ActionProcessor(self.api, connection, function (data) {
         // execute the callback on the connection destroy event
         connection.destroy(function () {
           return callback(data.response.error, data.response);
@@ -440,4 +443,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=actions.js.map

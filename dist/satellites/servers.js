@@ -7,10 +7,6 @@ Object.defineProperty(exports, "__esModule", {
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // module dependencies
 
 
-var _lodash = require('lodash');
-
-var _lodash2 = _interopRequireDefault(_lodash);
-
 var _path = require('path');
 
 var _path2 = _interopRequireDefault(_path);
@@ -30,7 +26,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 /**
  * Manager for server instances.
  */
-
 var Servers = function () {
 
   /**
@@ -44,7 +39,6 @@ var Servers = function () {
    * Engine API instance.
    * @type {null}
    */
-
   function Servers(api) {
     _classCallCheck(this, Servers);
 
@@ -95,12 +89,12 @@ var Servers = function () {
         if (options && options.enable === true) {
           (function () {
             // get server constructor
-            var serverConstructor = require(file).default;
+            var ServerConstructor = require(file).default;
 
             // push the new job to the queue
             jobs.push(function (done) {
               // instance the new server
-              self.servers[serverName] = new serverConstructor(self.api, options);
+              self.servers[serverName] = new ServerConstructor(self.api, options);
 
               // log a debug message
               self.api.log('Initialized server: ' + serverName, 'debug');
@@ -270,4 +264,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=servers.js.map

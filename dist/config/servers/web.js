@@ -187,4 +187,3 @@ exports.default = {
     }
   }
 };
-//# sourceMappingURL=web.js.map

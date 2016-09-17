@@ -34,7 +34,6 @@ var I18n = function () {
   /**
    * Stellar api object.
    */
-
   function I18n(api) {
     _classCallCheck(this, I18n);
 
@@ -209,4 +208,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=i18n.js.map

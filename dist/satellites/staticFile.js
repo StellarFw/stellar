@@ -25,7 +25,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 /**
  * Class to manage the static files.
  */
-
 var StaticFile = function () {
 
   /**
@@ -40,7 +39,6 @@ var StaticFile = function () {
    *
    * @type {null}
    */
-
   function StaticFile(api) {
     _classCallCheck(this, StaticFile);
 
@@ -303,4 +301,3 @@ var _class = function () {
 }();
 
 exports.default = _class;
-//# sourceMappingURL=staticFile.js.map
