@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://stellar-framework.com" target="_blank">
-    <img width="250" src="https://stellar-framework.com/imgs/logotype_github.png">
+    <img width="100" src="https://stellar-framework.com/images/logo.png">
   </a>
 </p>
 
