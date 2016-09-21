@@ -47,10 +47,11 @@ describe('Core: Event', function () {
   })
 
   it('event.fire', done => {
-    api.events.fire('example', { value: '' }, response => {
-      response.value.should.be.equal('thisIsATest')
-      done()
-    })
+    api.events.fire('example', { value: '' })
+      .then(response => {
+        response.value.should.be.equal('thisIsATest')
+        done()
+      })
   })
 
   it('listeners need an event name and a run function', done => {
@@ -83,9 +84,10 @@ describe('Core: Event', function () {
       next()
     }, 5)
 
-    api.events.fire('prog', { value: 'test' }, response => {
-      response.value.should.be.equal('test01')
-      done()
-    })
+    api.events.fire('prog', { value: 'test' })
+      .then(response => {
+        response.value.should.be.equal('test01')
+        done()
+      })
   })
 })
