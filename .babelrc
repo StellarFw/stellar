@@ -1,8 +1,7 @@
 {
-  "presets": [
-    "es2015"
-  ],
   "plugins": [
-    "transform-class-properties"
+    "transform-class-properties",
+    "transform-async-to-generator",
+    "transform-es2015-modules-commonjs"
   ]
 }

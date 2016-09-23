@@ -13,6 +13,8 @@ const Engine = require('../../dist/engine').default
 
 /**
  * Test command class.
+ *
+ * @todo add support to test a single module or some modules using commas.
  */
 class TestCommand extends Command {
 
@@ -75,10 +77,10 @@ class TestCommand extends Command {
 
     // inject some useful objects to avoid add mocha, should and stellar to the
     // modules npm dependencies
-    global.should = require('should')
+    global.Should = require('should')
     global.engine = new Engine({ rootPath: Utils.getCurrentUniverse() })
 
-    // define the environment to test mode
+    // set environment to test mode
     process.env.NODE_ENV = 'test'
 
     // run the tests
