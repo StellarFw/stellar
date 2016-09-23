@@ -43,6 +43,11 @@ commander.command('run')
   .option('clean', 'Remove all temporary files and node modules')
   .action(require('./commands/run'))
 
+// register test command
+commander.command('test')
+  .description('Run the app tests')
+  .action(require('./commands/test'))
+
 // register cluster command
 commander.command('startCluster')
   .description('Create a custer')

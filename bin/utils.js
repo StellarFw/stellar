@@ -1,11 +1,11 @@
 'use strict'
 
-// ----------------------------------------------------------------------------------------------------------- [Imports]
+// ---------------------------------------------------------------------------- [Imports]
 
 let fs = require('fs')
 let Handlebars = require('handlebars')
 
-// ------------------------------------------------------------------------------------------------------------- [Class]
+// ---------------------------------------------------------------------------- [Class]
 
 module.exports = class Utils {
   /**
@@ -14,6 +14,14 @@ module.exports = class Utils {
    * @returns {*|String}
    */
   static getCurrentUniverse () { return process.cwd() }
+
+  /**
+   * read the manifest.json file to get the active modules and return them.
+   */
+  static getAppModules () {
+    const manifest = Utils.fileContent(`${Utils.getCurrentUniverse()}/manifest.json`)
+    return JSON.parse(manifest).modules || []
+  }
 
   /**
    * Check if a file/folder exists.
@@ -127,7 +135,7 @@ module.exports = class Utils {
    */
   static folderIsEmpty (path) {
     let list = fs.readdirSync(path)
-    list = list.filter(item => !(/(^|\/)\.[^\/\.]/g).test(item));
+    list = list.filter(item => !(/(^|\/)\.[^\/\.]/g).test(item))
 
     return list.length <= 0
   }
@@ -141,7 +149,7 @@ module.exports = class Utils {
     try {
       fs.mkdirSync(path)
     } catch (e) {
-      if (e.code != 'EEXIST') { throw e }
+      if (e.code !== 'EEXIST') { throw e }
     }
   }
 
@@ -167,4 +175,3 @@ module.exports = class Utils {
     Utils.createFile(outputPath, template(data))
   }
 }
-

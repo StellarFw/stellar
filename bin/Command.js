@@ -4,12 +4,12 @@ module.exports = class {
 
   constructor () {
     // define the console colors
-    this.FgRed = "\x1b[31m"
-    this.FgGreen = "\x1b[32m"
-    this.FgYellow = "\x1b[33m"
-    this.FgBlue = "\x1b[34m"
-    this.FgWhite = "\x1b[37m"
-    this.FgDefault = "\x1b[39m"
+    this.FgRed = '\x1b[31m'
+    this.FgGreen = '\x1b[32m'
+    this.FgYellow = '\x1b[33m'
+    this.FgBlue = '\x1b[34m'
+    this.FgWhite = '\x1b[37m'
+    this.FgDefault = '\x1b[39m'
 
     // create an usage variable
     this.usage = ''
@@ -27,17 +27,20 @@ module.exports = class {
    *
    * @param msg Message to be printed.
    */
-  printError (msg) {
-    console.log(`\n${this.FgRed}Error: ${msg}\n`)
-  }
+  printError (msg) { console.log(`\n${this.FgRed}Error: ${msg}\n`) }
+
+  /**
+   * Print an info message.
+   *
+   * @param msg Message to be printed.
+   */
+  printInfo (msg) { console.log(`\n${this.FgBlue}Info: ${msg}\n`) }
 
   /**
    * Print a success message.
    *
    * @param msg Message to be printed.
    */
-  printSuccess (msg) {
-    console.log(`\n${this.FgGreen}Success: ${msg}\n`)
-  }
+  printSuccess (msg) { console.log(`\n${this.FgGreen}Success: ${msg}\n`) }
 
 }
