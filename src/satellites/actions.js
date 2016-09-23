@@ -56,8 +56,14 @@ class Actions {
    * @param params      Action parameters.
    * @param callback    Callback function.
    */
-  call (actionName, params, callback) {
+  call (actionName, params = {}, callback = () => {}) {
     let self = this
+
+    // make the action call more sweet 🍭
+    if (typeof params === 'function') {
+      callback = params
+      params = {}
+    }
 
     // get connection class
     let ConnectionClass = self.api.connection

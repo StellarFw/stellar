@@ -222,12 +222,4 @@ describe('Core: API', function () {
     })
   })
 
-  it('can execute action internally', done => {
-    api.actions.call('formattedSum', {a: 3, b: 3}, (error, response) => {
-      should.not.exist(error)
-      response.formatted.should.equal('3 + 3 = 6')
-      done()
-    })
-  })
-
 })
