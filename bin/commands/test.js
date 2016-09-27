@@ -77,6 +77,7 @@ class TestCommand extends Command {
 
     // inject some useful objects to avoid add mocha, should and stellar to the
     // modules npm dependencies
+    // fix: see why the global.should are been subscribed
     global.Should = require('should')
     global.engine = new Engine({ rootPath: Utils.getCurrentUniverse() })
 
