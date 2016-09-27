@@ -130,6 +130,14 @@ describe('Servers: TCP', function () {
     })
   })
 
+  it('can execute namespaced actions', done => {
+    makeSocketRequest(client1, JSON.stringify({ action: 'isolated.action' }), response => {
+      should.not.exist(response.error)
+      response.success.should.be.equal('ok')
+      done()
+    })
+  })
+
   it('really long messages are OK', done => {
     // build a long message using v4 UUIDs
     let msg = {

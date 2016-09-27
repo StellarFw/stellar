@@ -125,6 +125,14 @@ describe('Servers: Web Socket', function () {
     })
   })
 
+  it('can execute namespaced actions', done => {
+    client1.action('isolated.action', response => {
+      should.not.exist(response.error)
+      response.success.should.be.equal('ok')
+      done()
+    })
+  })
+
   it('will limit how many simultaneous connections a client can have', function (done) {
     let responses = []
     client1.action('sleep', {sleepDuration: 100}, response => responses.push(response))
