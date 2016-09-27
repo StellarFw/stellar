@@ -23,7 +23,7 @@ class Hash {
    */
   constructor (api) { this.api = api }
 
-  // ---------------------------------------------------------------------------------------------------------- [Public]
+  // -------------------------------------------------------------------------- [Public]
 
   /**
    * Generate new bcrypt salt
@@ -42,13 +42,16 @@ class Hash {
    *
    * @param rounds  Number of rounds
    */
-  generateSaltSync (rounds = this.api.config.general.saltRounds) { return bcrypt.genSaltSync(rounds) }
+  generateSaltSync (rounds = this.api.config.general.saltRounds) {
+    return bcrypt.genSaltSync(rounds)
+  }
 
   /**
    * Hash data
    *
    * @param data          Data to hash
-   * @param _config       Additional configuration where you can override pre-defined config
+   * @param _config       Additional configuration where you can override
+   *                      pre-defined config
    * @return {Promise}
    */
   hash (data, _config = {}) {
@@ -102,7 +105,7 @@ class Hash {
    */
   compareSync (plainData, hash) { return bcrypt.compareSync(plainData, hash) }
 
-  // --------------------------------------------------------------------------------------------------------- [Private]
+  // -------------------------------------------------------------------------- [Private]
 
   /**
    * Get configs to be used on the generation.
