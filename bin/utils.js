@@ -78,9 +78,14 @@ module.exports = class Utils {
   /**
    * Remove the object pointed by the path (file/directory).
    *
+   * This function checks if the path exists before try remove him.
+   *
    * @param path  Path to be removed.
    */
   static removePath (path) {
+    // if the path don't exists return
+    if (!Utils.exists(path)) { return }
+
     // if the path is a file remote it and return
     if (fs.statSync(path).isFile()) { return fs.unlinkSync(path) }
 

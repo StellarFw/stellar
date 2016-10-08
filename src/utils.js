@@ -228,22 +228,18 @@ export default class Utils {
   /**
    * Remove a directory.
    *
-   * @param dir   Directory path.
+   * @param path   Directory path.
    */
-  static removeDirectory (dir) {
+  static removeDirectory (path) {
     let filesList
 
     // get directory files
-    try {
-      filesList = fs.readdirSync(dir)
-    } catch (e) {
-      return
-    }
+    try { filesList = fs.readdirSync(path) } catch (e) { return }
 
     // iterate all folders and files on the directory
-    filesList.forEach((file) => {
+    filesList.forEach(file => {
       // get full file path
-      let filePath = `${dir}/${file}`
+      let filePath = `${path}/${file}`
 
       // check if it's a file
       if (fs.statSync(filePath).isFile()) {
@@ -254,7 +250,7 @@ export default class Utils {
     })
 
     // remove current directory
-    fs.rmdirSync(dir)
+    fs.rmdirSync(path)
   }
 
   /**
@@ -381,4 +377,52 @@ export default class Utils {
     return { host: host, port: parseInt(port, 10) }
   }
 
+  /**
+   * Check if a file/folder exists.
+   *
+   * @param path
+   * @returns {boolean}
+   */
+  static exists (path) {
+    try {
+      fs.accessSync(path, fs.F_OK)
+      return true
+    } catch (e) {}
+
+    return false
+  }
+
+  /**
+   * Remove the object pointed by the path (file/directory).
+   *
+   * This function checks if the path exists before try remove him.
+   *
+   * @param path  Path to be removed.
+   */
+  static removePath (path) {
+    // if the path don't exists return
+    if (!Utils.exists(path)) { return }
+
+    // if the path is a file remote it and return
+    if (fs.statSync(path).isFile()) { return fs.unlinkSync(path) }
+
+    // remove all the directory content
+    Utils.removeDirectory(path)
+  }
+
+  /**
+   * Create a new folder.
+   *
+   * @param String dir  Path for the directory to be created.
+   */
+   static mkdir (dir, mode) {
+     try {
+       fs.mkdirSync(dir, mode)
+     } catch (e) {
+       if (e.code === 'ENOENT') {
+         Utils.mkdir(path.dirname(dir), mode)
+         Utils.mkdir(dir, mode)
+       }
+     }
+   }
 }

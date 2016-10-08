@@ -1,6 +1,6 @@
 'use strict'
 
-// ----------------------------------------------------------------------------------------------------------- [Imports]
+// ----------------------------------------------------------------------------- [Imports]
 
 let os = require('os')
 let Utils = require('../utils')
@@ -8,30 +8,19 @@ let cluster = require('cluster')
 let pkg = require('../../package.json')
 let Engine = require('../../dist/engine').default
 
-// ------------------------------------------------------------------------------------------------------------ [Module]
+// ----------------------------------------------------------------------------- [Module]
 
 module.exports = function (args) {
   // build initial scope
   let scope = {
     rootPath: process.cwd(),
-    stellarPackageJSON: pkg
+    stellarPackageJSON: pkg,
+    args
   }
 
   // number of ms to wait to do a force shutdown if the Stellar won't stop gracefully
   let shutdownTimeout = 1000 * 30
   if (process.env.STELLAR_SHUTDOWN_TIMEOUT) { shutdownTimeout = parseInt(process.env.STELLAR_SHUTDOWN_TIMEOUT) }
-
-  // if args contains `clean` options, we must remove all temporary files
-  if (args.clean !== undefined) {
-    let tempFilesLocations = [
-      `${scope.rootPath}/temp`,
-      `${scope.rootPath}/package.json`,
-      `${scope.rootPath}/node_modules`
-    ]
-
-    // iterate all temp paths and remove all
-    tempFilesLocations.forEach(path => Utils.removePath(path))
-  }
 
   // API reference
   let api = null
@@ -59,7 +48,7 @@ module.exports = function (args) {
     checkForInternalStopTimer = setTimeout(checkForInternalStop, shutdownTimeout)
   }
 
-  // --------------------------------------------------------------------------------------------------------- [Actions]
+  // --------------------------------------------------------------------------- [Actions]
 
   /**
    * Start the server execution.
@@ -144,7 +133,7 @@ module.exports = function (args) {
     })
   }
 
-  // --------------------------------------------------------------------------------------------------------- [Process]
+  // --------------------------------------------------------------------------- [Process]
 
   /**
    * Stop the process.

@@ -1,4 +1,3 @@
-import fs from 'fs'
 import i18n from 'i18n'
 import Utils from '../utils'
 
@@ -40,7 +39,7 @@ class I18n {
     // create locale folder (remove first if exists)
     let localePath = self.api.config.general.paths.temp + '/locale'
     Utils.removeDirectory(localePath)
-    fs.mkdirSync(localePath)
+    Utils.mkdir(localePath)
 
     // iterate all modules
     for (let module in self.api.modules.activeModules.keys()) {

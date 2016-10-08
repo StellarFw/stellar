@@ -41,6 +41,7 @@ commander.command('run')
   .option('prod', 'Enable production mode')
   .option('port', 'Define the port here the server will listening')
   .option('clean', 'Remove all temporary files and node modules')
+  .option('update', 'Update dependencies')
   .action(require('./commands/run'))
 
 // register test command

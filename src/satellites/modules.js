@@ -90,11 +90,30 @@ class Modules {
   processNpmDependencies (next) {
     let self = this
 
-    // don't use NPM on test environment
+    // don't use NPM on test environment (otherwise the tests will fail)
     if (self.api.env === 'test') { return next() }
 
-    // if the `package.json` file already exists don't search for NPM dependencies
-    if (Utils.fileExists(`${self.api.scope.rootPath}/package.json`)) { return next() }
+    // get scope variable
+    const scope = this.api.scope
+
+    // check if the stellar is starting in clean mode. If yes we need remove all
+    // temporary files and process every thing again
+    if (scope.args.clean) {
+      // list of temporary files
+      let tempFilesLocations = [
+        `${scope.rootPath}/temp`,
+        `${scope.rootPath}/package.json`,
+        `${scope.rootPath}/node_modules`
+      ]
+
+      // iterate all temp paths and remove all of them
+      tempFilesLocations.forEach(path => Utils.removePath(path))
+    }
+
+    // if the `package.json` file already exists and Stellar isn't starting with
+    // the `update` flag return now
+    if (Utils.fileExists(`${scope.rootPath}/package.json`) &&
+      !scope.args.update) { return next() }
 
     // global npm dependencies
     let npmDependencies = {}
@@ -118,12 +137,17 @@ class Modules {
     }
 
     // generate project.json file
-    fs.writeFileSync(`${self.api.scope.rootPath}/package.json`, JSON.stringify(projectJson, null, 2), 'utf8')
+    const packageJsonPath = `${self.api.scope.rootPath}/package.json`
+    Utils.removePath(packageJsonPath)
+    fs.writeFileSync(packageJsonPath, JSON.stringify(projectJson, null, 2), 'utf8')
 
     self.api.log('updating NPM packages', 'info')
 
+    // check the command to be executed
+    const npmCommand = scope.args.update ? `npm update` : `npm install`
+
     // run npm command
-    exec('npm install', error => {
+    exec(npmCommand, error => {
       // if an error occurs finish the process
       if (error) {
         self.api.log('An error occurs during the NPM install command', 'emergency')
