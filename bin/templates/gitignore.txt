@@ -1,6 +1,8 @@
 # stellar
 dist/
 temp/
+public/docs/
+public/stelar-client*
 package.json
 
 # node.js & npm
