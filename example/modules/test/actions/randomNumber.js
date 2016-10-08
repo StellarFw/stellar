@@ -2,19 +2,19 @@
 
 exports.randomNumber = {
   name: 'randomNumber',
-  description: 'Generate a random number',
+  description: 'Generates a random number',
   outputExample: {
     number: 0.40420848364010453
   },
 
-  run: (api, action, next) => {
-    // generate a random number
+  run (api, action, next) {
+    // generates a random number
     var number = Math.random()
 
-    // save the generated number on the response property
+    // save the generated number on the response object
     action.response.number = number
 
-    // return a formatted string
+    // also adds a formatted string
     action.response.formatedNumber = 'Your random number is ' + number
 
     // finish the action execution
