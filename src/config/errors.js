@@ -59,12 +59,11 @@ export default {
       // ---------------------------------------------------------------------
       // When a params for an action is invalid
       // ---------------------------------------------------------------------
-      invalidParams: params => params.join(', '),
-
-      // ---------------------------------------------------------------------
-      // When a required param for an action is not provided
-      // ---------------------------------------------------------------------
-      missingParams: params => `${params[ 0 ]} is a required parameter for this action`,
+      invalidParams: errors => {
+        const response = {}
+        errors.forEach((message, attribute) => response[attribute] = message)
+        return response
+      },
 
       // ---------------------------------------------------------------------
       // When a param was an invalid type

@@ -19,8 +19,7 @@ class ActionProcessor {
   messageCount = null
   params = null
   callback = null
-  missingParams = []
-  validatorErrors = []
+  validatorErrors = new Map()
   actionStartTime = null
   actionTemplate = null
   working = false
@@ -90,8 +89,6 @@ class ActionProcessor {
       error = self.api.config.errors.unknownAction(self.connection.action)
     } else if (status === 'unsupported_server_type') {
       error = self.api.config.errors.unsupportedServerType(self.connection.type)
-    } else if (status === 'missing_params') {
-      error = self.api.config.errors.missingParams(self.missingParams)
     } else if (status === 'validator_errors') {
       error = self.api.config.errors.invalidParams(self.validatorErrors)
     } else if (status) {
@@ -223,6 +220,9 @@ class ActionProcessor {
   validateParams () {
     let self = this
 
+    // hash who contains all the field to be validated
+    const toValidate = {}
+
     // iterate inputs definitions of the called action
     for (let key in self.actionTemplate.inputs) {
       // get input properties
@@ -238,7 +238,7 @@ class ActionProcessor {
       }
 
       // convert
-      if (props.convertTo !== undefined) {
+      if (props.convertTo && this.params[key]) {
         // Function
         if (typeof props.convertTo === 'function') {
           self.params[ key ] = props.convertTo.call(self.api, self.params[ key ], self)
@@ -251,35 +251,24 @@ class ActionProcessor {
         }
 
         if (Number.isNaN(self.params[ key ])) {
-          self.validatorErrors.push(self.api.config.errors.paramInvalidType(key, props.convertTo))
-          return
+          self.validatorErrors.set(key, self.api.config.errors.paramInvalidType(key, props.convertTo))
         }
       }
 
-      // validator
-      if (props.validator !== undefined) {
-        let validatorResponse = true
-
-        if (typeof props.validator === 'function') {
-          validatorResponse = props.validator.call(self.api, self.params[ key ], self)
-        } else if (typeof props.validator === 'string') {
-          validatorResponse = self.api.validator.validate(props.validator, self.params, key)
-        } else {
-          let pattern = new RegExp(props.validator)
-          validatorResponse = pattern.test(self.params[ key ]) ? true : `Don't match with the validator.`
-        }
-
-        // if an error are present add it to the validatorErrors array
-        if (validatorResponse !== true) { self.validatorErrors.push(validatorResponse) }
-      }
-
-      // required
+      // convert the required property to a validator to unify the validation
+      // system
       if (props.required === true) {
-        if (self.api.config.general.missingParamChecks.indexOf(self.params[ key ]) >= 0) {
-          self.missingParams.push(key)
-        }
+        props.validator = (!props.validator) ? 'required' : 'required|' + props.validator
       }
+
+      // add the field to the validation hash
+      if (props.validator) { toValidate[key] = props.validator }
     }
+
+    // execute all validators. If there is found some error on the validations,
+    // the error map must be attributed to `validatorErrors`
+    let response = this.api.validator.validate(self.params, toValidate)
+    if (response !== true) { self.validatorErrors = response }
   }
 
   /**
@@ -331,9 +320,7 @@ class ActionProcessor {
 
       if (error) {
         self.completeAction(error)
-      } else if (self.missingParams.length > 0) {
-        self.completeAction('missing_params')
-      } else if (self.validatorErrors.length > 0) {
+      } else if (self.validatorErrors.size > 0) {
         self.completeAction('validator_errors')
       } else if (self.toProcess === true && !error) {
         // execute the action logic

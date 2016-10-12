@@ -174,6 +174,9 @@ export default class Engine {
     // save current execution scope
     self.api.scope = scope
 
+    // define args if them are not already defined
+    if (!self.api.scope.args) { self.api.scope.args = {} }
+
     // save the engine reference for external calls
     self.api._self = self
 

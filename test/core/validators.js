@@ -9,9 +9,7 @@ let async = require('async')
 
 let api = null
 
-let simplesValidator = (name, value) => api.validator.validate(name, { key: value }, 'key')
-
-let dontMatch = `don't match with the validator`
+let simplesValidator = (name, value) => api.validator.validate({ key: value }, { key: name })
 
 describe('Core: Validators', function () {
 
@@ -26,11 +24,6 @@ describe('Core: Validators', function () {
   after(done => {
     // finish the Stellar instance execution
     engine.stop(() => { done() })
-  })
-
-  it('key is mandatory', done => {
-    should(api.validator.validate('alpha', {}, '')).be.equal('a key must be specified')
-    done()
   })
 
   it('alpha', done => {
@@ -66,102 +59,90 @@ describe('Core: Validators', function () {
   })
 
   it('before', done => {
-    should(simplesValidator('before', '')).be.equal('you need to specify an argument')
-    should(simplesValidator('before:2016--28', '')).be.equal('the specified argument is not a valid date')
-    should(simplesValidator('before:2016-05-28', 'asd')).be.equal('the specified value is not a valid date')
+    (() => { simplesValidator('before:2016--28', '') }).should.throw('the specified argument is not a valid date')
+
+    should(simplesValidator('before:2016-05-28', 'asd')).not.be.equal(true)
     should(simplesValidator('before:2016-05-28', '2016-05-12')).be.equal(true)
-    should(simplesValidator('before:2016-05-28', '2016-07-18')).be.equal(dontMatch)
+    should(simplesValidator('before:2016-05-28', '2016-07-18')).not.be.equal(true)
     done()
   })
 
   it('between', done => {
-    should(simplesValidator('between', '')).be.equal('invalid validator arguments')
-    should(simplesValidator('between:20,50', 'asd')).be.equal(dontMatch)
+    (() => simplesValidator('between', '')).should.throw()
+    should(simplesValidator('between:20,50', 'asd')).not.be.equal(true)
     should(simplesValidator('between:1,3', '23')).be.equal(true)
-    should(simplesValidator('between:5,50', 200)).be.equal(dontMatch)
+    should(simplesValidator('between:5,50', 200)).not.be.equal(true)
     should(simplesValidator('between:0,10', 6)).be.equal(true)
-    should(simplesValidator('between:0,20', [ 1, 2, 4 ])).be.equal('invalid data type')
+    should(simplesValidator('between:0,20', [ 1, 2, 4 ])).not.be.equal(true)
     done()
   })
 
   it('boolean', done => {
     should(simplesValidator('boolean', true)).be.equal(true)
     should(simplesValidator('boolean', false)).be.equal(true)
-    should(simplesValidator('boolean', 'asd')).be.equal(dontMatch)
-    should(simplesValidator('boolean', 123)).be.equal(dontMatch)
-    should(simplesValidator('boolean', [ 1, 2 ])).be.equal(dontMatch)
-    should(simplesValidator('boolean', { key: 'value' })).be.equal(dontMatch)
+    should(simplesValidator('boolean', 'asd')).not.be.equal(true)
+    should(simplesValidator('boolean', 123)).not.be.equal(true)
+    should(simplesValidator('boolean', [ 1, 2 ])).not.be.equal(true)
+    should(simplesValidator('boolean', { key: 'value' })).not.be.equal(true)
     done()
   })
 
   it('confirmed', done => {
-    should(api.validator.validate('confirmed', {
-      'key': 'value',
-      'key_confirmation': 'value'
-    }, 'key', 'value')).be.equal(true)
-    should(api.validator.validate('confirmed', { 'key': 'value' }, 'key')).be.equal('the confirmation field are not present')
-    should(api.validator.validate('confirmed', {
-      'key': 'value',
-      'key_confirmation': 'different_value'
-    }, 'key')).be.equal('the values not match')
+    should(api.validator.validate({ key: 'value', key_confirmation: 'value' }, { key: 'confirmed' })).be.equal(true)
+    should(api.validator.validate({ key: 'value' }, { key: 'confirmed' })).not.be.equal(true)
+    should(api.validator.validate({
+      key: 'value',
+      key_confirmation: 'other_value'
+    }, { key: 'confirmed' })).not.be.equal(true)
     done()
   })
 
   it('date', done => {
-    should(simplesValidator('date', '')).be.equal('the specified value is not a valid date')
+    should(simplesValidator('date', '')).be.not.equal(true)
     should(simplesValidator('date', '2016-05-28')).be.equal(true)
     done()
   })
 
   it('different', done => {
-    should(api.validator.validate('different', {
-      'key': 'value',
-      'key2': 'value2'
-    }, 'key')).be.equal('the validator need one argument')
-    should(api.validator.validate('different:key2', {
-      'key': 'value',
-      'key2': 'value'
-    }, 'key')).be.equal(dontMatch)
-    should(api.validator.validate('different:key2', {
-      'key': 'value',
-      'key2': 'value2'
-    }, 'key')).be.equal(true)
+    (() => { api.validator.validate({ 'key': 'value', 'key2': 'value2' }, { 'key': 'different' }) }).should.throw()
+    should(api.validator.validate({ 'key': 'value', 'key2': 'value' }, { 'key': 'different:key2' })).not.be.equal(true)
+    should(api.validator.validate({ 'key': 'value', 'key2': 'value2' }, { 'key': 'different:key2' })).be.equal(true)
     done()
   })
 
   it('email', done => {
-    should(simplesValidator('email', '')).be.equal(dontMatch)
-    should(simplesValidator('email', 'user')).be.equal(dontMatch)
-    should(simplesValidator('email', 'example.com')).be.equal(dontMatch)
-    should(simplesValidator('email', 'user@example')).be.equal(dontMatch)
+    should(simplesValidator('email', '')).not.be.equal(true)
+    should(simplesValidator('email', 'user')).not.be.equal(true)
+    should(simplesValidator('email', 'example.com')).not.be.equal(true)
+    should(simplesValidator('email', 'user@example')).not.be.equal(true)
     should(simplesValidator('email', 'user@example.com')).be.equal(true)
     should(simplesValidator('email', 'user.surname@example.com')).be.equal(true)
     done()
   })
 
   it('filled', done => {
-    should(simplesValidator('filled', null)).be.equal(dontMatch)
-    should(simplesValidator('filled', '')).be.equal(dontMatch)
+    should(simplesValidator('filled', null)).not.be.equal(true)
+    should(simplesValidator('filled', '')).not.be.equal(true)
     should(simplesValidator('filled', 'value')).be.equal(true)
     done()
   })
 
   it('in', done => {
-    should(simplesValidator('in', '1')).be.equal('validator needs an array')
+    (() => { simplesValidator('in', '1') }).should.throw('validator needs an array')
     should(simplesValidator('in:1,2,3', '1')).be.equal(true)
-    should(simplesValidator('in:1,2,3', '7')).be.equal(dontMatch)
+    should(simplesValidator('in:1,2,3', '7')).not.be.equal(true)
     done()
   })
 
   it('not_in', done => {
-    should(simplesValidator('not_in', '1')).be.equal('validator needs an array')
-    should(simplesValidator('not_in:1,2,3', '1')).be.equal(dontMatch)
+    (() => { simplesValidator('not_in', '1') }).should.throw('validator needs an array')
+    should(simplesValidator('not_in:1,2,3', '1')).not.be.equal(true)
     should(simplesValidator('not_in:1,2,3', '7')).be.equal(true)
     done()
   })
 
   it('integer', done => {
-    should(simplesValidator('integer', 'asd')).be.equal(dontMatch)
+    should(simplesValidator('integer', 'asd')).not.be.equal(true)
     should(simplesValidator('integer', '123')).be.equal(true)
     should(simplesValidator('integer', 123)).be.equal(true)
     done()
@@ -169,182 +150,228 @@ describe('Core: Validators', function () {
 
   it('ip', done => {
     should(simplesValidator('ip', '127.0.0.1')).be.equal(true)
-    should(simplesValidator('ip', '')).be.equal(dontMatch)
+    should(simplesValidator('ip', '')).not.be.equal(true)
     done()
   })
 
   it('json', done => {
-    should(simplesValidator('json', '')).be.equal(dontMatch)
-    should(simplesValidator('json', 'string')).be.equal(dontMatch)
-    should(simplesValidator('json', '123')).be.equal(dontMatch)
-    should(simplesValidator('json', 123)).be.equal(dontMatch)
+    should(simplesValidator('json', '')).not.be.equal(true)
+    should(simplesValidator('json', 'string')).not.be.equal(true)
+    should(simplesValidator('json', '123')).not.be.equal(true)
+    should(simplesValidator('json', 123)).not.be.equal(true)
     should(simplesValidator('json', JSON.stringify({ key: 'test', value: 123 }))).be.equal(true)
     done()
   })
 
   it('max', done => {
-    should(simplesValidator('max', '')).be.equal('validator need at least one argument')
-    should(simplesValidator('max:2', null)).be.equal('invalid type')
-    should(simplesValidator('max:10', 9)).be.equal(true)
-    should(simplesValidator('max:10', 10)).be.equal(true)
-    should(simplesValidator('max:10', 11)).be.equal(dontMatch)
+    (() => { simplesValidator('max', '') }).should.throw('Validation rule max requires at least 1 parameters.')
+    should(simplesValidator('numeric|max:10', 9)).be.equal(true)
+    should(simplesValidator('numeric|max:10', 10)).be.equal(true)
+    should(simplesValidator('numeric|max:10', 11)).have.value('key', 'The key may not be greater than 10.')
     should(simplesValidator('max:3', 'as')).be.equal(true)
     should(simplesValidator('max:3', 'asd')).be.equal(true)
-    should(simplesValidator('max:3', 'asdf')).be.equal(dontMatch)
+    should(simplesValidator('max:3', 'asdf')).have.value('key', 'The key may not be greater than 3 characters.')
+    should(simplesValidator('array|max:3', [ 1, 2 ])).be.equal(true)
+    should(simplesValidator('array|max:3', [ 1, 2, 3 ])).be.equal(true)
+    should(simplesValidator('array|max:3', [ 1, 2, 3, 4 ])).have.value('key', 'The key may not have more than 3 items.')
+
     done()
   })
 
   it('min', done => {
-    should(simplesValidator('min', '')).be.equal('validator need at least one argument')
-    should(simplesValidator('min:3', null)).be.equal('invalid type')
-    should(simplesValidator('min:3', 2)).be.equal(dontMatch)
-    should(simplesValidator('min:3', 3)).be.equal(true)
-    should(simplesValidator('min:3', 4)).be.equal(true)
-    should(simplesValidator('min:3', 'as')).be.equal(dontMatch)
+    (() => { simplesValidator('min', '') }).should.throw('Validation rule min requires at least 1 parameters.')
+    should(simplesValidator('numeric|min:3', 2)).have.value('key', 'The key must be at least 3.')
+    should(simplesValidator('numeric|min:3', 3)).be.equal(true)
+    should(simplesValidator('numeric|min:3', 4)).be.equal(true)
+    should(simplesValidator('min:3', 'as')).have.value('key', 'The key must be at least 3 characters.')
     should(simplesValidator('min:3', 'asd')).be.equal(true)
     should(simplesValidator('min:3', 'asdf')).be.equal(true)
+    should(simplesValidator('array|min:3', [ 1, 2 ])).have.value('key', 'The key must have at least 3 items.')
+    should(simplesValidator('array|min:3', [ 1, 2, 3 ])).be.equal(true)
+    should(simplesValidator('array|min:3', [ 1, 2, 3, 4 ])).be.equal(true)
     done()
   })
 
   it('required', done => {
-    should(api.validator.validate('required', {}, 'key')).be.equal(dontMatch)
+    should(api.validator.validate({}, { key: 'required' })).not.be.equal(true)
     should(simplesValidator('required', 'someValue')).be.equal(true)
     done()
   })
 
   it('numeric', done => {
-    should(simplesValidator('numeric', 'asd')).be.equal(dontMatch)
+    should(simplesValidator('numeric', 'asd')).not.be.equal(true)
     should(simplesValidator('numeric', 123)).be.equal(true)
     should(simplesValidator('numeric', 123.123)).be.equal(true)
     done()
   })
 
+  it('regex', done => {
+    (() => { simplesValidator('regex', 'asd') })
+      .should.throw('Validation rule regex requires at least 1 parameters.')
+
+    simplesValidator('regex:^\\d{3}$', 'asd').should.have.value('key', 'The key format is invalid.')
+
+    simplesValidator('regex:^\\d{3}$', '123').should.be.equal(true)
+
+    done()
+  })
+
   it('required_if', done => {
-    should(api.validator.validate('required_if', {
-      key: 'v1',
-      key2: 'v2'
-    }, 'key', 'v1')).be.equal('validator need two arguments')
-    should(api.validator.validate('required_if:key2,v,v1,v2', { key2: 'b' }, 'key')).be.equal(true)
-    should(api.validator.validate('required_if:key2,v,v1,v2', { key2: 'v1' }, 'key')).be.equal(dontMatch)
-    should(api.validator.validate('required_if:key2,v1', { key: 'v1', key2: 'v2' }, 'key')).be.equal(true)
+    (() => {
+      api.validator.validate({
+        key: 'v1',
+        key2: 'v2'
+      }, { key: 'required_if' })
+    }).should.throw('Validation rule required_if requires at least 2 parameters.')
+    should(api.validator.validate({ key2: 'b' }, { key: 'required_if:key2,v,v1,v2' })).be.equal(true)
+    should(api.validator.validate({ key2: 'v1' }, { key: 'required_if:key2,v,v1,v2' })).have.value('key', 'The key field is required when key2 is in v, v1, v2.')
+    should(api.validator.validate({ key: 'v1', key2: 'v2' }, { key: 'required_if:key2,v1' })).be.equal(true)
+
     done()
   })
 
   it('required_unless', done => {
-    should(api.validator.validate('required_unless', {key: ''}, 'key')).be.equal('validator need two arguments')
-    should(api.validator.validate('required_unless:key2,val1,val2', { key: '' }, 'key')).be.equal(dontMatch)
-    should(api.validator.validate('required_unless:key2,val1,val2', {
+    (() => { api.validator.validate({ key: '' }, { key: 'required_unless' }) }).should.throw('Validation rule required_unless requires at least 2 parameters.')
+    should(api.validator.validate({ key: '' }, { key: 'required_unless:key2,val1,val2' })).have.value('key', 'The key field is required unless key2 is in val1, val2.')
+    should(api.validator.validate({
       key: '',
       key2: 'otherValue'
-    }, 'key')).be.equal(dontMatch)
-    should(api.validator.validate('required_unless:key2,val1,val2', { key: 'notEmpty' }, 'key')).be.equal(true)
-    should(api.validator.validate('required_unless:key2,val1,val2', {
-      key: '',
-      key2: 'val1'
-    }, 'key')).be.equal(true)
+    }, { key: 'required_unless:key2,val1,val2' })).have.value('key', 'The key field is required unless key2 is in val1, val2.')
+    should(api.validator.validate({ key: 'notEmpty' }, { key: 'required_unless:key2,val1,val2' })).be.equal(true)
+    should(api.validator.validate({ key: '', key2: 'val1' }, { key: 'required_unless:key2,val1,val2' })).be.equal(true)
+
     done()
   })
 
   it('required_with', done => {
-    should(api.validator.validate('required_with', {key: ''}, 'key')).be.equal('validator need two arguments')
-    should(api.validator.validate('required_with:name,surname', { key: '' }, 'key')).be.equal(true)
-    should(api.validator.validate('required_with:name,surname', {
+    (() => {
+      api.validator.validate({ key: '' }, { key: 'required_with' })
+    }).should.throw('Validation rule required_with requires at least 2 parameters.')
+    should(api.validator.validate({ key: '' }, { key: 'required_with:name,surname' })).be.equal(true)
+    should(api.validator.validate({
       key: '',
       name: 'Alec'
-    }, 'key')).be.equal(dontMatch)
-    should(api.validator.validate('required_with:name,surname', {
+    }, {
+      key: 'required_with:name,surname'
+    })).have.value('key', 'The key field is required when at least one of name, surname is present.')
+    should(api.validator.validate({
       key: 'someValue',
       name: 'Alec'
-    }, 'key')).be.equal(true)
+    }, { key: 'required_with:name,surname' })).be.equal(true)
+
     done()
   })
 
   it('required_with_all', done => {
-    should(api.validator.validate('required_with_all', {key: ''}, 'key')).be.equal('validator need two arguments')
-    should(api.validator.validate('required_with_all:name,surname', { key: '' }, 'key')).be.equal(true)
-    should(api.validator.validate('required_with_all:name,surname', {
+    (() => {
+      api.validator.validate({ key: '' }, { key: 'required_with_all' })
+    }).should.throw('Validation rule required_with_all requires at least 2 parameters.')
+    should(api.validator.validate({ key: '' }, { key: 'required_with_all:name,surname' })).be.equal(true)
+    should(api.validator.validate({
       key: '',
       name: 'Alec'
-    }, 'key')).be.equal(true)
-    should(api.validator.validate('required_with_all:name,surname', {
+    }, { key: 'required_with_all:name,surname' })).be.equal(true)
+    should(api.validator.validate({
       key: '',
       name: 'Alec',
       surname: 'Sadler'
-    }, 'key')).be.equal(dontMatch)
-    should(api.validator.validate('required_with_all:name,surname', {
+    }, { key: 'required_with_all:name,surname' })).have.value('key', 'The key field is required when name, surname are present.')
+    should(api.validator.validate({
       key: 'someValue',
       name: 'Alec',
       surname: 'Sadler'
-    }, 'key')).be.equal(true)
-    should(api.validator.validate('required_with_all:name,surname', { key: 'someValue' }, 'key')).be.equal(true)
+    }, { key: 'required_with_all:name,surname' })).be.equal(true)
+    should(api.validator.validate({ key: 'someValue' }, { key: 'required_with_all:name,surname' })).be.equal(true)
+
     done()
   })
 
   it('required_without', done => {
-    should(api.validator.validate('required_without', {key: ''}, 'key')).be.equal('validator need two arguments')
-    should(api.validator.validate('required_without:name,surname', { key: '' }, 'key')).be.equal(dontMatch)
-    should(api.validator.validate('required_without:name,surname', {
-      key: '',
-      name: 'Alec'
-    }, 'key')).be.equal(dontMatch)
-    should(api.validator.validate('required_without:name,surname', {
-      key: 'someValue',
-      name: 'Alec'
-    }, 'key')).be.equal(true)
-    should(api.validator.validate('required_without:name,surname', {
+    (() => {
+      api.validator.validate({ key: '' }, { key: 'required_without' })
+    }).should.throw('Validation rule required_without requires at least 2 parameters.')
+
+    should(api.validator.validate({ key: '' }, { key: 'required_without:name,surname' }))
+      .have.value('key', 'The key field is required when at least one of name, surname is not present.')
+
+    should(api.validator.validate({ key: '', name: 'Alec' }, { key: 'required_without:name,surname' }))
+      .have.value('key', 'The key field is required when at least one of name, surname is not present.')
+
+    should(api.validator.validate({ key: 'someValue',  name: 'Alec' }, { key: 'required_without:name,surname' }))
+      .be.equal(true)
+
+    should(api.validator.validate({
       key: 'someValue',
       name: 'Alec',
       surname: 'Sadler'
-    }, 'key')).be.equal(true)
+    }, { key: 'required_without:name,surname' })).be.equal(true)
+
     done()
   })
 
   it('required_without_all', done => {
-    should(api.validator.validate('required_without_all', {key: ''}, 'key')).be.equal('validator need two arguments')
-    should(api.validator.validate('required_without_all:name,surname', { key: '' }, 'key')).be.equal(dontMatch)
-    should(api.validator.validate('required_without_all:name,surname', {
-      key: '',
-      name: 'Alec'
-    }, 'key')).be.equal(true)
-    should(api.validator.validate('required_without_all:name,surname', {
+    (() => {
+      api.validator.validate({ key: '' }, { key: 'required_without_all' })
+    }).should.throw('Validation rule required_without_all requires at least 2 parameters.')
+
+    should(api.validator.validate({ key: '' }, { key: 'required_without_all:name,surname' }))
+      .have.value('key', 'The key field is required when none of name, surname are present.')
+
+    should(api.validator.validate({ key: '', name: 'Alec' }, { key: 'required_without_all:name,surname' }))
+      .be.equal(true)
+
+    should(api.validator.validate({
       key: '',
       name: 'Alec',
       surname: 'Sadler'
-    }, 'key')).be.equal(true)
-    should(api.validator.validate('required_without_all:name,surname', {
+    }, { key: 'required_without_all:name,surname' })).be.equal(true)
+
+    should(api.validator.validate({
       key: 'someValue',
       name: 'Alec',
       surname: 'Sadler'
-    }, 'key')).be.equal(true)
-    should(api.validator.validate('required_without_all:name,surname', { key: 'someValue' }, 'key')).be.equal(true)
+    }, { key: 'required_without_all:name,surname' })).be.equal(true)
+    should(api.validator.validate({ key: 'someValue' }, { key: 'required_without_all:name,surname' })).be.equal(true)
+
     done()
   })
 
   it('same', done => {
-    should(api.validator.validate('same', {key: ''}, 'key')).be.equal('validator need one argument')
-    should(api.validator.validate('same:opass', { pass: 'test', opass: 'test' }, 'pass')).be.equal(true)
-    should(api.validator.validate('same:opass', { pass: 'test', opass: 'test__' }, 'pass')).be.equal(dontMatch)
+    (() => {
+      api.validator.validate({ key: '' }, { key: 'same' })
+    }).should.throw('Validation rule same requires at least 1 parameters.')
+
+    should(api.validator.validate({ pass: 'test', opass: 'test' }, { pass: 'same:opass' })).be.equal(true)
+
+    should(api.validator.validate({ pass: 'test', opass: 'test__' }, { pass: 'same:opass' }))
+      .have.value('pass', 'The pass and opass must match.')
+
     done()
   })
 
   it('size', done => {
-    should(simplesValidator('size', 'value')).be.equal('validator need one numeric argument')
-    should(simplesValidator('size:4', 'qwe')).be.equal(dontMatch)
+    (() => {
+      simplesValidator('size', 'value')
+    }).should.throw('Validation rule size requires at least 1 parameters.')
+
+    should(simplesValidator('size:4', 'qwe')).have.value('key', 'The key must be 4 characters.')
     should(simplesValidator('size:4', 'qwer')).be.equal(true)
-    should(simplesValidator('size:4', 'qwert')).be.equal(dontMatch)
-    should(simplesValidator('size:4', 3)).be.equal(dontMatch)
-    should(simplesValidator('size:4', 4)).be.equal(true)
-    should(simplesValidator('size:4', 5)).be.equal(dontMatch)
-    should(simplesValidator('size:4', [ 1, 2, 3 ])).be.equal(dontMatch)
-    should(simplesValidator('size:4', [ 1, 2, 3, 4 ])).be.equal(true)
-    should(simplesValidator('size:4', [ 1, 2, 3, 4, 5 ])).be.equal(dontMatch)
+    should(simplesValidator('size:4', 'qwert')).have.value('key', 'The key must be 4 characters.')
+    should(simplesValidator('numeric|size:4', 3)).have.value('key', 'The key must be 4.')
+    should(simplesValidator('numeric|size:4', 4)).be.equal(true)
+    should(simplesValidator('numeric|size:4', 5)).have.value('key', 'The key must be 4.')
+    should(simplesValidator('array|size:4', [ 1, 2, 3 ])).have.value('key', 'The key must contain 4 items.')
+    should(simplesValidator('array|size:4', [ 1, 2, 3, 4 ])).be.equal(true)
+    should(simplesValidator('array|size:4', [ 1, 2, 3, 4, 5 ])).have.value('key', 'The key must contain 4 items.')
+
     done()
   })
 
   it('url', done => {
-    should(simplesValidator('url', '//some/thing')).be.equal(dontMatch)
+    should(simplesValidator('url', '//some/thing')).have.value('key', 'The key format is invalid.')
     should(simplesValidator('url', 'https://gilmendes.wordpress.com')).be.equal(true)
     should(simplesValidator('url', 'https://duckduckgo.com/?q=stellar&t=osx&ia=meanings')).be.equal(true)
+
     done()
   })
 
