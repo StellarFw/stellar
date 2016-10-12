@@ -1,9 +1,10 @@
 import {argv} from 'yargs'
-import Utils from '../utils'
 import cluster from 'cluster'
 
 /**
  * Setup the server ID.
+ *
+ * TODO: we can use the args from the engine to avoid using the yargs.
  *
  * This ID, can be configured using:
  * - the 'api.config.general.id' configuration;
@@ -40,7 +41,7 @@ export default class {
       api.id = process.env.STELLAR_TITLE
     } else if (!api.config.general.id) {
       // get servers external IP
-      let externalIP = Utils.getExternalIPAddress()
+      let externalIP = api.utils.getExternalIPAddress()
 
       if (externalIP === false) {
         let message = ' * Error fetching this host external IP address; setting id base to \'stellar\''

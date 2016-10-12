@@ -2,7 +2,9 @@ import os from 'os'
 import fs from 'fs'
 import path from 'path'
 
-export default class Utils {
+export class Utils {
+
+  constructor () {}
 
   /**
    * Read all files from the given directory.
@@ -10,7 +12,7 @@ export default class Utils {
    * @param dir         Folder path to search.
    * @returns {Array}   Array with the files paths.
    */
-  static getFiles (dir) {
+  getFiles (dir) {
     var results = []
 
     fs.readdirSync(dir).forEach(file => {
@@ -32,7 +34,7 @@ export default class Utils {
    * @param extension
    * @returns {Array.<T>}
    */
-  static recursiveDirectoryGlob (dir, extension) {
+  recursiveDirectoryGlob (dir, extension) {
     var results = []
 
     if (!extension) { extension = 'js' }
@@ -48,11 +50,11 @@ export default class Utils {
           let child
 
           if (stats.isDirectory()) {
-            child = Utils.recursiveDirectoryGlob(fullFilePath, extension)
+            child = this.recursiveDirectoryGlob(fullFilePath, extension)
             child.forEach(c => results.push(c))
           } else if (stats.isSymbolicLink()) {
             let realPath = fs.readlinkSync(fullFilePath)
-            child = Utils.recursiveDirectoryGlob(realPath)
+            child = this.recursiveDirectoryGlob(realPath)
             child.forEach(c => results.push(c))
           } else if (stats.isFile()) {
             let fileParts = file.split('.')
@@ -74,18 +76,18 @@ export default class Utils {
    * @param arg
    * @returns {{}}
    */
-  static hashMerge (a, b, arg) {
+  hashMerge (a, b, arg) {
     let c = {}
     let i, response
 
     for (i in a) {
-      if (Utils.isPlainObject(a[ i ]) && Object.keys(a[ i ]).length > 0) {
-        c[ i ] = Utils.hashMerge(c[ i ], a[ i ], arg)
+      if (this.isPlainObject(a[ i ]) && Object.keys(a[ i ]).length > 0) {
+        c[ i ] = this.hashMerge(c[ i ], a[ i ], arg)
       } else {
         if (typeof a[ i ] === 'function') {
           response = a[ i ](arg)
-          if (Utils.isPlainObject(response)) {
-            c[ i ] = Utils.hashMerge(c[ i ], response, arg)
+          if (this.isPlainObject(response)) {
+            c[ i ] = this.hashMerge(c[ i ], response, arg)
           } else {
             c[ i ] = response
           }
@@ -95,13 +97,13 @@ export default class Utils {
       }
     }
     for (i in b) {
-      if (Utils.isPlainObject(b[ i ]) && Object.keys(b[ i ]).length > 0) {
-        c[ i ] = Utils.hashMerge(c[ i ], b[ i ], arg)
+      if (this.isPlainObject(b[ i ]) && Object.keys(b[ i ]).length > 0) {
+        c[ i ] = this.hashMerge(c[ i ], b[ i ], arg)
       } else {
         if (typeof b[ i ] === 'function') {
           response = b[ i ](arg)
-          if (Utils.isPlainObject(response)) {
-            c[ i ] = Utils.hashMerge(c[ i ], response, arg)
+          if (this.isPlainObject(response)) {
+            c[ i ] = this.hashMerge(c[ i ], response, arg)
           } else {
             c[ i ] = response
           }
@@ -119,7 +121,7 @@ export default class Utils {
    * @param o
    * @returns {boolean}
    */
-  static isPlainObject (o) {
+  isPlainObject (o) {
     let safeTypes = [ Boolean, Number, String, Function, Array, Date, RegExp, Buffer ]
     let safeInstances = [ 'boolean', 'number', 'string', 'function' ]
     let expandPreventMatchKey = '_toExpand' // set `_toExpand = false` within an object if you don't want to expand it
@@ -153,7 +155,7 @@ export default class Utils {
    * @param req
    * @returns {{}}
    */
-  static parseCookies (req) {
+  parseCookies (req) {
     let cookies = {}
     if (req.headers.cookie) {
       req.headers.cookie.split(';').forEach(function (cookie) {
@@ -170,7 +172,7 @@ export default class Utils {
    * @param obj
    * @returns {*}
    */
-  static collapseObjectToArray (obj) {
+  collapseObjectToArray (obj) {
     try {
       let keys = Object.keys(obj)
       if (keys.length < 1) {
@@ -205,7 +207,7 @@ export default class Utils {
    * @param array Array to be uniquefied.
    * @returns {Array} New array.
    */
-  static arrayUniqueify (array) {
+  arrayUniqueify (array) {
     array.filter((value, index, self) => {
       return self.indexOf(value) === index
     })
@@ -213,16 +215,16 @@ export default class Utils {
     return array
   }
 
-  static isObject (arg) {
+  isObject (arg) {
     return typeof arg === 'object' && arg !== null
   }
 
-  static objectToString (o) {
+  objectToString (o) {
     return Object.prototype.toString.call(o)
   }
 
-  static isError (e) {
-    return Utils.isObject(e) && (Utils.objectToString(e) === '[object Error]' || e instanceof Error)
+  isError (e) {
+    return this.isObject(e) && (this.objectToString(e) === '[object Error]' || e instanceof Error)
   }
 
   /**
@@ -230,7 +232,7 @@ export default class Utils {
    *
    * @param path   Directory path.
    */
-  static removeDirectory (path) {
+  removeDirectory (path) {
     let filesList
 
     // get directory files
@@ -245,7 +247,7 @@ export default class Utils {
       if (fs.statSync(filePath).isFile()) {
         fs.unlinkSync(filePath)
       } else {
-        Utils.removeDirectory(filePath)
+        this.removeDirectory(filePath)
       }
     })
 
@@ -259,7 +261,7 @@ export default class Utils {
    * @param dir           Directory path.
    * @returns {boolean}   True if exists, false if not or the given path isn't a directory.
    */
-  static directoryExists (dir) {
+  directoryExists (dir) {
     try {
       fs.statSync(dir).isDirectory()
     } catch (er) {
@@ -275,7 +277,7 @@ export default class Utils {
    * @param path          Path to check.
    * @returns {boolean}   True if the file exists, false otherwise.
    */
-  static fileExists (path) {
+  fileExists (path) {
     try {
       fs.statSync(path).isFile()
     } catch (error) {
@@ -290,7 +292,7 @@ export default class Utils {
    *
    * @param path Path there the directory must be created.
    */
-  static createFolder (path) {
+  createFolder (path) {
     try {
       fs.mkdirSync(path)
     } catch (e) {
@@ -306,7 +308,7 @@ export default class Utils {
    * @param source        Source path.
    * @param destination   Destination path.
    */
-  static copyFile (source, destination) {
+  copyFile (source, destination) {
     fs.createReadStream(source).pipe(fs.createWriteStream(destination))
   }
 
@@ -315,7 +317,7 @@ export default class Utils {
    *
    * @returns {String} Server external IP or false if not founded.
    */
-  static getExternalIPAddress () {
+  getExternalIPAddress () {
     let ifaces = os.networkInterfaces()
     let ip = false
 
@@ -336,13 +338,13 @@ export default class Utils {
    * @param obj         Object to be cloned.
    * @returns {Object}  New object reference.
    */
-  static objClone (obj) {
+  objClone (obj) {
     return Object.create(Object.getPrototypeOf(obj), Object.getOwnPropertyNames(obj).reduce((memo, name) => {
       return (memo[ name ] = Object.getOwnPropertyDescriptor(obj, name)) && memo
     }, {}))
   }
 
-  static stringToHash (api, path, object) {
+  stringToHash (api, path, object) {
     if (!object) { object = api }
     function _index (obj, i) { return obj[ i ] }
 
@@ -355,7 +357,7 @@ export default class Utils {
    * @param address   Address to be parsed.
    * @returns {{host: string, port: Number}}
    */
-  static parseIPv6URI (address) {
+  parseIPv6URI (address) {
     let host = '::1'
     let port = 80
     let regexp = new RegExp(/\[([0-9a-f:]+)\]:([0-9]{1,5})/)
@@ -383,7 +385,7 @@ export default class Utils {
    * @param path
    * @returns {boolean}
    */
-  static exists (path) {
+  exists (path) {
     try {
       fs.accessSync(path, fs.F_OK)
       return true
@@ -399,15 +401,15 @@ export default class Utils {
    *
    * @param path  Path to be removed.
    */
-  static removePath (path) {
+  removePath (path) {
     // if the path don't exists return
-    if (!Utils.exists(path)) { return }
+    if (!this.exists(path)) { return }
 
     // if the path is a file remote it and return
     if (fs.statSync(path).isFile()) { return fs.unlinkSync(path) }
 
     // remove all the directory content
-    Utils.removeDirectory(path)
+    this.removeDirectory(path)
   }
 
   /**
@@ -415,14 +417,30 @@ export default class Utils {
    *
    * @param String dir  Path for the directory to be created.
    */
-   static mkdir (dir, mode) {
+   mkdir (dir, mode) {
      try {
        fs.mkdirSync(dir, mode)
      } catch (e) {
        if (e.code === 'ENOENT') {
-         Utils.mkdir(path.dirname(dir), mode)
-         Utils.mkdir(dir, mode)
+         this.mkdir(path.dirname(dir), mode)
+         this.mkdir(dir, mode)
        }
      }
    }
+}
+
+export default class {
+
+  /**
+   * Satellite load priority.
+   *
+   * @type {Number}
+   */
+  loadPriority = 0
+
+  load (api, next) {
+    api.utils = new Utils()
+    next()
+  }
+
 }

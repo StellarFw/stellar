@@ -1,5 +1,3 @@
-import Utils from '../utils'
-
 /**
  * This class manage all actions.
  */
@@ -350,10 +348,10 @@ export default class {
     // iterate all modules and load all actions
     api.modules.modulesPaths.forEach(modulePath => {
       // load modules middleware
-      Utils.recursiveDirectoryGlob(`${modulePath}/middleware`).forEach(path => api.actions.loadMiddlewareFromFile(path))
+      api.utils.recursiveDirectoryGlob(`${modulePath}/middleware`).forEach(path => api.actions.loadMiddlewareFromFile(path))
 
       // get all files from the module "actions" folder
-      Utils.recursiveDirectoryGlob(`${modulePath}/actions`).forEach(actionFile => api.actions.loadFile(actionFile))
+      api.utils.recursiveDirectoryGlob(`${modulePath}/actions`).forEach(actionFile => api.actions.loadFile(actionFile))
     })
 
     // finish initializer loading

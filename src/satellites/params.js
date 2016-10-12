@@ -1,5 +1,3 @@
-import Utils from '../utils'
-
 /**
  * Manage the application secure params.
  */
@@ -58,7 +56,7 @@ class Params {
     }
 
     // remove the duplicated entries
-    self.postVariables = Utils.arrayUniqueify(postVariables)
+    self.postVariables = this.api.utils.arrayUniqueify(postVariables)
 
     return self.postVariables
   }

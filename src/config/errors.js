@@ -1,5 +1,3 @@
-import Utils from '../utils'
-
 export default {
   errors: api => {
     return {
@@ -12,28 +10,28 @@ export default {
       serializers: {
         servers: {
           web: error => {
-            if (Utils.isError(error)) {
+            if (api.utils.isError(error)) {
               return String(error.message)
             } else {
               return error
             }
           },
           websocket: error => {
-            if (Utils.isError(error)) {
+            if (api.utils.isError(error)) {
               return String(error.message)
             } else {
               return error
             }
           },
           tcp: error => {
-            if (Utils.isError(error)) {
+            if (api.utils.isError(error)) {
               return String(error.message)
             } else {
               return error
             }
           },
           helper: error => {
-            if (Utils.isError(error)) {
+            if (api.utils.isError(error)) {
               return 'Error: ' + String(error.message)
             } else {
               return error

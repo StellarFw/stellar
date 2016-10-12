@@ -1,5 +1,4 @@
 import async from 'async'
-import Utils from '../utils'
 
 /**
  * Class to manage events.
@@ -140,10 +139,10 @@ class EventsManager {
       let listenersFolderPath = `${modulePath}/listeners`
 
       // check if the listeners
-      if (!Utils.directoryExists(listenersFolderPath)) { return }
+      if (!this.api.utils.directoryExists(listenersFolderPath)) { return }
 
       // get all listeners files
-      Utils.recursiveDirectoryGlob(listenersFolderPath, 'js').forEach(listenerPath => {
+      this.api.utils.recursiveDirectoryGlob(listenersFolderPath, 'js').forEach(listenerPath => {
         // require listener file
         let collection = require(listenerPath)
 

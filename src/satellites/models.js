@@ -1,5 +1,4 @@
 import path from 'path'
-import Utils from '../utils'
 import mongoose from 'mongoose'
 
 /**
@@ -222,7 +221,7 @@ export default class {
     api.models.openConnection(() => {
       // read models files from the modules
       api.modules.modulesPaths.forEach(modulePath => {
-        Utils.recursiveDirectoryGlob(`${modulePath}/models`).forEach(moduleFile => {
+        api.utils.recursiveDirectoryGlob(`${modulePath}/models`).forEach(moduleFile => {
           // get file basename
           let basename = path.basename(moduleFile, '.js')
 

@@ -1,7 +1,6 @@
 /*eslint handle-callback-err: 0*/
 
 import async from 'async'
-import Utils from '../utils'
 
 class TaskSatellite {
 
@@ -196,7 +195,7 @@ class TaskSatellite {
       let tasksFolder = `${modulePath}/tasks`
 
       // load task files
-      Utils.recursiveDirectoryGlob(tasksFolder).forEach(f => self.loadFile(f))
+      this.api.utils.recursiveDirectoryGlob(tasksFolder).forEach(f => self.loadFile(f))
     })
   }
 

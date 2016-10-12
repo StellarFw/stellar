@@ -1,7 +1,6 @@
 /*eslint handle-callback-err: 0*/
 
 import async from 'async'
-import Utils from '../utils'
 
 class ChatRooms {
 
@@ -464,7 +463,7 @@ class ChatRooms {
     let newMessagePayload
 
     // if the message payload are defined create a clone
-    if (messagePayload) { newMessagePayload = Utils.objClone(messagePayload) }
+    if (messagePayload) { newMessagePayload = this.api.utils.objClone(messagePayload) }
 
     // apply global middleware
     self.globalMiddleware.forEach(name => {

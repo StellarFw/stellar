@@ -1,6 +1,5 @@
 import fs from 'fs'
 import path from 'path'
-import Utils from '../utils'
 
 class ConfigManager {
 
@@ -174,7 +173,7 @@ class ConfigManager {
     let self = this
 
     // get all files from the config folder
-    let configFiles = Utils.recursiveDirectoryGlob(configPath)
+    let configFiles = this.api.utils.recursiveDirectoryGlob(configPath)
 
     let loadRetries = 0
     let loadErrors = {}
@@ -186,8 +185,8 @@ class ConfigManager {
       try {
         // attempt configuration file load
         let localConfig = require(file)
-        if (localConfig.default) { self.api.config = Utils.hashMerge(self.api.config, localConfig.default, self.api) }
-        if (localConfig[ self.api.env ]) { self.api.config = Utils.hashMerge(self.api.config, localConfig[ self.api.env ], self.api) }
+        if (localConfig.default) { self.api.config = this.api.utils.hashMerge(self.api.config, localConfig.default, self.api) }
+        if (localConfig[ self.api.env ]) { self.api.config = this.api.utils.hashMerge(self.api.config, localConfig[ self.api.env ], self.api) }
 
         // configuration file load success: clear retries and errors since progress
         // has been made
@@ -220,8 +219,8 @@ class ConfigManager {
   _createTempFolder () {
     let self = this
 
-    if (!Utils.directoryExists(`${self.api.scope.rootPath}/temp`)) {
-      Utils.createFolder(`${self.api.scope.rootPath}/temp`)
+    if (!this.api.utils.directoryExists(`${self.api.scope.rootPath}/temp`)) {
+      this.api.utils.createFolder(`${self.api.scope.rootPath}/temp`)
     }
   }
 }

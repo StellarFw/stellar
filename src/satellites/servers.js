@@ -1,7 +1,6 @@
 // module dependencies
 import path from 'path'
 import async from 'async'
-import Utils from '../utils'
 
 /**
  * Manager for server instances.
@@ -40,7 +39,7 @@ class Servers {
     let jobs = []
 
     // get the list of servers to load
-    let serversFiles = Utils.getFiles(path.resolve(__dirname + '/../servers'))
+    let serversFiles = this.api.utils.getFiles(path.resolve(__dirname + '/../servers'))
 
     for (let k in serversFiles) {
       // get server filename

@@ -1,5 +1,4 @@
 import bcrypt from 'bcrypt'
-import Utils from '../utils'
 
 /**
  * This class is a wrapper for bcrypt library.
@@ -117,7 +116,7 @@ class Hash {
   _getConfigs (_configs = {}) {
     let self = this
 
-    return Utils.hashMerge({
+    return this.api.utils.hashMerge({
       salt: self.api.config.general.salt,
       saltRounds: self.api.config.general.saltRounds,
       saltLength: self.api.config.general.saltLength

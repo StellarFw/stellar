@@ -1,6 +1,5 @@
 import async from 'async'
 import uuid from 'node-uuid'
-import Utils from '../utils'
 
 /**
  * Redis manager class.
@@ -71,7 +70,7 @@ class RedisManager {
         let cmdParts = message.method.split('.')
         let cmd = cmdParts.shift()
         if (cmd !== 'api') { throw new Error('cannot operate on a outside of the api object') }
-        let method = Utils.stringToHash(api, cmdParts.join('.'))
+        let method = this.api.utils.stringToHash(api, cmdParts.join('.'))
 
         let callback = () => {
           let responseArgs = Array.apply(null, arguments).sort()

@@ -1,5 +1,4 @@
 import fs from 'fs'
-import Utils from '../utils'
 import { exec } from 'child_process'
 
 /**
@@ -52,7 +51,7 @@ class Modules {
     let modules = self.api.config.modules
 
     // check if the private module folder exists
-    if (Utils.directoryExists(`${self.api.scope.rootPath}/modules/private`)) { modules.push('private') }
+    if (this.api.utils.directoryExists(`${self.api.scope.rootPath}/modules/private`)) { modules.push('private') }
 
     // this config is required. If doesn't exists or is an empty array
     // an exception should be raised.
@@ -107,12 +106,12 @@ class Modules {
       ]
 
       // iterate all temp paths and remove all of them
-      tempFilesLocations.forEach(path => Utils.removePath(path))
+      tempFilesLocations.forEach(path => this.api.utils.removePath(path))
     }
 
     // if the `package.json` file already exists and Stellar isn't starting with
     // the `update` flag return now
-    if (Utils.fileExists(`${scope.rootPath}/package.json`) &&
+    if (this.api.utils.fileExists(`${scope.rootPath}/package.json`) &&
       !scope.args.update) { return next() }
 
     // global npm dependencies
@@ -123,7 +122,7 @@ class Modules {
       // check if the module have NPM dependencies
       if (manifest.npmDependencies !== undefined) {
         // merge the two hashes
-        npmDependencies = Utils.hashMerge(npmDependencies, manifest.npmDependencies)
+        npmDependencies = this.api.utils.hashMerge(npmDependencies, manifest.npmDependencies)
       }
     })
 
@@ -138,7 +137,7 @@ class Modules {
 
     // generate project.json file
     const packageJsonPath = `${self.api.scope.rootPath}/package.json`
-    Utils.removePath(packageJsonPath)
+    this.api.utils.removePath(packageJsonPath)
     fs.writeFileSync(packageJsonPath, JSON.stringify(projectJson, null, 2), 'utf8')
 
     self.api.log('updating NPM packages', 'info')
