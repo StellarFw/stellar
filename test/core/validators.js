@@ -246,7 +246,7 @@ describe('Core: Validators', function () {
   it('required_with', done => {
     (() => {
       api.validator.validate({ key: '' }, { key: 'required_with' })
-    }).should.throw('Validation rule required_with requires at least 2 parameters.')
+    }).should.throw('Validation rule required_with requires at least 1 parameters.')
     should(api.validator.validate({ key: '' }, { key: 'required_with:name,surname' })).be.equal(true)
     should(api.validator.validate({
       key: '',
@@ -289,7 +289,7 @@ describe('Core: Validators', function () {
   it('required_without', done => {
     (() => {
       api.validator.validate({ key: '' }, { key: 'required_without' })
-    }).should.throw('Validation rule required_without requires at least 2 parameters.')
+    }).should.throw('Validation rule required_without requires at least 1 parameters.')
 
     should(api.validator.validate({ key: '' }, { key: 'required_without:name,surname' }))
       .have.value('key', 'The key field is required when at least one of name, surname is not present.')

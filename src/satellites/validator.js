@@ -604,7 +604,7 @@ class Validator {
    * @returns {*}
    */
   validator_required_with (value, args) {
-    this._requireParameterCount(2, args, 'required_with')
+    this._requireParameterCount(1, args, 'required_with')
 
     // check if one of the parameters are present
     for (let index in args) {
@@ -650,7 +650,7 @@ class Validator {
    * @returns {*}
    */
   validator_required_without (value, args) {
-    this._requireParameterCount(2, args, 'required_without')
+    this._requireParameterCount(1, args, 'required_without')
 
     // if one of the fields are not present the field under validation is required
     for (let index in args) {
