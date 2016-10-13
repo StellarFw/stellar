@@ -1,101 +1,101 @@
-'use strict'
+// constant with the inputs declaration
+const inputsDeclaration = {}
+
+// constant with the edit input declaration
+const editInputDeclaration = JSON.parse(JSON.stringify(inputsDeclaration))
+editInputDeclaration._id = { required: true }
 
 module.exports = [ {
     name: 'create{{modelNameCapitalize}}',
     description: 'Create a new {{modelNameCapitalize}}',
 
-    inputs: {},
+    inputs: inputsDeclaration,
 
-    run: (api, action, next) => {
+    run (api, action, next) {
         // create a new model instance
         var newModel = new (api.models.get('{{modelName}}'))(action.params)
 
         // save it
-        newModel.save(err => {
-            if (err) {
-                // return an error message to the client
-                next(new Error('We can create that resource!'))
-                return
-            }
-
+        newModel.save()
+          .catch(error => {
+            // return an error message to the client
+            next(new Error('We can create that resource!'))
+          })
+          .then(model => {
             // append the new model on the response object
             action.response.{{modelName}} = newModel
 
             // finish the action execution
             next()
-        })
+          })
     }
 }, {
     name: 'get{{modelNameCapitalize}}s',
     description: 'Get all {{modelNameCapitalize}}s',
 
-    run: (api, action, next) => {
-        api.models.get('{{modelName}}').find({}, (err, resources) => {
+    run (api, action, next) {
+        api.models.get('{{modelName}}').find({})
+          .catch(error => { next(error) })
+          .then(resources => {
             action.response.{{modelName}}s = resources
             next()
-        })
+          })
     }
 }, {
     name: 'get{{modelNameCapitalize}}',
     description: 'Get a {{modelNameCapitalize}}',
 
     inputs: {
-        id: {required: true}
+        _id: { required: true }
     },
 
-    run: (api, action, next) => {
+    run (api, action, next) {
         // search for the request post on the DB
-        api.models.get('{{modelName}}').findById(action.params.id, (err, resource) => {
-            // put model information in response object
+        api.models.get('{{modelName}}').findById(action.params._id)
+          .catch(error => { next(error) })
+          .then(resource => {
+            // append the model to the response object
             action.response.{{modelName}} = resource
 
             // finish the action execution
             next()
-        })
+          })
     }
 }, {
     name: 'edit{{modelNameCapitalize}}',
     description: 'Edit a {{modelNameCapitalize}}',
 
-    inputs: {
-        id: {required: true}
-    },
+    inputs: editInputDeclaration,
 
-    run: (api, action, next) => {
+    run (api, action, next) {
         // search for the {{modelNameCapitalize}} and update it
-        api.models.get('{{modelName}}').findOneAndUpdate({_id: action.params.id}, action.params, {upsert: true}, (err, model) => {
-            if (err) {
-                // return an error message to the client
-                next(new Error('We could not find the resource you were looking for'))
-                return
-            }
-
-            // put the updated model on the response object
+        api.models.get('{{modelName}}').findOneAndUpdate({ _id: action.params._id }, action.params, { upsert: true })
+          .catch(error => {
+            next(new Error('We could not find the resource you are looking for'))
+          })
+          .then(model => {
+            // append the updated model to the response object
             action.response.{{modelName}} = model
 
             // finish the action execution
             next()
-        })
+          })
     }
 }, {
     name: 'remove{{modelNameCapitalize}}',
     description: 'Remove a {{modelNameCapitalize}}',
 
     inputs: {
-        id: {required: true}
+        _id: { required: true }
     },
 
-    run: (api, action, next) => {
+    run (api, action, next) {
         // search and remove the model
-        api.models.get('{{modelName}}').findByIdAndRemove(action.params.id, err => {
-            if (err) {
-                  // return an error message to the client
-                  next(new Error('We could not remove the requested resource'))
-                  return
-              }
-
-              // finish the action execution
-              next()
-        })
+        api.models.get('{{modelName}}').findByIdAndRemove(action.params._id)
+          .catch(error => {
+            // return an error message to the client
+            next(new Error('We could not remove the requested resource'))
+          })
+          .then(() => { next() })
     }
 } ]
