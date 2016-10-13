@@ -20,16 +20,18 @@ class ExceptionsManager {
     this.api = api
 
     // load default console handler
-    this.reporters.push(function (err, type, name, objects, severity) {
+    this.reporters.push((err, type, name, objects, severity) => {
+      let lines = []
       let extraMessages = []
 
       if (type === 'loader') {
         extraMessages.push(`! Failed to load ${objects.fullFilePath}`)
       } else if (type === 'action') {
         extraMessages.push(`! uncaught error from action: ${name}`)
+
         extraMessages.push('! connection details:')
         var relevantDetails = [ 'action', 'remoteIP', 'type', 'params', 'room' ]
-        for (var i in relevantDetails) {
+        for (let i in relevantDetails) {
           if (
             objects.connection[ relevantDetails[ i ] ] !== null &&
             objects.connection[ relevantDetails[ i ] ] !== undefined &&
@@ -51,19 +53,27 @@ class ExceptionsManager {
         extraMessages.push('!     Data: ' + JSON.stringify(objects))
       }
 
-      for (let m in extraMessages) {
-        api.log(extraMessages[ m ], severity)
+      // print out the extra messages with the right severity
+      for (let m in extraMessages) { api.log(extraMessages[ m ], severity) }
+
+      // if there is one of the known core exceptions we need to add information
+      // manually to inform the correct error information
+      if (err.name) {
+        lines.push(`${err.name}: ${err.message}`)
+      } else {
+        // add the stack trace
+        try {
+          lines = lines.concat(err.stack.split(os.EOL))
+        } catch (e) {
+          lines = lines.concat(new Error(err).stack.split(os.EOL))
+        }
       }
-      let lines
-      try {
-        lines = err.stack.split(os.EOL)
-      } catch (e) {
-        lines = new Error(err).stack.split(os.EOL)
-      }
+
       for (let l in lines) {
-        var line = lines[ l ]
+        let line = lines[ l ]
         api.log('! ' + line, severity)
       }
+
       api.log('*', severity)
     })
   }
@@ -77,12 +87,8 @@ class ExceptionsManager {
    * @param objects
    * @param severity
    */
-  report (err, type, name, objects, severity) {
+  report (err, type, name, objects, severity = 'error') {
     let self = this
-
-    if (!severity) {
-      severity = 'error'
-    }
 
     for (let i in self.reporters) {
       self.reporters[ i ](err, type, name, objects, severity)
@@ -112,19 +118,21 @@ class ExceptionsManager {
     let self = this
     let simpleName
 
+    // try get the action name. Sometimes this can be impossible so we use the
+    // error message instead.
     try {
       simpleName = data.action
     } catch (e) {
       simpleName = err.message
     }
 
-    let name = `action ${simpleName}`
-    self.report(err, 'action', name, { connection: data.connection }, 'error')
+    // report the error
+    self.report(err, 'action', simpleName, { connection: data.connection }, 'error')
+
     // remove already processed responses
     data.response = {}
-    if (typeof next === 'function') {
-      next()
-    }
+
+    if (typeof next === 'function') { next() }
   }
 
   /**

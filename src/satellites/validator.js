@@ -343,7 +343,7 @@ class Validator {
    * @returns {*}
    */
   validator_between (value, args) {
-    this._requireParameterCount(2, args, 'before')
+    this._requireParameterCount(2, args, 'between')
 
     // check if the value is valid
     if (typeof value === 'string') {
