@@ -58,15 +58,13 @@ class ExceptionsManager {
 
       // if there is one of the known core exceptions we need to add information
       // manually to inform the correct error information
-      if (err.name) {
-        lines.push(`${err.name}: ${err.message}`)
-      } else {
-        // add the stack trace
-        try {
-          lines = lines.concat(err.stack.split(os.EOL))
-        } catch (e) {
-          lines = lines.concat(new Error(err).stack.split(os.EOL))
-        }
+      if (err.name) { lines.push(`${err.name}: ${err.message}`) }
+
+      // add the stack trace
+      try {
+        lines = lines.concat(err.stack.split(os.EOL))
+      } catch (e) {
+        lines = lines.concat(new Error(err).stack.split(os.EOL))
       }
 
       for (let l in lines) {
