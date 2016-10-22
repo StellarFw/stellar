@@ -5,7 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = {
   servers: {
-    websocket: function websocket(api) {
+    websocket: function (api) {
       return {
         // ---------------------------------------------------------------------
         // Enable the server?

@@ -17,12 +17,12 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 exports.default = {
 
-  logger: function logger(api) {
-    var logger = { transports: [] };
+  logger: function (api) {
+    let logger = { transports: [] };
 
     // check if this Stellar instance is the Master
     if (_cluster2.default.isMaster) {
-      logger.transports.push(function (api, winston) {
+      logger.transports.push((api, winston) => {
         return new winston.transports.Console({
           colorize: true,
           level: 'info',
@@ -32,19 +32,19 @@ exports.default = {
     }
 
     // add a file logger
-    var logDirectory = api.config.general.paths.log;
+    let logDirectory = api.config.general.paths.log;
 
     try {
       _fs2.default.mkdirSync(logDirectory);
     } catch (e) {
       if (e.code !== 'EEXIST') {
-        throw new Error('Cannot create log directory @ ' + logDirectory);
+        throw new Error(`Cannot create log directory @ ${ logDirectory }`);
       }
     }
 
-    logger.transports.push(function (api, winston) {
+    logger.transports.push((api, winston) => {
       return new winston.transports.File({
-        filename: logDirectory + '/' + api.pids.title + '.log',
+        filename: `${ logDirectory }/${ api.pids.title }.log`,
         level: 'info',
         timestamp: true
       });
@@ -57,8 +57,8 @@ exports.default = {
   }
 
 };
-var test = exports.test = {
-  logger: function logger(api) {
+const test = exports.test = {
+  logger: api => {
     return {
       transports: null
     };

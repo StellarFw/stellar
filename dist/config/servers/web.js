@@ -12,7 +12,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 exports.default = {
   servers: {
-    web: function web(api) {
+    web: api => {
       return {
         // ---------------------------------------------------------------------
         // Enable server?

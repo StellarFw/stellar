@@ -5,7 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = {
   servers: {
-    tcp: function tcp(api) {
+    tcp: api => {
       return {
         // ---------------------------------------------------------------------
         // Enable server?
@@ -62,9 +62,9 @@ exports.default = {
     }
   }
 };
-var test = exports.test = {
+const test = exports.test = {
   servers: {
-    tcp: function tcp(api) {
+    tcp: api => {
       return {
         enabled: true,
         port: 5001,

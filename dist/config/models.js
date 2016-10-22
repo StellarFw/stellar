@@ -7,7 +7,7 @@ Object.defineProperty(exports, "__esModule", {
  * Models configs.
  */
 exports.default = {
-  models: function models(api) {
+  models: api => {
     return {
       // ---------------------------------------------------------------------
       // Connection string for the MongoDB server
@@ -34,10 +34,10 @@ exports.default = {
  * @type {{models: (function())}}
  */
 
-var test = exports.test = {
-  models: function models(api) {
+const test = exports.test = {
+  models: api => {
     // by default we use mockgoose
-    var pkg = 'mockgoose';
+    let pkg = 'mockgoose';
 
     // if the environment have a MOCKGOOSE var set to false we use mongoose instead
     // of mockgoose
