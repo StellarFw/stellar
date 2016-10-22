@@ -67,11 +67,6 @@ export default {
       filteredParams: [],
 
       // ---------------------------------------------------------------------
-      // Values that signify missing params
-      // ---------------------------------------------------------------------
-      missingParamChecks: [ null, '', undefined ],
-
-      // ---------------------------------------------------------------------
       // Which channel to use on redis pub/sub for RPC communication
       // ---------------------------------------------------------------------
       channel: 'stellar',
