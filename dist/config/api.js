@@ -8,7 +8,7 @@ Object.defineProperty(exports, "__esModule", {
  */
 exports.default = {
 
-  general: function general(api) {
+  general: api => {
     return {
       // ---------------------------------------------------------------------
       // API version
@@ -70,11 +70,6 @@ exports.default = {
       // Params you would like hidden from any logs
       // ---------------------------------------------------------------------
       filteredParams: [],
-
-      // ---------------------------------------------------------------------
-      // Values that signify missing params
-      // ---------------------------------------------------------------------
-      missingParamChecks: [null, '', undefined],
 
       // ---------------------------------------------------------------------
       // Which channel to use on redis pub/sub for RPC communication
@@ -141,8 +136,10 @@ exports.default = {
 
       // ---------------------------------------------------------------------
       // Predefined salt to use in the hash functions
+      //
+      // Attention: you must overwrite this with your own salt
       // ---------------------------------------------------------------------
-      salt: null,
+      salt: '$2a$10$NH3tXRj/M1YX6cXn2RmVI.CFOiKGJz59qfoD3Coe1rN1TJi9olK1S',
 
       // ---------------------------------------------------------------------
       // Predefined salt length to use in the salt generation
@@ -164,8 +161,8 @@ exports.default = {
  * @type {{}}
  */
 
-var test = exports.test = {
-  general: function general(api) {
+const test = exports.test = {
+  general: api => {
     return {
       id: 'test-server',
       developmentMode: true,
@@ -183,8 +180,8 @@ var test = exports.test = {
  *
  * @type {{}}
  */
-var production = exports.production = {
-  general: function general(api) {
+const production = exports.production = {
+  general: api => {
     return {
       developmentMode: false
     };

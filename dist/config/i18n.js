@@ -5,7 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = {
 
-  i18n: function i18n(api) {
+  i18n: function (api) {
     return {
       // ---------------------------------------------------------------------
       // Active locales

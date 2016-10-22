@@ -9,7 +9,7 @@
  * @param client  Client object (if exists).
  * @constructor
  */
-var StellarClient = function StellarClient(opts, client) {
+var StellarClient = function (opts, client) {
   var self = this;
 
   self.callbacks = {};
@@ -61,8 +61,8 @@ StellarClient.prototype.connect = function (callback) {
   // --- define client event handlers
 
   // open
-  self.client.on('open', function () {
-    self.configure(function (details) {
+  self.client.on('open', () => {
+    self.configure(details => {
       if (self.state !== 'connected') {
         self.state = 'connected';
         if (typeof callback === 'function') {
@@ -75,31 +75,31 @@ StellarClient.prototype.connect = function (callback) {
   });
 
   // error
-  self.client.on('error', function (err) {
+  self.client.on('error', err => {
     self.emit('error', err);
   });
 
   // reconnect
-  self.client.on('reconnect', function () {
+  self.client.on('reconnect', () => {
     self.messageCount = 0;
     self.emit('reconnect');
   });
 
   // reconnecting
-  self.client.on('reconnecting', function () {
+  self.client.on('reconnecting', () => {
     self.emit('reconnecting');
     self.state = 'reconnecting';
     self.emit('disconnected');
   });
 
   // timeout
-  self.client.on('timeout', function () {
+  self.client.on('timeout', () => {
     self.state = 'timeout';
     self.emit('timeout');
   });
 
   // end
-  self.client.on('end', function () {
+  self.client.on('end', () => {
     self.messageCount = 0;
 
     if (self.state !== 'disconnected') {
@@ -109,7 +109,7 @@ StellarClient.prototype.connect = function (callback) {
   });
 
   // data
-  self.client.on('data', function (data) {
+  self.client.on('data', data => {
     self.handleMessage(data);
   });
 };
@@ -117,11 +117,11 @@ StellarClient.prototype.connect = function (callback) {
 StellarClient.prototype.configure = function (callback) {
   var self = this;
 
-  self.rooms.forEach(function (room) {
+  self.rooms.forEach(room => {
     self.send({ event: 'roomAdd', room: room });
   });
 
-  self.detailsView(function (details) {
+  self.detailsView(details => {
     self.id = details.data.id;
     self.fingerprint = details.data.fingerprint;
     self.rooms = details.data.rooms;
@@ -155,7 +155,7 @@ StellarClient.prototype.send = function (args, callback) {
  * @param message
  */
 StellarClient.prototype.handleMessage = function (message) {
-  var self = this;
+  let self = this;
 
   self.emit('message', message);
 
@@ -190,11 +190,8 @@ StellarClient.prototype.handleMessage = function (message) {
  * @param params   Action parameters.
  * @param callback Function who will be called when we receive the response.
  */
-StellarClient.prototype.action = function (action) {
-  var params = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-  var callback = arguments[2];
-
-  var self = this;
+StellarClient.prototype.action = function (action, params = {}, callback) {
+  let self = this;
 
   if (!callback && typeof params === 'function') {
     callback = params;
@@ -226,14 +223,14 @@ StellarClient.prototype.action = function (action) {
  * @private
  */
 StellarClient.prototype._actionWeb = function (params, callback) {
-  var self = this;
+  let self = this;
 
   // create a new XMLHttpRequest instance
-  var xmlhttp = new XMLHttpRequest();
+  let xmlhttp = new XMLHttpRequest();
 
   // define the action to be executed at the end of the request
   xmlhttp.onreadystatechange = function () {
-    var response = void 0;
+    let response;
 
     // the response only are received if the readyState is equals to 4
     if (xmlhttp.readyState === 4) {
@@ -258,17 +255,17 @@ StellarClient.prototype._actionWeb = function (params, callback) {
   };
 
   // define the HTTP method to be used (by default we use POST)
-  var method = (params.httpMethod || 'POST').toUpperCase();
+  let method = (params.httpMethod || 'POST').toUpperCase();
 
   // define the URL to be called and append the action on the query params
-  var url = self.options.url + self.options.apiPath + '?action=' + params.action;
+  let url = self.options.url + self.options.apiPath + '?action=' + params.action;
 
   if (method === 'GET') {
-    for (var param in params) {
+    for (let param in params) {
       if (~['action', 'httpMethod'].indexOf(param)) {
         continue;
       }
-      url += '&' + param + '=' + params[param];
+      url += `&${ param }=${ params[param] }`;
     }
   }
 
@@ -290,7 +287,7 @@ StellarClient.prototype._actionWeb = function (params, callback) {
  * @private
  */
 StellarClient.prototype._actionWebSocket = function (params, callback) {
-  var self = this;
+  let self = this;
   self.send({ event: 'action', params: params }, callback);
 };
 
@@ -333,7 +330,7 @@ StellarClient.prototype.detailsView = function (callback) {
  * @param callback  Function to be executed to receive the server response.
  */
 StellarClient.prototype.roomView = function (room, callback) {
-  var self = this;
+  let self = this;
   self.send({ event: 'roomView', room: room }, callback);
 };
 
@@ -344,10 +341,10 @@ StellarClient.prototype.roomView = function (room, callback) {
  * @param callback  Function to be executed to receive the server response.
  */
 StellarClient.prototype.roomAdd = function (room, callback) {
-  var self = this;
+  let self = this;
 
-  self.send({ event: 'roomAdd', room: room }, function (data) {
-    self.configure(function () {
+  self.send({ event: 'roomAdd', room: room }, data => {
+    self.configure(() => {
       if (typeof callback === 'function') {
         callback(data);
       }
@@ -362,10 +359,10 @@ StellarClient.prototype.roomAdd = function (room, callback) {
  * @param callback  Function to be executed to receive the server response.
  */
 StellarClient.prototype.roomLeave = function (room, callback) {
-  var self = this;
+  let self = this;
 
   // get the position of the room on the client rooms list
-  var index = self.rooms.indexOf(room);
+  let index = self.rooms.indexOf(room);
 
   // remove the room from the client room list
   if (index > -1) {
@@ -373,8 +370,8 @@ StellarClient.prototype.roomLeave = function (room, callback) {
   }
 
   // make a server request to remove the client from the room
-  self.send({ event: 'roomLeave', room: room }, function (data) {
-    self.configure(function () {
+  self.send({ event: 'roomLeave', room: room }, data => {
+    self.configure(() => {
       if (typeof callback === 'function') {
         callback(data);
       }
@@ -386,7 +383,7 @@ StellarClient.prototype.roomLeave = function (room, callback) {
  * Disconnect client from the server.
  */
 StellarClient.prototype.disconnect = function () {
-  var self = this;
+  let self = this;
 
   // change the connection state to disconnected
   self.state = 'disconnected';

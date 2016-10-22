@@ -3,21 +3,10 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _utils = require('../utils');
-
-var _utils2 = _interopRequireDefault(_utils);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 /**
  * Manage the application secure params.
  */
-var Params = function () {
+class Params {
 
   /**
    * Create a new instance of this class.
@@ -31,9 +20,7 @@ var Params = function () {
    *
    * @type {string[]}
    */
-  function Params(api) {
-    _classCallCheck(this, Params);
-
+  constructor(api) {
     this.api = null;
     this.globalSafeParams = ['file', 'apiVersion', 'callback', 'action'];
     this.api = api;
@@ -56,50 +43,38 @@ var Params = function () {
    *
    * @type {null}
    */
+  buildPostVariables() {
+    let self = this;
 
+    let i, j;
+    let postVariables = [];
 
-  _createClass(Params, [{
-    key: 'buildPostVariables',
-    value: function buildPostVariables() {
-      var self = this;
+    // push the global safe params for the 'postVariables'
+    self.globalSafeParams.forEach(p => postVariables.push(p));
 
-      var i = void 0,
-          j = void 0;
-      var postVariables = [];
+    // iterate all actions files
+    for (i in self.api.actions.actions) {
+      // iterate all actions definitions
+      for (j in self.api.actions.actions[i]) {
+        // get current action
+        let action = self.api.actions.actions[i][j];
 
-      // push the global safe params for the 'postVariables'
-      self.globalSafeParams.forEach(function (p) {
-        return postVariables.push(p);
-      });
-
-      // iterate all actions files
-      for (i in self.api.actions.actions) {
-        // iterate all actions definitions
-        for (j in self.api.actions.actions[i]) {
-          // get current action
-          var action = self.api.actions.actions[i][j];
-
-          // iterate all inputs keys and add it to postVariables
-          for (var key in action.inputs) {
-            postVariables.push(key);
-          }
+        // iterate all inputs keys and add it to postVariables
+        for (let key in action.inputs) {
+          postVariables.push(key);
         }
       }
-
-      // remove the duplicated entries
-      self.postVariables = _utils2.default.arrayUniqueify(postVariables);
-
-      return self.postVariables;
     }
-  }]);
 
-  return Params;
-}();
+    // remove the duplicated entries
+    self.postVariables = this.api.utils.arrayUniqueify(postVariables);
 
-var _class = function () {
-  function _class() {
-    _classCallCheck(this, _class);
+    return self.postVariables;
+  }
+}
 
+exports.default = class {
+  constructor() {
     this.loadPriority = 420;
   }
 
@@ -110,29 +85,21 @@ var _class = function () {
    */
 
 
-  _createClass(_class, [{
-    key: 'load',
+  /**
+   * Action to the executed on the initializer loading.
+   *
+   * @param api   Api reference.
+   * @param next  Callback function.
+   */
+  load(api, next) {
+    // put the params API available to all platform
+    api.params = new Params(api);
 
+    // build the post variables
+    api.params.buildPostVariables();
 
-    /**
-     * Action to the executed on the initializer loading.
-     *
-     * @param api   Api reference.
-     * @param next  Callback function.
-     */
-    value: function load(api, next) {
-      // put the params API available to all platform
-      api.params = new Params(api);
+    // finish the initializer execution
+    next();
+  }
 
-      // build the post variables
-      api.params.buildPostVariables();
-
-      // finish the initializer execution
-      next();
-    }
-  }]);
-
-  return _class;
-}();
-
-exports.default = _class;
+};
