@@ -93,7 +93,7 @@ describe('Servers: Web Socket', function () {
 
   it('can run actions with errors', function (done) {
     client1.action('cacheTest', response => {
-      response.error.should.equal('key is a required parameter for this action')
+      response.error.key.should.equal('The key field is required.')
       done()
     })
   })
@@ -112,7 +112,7 @@ describe('Servers: Web Socket', function () {
       response.cacheTestResults.loadResp.value.should.equal('testValue')
 
       client1.action('cacheTest', response => {
-        response.error.should.equal('key is a required parameter for this action')
+        response.error.key.should.equal('The key field is required.')
         done()
       })
     })
@@ -121,6 +121,14 @@ describe('Servers: Web Socket', function () {
   it('can not call private actions', done => {
     client1.action('sumANumber', {a: 3, b: 4}, response => {
       response.error.should.equal(api.config.errors.privateActionCalled('sumANumber'))
+      done()
+    })
+  })
+
+  it('can execute namespaced actions', done => {
+    client1.action('isolated.action', response => {
+      should.not.exist(response.error)
+      response.success.should.be.equal('ok')
       done()
     })
   })

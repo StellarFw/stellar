@@ -1,10 +1,16 @@
 // Enable source map support
 import 'source-map-support/register'
 
+// Enable some ES6 features loading Babel Polyfill
+import 'babel-polyfill'
+
 // Module Dependencies
 import path from 'path'
 import async from 'async'
-import Utils from './utils'
+import { Utils as UtilsClass } from './satellites/utils'
+
+// FIXME: this is a temporary workaround, we must make this more professional
+const Utils = new UtilsClass()
 
 /**
  * Main Stellar entry point class.
@@ -170,6 +176,9 @@ export default class Engine {
 
     // save current execution scope
     self.api.scope = scope
+
+    // define args if them are not already defined
+    if (!self.api.scope.args) { self.api.scope.args = {} }
 
     // save the engine reference for external calls
     self.api._self = self
@@ -341,7 +350,10 @@ export default class Engine {
     let self = this
 
     // we need to load the config first
-    let initialSatellites = [ path.resolve(__dirname + '/satellites/config.js') ]
+    let initialSatellites = [
+      path.resolve(__dirname + '/satellites/utils.js'),
+      path.resolve(__dirname + '/satellites/config.js')
+    ]
     initialSatellites.forEach(file => {
       // get full file name
       let filename = file.replace(/^.*[\\\/]/, '')

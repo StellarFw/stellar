@@ -8,7 +8,6 @@ import zlib from 'zlib'
 import etag from 'etag'
 import Mime from 'mime'
 import uuid from 'node-uuid'
-import Utils from '../utils'
 import formidable from 'formidable'
 import GenericServer from '../genericServer'
 import browser_fingerprint from 'browser_fingerprint'
@@ -357,7 +356,7 @@ export default class Web extends GenericServer {
     // get the client fingerprint
     browser_fingerprint.fingerprint(req, self.api.config.servers.web.fingerprintOptions, (fingerprint, elementHash, cookieHash) => {
       let responseHeaders = []
-      let cookies = Utils.parseCookies(req)
+      let cookies = this.api.utils.parseCookies(req)
       let responseHttpCode = 200
       let method = req.method.toUpperCase()
       let parsedURL = url.parse(req.url, true)
@@ -397,7 +396,7 @@ export default class Web extends GenericServer {
           if (parts[ 1 ]) { remotePort = parts[ 1 ] }
         } else {
           // IPv6
-          parts = Utils.parseIPv6URI(forwardedIp)
+          parts = this.api.utils.parseIPv6URI(forwardedIp)
           if (parts.host) { remoteIP = parts.host }
           if (parts.port) { remotePort = parts.port }
         }
@@ -566,7 +565,7 @@ export default class Web extends GenericServer {
    */
   _fillParamsFromWebRequest (connection, varsHash) {
     // helper for JSON parts
-    let collapsedVarsHash = Utils.collapseObjectToArray(varsHash)
+    let collapsedVarsHash = this.api.utils.collapseObjectToArray(varsHash)
 
     if (collapsedVarsHash !== false) {
       // post was an array, lets call it "payload"

@@ -130,6 +130,14 @@ describe('Servers: TCP', function () {
     })
   })
 
+  it('can execute namespaced actions', done => {
+    makeSocketRequest(client1, JSON.stringify({ action: 'isolated.action' }), response => {
+      should.not.exist(response.error)
+      response.success.should.be.equal('ok')
+      done()
+    })
+  })
+
   it('really long messages are OK', done => {
     // build a long message using v4 UUIDs
     let msg = {
@@ -171,7 +179,7 @@ describe('Servers: TCP', function () {
   it('actions will fail without params set to the connection', done => {
     makeSocketRequest(client1, 'paramDelete key', () => {
       makeSocketRequest(client1, 'cacheTest', response => {
-        response.error.should.equal('key is a required parameter for this action')
+        response.error.key.should.be.equal('The key field is required.')
         done()
       })
     })
@@ -221,7 +229,7 @@ describe('Servers: TCP', function () {
 
   it('only params sent is a JSON block are used', done => {
     makeSocketRequest(client1, JSON.stringify({action: 'cacheTest', params: {key: 'someOtherKey'}}), response => {
-      response.error.should.equal('value is a required parameter for this action')
+      response.error.value.should.equal('The value field is required.')
       done()
     })
   })

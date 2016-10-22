@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = {
-  routes: function routes(api) {
+  routes: function (api) {
     return {};
   }
 };

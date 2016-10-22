@@ -75,10 +75,19 @@ describe('Servers: HTTP', function () {
     })
   })
 
+  it('can execute namespaced actions', done => {
+    request(`${url}/api/isolated.action`, (error, response, body) => {
+      body = JSON.parse(body)
+      should.not.exist(body.error)
+      body.success.should.be.equal('ok')
+      done()
+    })
+  })
+
   it('will generate an error call an action with an invalid type', done => {
     request(`${url}/api/formattedSum?a=3&b=thisIsInvalid`, (error, response, body) => {
       body = JSON.parse(body)
-      body.error.should.equal(`param 'b' has an invalid type, expected integer`)
+      body.error.b.should.equal(`param 'b' has an invalid type, expected integer`)
       done()
     })
   })

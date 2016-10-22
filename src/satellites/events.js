@@ -1,13 +1,11 @@
 import async from 'async'
-import Utils from '../utils'
 
 /**
  * Class to manage events.
  *
- * The developers can use this to manipulate data during the
- * execution or to extend functionalities adding new behaviours
- * to existing logic. The listeners must be stored in
- * <moduleName>/listeners.
+ * The developers can use this to manipulate data during the execution or to
+ * extend functionalities adding new behaviours to existing logic. The
+ * listeners must be stored in <moduleName>/listeners.
  */
 class EventsManager {
 
@@ -32,7 +30,7 @@ class EventsManager {
    */
   constructor (api) { this.api = api }
 
-  // -------------------------------------------------------------------------------------------------------- [Commands]
+  // --------------------------------------------------------------------------- [Commands]
 
   /**
    * Fire an event.
@@ -52,10 +50,11 @@ class EventsManager {
       if (!self.events.has(eventName)) { resolve(responseData) }
 
       // execute the listeners async in series
-      async.each(self.events.get(eventName), (listener, callback) => listener.run(self.api, responseData, callback), () => {
-        // resolve the promise returning the response data
-        resolve(responseData)
-      })
+      async.each(self.events.get(eventName),
+        (listener, callback) => listener.run(self.api, responseData, callback), () => {
+          // resolve the promise returning the response data
+          resolve(responseData)
+        })
     })
   }
 
@@ -140,10 +139,10 @@ class EventsManager {
       let listenersFolderPath = `${modulePath}/listeners`
 
       // check if the listeners
-      if (!Utils.directoryExists(listenersFolderPath)) { return }
+      if (!this.api.utils.directoryExists(listenersFolderPath)) { return }
 
       // get all listeners files
-      Utils.recursiveDirectoryGlob(listenersFolderPath, 'js').forEach(listenerPath => {
+      this.api.utils.recursiveDirectoryGlob(listenersFolderPath, 'js').forEach(listenerPath => {
         // require listener file
         let collection = require(listenerPath)
 

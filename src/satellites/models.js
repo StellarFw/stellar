@@ -1,5 +1,4 @@
 import path from 'path'
-import Utils from '../utils'
 import mongoose from 'mongoose'
 
 /**
@@ -40,9 +39,7 @@ class Models {
    *
    * @param api   API reference.
    */
-  constructor (api) {
-    this.api = api
-  }
+  constructor (api) { this.api = api }
 
   /**
    * Open connection to MongoDB server.
@@ -53,9 +50,7 @@ class Models {
     let self = this
 
     // if the connection has already open return and execute the callback
-    if (self.status()) {
-      return callback(new Error('Connection is already open'))
-    }
+    if (self.status()) { return callback(new Error('Connection is already open')) }
 
     // hack: this fix a strange bug on the test environment
     if (self.api.env === 'test' && mongoose.connections[ 0 ]._hasOpened === true) {
@@ -72,6 +67,9 @@ class Models {
     let connectCallback = () => {
       // save mongoose object
       self.mongoose = mongoose
+
+      // set mongoose to use native ES6 promises
+      mongoose.Promise = global.Promise
 
       // open the new connection
       self.mongoose.connect(self.api.config.models.connectionString, (error) => {
@@ -133,16 +131,19 @@ class Models {
    *
    * If the model already exists it will be replaced.
    *
-   * @param name    Model name
+   * @param name    Model name.
    * @param schema  Model schema.
    */
-  add (name, schema) {
+  async add (name, schema) {
     // if the model already exists that can't be overwrite
     if (this.models.has(name)) { return }
 
     // the schema definition can be a function, pass the api reference and
     // the mongoose object
     if (typeof schema === 'function') { schema = schema(this.api, mongoose) }
+
+    // execute the add event
+    schema = await this.api.events.fire('core.models.add', schema)
 
     // save the new model instance
     this.models.set(name, this.mongoose.model(name, schema))
@@ -220,7 +221,7 @@ export default class {
     api.models.openConnection(() => {
       // read models files from the modules
       api.modules.modulesPaths.forEach(modulePath => {
-        Utils.recursiveDirectoryGlob(`${modulePath}/models`).forEach(moduleFile => {
+        api.utils.recursiveDirectoryGlob(`${modulePath}/models`).forEach(moduleFile => {
           // get file basename
           let basename = path.basename(moduleFile, '.js')
 

@@ -151,7 +151,7 @@ describe('Core: API', function () {
 
           run: (api, connection, next) => {
             connection.response.params = connection.params
-            next(connection, true)
+            next()
           }
         }
       }
@@ -178,10 +178,10 @@ describe('Core: API', function () {
 
     it('will fail for missing or empty params', function (done) {
       api.helpers.runAction('testAction', {requiredParam: ''}, response => {
-        response.error.should.containEql('required parameter for this action')
+        should.not.exist(response.error)
 
         api.helpers.runAction('testAction', {}, response => {
-          response.error.should.containEql('required parameter for this action')
+          response.error.requiredParam.should.be.equal('The requiredParam field is required.')
           done()
         })
       })
@@ -209,7 +209,7 @@ describe('Core: API', function () {
 
     it('will use validator if provided', function (done) {
       api.helpers.runAction('testAction', {requiredParam: true, fancyParam: 123}, response => {
-        response.error.should.match(/Error: fancyParam should be 'test123'/)
+        response.error.fancyParam.should.be.equal(`fancyParam should be 'test123'. so says test-server`)
         done()
       })
     })

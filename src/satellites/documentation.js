@@ -1,5 +1,4 @@
 import fs from 'fs'
-import Utils from '../utils'
 import Handlebars from 'handlebars'
 
 class DocumentationGenerator {
@@ -37,7 +36,7 @@ class DocumentationGenerator {
     self.api = api
 
     // unsure the public folder exists
-    Utils.createFolder(self.api.config.general.paths.public)
+    this.api.utils.createFolder(self.api.config.general.paths.public)
 
     // build docs folder path
     self.docsFolder = `${self.api.config.general.paths.public}/docs`
@@ -85,10 +84,10 @@ class DocumentationGenerator {
     let self = this
 
     // remove docs directory
-    Utils.removeDirectory(self.docsFolder)
+    this.api.utils.removeDirectory(self.docsFolder)
 
     // create the directory again
-    Utils.createFolder(self.docsFolder)
+    this.api.utils.createFolder(self.docsFolder)
 
     // get actions to generate documentation
     let actions = self._getActionToGenerateDoc()
@@ -230,9 +229,9 @@ class DocumentationGenerator {
    */
   _copyResourceFiles () {
     let self = this
-    Utils.copyFile(`${self.staticFolder}/reset.css`, `${self.docsFolder}/reset.css`)
-    Utils.copyFile(`${self.staticFolder}/style.css`, `${self.docsFolder}/style.css`)
-    Utils.copyFile(`${self.staticFolder}/highlight.js`, `${self.docsFolder}/highlight.js`)
+    this.api.utils.copyFile(`${self.staticFolder}/reset.css`, `${self.docsFolder}/reset.css`)
+    this.api.utils.copyFile(`${self.staticFolder}/style.css`, `${self.docsFolder}/style.css`)
+    this.api.utils.copyFile(`${self.staticFolder}/highlight.js`, `${self.docsFolder}/highlight.js`)
   }
 
 }

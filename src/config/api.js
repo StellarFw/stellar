@@ -67,11 +67,6 @@ export default {
       filteredParams: [],
 
       // ---------------------------------------------------------------------
-      // Values that signify missing params
-      // ---------------------------------------------------------------------
-      missingParamChecks: [ null, '', undefined ],
-
-      // ---------------------------------------------------------------------
       // Which channel to use on redis pub/sub for RPC communication
       // ---------------------------------------------------------------------
       channel: 'stellar',
@@ -136,8 +131,10 @@ export default {
 
       // ---------------------------------------------------------------------
       // Predefined salt to use in the hash functions
+      //
+      // Attention: you must overwrite this with your own salt
       // ---------------------------------------------------------------------
-      salt: null,
+      salt: '$2a$10$NH3tXRj/M1YX6cXn2RmVI.CFOiKGJz59qfoD3Coe1rN1TJi9olK1S',
 
       // ---------------------------------------------------------------------
       // Predefined salt length to use in the salt generation

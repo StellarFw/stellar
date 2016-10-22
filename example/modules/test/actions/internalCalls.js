@@ -23,7 +23,7 @@ module.exports = [
     // make this action private (this only can be called internally)
     private: true,
 
-    run: (api, action, next) => {
+    run (api, action, next) {
       // make the sum calculation
       action.response.result = action.params.a + action.params.b
 
@@ -52,7 +52,7 @@ module.exports = [
       formatted: '3 + 3 = 6'
     },
 
-    run: (api, action, next) => {
+    run (api, action, next) {
       // make a internal call to 'sumANumber' action
       api.actions.call('sumANumber', action.params, (error, response) => {
         // build a cool string

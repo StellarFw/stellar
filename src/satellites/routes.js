@@ -1,5 +1,4 @@
 import fs from 'fs'
-import Utils from '../utils'
 
 /**
  * Class to manage the HTTP action routes.
@@ -193,7 +192,7 @@ class RoutesManager {
     }
 
     // remove duplicated entries on postVariables
-    self.api.params.postVariables = Utils.arrayUniqueify(self.api.params.postVariables)
+    self.api.params.postVariables = this.api.utils.arrayUniqueify(self.api.params.postVariables)
 
     // log the number of loaded routes
     self.api.log(`${counter} routes loaded`, 'debug')

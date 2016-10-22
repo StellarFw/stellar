@@ -1,6 +1,4 @@
-import fs from 'fs'
 import i18n from 'i18n'
-import Utils from '../utils'
 
 class I18n {
 
@@ -39,15 +37,15 @@ class I18n {
 
     // create locale folder (remove first if exists)
     let localePath = self.api.config.general.paths.temp + '/locale'
-    Utils.removeDirectory(localePath)
-    fs.mkdirSync(localePath)
+    this.api.utils.removeDirectory(localePath)
+    this.api.utils.mkdir(localePath)
 
     // iterate all modules
     for (let module in self.api.modules.activeModules.keys()) {
       let localePath = `${self.api.scope.rootPath}/modules/${module}/locale`
 
       // check if the folder exists
-      if (Utils.directoryExists(localePath)) {
+      if (this.api.utils.directoryExists(localePath)) {
         // copy all files to temp locale folder
       }
     }

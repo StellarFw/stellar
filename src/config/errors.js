@@ -1,5 +1,3 @@
-import Utils from '../utils'
-
 export default {
   errors: api => {
     return {
@@ -12,28 +10,28 @@ export default {
       serializers: {
         servers: {
           web: error => {
-            if (Utils.isError(error)) {
+            if (api.utils.isError(error)) {
               return String(error.message)
             } else {
               return error
             }
           },
           websocket: error => {
-            if (Utils.isError(error)) {
+            if (api.utils.isError(error)) {
               return String(error.message)
             } else {
               return error
             }
           },
           tcp: error => {
-            if (Utils.isError(error)) {
+            if (api.utils.isError(error)) {
               return String(error.message)
             } else {
               return error
             }
           },
           helper: error => {
-            if (Utils.isError(error)) {
+            if (api.utils.isError(error)) {
               return 'Error: ' + String(error.message)
             } else {
               return error
@@ -59,12 +57,11 @@ export default {
       // ---------------------------------------------------------------------
       // When a params for an action is invalid
       // ---------------------------------------------------------------------
-      invalidParams: params => params.join(', '),
-
-      // ---------------------------------------------------------------------
-      // When a required param for an action is not provided
-      // ---------------------------------------------------------------------
-      missingParams: params => `${params[ 0 ]} is a required parameter for this action`,
+      invalidParams: errors => {
+        const response = {}
+        errors.forEach((message, attribute) => response[attribute] = message)
+        return response
+      },
 
       // ---------------------------------------------------------------------
       // When a param was an invalid type

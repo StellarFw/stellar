@@ -7,7 +7,7 @@ Object.defineProperty(exports, "__esModule", {
  * Default task configs.
  */
 exports.default = {
-  tasks: function tasks(api) {
+  tasks: api => {
     return {
       // ---------------------------------------------------------------------
       // should this mode run a scheduler to promote delayed tasks?
@@ -95,8 +95,8 @@ exports.default = {
  * @type {{tasks: (function())}}
  */
 
-var test = exports.test = {
-  tasks: function tasks(api) {
+let test = exports.test = {
+  tasks: api => {
     return {
       timeout: 100,
       checkTimeout: 50,
