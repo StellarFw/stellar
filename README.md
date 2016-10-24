@@ -10,18 +10,21 @@
   <a href="https://raw.githubusercontent.com/stellar-fw/stellar/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
 </p>
 
-<p align="center"><b>Important: <i>The documentation and the examples aren't available at the moment, Stellar is a development preview, is not ready for production... yet!</i></b></p>
+## Supporting Stellar
+
+Stellar is an MIT-licensed open source project. Further development is only possible through funding. If you like the project, check out [Stellar's Patreon campaign](https://www.patreon.com/gil0mendes).
 
 ## Intro
 
-Stellar is a web framework that makes it easy to build modular APIs. It is designed to follow an action based pattern that makes it possible to isolate logic in small structures.
+Stellar is a web framework that makes it easy to build modular APIs. It is designed to follow an action based pattern that makes it possible to isolate logic in small structures. Core features include:
 
 - Extremely modular
 - Lean and extensible core
 - Command line tool to workflow optimization
 - Native support for HTTP, WebSocket and TCP connections
+- Powerful and simple to use [Validation system](https://stellar-framework.com/guide/validation.html)
 
-Note that Stellar only supports Node.js version 6.
+Note that Stellar only supports Node.js version 6 or upper.
 
 ## Questions/Issues
 
@@ -29,7 +32,7 @@ For questions and support use the issue list of this repository. The issue list 
 
 ## Contribution
 
-Please make sure to read the [Contributing Guide](https://github.com/stellarFw/stellar/blob/dev/CONTRIBUTING.md) before making a pull request.
+Please make sure to read the [Contributing Guide](https://github.com/stellarFw/stellar/blob/dev/.github/CONTRIBUTING.md) before making a pull request.
 
 ## Changelog
 
