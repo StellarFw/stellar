@@ -57,7 +57,7 @@ describe('Servers: Web Socket', function () {
   })
 
   it('socket client connections should work: client 1', function (done) {
-    client1.connect((error, data) => {
+    client1.connect().then(data => {
       data.context.should.equal('response')
       data.data.totalActions.should.equal(0)
       client1.welcomeMessage.should.equal('Hello human! Welcome to Stellar')
@@ -66,7 +66,7 @@ describe('Servers: Web Socket', function () {
   })
 
   it('socket client connections should work: client 2', function (done) {
-    client2.connect((error, data) => {
+    client2.connect().then(data => {
       data.context.should.equal('response')
       data.data.totalActions.should.equal(0)
       client2.welcomeMessage.should.equal('Hello human! Welcome to Stellar')
@@ -75,7 +75,7 @@ describe('Servers: Web Socket', function () {
   })
 
   it('socket client connections should work: client 3', function (done) {
-    client3.connect((error, data) => {
+    client3.connect().then(data => {
       data.context.should.equal('response')
       data.data.totalActions.should.equal(0)
       client3.welcomeMessage.should.equal('Hello human! Welcome to Stellar')
@@ -84,7 +84,7 @@ describe('Servers: Web Socket', function () {
   })
 
   it('can get connection details', function (done) {
-    client1.detailsView(response => {
+    client1.detailsView().then(response => {
       response.data.connectedAt.should.be.within(0, new Date().getTime())
       response.data.remoteIP.should.equal('127.0.0.1')
       done()
@@ -92,26 +92,26 @@ describe('Servers: Web Socket', function () {
   })
 
   it('can run actions with errors', function (done) {
-    client1.action('cacheTest', response => {
+    client1.action('cacheTest').then(response => {
       response.error.key.should.equal('The key field is required.')
       done()
     })
   })
 
   it('can run actions properly', function (done) {
-    client1.action('randomNumber', response => {
+    client1.action('randomNumber').then(response => {
       should.not.exist(response.error)
       done()
     })
   })
 
   it('does not have sticky params', function (done) {
-    client1.action('cacheTest', {key: 'testKey', value: 'testValue'}, response => {
+    client1.action('cacheTest', {key: 'testKey', value: 'testValue'}).then(response => {
       should.not.exist(response.error)
       response.cacheTestResults.loadResp.key.should.equal('cache_test_testKey')
       response.cacheTestResults.loadResp.value.should.equal('testValue')
 
-      client1.action('cacheTest', response => {
+      client1.action('cacheTest').then(response => {
         response.error.key.should.equal('The key field is required.')
         done()
       })
@@ -119,14 +119,14 @@ describe('Servers: Web Socket', function () {
   })
 
   it('can not call private actions', done => {
-    client1.action('sumANumber', {a: 3, b: 4}, response => {
+    client1.action('sumANumber', {a: 3, b: 4}).then(response => {
       response.error.should.equal(api.config.errors.privateActionCalled('sumANumber'))
       done()
     })
   })
 
   it('can execute namespaced actions', done => {
-    client1.action('isolated.action', response => {
+    client1.action('isolated.action').then(response => {
       should.not.exist(response.error)
       response.success.should.be.equal('ok')
       done()
@@ -135,12 +135,12 @@ describe('Servers: Web Socket', function () {
 
   it('will limit how many simultaneous connections a client can have', function (done) {
     let responses = []
-    client1.action('sleep', {sleepDuration: 100}, response => responses.push(response))
-    client1.action('sleep', {sleepDuration: 200}, response => responses.push(response))
-    client1.action('sleep', {sleepDuration: 300}, response => responses.push(response))
-    client1.action('sleep', {sleepDuration: 400}, response => responses.push(response))
-    client1.action('sleep', {sleepDuration: 500}, response => responses.push(response))
-    client1.action('sleep', {sleepDuration: 600}, response => responses.push(response))
+    client1.action('sleep', {sleepDuration: 100}).then(response => responses.push(response))
+    client1.action('sleep', {sleepDuration: 200}).then(response => responses.push(response))
+    client1.action('sleep', {sleepDuration: 300}).then(response => responses.push(response))
+    client1.action('sleep', {sleepDuration: 400}).then(response => responses.push(response))
+    client1.action('sleep', {sleepDuration: 500}).then(response => responses.push(response))
+    client1.action('sleep', {sleepDuration: 600}).then(response => responses.push(response))
 
     setTimeout(() => {
       responses.length.should.equal(6)
@@ -161,10 +161,10 @@ describe('Servers: Web Socket', function () {
 
   describe('chat', function () {
 
-    before(function (done) {
+    before(done => {
       api.chatRoom.addMiddleware({
         name: 'join chat middleware',
-        join: (connection, room, callback) => {
+        join (connection, room, callback) {
           api.chatRoom.broadcast({}, room, `I have entered the room: ${connection.id}`, e => {
             callback()
           })
@@ -173,7 +173,7 @@ describe('Servers: Web Socket', function () {
 
       api.chatRoom.addMiddleware({
         name: 'leave chat middleware',
-        leave: (connection, room, callback) => {
+        leave (connection, room, callback) {
           api.chatRoom.broadcast({}, room, `I have left the room: ${connection.id}`, e => {
             callback()
           })
@@ -183,65 +183,59 @@ describe('Servers: Web Socket', function () {
       done()
     })
 
-    after(function (done) {
+    after(done => {
       api.chatRoom.middleware = {}
       api.chatRoom.globalMiddleware = []
 
       done()
     })
 
-    beforeEach(function (done) {
-      client1.roomAdd('defaultRoom', () => {
-        client2.roomAdd('defaultRoom', () => {
-          client3.roomAdd('defaultRoom', () => {
-            // give some time to send the welcome messages and clients join the room
-            setTimeout(done, 100)
-          })
+    beforeEach(done => {
+      client1.roomAdd('defaultRoom')
+        .then(() => client2.roomAdd('defaultRoom'))
+        .then(() => client3.roomAdd('defaultRoom'))
+        .then(() => {
+          // give some time to send the welcome messages and clients join the room
+          setTimeout(done, 100)
         })
-      })
     })
 
-    afterEach(function (done) {
-      client1.roomLeave('defaultRoom', () => {
-        client2.roomLeave('defaultRoom', () => {
-          client3.roomLeave('defaultRoom', () => {
-            client1.roomLeave('otherRoom', () => {
-              client2.roomLeave('otherRoom', () => {
-                client3.roomLeave('otherRoom', () => {
-                  done()
-                })
-              })
-            })
-          })
-        })
-      })
+    afterEach(done => {
+      client1.roomLeave('defaultRoom')
+        .then(() => client2.roomLeave('defaultRoom'))
+        .then(() => client3.roomLeave('defaultRoom'))
+        .then(() => client1.roomLeave('otherRoom'))
+        .then(() => client2.roomLeave('otherRoom'))
+        .then(() => client3.roomLeave('otherRoom'))
+        .then(() => { done() })
     })
 
-    it('can change rooms and get room details', function (done) {
-      client1.roomAdd('otherRoom', () => {
-        client1.detailsView(response => {
+    it('can change rooms and get room details', done => {
+      client1.roomAdd('otherRoom')
+        .then((res) => client1.detailsView())
+        .then(response => {
           should.not.exist(response.error)
           response.data.rooms[ 0 ].should.equal('defaultRoom')
           response.data.rooms[ 1 ].should.equal('otherRoom')
 
-          client1.roomView('otherRoom', response => {
-            response.data.membersCount.should.equal(1)
-            done()
-          })
+          return client1.roomView('otherRoom')
         })
-      })
+        .then(response => {
+          response.data.membersCount.should.equal(1)
+          done()
+        })
     })
 
     it('will update client info when they change rooms', function (done) {
       client1.rooms[ 0 ].should.equal('defaultRoom')
       should.not.exist(client1.rooms[ 1 ])
 
-      client1.roomAdd('otherRoom', response => {
+      client1.roomAdd('otherRoom').then(response => {
         should.not.exist(response.error)
         client1.rooms[ 0 ].should.equal('defaultRoom')
         client1.rooms[ 1 ].should.equal('otherRoom')
 
-        client1.roomLeave('defaultRoom', response => {
+        client1.roomLeave('defaultRoom').then(response => {
           should.not.exist(response.error)
           client1.rooms[ 0 ].should.equal('otherRoom')
           should.not.exist(client1.rooms[ 1 ])
@@ -290,7 +284,7 @@ describe('Servers: Web Socket', function () {
         done()
       }
 
-      client1.roomAdd('otherRoom', () => {
+      client1.roomAdd('otherRoom').then(() => {
         client1.on('say', listener)
         client2.roomAdd('otherRoom')
       })
@@ -309,7 +303,7 @@ describe('Servers: Web Socket', function () {
     })
 
     it('client will not get messages form other rooms', function (done) {
-      client2.roomAdd('otherRoom', response => {
+      client2.roomAdd('otherRoom').then(response => {
         should.not.exist(response.error)
         client2.rooms.length.should.equal(2)
 
@@ -330,41 +324,37 @@ describe('Servers: Web Socket', function () {
       })
     })
 
-    it('connections can see member counts changing within rooms as folks join and leave', function (done) {
-      client1.roomView('defaultRoom', response => {
-        response.data.membersCount.should.equal(3)
+    it('connections can see member counts changing within rooms as folks join and leave', done => {
+      client1.roomView('defaultRoom')
+        .then(response => {
+          response.data.membersCount.should.equal(3)
 
-        client2.roomLeave('defaultRoom', () => {
-          client1.roomView('defaultRoom', response => {
-            response.data.membersCount.should.equal(2)
-            done()
-          })
+          return client2.roomLeave('defaultRoom')
         })
-      })
+        .then(() => client1.roomView('defaultRoom'))
+        .then(response => {
+          response.data.membersCount.should.equal(2)
+          done()
+        })
     })
 
     describe('middleware - say and onSay Receive', function () {
 
       before(function (done) {
-        client1.roomAdd('defaultRoom', () => {
-          client2.roomAdd('defaultRoom', () => {
-            client3.roomAdd('defaultRoom', () => {
-              setTimeout(() => { // timeout to skip welcome messages as clients join rooms
-                done()
-              }, 100)
-            })
+        client1.roomAdd('defaultRoom')
+          .then(() => client2.roomAdd('defaultRoom'))
+          .then(() => client3.roomAdd('defaultRoom'))
+          .then(() => {
+            // timeout to skip welcome messages as clients join rooms
+            setTimeout(() => { done() }, 100)
           })
-        })
       })
 
       after(function (done) {
-        client1.roomLeave('defaultRoom', () => {
-          client2.roomLeave('defaultRoom', () => {
-            client3.roomLeave('defaultRoom', () => {
-              done()
-            })
-          })
-        })
+        client1.roomLeave('defaultRoom')
+          .then(() => client2.roomLeave('defaultRoom'))
+          .then(() => client3.roomLeave('defaultRoom'))
+          .then(() => { done() })
       })
 
       afterEach(function (done) {
@@ -480,7 +470,7 @@ describe('Servers: Web Socket', function () {
     })
 
     it('can be sent disconnect events from the server', function (done) {
-      client1.detailsView(response => {
+      client1.detailsView().then(response => {
         response.data.remoteIP.should.equal('127.0.0.1')
 
         let count = 0
@@ -490,7 +480,7 @@ describe('Servers: Web Socket', function () {
         }
         count.should.equal(3)
 
-        client1.detailsView(() => {
+        client1.detailsView().then(() => {
           throw new Error('should not get response')
         })
 
