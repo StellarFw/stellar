@@ -28,30 +28,23 @@ describe('Core: Actions', () => {
   })
 
   describe('can execute internally', () => {
-    it('without params and callback', done => {
-      api.actions.call('formattedSum')
-      done()
-    })
-
-    it('without callback', done => {
-      api.actions.call('formattedSum', { a: 3, b: 3 })
-      done()
-    })
 
     it('without params', done => {
-      api.actions.call('formattedSum', error => {
-        should.exist(error)
-        done()
-      })
+      api.actions.call('formattedSum').catch(_ => { done() })
+    })
+
+    it('reject works', done => {
+      api.actions.call('formattedSum').should.be.rejected()
+
+      done()
     })
 
     it('normally', done => {
-      api.actions.call('formattedSum', { a: 3, b: 3 }, (error, response) => {
-        should.not.exist(error)
-        response.formatted.should.equal('3 + 3 = 6')
-        done()
-      })
+      api.actions.call('formattedSum', { a: 3, b: 3 })
+        .should.be.fulfilledWith({ formatted: '3 + 3 = 6' })
+        .then(_ => { done() })
     })
+
   })
 
 })
