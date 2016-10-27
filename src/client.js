@@ -2,13 +2,13 @@
 
 // ----------------------------------------------------------------------------- [Util Functions]
 
-// const warn = msg => console.warn(`[StellarClient warn]: ${msg}`)
+const warn = msg => console.warn(`[StellarClient warn]: ${msg}`)
 
 const error = msg => console.error(`[StellarClient error]: ${msg}`)
 
-// const isFunction = val => typeof val === 'function'
+const isFunction = val => typeof val === 'function'
 
-// const isObject = obj => obj !== null && typeof obj === 'object'
+const isObject = obj => obj !== null && typeof obj === 'object'
 
 // ----------------------------------------------------------------------------- [Stellar Client]
 
@@ -208,42 +208,86 @@ StellarClient.prototype.handleMessage = function (message) {
  * @return Promise
  */
 StellarClient.prototype.action = function (action, params = {}) {
-  // let handler = null
+  return new Promise((resolve, reject) => {
+    // contains the reference for the current handler
+    let handler = null
 
-  // sets the parameter action, in case of the action call be done over HTTP.
-  params.action = action
+    // array with the request interceptor. We need to make a copy to keep the
+    // original array intact
+    const reqHandlers = this.interceptors.slice(0)
 
-  // const next = response => {
-  //   if (isFunction(response)) {
-  //     StellarClient.handlers.unshift(response)
-  //   } else if (isObject(response)) {
-  //     StellarClient.handlers.forEach(handler => {
-  //       response
-  //     })
-  //   }
-  // }
+    // array with the response handlers. this is local to avoid repetition
+    const resHandlers = []
 
-  // const exec = () => {
-  //   // get the next handle to be processed
-  //   handler = StellarClient.handlers.pop()
+    // sets the parameter action, in case of the action call be done over HTTP.
+    params.action = action
 
-  //   // execute the next handler if it is a function, otherwise print out an
-  //   // warning and processed to the handler
-  //   if (isFunction(handler)) {
-  //     handler.call(this, params, next)
-  //   } else {
-  //     warn(`Invalid interceptor of type ${typeof handler}, must be a function`)
-  //     next()
-  //   }
-  // }
+    // callback to pass to the interceptors
+    const next = (response, error) => {
+      // whether error is defined the promise is rejected
+      if (error !== undefined && error !== null) {
+        // execute all the response handlers
+        resHandlers.forEach(h => { h.call(this, error) })
 
-  // if the client is connected the connection should be done by WebSocket
-  // otherwise we need to use HTTP
-  if (this.state !== 'connected') {
-    return this._actionWeb(params)
-  } else {
-    return this._actionWebSocket(params)
-  }
+        return reject(error)
+      }
+
+      if (isFunction(response)) {
+
+        // add the function to the response handlers
+        resHandlers.unshift(response)
+
+      } else if (isObject(response)) {
+
+        // execute all the response handlers
+        resHandlers.forEach(h => { h.call(this, response) })
+
+        return resolve(response)
+      }
+
+      exec()
+    }
+
+    const exec = () => {
+      // if there is no more request handlers to process we must perform the
+      // request
+      if (reqHandlers.length === 0) {
+        let method = null
+
+        // if the client is connected the connection should be done by WebSocket
+        // otherwise we need to use HTTP
+        if (this.state !== 'connected') {
+          method = this._actionWeb
+        } else {
+          method = this._actionWebSocket
+        }
+
+        method.call(this, params)
+          .then(res => {
+            next(res)
+          }, error => {
+            next(null, error)
+          })
+
+        return
+      }
+
+      // get the next handle to be processed
+      handler = reqHandlers.pop()
+
+      // execute the next handler if it is a function, otherwise print out an
+      // warning and processed to the handler
+      if (isFunction(handler)) {
+        handler.call(this, params, next, reject)
+      } else {
+        warn(`Invalid interceptor of type ${typeof handler}, must be a function`)
+        next()
+      }
+    }
+
+    // start processing the interceptors
+    exec()
+  })
 }
 
 /**
@@ -317,7 +361,20 @@ StellarClient.prototype._actionWeb = function (params) {
  * @private
  */
 StellarClient.prototype._actionWebSocket = function (params) {
-  return this.send({ event: 'action', params })
+  // we need to wrap this into a promise because the send method needs to be
+  // generic to handle other real-time features. So, here we need to check if
+  // there is an error.
+  return new Promise((resolve, reject) => {
+    this.send({ event: 'action', params })
+      .then(response => {
+        if (response.error !== undefined) {
+          reject(response)
+          return
+        }
+
+        resolve(response)
+      })
+  })
 }
 
 // ----------------------------------------------------------------------------- [Commands]

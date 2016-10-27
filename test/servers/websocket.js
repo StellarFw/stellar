@@ -1,11 +1,8 @@
-'use strict'
+const request = require('request')
 
-let fs = require('fs')
-let request = require('request')
-
-let should = require('should')
-let EngineClass = require(__dirname + '/../../dist/engine').default
-let engine = new EngineClass({rootPath: process.cwd() + '/example'})
+const should = require('should')
+const EngineClass = require(__dirname + '/../../dist/engine').default
+const engine = new EngineClass({rootPath: process.cwd() + '/example'})
 
 let api = null
 
@@ -92,10 +89,7 @@ describe('Servers: Web Socket', function () {
   })
 
   it('can run actions with errors', function (done) {
-    client1.action('cacheTest').then(response => {
-      response.error.key.should.equal('The key field is required.')
-      done()
-    })
+    client1.action('cacheTest').should.be.rejected().then(() => { done() })
   })
 
   it('can run actions properly', function (done) {
@@ -111,7 +105,7 @@ describe('Servers: Web Socket', function () {
       response.cacheTestResults.loadResp.key.should.equal('cache_test_testKey')
       response.cacheTestResults.loadResp.value.should.equal('testValue')
 
-      client1.action('cacheTest').then(response => {
+      client1.action('cacheTest').catch(response => {
         response.error.key.should.equal('The key field is required.')
         done()
       })
@@ -119,7 +113,7 @@ describe('Servers: Web Socket', function () {
   })
 
   it('can not call private actions', done => {
-    client1.action('sumANumber', {a: 3, b: 4}).then(response => {
+    client1.action('sumANumber', {a: 3, b: 4}).catch(response => {
       response.error.should.equal(api.config.errors.privateActionCalled('sumANumber'))
       done()
     })
@@ -140,7 +134,7 @@ describe('Servers: Web Socket', function () {
     client1.action('sleep', {sleepDuration: 300}).then(response => responses.push(response))
     client1.action('sleep', {sleepDuration: 400}).then(response => responses.push(response))
     client1.action('sleep', {sleepDuration: 500}).then(response => responses.push(response))
-    client1.action('sleep', {sleepDuration: 600}).then(response => responses.push(response))
+    client1.action('sleep', {sleepDuration: 600}).catch(response => responses.push(response))
 
     setTimeout(() => {
       responses.length.should.equal(6)
@@ -157,6 +151,66 @@ describe('Servers: Web Socket', function () {
 
       done()
     }, 1000)
+  })
+
+  describe('interceptors', () => {
+
+    afterEach(done => {
+      // we must cleanup all interceptors after the call
+      client1.interceptors = []
+
+      done()
+    })
+
+    it('can append new parameters', done => {
+      client1.interceptors.push((params, next) => {
+        params.a = 3
+        params.b = 4
+
+        next()
+      })
+
+      client1.action('formattedSum')
+        .then(response => {
+          response.formatted.should.be.equal('3 + 4 = 7')
+        })
+        .then(_ => { done() })
+    })
+
+    it('can return an object', done => {
+      client1.interceptors.push((params, next) => {
+        next({ someKey: 'someValue' })
+      })
+
+      client1.action('formattedSum')
+        .should.be.fulfilledWith({ someKey: 'someValue' })
+        .then(_ => { done() })
+    })
+
+    it('can return an error', done => {
+      client1.interceptors.push((params, next) => {
+        next(null, { message: 'anBadError' })
+      })
+
+      client1.action('formattedSum')
+        .should.be.rejectedWith({ message: 'anBadError' })
+        .then(_ => { done() })
+    })
+
+    it('can change the response', done => {
+      client1.interceptors.push((params, next) => {
+        next(response => {
+          response.additionalField = 'awesomeCall'
+        })
+      })
+
+      client1.action('formattedSum', { a: 3, b: 4 })
+        .then(response => {
+          response.additionalField.should.be.equal('awesomeCall')
+        })
+        .then(_ => { done() })
+    })
+
   })
 
   describe('chat', function () {
