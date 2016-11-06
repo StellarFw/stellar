@@ -65,5 +65,10 @@ commander.command('init')
   .option('version', 'Project version')
   .action(require('./commands/init'))
 
+// register dockerIt command
+commander.command('dockerIt')
+    .description('Create a new dockerfile for the stellar project')
+    .action(require('./commands/dockerIt'))
+
 // parse the command line argument an execute the requested action
 commander.parse(process.argv)
