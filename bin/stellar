@@ -61,6 +61,7 @@ commander.command('startCluster')
 // register init command
 commander.command('init')
   .description('Create a new Stellar project')
+  .option('dockerIt', 'Create a dockerfile for the new project')
   .option('name', 'Project name')
   .option('version', 'Project version')
   .action(require('./commands/init'))
