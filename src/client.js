@@ -133,7 +133,7 @@ StellarClient.prototype.connect = function () {
 StellarClient.prototype.configure = function () {
   return new Promise((resolve, reject) => {
     // join to all default rooms
-    this.rooms.forEach(room => this.send({ event: 'roomAdd', room }))
+    this.options.rooms.forEach(room => this.send({ event: 'roomAdd', room }))
 
     // request the connection details
     this.detailsView().then(details => {
