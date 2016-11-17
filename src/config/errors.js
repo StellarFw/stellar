@@ -59,7 +59,7 @@ export default {
       // ---------------------------------------------------------------------
       invalidParams: errors => {
         const response = {}
-        errors.forEach((message, attribute) => response[attribute] = message)
+        errors.forEach((message, attribute) => { response[attribute] = message })
         return response
       },
 
