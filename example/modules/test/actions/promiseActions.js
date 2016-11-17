@@ -24,3 +24,14 @@ exports.internalCallPromise = {
       .then(({ formatted }) => { action.response.result = formatted })
   }
 }
+
+exports.errorPromiseAction = {
+  name: 'errorPromiseAction',
+  description: `The action throw an Error to check if the Action Processor can
+    handle with it`,
+
+  run (api, action) {
+    return api.actions.call('promiseAction')
+      .then(_ => { throw new Error(`This is an error`) })
+  }
+}
