@@ -5,9 +5,18 @@
 </p>
 
 <p align="center">
-  <a href="https://travis-ci.org/StellarFw/stellar"><img src="https://img.shields.io/travis/StellarFw/stellar.svg?style=flat-square" alt="Build"></a>
-  <a href="https://coveralls.io/github/StellarFw/stellar"><img src="https://img.shields.io/coveralls/StellarFw/stellar.svg?style=flat-square" alt="Build"></a>
-  <a href="https://raw.githubusercontent.com/stellar-fw/stellar/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
+  <a href="https://travis-ci.org/StellarFw/stellar">
+    <img src="https://img.shields.io/travis/StellarFw/stellar.svg?style=flat-square" alt="Build">
+  </a>
+  <a href="https://www.codacy.com/app/gil00mendes/stellar?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=StellarFw/stellar&amp;utm_campaign=Badge_Grade">
+    <img src="https://img.shields.io/codacy/3dbaa2e22b9d4a46bf186a1bde5c64eb.svg?style=flat-square" alt="Quality">
+  </a>
+  <a href="https://coveralls.io/github/StellarFw/stellar">
+    <img src="https://img.shields.io/coveralls/StellarFw/stellar.svg?style=flat-square" alt="Coverage">
+  </a>
+  <a href="https://raw.githubusercontent.com/stellar-fw/stellar/master/LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License">
+  </a>
 </p>
 
 ## Supporting Stellar
