@@ -1,3 +1,12 @@
-'use strict'
+exports.default = (api, mongoose) => {
+  // get Mongoose Schema type
+  const Schema = mongoose.Schema
 
-exports.default = {}
+  // create a new Schema
+  const newSchema = new Schema({
+    // TODO: add fields to this model
+  }, { timestamps: true })
+
+  // return the created schema
+  return newSchema
+}

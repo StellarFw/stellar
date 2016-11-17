@@ -1,11 +1,9 @@
-'use strict'
-
-// ----------------------------------------------------------------------------------------------------------- [Imports]
+// ----------------------------------------------------------------------------- [Imports]
 
 let Command = require('../Command')
 let Utils = require('../utils')
 
-// ------------------------------------------------------------------------------------------------------------- [Class]
+// ----------------------------------------------------------------------------- [Class]
 
 class MakeModel extends Command {
 
@@ -48,7 +46,7 @@ class MakeModel extends Command {
     }
 
     // build module path
-    let modulePath = `${Utils.getCurrentUniverse()}/modules/${this.args.module}`
+    const modulePath = `${Utils.getCurrentUniverse()}/modules/${this.args.module}`
 
     // ensure the models folder exists
     Utils.createFolder(`${modulePath}/models`)
