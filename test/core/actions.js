@@ -47,4 +47,32 @@ describe('Core: Actions', () => {
 
   })
 
+  it('is possible finish an action retuning a promise', done => {
+    api.actions.call('promiseAction')
+      .then(response => {
+        response.success.should.be.String()
+        response.success.should.be.equal(`It's working!`)
+
+        done()
+      })
+  })
+
+  it('is possible using a foreign promise to finish an action', done => {
+    api.actions.call('internalCallPromise')
+      .then(response => {
+        response.result.should.be.String()
+        response.result.should.be.equal(`4 + 5 = 9`)
+
+        done()
+      })
+  })
+
+  it('can handle promise rejections and exceptions', done => {
+    api.actions.call('errorPromiseAction')
+      .catch(error => {
+        error.message.should.be.equal('This is an error')
+      })
+      .then(_ => { done() })
+  })
+
 })
