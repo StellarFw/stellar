@@ -167,8 +167,7 @@ class Helpers {
    * @param next      Callback function.
    */
   runTask(taskName, params, next) {
-    let self = this;
-    self.api.tasks.tasks[taskName].run(self.api, params, next);
+    this.api.tasks.tasks[taskName].run(this.api, params, next);
   }
 }
 

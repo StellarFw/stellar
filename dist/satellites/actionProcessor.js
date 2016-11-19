@@ -345,27 +345,35 @@ class ActionProcessor {
    * Run an action.
    */
   runAction() {
-    let self = this;
-
-    self.preProcessAction(error => {
+    this.preProcessAction(error => {
       // validate the request params with the action requirements
-      self.validateParams();
+      this.validateParams();
 
       if (error) {
-        self.completeAction(error);
-      } else if (self.validatorErrors.size > 0) {
-        self.completeAction('validator_errors');
-      } else if (self.toProcess === true && !error) {
+        this.completeAction(error);
+      } else if (this.validatorErrors.size > 0) {
+        this.completeAction('validator_errors');
+      } else if (this.toProcess === true && !error) {
         // execute the action logic
-        self.actionTemplate.run(self.api, self, error => {
+        const returnVal = this.actionTemplate.run(this.api, this, error => {
           if (error) {
-            self.completeAction(error);
+            this.completeAction(error);
           } else {
-            self.postProcessAction(error => self.completeAction(error));
+            this.postProcessAction(error => this.completeAction(error));
           }
         });
+
+        // if the returnVal is a Promise we wait for the resolve/rejection and
+        // after that we finish the action execution
+        if (returnVal instanceof Promise) {
+          returnVal.catch(error => {
+            this.completeAction(error);
+          }).then(_ => {
+            this.postProcessAction(error => this.completeAction(error));
+          });
+        }
       } else {
-        self.completeAction();
+        this.completeAction();
       }
     });
   }

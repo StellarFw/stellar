@@ -177,10 +177,11 @@ class Models {
       }
 
       // execute the add event
-      schema = yield _this.api.events.fire('core.models.add', schema);
+      let eventObj = { schema, mongoose: _this.mongoose };
+      const response = yield _this.api.events.fire(`core.models.add.${ name }`, eventObj);
 
       // save the new model instance
-      _this.models.set(name, _this.mongoose.model(name, schema));
+      _this.models.set(name, _this.mongoose.model(name, response.schema));
     })();
   }
 
