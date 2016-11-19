@@ -143,10 +143,11 @@ class Models {
     if (typeof schema === 'function') { schema = schema(this.api, mongoose) }
 
     // execute the add event
-    schema = await this.api.events.fire('core.models.add', schema)
+    let eventObj = { schema, mongoose: this.mongoose }
+    const response = await this.api.events.fire(`core.models.add.${name}`, eventObj)
 
     // save the new model instance
-    this.models.set(name, this.mongoose.model(name, schema))
+    this.models.set(name, this.mongoose.model(name, response.schema))
   }
 
   /**

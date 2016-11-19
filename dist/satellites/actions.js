@@ -43,7 +43,7 @@ class Actions {
    *
    * @param actionName  Name of the action to be called.
    * @param params      Action parameters.
-   * @param callback    Callback function.
+   * @return Promise
    */
 
 
@@ -66,20 +66,12 @@ class Actions {
    *
    * @type {null}
    */
-  call(actionName, params = {}, callback = () => {}) {
-    let self = this;
-
-    // make the action call more sweet 🍭
-    if (typeof params === 'function') {
-      callback = params;
-      params = {};
-    }
-
+  call(actionName, params = {}) {
     // get connection class
-    let ConnectionClass = self.api.connection;
+    const ConnectionClass = this.api.connection;
 
     // create a new connection object
-    let connection = new ConnectionClass(self.api, {
+    const connection = new ConnectionClass(this.api, {
       type: 'internal',
       remotePort: 0,
       remoteIP: 0,
@@ -93,16 +85,25 @@ class Actions {
     connection.params.action = actionName;
 
     // get action processor class
-    let ActionProcessor = self.api.actionProcessor;
+    const ActionProcessor = this.api.actionProcessor;
 
-    // create a new ActionProcessor instance
-    let actionProcessor = new ActionProcessor(self.api, connection, data => {
-      // execute the callback on the connection destroy event
-      connection.destroy(() => callback(data.response.error, data.response));
+    // return a promise
+    return new Promise((resolve, reject) => {
+      // create a new ActionProcessor instance
+      const actionProcessor = new ActionProcessor(this.api, connection, data => {
+        // destroy the connection and resolve of reject the promise
+        connection.destroy(() => {
+          if (data.response.error !== undefined) {
+            return reject(data.response.error);
+          }
+
+          resolve(data.response);
+        });
+      });
+
+      // process the action
+      actionProcessor.processAction();
     });
-
-    // process the action
-    actionProcessor.processAction();
   }
 
   /**

@@ -54,13 +54,14 @@ module.exports = [
 
     run (api, action, next) {
       // make a internal call to 'sumANumber' action
-      api.actions.call('sumANumber', action.params, (error, response) => {
-        // build a cool string
-        action.response.formatted = `${action.params.a} + ${action.params.b} = ${response.result}`
+      api.actions.call('sumANumber', action.params)
+        .catch(error => { next(error) })
+        .then(response => {
+          // build a cool string
+          action.response.formatted = `${action.params.a} + ${action.params.b} = ${response.result}`
 
-        // finish the action execution
-        next(error)
-      })
+          next()
+        })
     }
   }
 ]

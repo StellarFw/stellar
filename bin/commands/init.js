@@ -66,6 +66,12 @@ class InitCommand extends Command {
     // create config folder
     Utils.createFolder(process.cwd() + '/config')
 
+    // check if we need create a dockerfile
+    if (this.args.dockerIt !== undefined) {
+      // luckily, we can execute the command directly
+      require('./dockerIt')({})
+    }
+
     // print a success message
     this.printSuccess(`The directory was initiated with a Stellar project structure.\nHappy Codding! 😉 🌟`)
 
