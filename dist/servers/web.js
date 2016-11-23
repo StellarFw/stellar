@@ -32,7 +32,7 @@ var _mime = require('mime');
 
 var _mime2 = _interopRequireDefault(_mime);
 
-var _nodeUuid = require('node-uuid');
+var _nodeUuid = require('uuid');
 
 var _nodeUuid2 = _interopRequireDefault(_nodeUuid);
 

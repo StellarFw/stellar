@@ -1,7 +1,7 @@
 'use strict'
 
 let net = require('net')
-let uuid = require('node-uuid')
+let uuid = require('uuid')
 
 let should = require('should')
 let EngineClass = require(__dirname + '/../../dist/engine').default
