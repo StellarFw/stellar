@@ -1,5 +1,5 @@
 import async from 'async'
-import uuid from 'node-uuid'
+import uuid from 'uuid'
 
 /**
  * Redis manager class.

@@ -1,4 +1,4 @@
-import UUID from 'node-uuid'
+import UUID from 'uuid'
 
 /**
  * Create a clean connection.
