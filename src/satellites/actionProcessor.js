@@ -99,8 +99,12 @@ class ActionProcessor {
       error = new Error(error)
     }
 
-    if (error && !self.response.error) {
-      self.response.error = error
+    if (error && !this.response.error) {
+      if (typeof this.response === 'string' || Array.isArray(this.response)) {
+        this.response = error.toString()
+      } else {
+        this.response.error = error
+      }
     }
 
     self.incrementPendingActions(-1)
