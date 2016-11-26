@@ -1,11 +1,11 @@
 'use strict'
 
-// ----------------------------------------------------------------------------------------------------------- [Imports]
+// ----------------------------------------------------------------------------- [Imports]
 
 let Command = require('../Command')
 let Utils = require('../utils')
 
-// ------------------------------------------------------------------------------------------------------------- [Class]
+// ----------------------------------------------------------------------------- [Class]
 
 class MakeAction extends Command {
 
@@ -28,13 +28,6 @@ class MakeAction extends Command {
    * Execute the command
    */
   execute () {
-    // we need to have the action name and the module name
-    // here the action must be created
-    if (this.args._.length < 2) {
-      this.printUsage()
-      return false
-    }
-
     if (this.args.module === undefined || typeof this.args.module !== 'string' || this.args.module.length === 0) {
       this.printError('You need to specify the module here the action must be created')
       return false
@@ -47,15 +40,40 @@ class MakeAction extends Command {
     }
 
     // get useful action information
-    let actionName = this.args._[ 1 ]
+    let actionName = this.args._[ 1 ] || this.args.model
     let actionsPath = `${Utils.getCurrentUniverse()}/modules/${this.args.module}/actions`
     let outputPath = `${actionsPath}/${actionName.replace('.', '_')}.js`
 
-    // if there is not force param and the file already
-    // exists return an error message
+    // the actionName needs to be present
+    if (!actionName) {
+      this.printError('You need to specify the action name or the model')
+      return false
+    }
+
+    // if there is not force param and the file already exists return an error
+    // message
     if (this.args.force === undefined && Utils.exists(outputPath)) {
       this.printError(`The action file already exists. Use --force param to overwrite.`)
       return false
+    }
+
+    if (this.args.model) {
+      // get the model name
+      const modelNameNormalized = actionName.toLowerCase()
+
+      // hash with the data to use on the template
+      const data = {
+        modelName: modelNameNormalized,
+        modelNameCapitalize: modelNameNormalized.charAt(0).toUpperCase() + modelNameNormalized.slice(1)
+      }
+
+      // process the template
+      Utils.generateFileFromTemplate('actionCrud', data, outputPath)
+
+      // print success message
+      this.printSuccess(`The CRUD operations for the "${modelNameNormalized}" model was created!`)
+
+      return true
     }
 
     // create the actions folder is not exists
