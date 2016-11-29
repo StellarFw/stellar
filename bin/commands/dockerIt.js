@@ -35,7 +35,7 @@ class dockerItCommand extends Command {
     Utils.generateFileFromTemplate('dockerfile', {}, `${process.cwd()}/dockerfile`)
 
     // print a success message
-    this.printSuccess(`A dockerfile was created in the project root.\nCreate the image with: docker build -t <image_name>\nCreate a container with: docker run -t -p 8080:8080 --name <container_name> <image_name>`)
+    this.printSuccess(`A dockerfile was created in the project root.\nCreate the image with: docker build -t <image_name> .\nCreate a container with: docker run -t -p 8080:8080 --name <container_name> <image_name>`)
   }
 }
 
