@@ -1,11 +1,11 @@
 'use strict'
 
-// ----------------------------------------------------------------------------------------------------------- [Imports]
+// ----------------------------------------------------------------------------- [Imports]
 
 let Command = require('../Command')
 let Utils = require('../utils')
 
-// ------------------------------------------------------------------------------------------------------------- [Class]
+// ----------------------------------------------------------------------------- [Class]
 
 class MakeListener extends Command {
 
@@ -53,7 +53,7 @@ class MakeListener extends Command {
     let listenersPath = `${Utils.getCurrentUniverse()}/modules/${this.args.module}/listeners`
 
     // build the full listener path
-    let outputPath = `${listenersPath}/${listenerName.replace('.', '_')}.js`
+    let outputPath = `${listenersPath}/${listenerName.replace(/\./g, '_')}.js`
 
     // create listeners folder if not exists
     Utils.createFolderIfNotExists(listenersPath)

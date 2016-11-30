@@ -1,11 +1,11 @@
 'use strict'
 
-exports.{{ name }} = {
+module.export = {
   event: '{{ name }}',
-  description: 'This was automatically generated',
+  description: `This was automatically generated`,
 
-  run: (api, params, next) => {
-    // todo - implement the listener behaviour
+  run (api, params, next) {
+    // TODO - implement the listener behaviour
 
     // finish the event execution
     next()
