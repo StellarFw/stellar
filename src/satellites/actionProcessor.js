@@ -235,7 +235,7 @@ class ActionProcessor {
       // default
       if (self.params[ key ] === undefined && props.default !== undefined) {
         if (typeof props.default === 'function') {
-          self.params[ key ] = props.default(self.params[ key ], self)
+          self.params[ key ] = props.default(self)
         } else {
           self.params[ key ] = props.default
         }

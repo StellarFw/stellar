@@ -75,4 +75,12 @@ describe('Core: Actions', () => {
       .then(_ => { done() })
   })
 
+  it('can use a function to set a param default value', done => {
+    api.actions.call('input-default-function')
+      .then(response => {
+        response.value.should.be.equal(156)
+        done()
+      })
+  })
+
 })

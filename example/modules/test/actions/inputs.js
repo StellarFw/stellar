@@ -27,6 +27,20 @@ module.exports = [ {
     next()
   }
 }, {
+  name: 'input-default-function',
+  description: `Test input default value using a function`,
+
+  inputs: {
+    value: {
+      default (api) { return 156 }
+    }
+  },
+
+  run (api, action, next) {
+    action.response.value = action.params.value
+    next()
+  }
+}, {
   name: 'input-validator-regex',
   description: 'Test input string validator',
 
