@@ -62,20 +62,25 @@ class Modules {
       process.exit(1)
     }
 
-    // load all modules manifests
-    modules.forEach(moduleName => {
+    // load all modules declared in the manifest file
+    for (const moduleName of modules) {
       // build the full path
-      let path = `${self.api.scope.rootPath}/modules/${moduleName}`
+      const path = `${self.api.scope.rootPath}/modules/${moduleName}`
 
       // get module manifest file content
-      let manifest = require(`${path}/manifest.json`)
+      try {
+        const manifest = require(`${path}/manifest.json`)
 
-      // save the module config on the engine instance
-      self.activeModules.set(manifest.id, manifest)
+        // save the module config on the engine instance
+        self.activeModules.set(manifest.id, manifest)
 
-      // save the module full path
-      self.modulesPaths.set(manifest.id, path)
-    })
+        // save the module full path
+        self.modulesPaths.set(manifest.id, path)
+      } catch (e) {
+        next(new Error(`There is an invalid module active, named "${moduleName}", fix this to start Stellar normally.`))
+        break
+      }
+    }
   }
 
   /**

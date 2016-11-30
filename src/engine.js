@@ -15,14 +15,13 @@ const Utils = new UtilsClass()
 /**
  * Main Stellar entry point class.
  *
- * This makes the system bootstrap, loading and execution all
- * satellites. Each initializer load new features to the
- * engine instance or perform a set of instruction to accomplish
- * a certain goal.
+ * This makes the system bootstrap, loading and execution all satellites. Each
+ * initializer load new features to the engine instance or perform a set of
+ * instruction to accomplish a certain goal.
  */
 export default class Engine {
 
-  // ---------------------------------------------------------------------------------------------------------- [STATIC]
+  // --------------------------------------------------------------------------- [STATIC]
 
   /**
    * Default proprieties for the satellites.
@@ -62,7 +61,8 @@ export default class Engine {
     // sort the keys in ascendant way
     keys.sort((a, b) => a - b)
 
-    // iterate the ordered keys and create the new ordered object to be outputted
+    // iterate the ordered keys and create the new ordered object to be
+    // outputted
     keys.forEach(key => collection[ key ].forEach(d => output.push(d)))
 
     // return the new ordered object
@@ -70,8 +70,7 @@ export default class Engine {
   }
 
   /**
-   * Print fatal error on the console and exit from the engine
-   * execution.
+   * Print fatal error on the console and exit from the engine execution.
    *
    * @private
    * @param api     API instance.
@@ -89,13 +88,13 @@ export default class Engine {
     api.log(`Error with satellite step: ${type}`, 'emergency')
 
     // log all the errors
-    errors.forEach(err => api.log(err.stack, 'emergency'))
+    errors.forEach(err => api.log(err, 'emergency'))
 
     // finish the process execution
     process.exit(1)
   }
 
-  // ----------------------------------------------------------------------------------------------------------- [Class]
+  // --------------------------------------------------------------------------- [Class]
 
   /**
    * API object.
@@ -205,7 +204,7 @@ export default class Engine {
     }
   }
 
-  // ----------------------------------------------------------------------------------------- [State Manager Functions]
+  // --------------------------------------------------------------------------- [State Manager Functions]
 
   /**
    * Start engine execution.
@@ -335,7 +334,7 @@ export default class Engine {
     }
   }
 
-  // ------------------------------------------------------------------------------------------------ [States Functions]
+  // --------------------------------------------------------------------------- [States Functions]
 
   /**
    * First startup stage.
