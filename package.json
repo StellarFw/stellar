@@ -40,7 +40,7 @@
     "mockgoose": "^6.0.3",
     "mongoose": "^4.6.8",
     "node-resque": "^2.0.9",
-    "primus": "^5.2.2",
+    "primus": "^6.0.6",
     "qs": "^6.0.1",
     "source-map-support": "^0.4.0",
     "uglify-js": "^2.6.4",
