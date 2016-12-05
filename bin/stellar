@@ -1,11 +1,10 @@
 #!/usr/bin/env node
-
 'use strict'
 
-let Commander = require('./commander')
+const Commander = require('./commander')
 
 // create a new Commander instance
-let commander = new Commander()
+const commander = new Commander()
 
 // register makeAction command
 commander.command('makeAction')

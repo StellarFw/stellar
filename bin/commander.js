@@ -1,20 +1,28 @@
-'use strict';
+'use strict'
 
-let minimist = require('minimist')
-let pkg = require('../package.json')
+const minimist = require('minimist')
+const path = require('path')
+const process = require('process')
+const spawn = require('child_process').spawn
+
+const pkg = require('../package.json')
 
 // console colors
-const FgRed = "\x1b[31m"
-const FgGreen = "\x1b[32m"
-const FgYellow = "\x1b[33m"
-const FgBlue = "\x1b[34m"
-const FgWhite = "\x1b[37m"
-const FgDefault = "\x1b[39m"
+const FgRed = '\x1b[31m'
+const FgGreen = '\x1b[32m'
+const FgYellow = '\x1b[33m'
+const FgBlue = '\x1b[34m'
+const FgWhite = '\x1b[37m'
+const FgDefault = '\x1b[39m'
 
 /**
  * Class to represent a command.
  */
 class Command {
+
+  /**
+   * Create a new instance of Command.
+   */
   constructor (name, args, description, actionFn) {
     this.name = name
     this.args = args || {}
@@ -116,8 +124,6 @@ module.exports = class Commander {
    * Print all available commands.
    */
   printHelper () {
-    let self = this
-
     // print stellar version
     console.log(`${FgBlue}> Stellar Framework ${FgWhite}version ${FgYellow}${pkg.version}\n`)
 
@@ -165,7 +171,7 @@ module.exports = class Commander {
 
         // print it
         let optionName = Commander._normalizeString(key, 25)
-        console.log(`  ${FgGreen}${optionName}${FgWhite}${desc}`);
+        console.log(`  ${FgGreen}${optionName}${FgWhite}${desc}`)
       }
     }
   }
@@ -188,6 +194,9 @@ module.exports = class Commander {
    * @param args Console arguments.
    */
   parse (args) {
+    // create a copy from the args
+    args = JSON.parse(JSON.stringify(args))
+
     // do some initialize operations
     this.init()
 
@@ -216,8 +225,24 @@ module.exports = class Commander {
       return
     }
 
-    // execute the command
-    this.commands.get(this.args._[ 0 ]).actionFn.bind(this)(this.args)
+    // whether the --daemon options is used we must run the command in
+    // background
+    if (this.args.daemon) {
+      // create a new set of arguments removing the `--daemon` options
+      const newArgs = process.argv.splice(2)
+      for (const i in newArgs) {
+        if (newArgs[i].indexOf('--daemon') >= 0) { newArgs.splice(i, 1) }
+      }
+      newArgs.push('--isDaemon=true')
+
+      const command = path.normalize(`${__dirname}/stellar`)
+      const child = spawn(command, newArgs, { detached: true, cwd: process.cwd(), env: process.env, stdio: 'ignore' })
+      console.log(`${command} ${newArgs.join(' ')}`)
+      console.log(`Spawned child process with pid ${child.pid}`)
+      process.nextTick(process.exit)
+    } else {
+      this.commands.get(this.args._[ 0 ]).actionFn.bind(this)(this.args)
+    }
 
     // reset the console colors
     console.log(FgDefault)
