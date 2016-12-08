@@ -1,46 +1,48 @@
 /**
- * Models configs.
+ * Configurations for the models.
+ *
+ * This configuration follows the Waterline pattern, you can see more about
+ * this at:
+ * https://github.com/balderdashy/waterline-docs/blob/master/introduction/getting-started.md
+ *
+ * By default we use a memory based adapter to make the startup really simple.
  */
 export default {
   models: (api) => {
     return {
-      // ---------------------------------------------------------------------
-      // Connection string for the MongoDB server
-      // ---------------------------------------------------------------------
-      connectionString: 'mongodb://localhost/ConnectionTest',
+      '_toExpand': false,
 
-      // ---------------------------------------------------------------------
-      // Which MongoDB package should we use?
+      // -----------------------------------------------------------------------
+      // Hash with model system adapters
+      // -----------------------------------------------------------------------
+      adapters: {
+        'memory': require('sails-memory')
+      },
+
+      // -----------------------------------------------------------------------
+      // Hash with the active connections
+      // -----------------------------------------------------------------------
+      connections: {
+        default: {
+          adapter: 'memory'
+        }
+      },
+
+      // -----------------------------------------------------------------------
+      // Default connection
+      // -----------------------------------------------------------------------
+      defaultConnection: 'default',
+
+      // -----------------------------------------------------------------------
+      // Use schemas
       //
-      // Valid Values:
-      //  - mockgoose: Used for dev or test servers. This shouldn't be used on
-      //    a production server, every time the server is shutdown all
-      //    information is lost.
-      //  - mongoose: Used for production server.
-      // ---------------------------------------------------------------------
-      pkg: 'mockgoose'
-    }
-  }
-}
-
-/**
- * Models configs for test environment.
- *
- * @type {{models: (function())}}
- */
-export const test = {
-  models: (api) => {
-    // by default we use mockgoose
-    let pkg = 'mockgoose'
-
-    // if the environment have a MOCKGOOSE var set to false we use mongoose instead
-    // of mockgoose
-    if (process.env.MOCKGOOSE === 'false') {
-      pkg = 'mongoose'
-    }
-
-    return {
-      pkg: pkg
+      // By default Stellar uses a schema based model, this means that only the
+      // defined attributes are inserted on the models.
+      //
+      // You can turn this off when use are using schema-less adapters like the
+      // MongoDB or Redis, if you want.
+      // -----------------------------------------------------------------------
+      schema: true
     }
   }
 }
