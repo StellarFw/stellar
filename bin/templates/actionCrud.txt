@@ -5,7 +5,7 @@ const inputsDeclaration = {}
 
 // constant with the edit input declaration
 const editInputDeclaration = JSON.parse(JSON.stringify(inputsDeclaration))
-editInputDeclaration._id = { required: true }
+editInputDeclaration.id = { required: true }
 
 module.exports = [{
   name: 'create{{modelNameCapitalize}}',
@@ -14,15 +14,13 @@ module.exports = [{
   inputs: inputsDeclaration,
 
   run(api, action, next) {
-    // create a new model instance
-    var newModel = new(api.models.get('{{modelName}}'))(action.params)
-
-    // save it
-    newModel.save()
+    // create a new entry on the database
+    api.models.get('{{modelName}}')
+      .create(action.params)
       .catch(error => { next(error) })
       .then(model => {
         // append the new model on the response object
-        action.response.{{modelName}} = newModel
+        action.response.{{modelName}} = model
 
         // finish the action execution
         next()
@@ -46,15 +44,17 @@ module.exports = [{
   description: 'Get a {{modelNameCapitalize}}',
 
   inputs: {
-    _id: { required: true }
+    id: { required: true }
   },
 
   run(api, action, next) {
     // search for the request post on the DB
     api.models.get('{{modelName}}')
-      .findById(action.params._id)
+      .findOneById(action.params.id)
       .catch(error => { next(error) })
       .then(resource => {
+        if (!resource) { return next(`There is no resource with that ID`) }
+
         // append the model to the response object
         action.response.{{modelName}} = resource
 
@@ -71,11 +71,13 @@ module.exports = [{
   run(api, action, next) {
     // search for the {{modelNameCapitalize}} and update it
     api.models.get('{{modelName}}')
-      .findByIdAndUpdate(action.params._id, action.params, { upsert: true, new: true })
+      .update({ id: action.params.id }, action.params)
       .catch(error => { next(error) })
-      .then(model => {
+      .then(result => {
+        if (result.length == 0) { return next(`There is no resource with that ID`) }
+
         // append the updated model to the response object
-        action.response.{{modelName}} = model
+        action.response.{{modelName}} = result[0]
 
         // finish the action execution
         next()
@@ -86,13 +88,13 @@ module.exports = [{
   description: 'Remove a {{modelNameCapitalize}}',
 
   inputs: {
-    _id: { required: true }
+    id: { required: true }
   },
 
   run(api, action, next) {
     // search and remove the model
     api.models.get('{{modelName}}')
-      .findByIdAndRemove(action.params._id)
+      .destroy({ id: action.params.id })
       .catch(error => { next(error) })
       .then(() => { next() })
   }

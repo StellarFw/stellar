@@ -268,4 +268,12 @@ export default class {
     next()
   }
 
+  stop (api, next) {
+    // stop watching all files
+    api.configs.unwatchAllFiles()
+
+    // finish the satellite stop
+    next()
+  }
+
 }

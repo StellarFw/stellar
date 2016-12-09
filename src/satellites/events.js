@@ -39,19 +39,17 @@ class EventsManager {
    * @param data        Params to pass to the listeners.
    */
   fire (eventName, data) {
-    let self = this
-
     // variable to store listener response data
     let responseData = data
 
     // build a new promise and return them
     return new Promise(resolve => {
       // if there is no listeners for the event finish the promise now
-      if (!self.events.has(eventName)) { resolve(responseData) }
+      if (!this.events.has(eventName)) { resolve(responseData) }
 
       // execute the listeners async in series
-      async.each(self.events.get(eventName),
-        (listener, callback) => listener.run(self.api, responseData, callback), () => {
+      async.each(this.events.get(eventName),
+        (listener, callback) => listener.run(this.api, responseData, callback), () => {
           // resolve the promise returning the response data
           resolve(responseData)
         })
