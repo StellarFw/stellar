@@ -119,6 +119,9 @@ class Models {
             // get file basename
             let basename = path.basename(moduleFile, '.js')
 
+            // start watching for changes on the model
+            this._watchForChanges(moduleFile)
+
             // push a new work to the array
             work.push(callback => {
               this.add(basename, require(moduleFile).default)
@@ -130,6 +133,31 @@ class Models {
 
       // process the all work and resolve the promise at the end
       _async.parallel(work, () => resolve())
+    })
+  }
+
+  /**
+   * If the development mode is active we must watch for changes.
+   *
+   * When the file changes we tack the following steps:
+   *  - log a message
+   *  - remove the file cache from require
+   *  - reload Stellar
+   */
+  _watchForChanges (file) {
+    // if the development mode is active we return
+    if (!this.api.config.general.developmentMode) { return }
+
+    // watch for changes on the model file
+    this.api.configs.watchFileAndAct(file, () => {
+      // log a information message
+      this.api.log(`\r\n\r\n*** rebooting due to model change (${file}) ***\r\n\r\n`, 'info')
+
+      // remove require cache
+      delete require.cache[ require.resolve(file) ]
+
+      // reload Stellar
+      this.api.commands.restart.call(this.api._self)
     })
   }
 
