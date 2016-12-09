@@ -262,6 +262,7 @@ class ActionProcessor {
       // convert the required property to a validator to unify the validation
       // system
       if (props.required === true) {
+        // FIXME: this will throw an error when the validator is a function
         props.validator = (!props.validator) ? 'required' : 'required|' + props.validator
       }
 
