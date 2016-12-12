@@ -176,6 +176,22 @@ class Models {
    */
   remove (modelName) { this.models.delete(modelName) }
 
+  /**
+   * Process adapters.
+   */
+  processAdapters () {
+    // iterate all adapters and require the right modules. We need to do this
+    // here other wise the config system will break when the module isn't
+    // installed
+    for (const key in this.api.config.models.adapters) {
+      // get module name
+      const moduleName = this.api.config.models.adapters[key]
+
+      // replace the static value with the module instance
+      this.api.config.models.adapters[key] = this.api.utils.require(moduleName)
+    }
+  }
+
 }
 
 /**
@@ -226,7 +242,9 @@ export default class {
    */
   start (api, next) {
     // load the models from the modules and then initialize the Waterline system
-    api.models.loadModels().then(_ => { api.models.initialize(next) })
+    api.models.loadModels()
+      .then(_ => { api.models.processAdapters() })
+      .then(_ => { api.models.initialize(next) })
   }
 
   /**

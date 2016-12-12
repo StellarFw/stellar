@@ -16,7 +16,7 @@ export default {
       // Hash with model system adapters
       // -----------------------------------------------------------------------
       adapters: {
-        'memory': require('sails-memory')
+        'memory': 'sails-memory'
       },
 
       // -----------------------------------------------------------------------

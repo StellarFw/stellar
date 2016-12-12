@@ -4,7 +4,14 @@ import path from 'path'
 
 export class Utils {
 
-  constructor () {}
+  /**
+   * Reference for the API object.
+   *
+   * @type {}
+   */
+  api = null
+
+  constructor (api = null) { this.api = api }
 
   /**
    * Read all files from the given directory.
@@ -427,6 +434,28 @@ export class Utils {
        }
      }
    }
+
+   /**
+    * Custom require function to load from the core scope and then from the
+    * project scope.
+    *
+    * @note: this is a ugly hack but it's working!
+    */
+   require (path) {
+     // try load module from the core
+     try {
+       return require(path)
+     } catch (e) {
+       if (this.api == null) { throw e }
+
+       // if fails try load from the project folder
+       try {
+         return require(`${this.api.scope.rootPath}/node_modules/${path}`)
+       } catch (e) {
+         throw e
+       }
+     }
+   }
 }
 
 export default class {
@@ -439,7 +468,7 @@ export default class {
   loadPriority = 0
 
   load (api, next) {
-    api.utils = new Utils()
+    api.utils = new Utils(api)
     next()
   }
 
