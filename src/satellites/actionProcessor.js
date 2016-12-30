@@ -337,7 +337,7 @@ class ActionProcessor {
 
         // if the returnVal is a Promise we wait for the resolve/rejection and
         // after that we finish the action execution
-        if (returnVal instanceof Promise) {
+        if (returnVal && typeof returnVal.then === 'function') {
           returnVal
             .catch(error => { this.completeAction(error) })
             .then(_ => {
