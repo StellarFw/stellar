@@ -8,7 +8,7 @@ import zlib from 'zlib'
 import etag from 'etag'
 import Mime from 'mime'
 import uuid from 'uuid'
-import formidable from 'formidable'
+import formidable from 'st-formidable'
 import GenericServer from '../genericServer'
 import browser_fingerprint from 'browser_fingerprint'
 

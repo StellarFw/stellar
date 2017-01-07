@@ -30,7 +30,7 @@
     "browser_fingerprint": "0.0.6",
     "etag": "^1.7.0",
     "fakeredis": "^1.0.3",
-    "formidable": "^1.0.17",
+    "st-formidable": "^1.0.18",
     "handlebars": "^4.0.6",
     "i18n": "^0.8.3",
     "ioredis": "^2.4.2",
