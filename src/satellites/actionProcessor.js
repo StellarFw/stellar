@@ -241,21 +241,20 @@ class ActionProcessor {
         }
       }
 
-      // convert
-      if (props.convertTo && this.params[key]) {
-        // Function
-        if (typeof props.convertTo === 'function') {
-          self.params[ key ] = props.convertTo.call(self.api, self.params[ key ], self)
-        } else if (props.convertTo === 'integer') {
+      // format the input to the requested type
+      if (props.format && this.params[key]) {
+        if (typeof props.format === 'function') {
+          self.params[ key ] = props.format.call(this.api, this.params[ key ], this)
+        } else if (props.format === 'integer') {
           self.params[ key ] = Number.parseInt(self.params[ key ])
-        } else if (props.convertTo === 'float') {
+        } else if (props.format === 'float') {
           self.params[ key ] = Number.parseFloat(self.params[ key ])
-        } else if (props.convertTo === 'string') {
+        } else if (props.format === 'string') {
           self.params[ key ] = String(self.params[ key ])
         }
 
         if (Number.isNaN(self.params[ key ])) {
-          self.validatorErrors.set(key, self.api.config.errors.paramInvalidType(key, props.convertTo))
+          self.validatorErrors.set(key, self.api.config.errors.paramInvalidType(key, props.format))
         }
       }
 

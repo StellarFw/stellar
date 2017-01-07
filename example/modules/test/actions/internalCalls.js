@@ -7,12 +7,12 @@ module.exports = [
     inputs: {
       a: {
         description: 'First number',
-        convertTo: 'integer',
+        format: 'integer',
         required: true
       },
       b: {
         description: 'Second number',
-        convertTo: 'integer',
+        format: 'integer',
         required: true
       }
     },
@@ -38,12 +38,12 @@ module.exports = [
     inputs: {
       a: {
         description: 'First number',
-        convertTo: 'integer',
+        format: 'integer',
         required: true
       },
       b: {
         description: 'Second number',
-        convertTo: 'integer',
+        format: 'integer',
         required: true
       }
     },
