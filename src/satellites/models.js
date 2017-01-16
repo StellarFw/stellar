@@ -187,6 +187,10 @@ class Models {
       // get module name
       const moduleName = this.api.config.models.adapters[key]
 
+      // when we are restarting the server this already was replaced with the
+      // module, so we ignore it
+      if (typeof moduleName !== 'string') { continue }
+
       // replace the static value with the module instance
       this.api.config.models.adapters[key] = this.api.utils.require(moduleName)
     }
