@@ -73,8 +73,12 @@ class MakeModel extends Command {
         rest: (this.args.rest !== undefined)
       }
 
+      // ensure the actions directory exists
+      const actionsDirectoryPath = `${modulePath}/actions`
+      Utils.createFolder(actionsDirectoryPath)
+
       // build the output path
-      let actionFilePath = `${modulePath}/actions/${modelNameNormalized}.js`
+      const actionFilePath = `${actionsDirectoryPath}/${modelNameNormalized}.js`
 
       // process the template
       Utils.generateFileFromTemplate('actionCrud', data, actionFilePath)
