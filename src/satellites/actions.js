@@ -196,7 +196,7 @@ class Actions {
     } catch (err) {
       try {
         self.api.exceptionHandlers.loader(fullFilePath, err)
-        delete self.actions[ action.name ][ action.version ]
+        if (action) { delete self.actions[ action.name ][ action.version ] }
       } catch (err2) {
         throw err
       }
