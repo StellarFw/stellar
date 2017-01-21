@@ -6,9 +6,11 @@ module.exports = [ {
 
   inputs: {
     key: {
+      description: 'Key to store',
       required: true
     },
     value: {
+      description: 'Value to store',
       required: true
     }
   },
