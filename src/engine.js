@@ -12,6 +12,10 @@ import { Utils as UtilsClass } from './satellites/utils'
 // FIXME: this is a temporary workaround, we must make this more professional
 const Utils = new UtilsClass()
 
+// This stores the number of times that Stellar was started. Every time that
+// Stellar restarts this is incremented by 1
+let startCount = 0
+
 /**
  * Main Stellar entry point class.
  *
@@ -106,7 +110,6 @@ export default class Engine {
    */
   api = {
     initialized: false,
-    shuttingDown: false,
     running: false,
     started: false,
     bootTime: null,
@@ -244,7 +247,7 @@ export default class Engine {
 
     if (self.api.running === true) {
       // stop Engine
-      self.api.shuttingDown = true
+      self.api.status = 'shutting_down'
       self.api.running = false
       self.api.initialized = false
 
@@ -279,7 +282,7 @@ export default class Engine {
 
       // iterate all satellites and stop them
       async.series(self.stopSatellites, errors => Engine.fatalError(self.api, errors, 'stop'))
-    } else if (self.api.shuttingDown === true) {
+    } else if (self.api.status === 'shutting_down') {
       // double sigterm; ignore it
     } else {
       // we can shutdown the Engine if it is not running
@@ -519,27 +522,34 @@ export default class Engine {
    *  @param callback
    */
   stage2 (callback = null) {
-    let self = this
-
     // set the state
     this.api.status = 'init_stage2'
 
-    self.startSatellites.push(next => {
-      // set the state
-      this.api.status = 'running'
+    if (startCount === 0) {
+      this.startSatellites.push(next => {
+        // set the state
+        this.api.status = 'running'
 
-      // define Stellar like running
-      self.api.running = true
+        // define Stellar like running
+        this.api.running = true
 
-      self.api.bootTime = new Date().getTime()
-      self.api.log('** Server Started @ ' + new Date() + ' ***', 'notice')
+        this.api.bootTime = new Date().getTime()
+        if (startCount === 0) {
+          this.api.log('** Server Started @ ' + new Date() + ' ***', 'alert')
+        } else {
+          this.api.log('** Server Restarted @ ' + new Date() + ' ***', 'alert')
+        }
 
-      // call the callback if it's present
-      if (callback !== null) { callback(null, self.api) }
+        // increment the number of starts
+        startCount++
 
-      next()
-    })
+        // call the callback if it's present
+        if (callback !== null) { callback(null, this.api) }
 
-    async.series(self.startSatellites, err => Engine.fatalError(self.api, err, 'stage2'))
+        next()
+      })
+    }
+
+    async.series(this.startSatellites, err => Engine.fatalError(this.api, err, 'stage2'))
   }
 }
