@@ -46,6 +46,26 @@ class DocumentationGenerator {
   }
 
   /**
+   * Generate an array with all information needed to build the list of tasks.
+   */
+  _getTasksInformation () {
+    // array to store all the tasks
+    const tasks = []
+
+    // iterate all registered tasks
+    Object.keys(this.api.tasks.tasks).forEach(key => {
+      const task = this.api.tasks.tasks[key]
+      tasks.push({
+        name: task.name,
+        description: task.description || 'N/A',
+        frequency: task.frequency || '-'
+      })
+    })
+
+    return tasks
+  }
+
+  /**
    * Get all actions who have toDocument different than false.
    *
    * @returns {{}}  Actions to generate documentation.
@@ -149,6 +169,9 @@ class DocumentationGenerator {
     data.project.description = self.api.config.description
     data.project.version = self.api.config.version
 
+    // append the tasks information
+    data.tasks = this._getTasksInformation()
+
     // get template source
     let source = fs.readFileSync(`${self.staticFolder}/index.html`).toString()
 
@@ -247,7 +270,7 @@ export default class {
    *
    * @type {number}
    */
-  loadPriority = 510
+  loadPriority = 710
 
   /**
    * Satellite loading function.
