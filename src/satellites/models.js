@@ -35,10 +35,12 @@ class Models {
    *
    * @param api   API reference.
    */
-  constructor (api) {
-    this.api = api
+  constructor (api) { this.api = api }
 
-    // create a new Waterline instance
+  /**
+   * Create a new Waterline instance.
+   */
+  async createNewInstance () {
     this.waterline = new Waterline()
   }
 
@@ -48,6 +50,7 @@ class Models {
    * @param callback  Callback function.
    */
   initialize (callback) {
+    // initialize the Waterline system
     this.waterline.initialize(this.api.config.models, (error, ontology) => {
       // if an error occurred we need stop the execution
       if (error) { return callback(error) }
@@ -246,7 +249,8 @@ export default class {
    */
   start (api, next) {
     // load the models from the modules and then initialize the Waterline system
-    api.models.loadModels()
+    api.models.createNewInstance()
+      .then(_ => { api.models.loadModels() })
       .then(_ => { api.models.processAdapters() })
       .then(_ => { api.models.initialize(next) })
   }

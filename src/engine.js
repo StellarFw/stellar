@@ -109,11 +109,8 @@ export default class Engine {
    * @type {{}}
    */
   api = {
-    initialized: false,
-    running: false,
-    started: false,
     bootTime: null,
-    status: 'not_booted',
+    status: 'stopped',
 
     commands: {
       start: null,
@@ -218,6 +215,9 @@ export default class Engine {
   start (callback = null) {
     let self = this
 
+    // reset start counter
+    startCount = 0
+
     // if this function has called outside of the Engine the 'this'
     // variable has an invalid reference
     if (this._self) { self = this._self }
@@ -245,11 +245,9 @@ export default class Engine {
     // variable has an invalid reference
     if (this._self) { self = this._self }
 
-    if (self.api.running === true) {
+    if (self.api.status === 'running') {
       // stop Engine
       self.api.status = 'shutting_down'
-      self.api.running = false
-      self.api.initialized = false
 
       // log a shutting down message
       self.api.log('Shutting down open servers and stopping task processing', 'alert')
@@ -270,6 +268,9 @@ export default class Engine {
         // log a shutdown message
         self.api.log('Stellar has been stopped', 'alert')
         self.api.log('***', 'debug')
+
+        // mark server as stopped
+        self.api.status = 'stopped'
 
         // execute the callback on the next tick
         process.nextTick(() => {
@@ -307,7 +308,7 @@ export default class Engine {
     // variable has an invalid reference
     if (this._self) { self = this._self }
 
-    if (self.api.running === true) {
+    if (self.api.status === 'running') {
       // stop the engine
       self.stop(err => {
         // log error if present
@@ -350,8 +351,6 @@ export default class Engine {
    * @param callback This callback only are executed at the end of stage2.
    */
   stage0 (callback = null) {
-    let self = this
-
     // set the state
     this.api.status = 'init_stage0'
 
@@ -368,17 +367,17 @@ export default class Engine {
       let initializer = filename.split('.')[ 0 ]
 
       // get the initializer
-      self.satellites[ initializer ] = new (require(file)).default()
+      this.satellites[ initializer ] = new (require(file)).default()
 
       // add it to array
-      self.initialSatellites.push(next => self.satellites[ initializer ].load(self.api, next))
+      this.initialSatellites.push(next => this.satellites[ initializer ].load(this.api, next))
     })
 
     // stage1 is called at the end of execution of all initial satellites
-    self.initialSatellites.push(() => self.stage1(callback))
+    this.initialSatellites.push(() => this.stage1(callback))
 
     // execute stage0 satellites in series
-    async.series(self.initialSatellites, error => Engine.fatalError(self.api, error, 'stage0'))
+    async.series(this.initialSatellites, error => Engine.fatalError(this.api, error, 'stage0'))
   }
 
   /**
@@ -393,9 +392,7 @@ export default class Engine {
    * @param callback This callback only is executed at the stage2 end.
    */
   stage1 (callback = null) {
-    let self = this
-
-    // set the state
+    // put the status in the next stage
     this.api.status = 'init_stage1'
 
     // ranked object for all stages
@@ -404,7 +401,7 @@ export default class Engine {
     let stopSatellitesRankings = {}
 
     // reset satellites arrays
-    self.satellites = {}
+    this.satellites = {}
 
     // function to load the satellites in the right place
     let loadSatellitesInPlace = satellitesFiles => {
@@ -421,17 +418,17 @@ export default class Engine {
         if (ext !== 'js') { continue }
 
         // get initializer module and instantiate it
-        self.satellites[ initializer ] = new (require(file).default)()
+        this.satellites[ initializer ] = new (require(file).default)()
 
         // initializer load function
         let loadFunction = next => {
           // check if the initializer have a load function
-          if (typeof self.satellites[ initializer ].load === 'function') {
-            self.api.log(` > load: ${initializer}`, 'debug')
+          if (typeof this.satellites[ initializer ].load === 'function') {
+            this.api.log(` > load: ${initializer}`, 'debug')
 
             // call `load` property
-            self.satellites[ initializer ].load(self.api, err => {
-              self.api.log(`   loaded: ${initializer}`, 'debug')
+            this.satellites[ initializer ].load(this.api, err => {
+              this.api.log(`   loaded: ${initializer}`, 'debug')
               next(err)
             })
           } else {
@@ -442,12 +439,12 @@ export default class Engine {
         // initializer start function
         let startFunction = next => {
           // check if the initializer have a start function
-          if (typeof self.satellites[ initializer ].start === 'function') {
-            self.api.log(` > start: ${initializer}`, 'debug')
+          if (typeof this.satellites[ initializer ].start === 'function') {
+            this.api.log(` > start: ${initializer}`, 'debug')
 
             // execute start routine
-            self.satellites[ initializer ].start(self.api, err => {
-              self.api.log(`   started: ${initializer}`, 'debug')
+            this.satellites[ initializer ].start(this.api, err => {
+              this.api.log(`   started: ${initializer}`, 'debug')
               next(err)
             })
           } else {
@@ -457,11 +454,11 @@ export default class Engine {
 
         // initializer stop function
         let stopFunction = next => {
-          if (typeof self.satellites[ initializer ].stop === 'function') {
-            self.api.log(` > stop: ${initializer}`, 'debug')
+          if (typeof this.satellites[ initializer ].stop === 'function') {
+            this.api.log(` > stop: ${initializer}`, 'debug')
 
-            self.satellites[ initializer ].stop(self.api, err => {
-              self.api.log(`   stopped: ${initializer}`, 'debug')
+            this.satellites[ initializer ].stop(this.api, err => {
+              this.api.log(`   stopped: ${initializer}`, 'debug')
               next(err)
             })
           } else {
@@ -470,15 +467,15 @@ export default class Engine {
         }
 
         // normalize satellite priorities
-        Engine.normalizeInitializerPriority(self.satellites[ initializer ])
-        loadSatellitesRankings[ self.satellites[ initializer ].loadPriority ] = loadSatellitesRankings[ self.satellites[ initializer ].loadPriority ] || []
-        startSatellitesRankings[ self.satellites[ initializer ].startPriority ] = startSatellitesRankings[ self.satellites[ initializer ].startPriority ] || []
-        stopSatellitesRankings[ self.satellites[ initializer ].stopPriority ] = stopSatellitesRankings[ self.satellites[ initializer ].stopPriority ] || []
+        Engine.normalizeInitializerPriority(this.satellites[ initializer ])
+        loadSatellitesRankings[ this.satellites[ initializer ].loadPriority ] = loadSatellitesRankings[ this.satellites[ initializer ].loadPriority ] || []
+        startSatellitesRankings[ this.satellites[ initializer ].startPriority ] = startSatellitesRankings[ this.satellites[ initializer ].startPriority ] || []
+        stopSatellitesRankings[ this.satellites[ initializer ].stopPriority ] = stopSatellitesRankings[ this.satellites[ initializer ].stopPriority ] || []
 
         // push loader state function to ranked arrays
-        loadSatellitesRankings[ self.satellites[ initializer ].loadPriority ].push(loadFunction)
-        startSatellitesRankings[ self.satellites[ initializer ].startPriority ].push(startFunction)
-        stopSatellitesRankings[ self.satellites[ initializer ].stopPriority ].push(stopFunction)
+        loadSatellitesRankings[ this.satellites[ initializer ].loadPriority ].push(loadFunction)
+        startSatellitesRankings[ this.satellites[ initializer ].startPriority ].push(startFunction)
+        stopSatellitesRankings[ this.satellites[ initializer ].stopPriority ].push(stopFunction)
       }
     }
 
@@ -486,30 +483,24 @@ export default class Engine {
     loadSatellitesInPlace(Utils.getFiles(__dirname + '/satellites'))
 
     // load satellites from all the active modules
-    self.api.config.modules.forEach(moduleName => {
+    this.api.config.modules.forEach(moduleName => {
       // build the full path to the satellites folder
-      let moduleSatellitePaths = `${self.api.scope.rootPath}/modules/${moduleName}/satellites`
+      let moduleSatellitePaths = `${this.api.scope.rootPath}/modules/${moduleName}/satellites`
 
       // check if the folder exists
       if (Utils.directoryExists(moduleSatellitePaths)) { loadSatellitesInPlace(Utils.getFiles(moduleSatellitePaths)) }
     })
 
     // organize final array to match the satellites priorities
-    self.loadSatellites = Engine.flattenOrderedInitializer(loadSatellitesRankings)
-    self.startSatellites = Engine.flattenOrderedInitializer(startSatellitesRankings)
-    self.stopSatellites = Engine.flattenOrderedInitializer(stopSatellitesRankings)
+    this.loadSatellites = Engine.flattenOrderedInitializer(loadSatellitesRankings)
+    this.startSatellites = Engine.flattenOrderedInitializer(startSatellitesRankings)
+    this.stopSatellites = Engine.flattenOrderedInitializer(stopSatellitesRankings)
 
     // on the end of loading all satellites set engine like initialized
-    self.loadSatellites.push(() => {
-      // mark engine like initialized
-      self.api.initialized = true
-
-      // call stage2
-      self.stage2(callback)
-    })
+    this.loadSatellites.push(() => { this.stage2(callback) })
 
     // start initialization process
-    async.series(self.loadSatellites, errors => Engine.fatalError(self.api, errors, 'stage0'))
+    async.series(this.loadSatellites, errors => Engine.fatalError(this.api, errors, 'stage1'))
   }
 
   /**
@@ -522,16 +513,13 @@ export default class Engine {
    *  @param callback
    */
   stage2 (callback = null) {
-    // set the state
+    // put the engine in the stage2 state
     this.api.status = 'init_stage2'
 
     if (startCount === 0) {
       this.startSatellites.push(next => {
         // set the state
         this.api.status = 'running'
-
-        // define Stellar like running
-        this.api.running = true
 
         this.api.bootTime = new Date().getTime()
         if (startCount === 0) {
@@ -550,6 +538,7 @@ export default class Engine {
       })
     }
 
+    // start all initializers
     async.series(this.startSatellites, err => Engine.fatalError(this.api, err, 'stage2'))
   }
 }

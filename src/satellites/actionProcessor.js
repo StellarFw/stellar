@@ -295,7 +295,7 @@ class ActionProcessor {
       self.actionTemplate = self.api.actions.actions[ self.action ][ self.params.apiVersion ]
     }
 
-    if (self.api.running !== true) {
+    if (self.api.status !== 'running') {
       self.completeAction('server_shutting_down')
     } else if (self.getPendingActionCount(self.connection) > self.api.config.general.simultaneousActions) {
       self.completeAction('too_many_requests')
