@@ -128,6 +128,9 @@ class ConfigManager {
     // set config object on API
     this.api.config = {}
 
+    // we don't start watching for file changes on state0
+    const isToWatch = this.api.status === 'init_stage0'
+
     try {
       // read project manifest
       this.api.config = require(`${this.api.scope.rootPath}/manifest.json`)
@@ -141,14 +144,14 @@ class ConfigManager {
     }
 
     // load the default config files from the Stellar core
-    this.loadConfigDirectory(__dirname + '/../config')
+    this.loadConfigDirectory(__dirname + '/../config', false)
 
     // load all the configs from the modules
-    this.api.config.modules.forEach(moduleName => this.loadConfigDirectory(`${this.api.scope.rootPath}/modules/${moduleName}/config`, true))
+    this.api.config.modules.forEach(moduleName => this.loadConfigDirectory(`${this.api.scope.rootPath}/modules/${moduleName}/config`, isToWatch))
 
-    // load the config files from the current universe if exists
-    // the platform should be reloaded when the project configs changes
-    this.loadConfigDirectory(`${this.api.scope.rootPath}/config`, true)
+    // load the config files from the current universe if exists the platform
+    // should be reloaded when the project configs changes
+    this.loadConfigDirectory(`${this.api.scope.rootPath}/config`, isToWatch)
   }
 
   /**
@@ -180,7 +183,9 @@ class ConfigManager {
         loadErrors = {}
 
         // configuration file loaded: set watch
-        if (watch !== false) { this.watchFileAndAct(file, this._rebootCallback.bind(this)) }
+        if (watch !== false) {
+          this.watchFileAndAct(file, this._rebootCallback.bind(this))
+        }
       } catch (error) {
         // error loading configuration, abort if all remaining configuration files
         // have been tried and failed indicating inability to progress

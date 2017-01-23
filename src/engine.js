@@ -110,6 +110,7 @@ export default class Engine {
     running: false,
     started: false,
     bootTime: null,
+    status: 'not_booted',
 
     commands: {
       start: null,
@@ -348,6 +349,9 @@ export default class Engine {
   stage0 (callback = null) {
     let self = this
 
+    // set the state
+    this.api.status = 'init_stage0'
+
     // we need to load the config first
     let initialSatellites = [
       path.resolve(__dirname + '/satellites/utils.js'),
@@ -387,6 +391,9 @@ export default class Engine {
    */
   stage1 (callback = null) {
     let self = this
+
+    // set the state
+    this.api.status = 'init_stage1'
 
     // ranked object for all stages
     let loadSatellitesRankings = {}
@@ -514,7 +521,13 @@ export default class Engine {
   stage2 (callback = null) {
     let self = this
 
+    // set the state
+    this.api.status = 'init_stage2'
+
     self.startSatellites.push(next => {
+      // set the state
+      this.api.status = 'running'
+
       // define Stellar like running
       self.api.running = true
 
