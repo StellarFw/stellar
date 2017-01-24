@@ -3,7 +3,6 @@
 // ----------------------------------------------------------------------------- [Imports]
 
 let os = require('os')
-let Utils = require('../utils')
 let cluster = require('cluster')
 let pkg = require('../../package.json')
 let Engine = require('../../dist/engine').default
@@ -42,7 +41,7 @@ module.exports = function (args) {
     clearTimeout(checkForInternalStopTimer)
 
     // if the engine executing stops finish the process
-    if (engine.api.running !== true) { process.exit(0) }
+    if (engine.api.status !== 'running') { process.exit(0) }
 
     // create a new timeout
     checkForInternalStopTimer = setTimeout(checkForInternalStop, shutdownTimeout)
@@ -101,7 +100,7 @@ module.exports = function (args) {
       state = 'stopped'
       if (cluster.isWorker) { process.send({ state: state }) }
       api = null
-      if (typeof  callback === 'function') { callback(null, api) }
+      if (typeof callback === 'function') { callback(null, api) }
     })
   }
 
@@ -118,7 +117,8 @@ module.exports = function (args) {
     if (process.isWorker) { process.send({ state: state }) }
 
     // restart the server
-    engine.restart((err, apiFromCallback) => {
+    // TODO: handle the error
+    engine.restart((_, apiFromCallback) => {
       // set the server state to 'started'
       state = 'started'
 
