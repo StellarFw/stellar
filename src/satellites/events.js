@@ -95,35 +95,45 @@ class EventsManager {
    * @return boolean      True if is all okay, false otherwise.
    */
   _listenerObj (listenerObj) {
-    let self = this
-
     // validate event name
     if (listenerObj.event === undefined) {
-      self.api.log('invalid listener - missing event name', 'warning')
+      this.api.log('invalid listener - missing event name', 'warning')
       return false
     }
 
     // validate run
     if (listenerObj.run === undefined || typeof listenerObj.run !== 'function') {
-      self.api.log('invalid listener - missing run property or not a function', 'warning')
+      this.api.log('invalid listener - missing run property or not a function', 'warning')
       return false
     }
 
     // if priority are not defined
-    if (listenerObj.priority === undefined) { listenerObj.priority = self.api.config.general.defaultListenerPriority }
+    if (listenerObj.priority === undefined) {
+      listenerObj.priority = this.api.config.general.defaultListenerPriority
+    }
 
-    // if there is no listener for this event, create a new entry
-    // with an empty array
-    if (!self.events.has(listenerObj.event)) { self.events.set(listenerObj.event, []) }
+    // the event property can be an array, when the listener supports multiple
+    // events, so we need to iterate it. When the event property is an string we
+    // must convert it to an array in order to simplify the implementation
+    const events = (typeof listenerObj.event === 'string')
+      ? [ listenerObj.event ] : listenerObj.event
 
-    // get the array with all registered listeners for this event
-    let listeners = self.events.get(listenerObj.event)
+    // iterate the events array. There is no need to change the event name,
+    // because we don't use it when we execute the listener
+    for (const event of events) {
+      // if there is no listener for this event, create a new entry with an
+      // empty array
+      if (!this.events.has(event)) { this.events.set(event, [ ]) }
 
-    // register the new listener
-    listeners.push(listenerObj)
+      // get the array with all registered listeners for this event
+      let listeners = this.events.get(event)
 
-    // order the listeners by priority
-    listeners.sort((l1, l2) => l1.priority - l2.priority)
+      // register the new listener
+      listeners.push(listenerObj)
+
+      // order the listeners by priority
+      listeners.sort((l1, l2) => l1.priority - l2.priority)
+    }
 
     return true
   }
@@ -181,14 +191,21 @@ class EventsManager {
     this.api.configs.watchFileAndAct(path, () => {
       // remove old listeners
       this.fileListeners.get(path).forEach(listener => {
-        // get array of functions
-        const listeners = this.events.get(listener.event)
+        // an listener can support multiple events, so we need iterate all
+        const events = (typeof listener.event === 'string')
+          ? [ listener.event ]
+          : listener.event
 
-        // get listener index
-        const index = listeners.indexOf(listener)
+        for (const event of events) {
+          // get array of functions
+          const listeners = this.events.get(event)
 
-        // remove listener
-        listeners.splice(index, 1)
+          // get listener index
+          const index = listeners.indexOf(listener)
+
+          // remove listener
+          listeners.splice(index, 1)
+        }
       })
 
       // load the listeners again

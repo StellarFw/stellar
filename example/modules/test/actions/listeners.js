@@ -9,3 +9,13 @@ exports.default = {
     .then(response => { action.response.res = response })
   }
 }
+
+exports.multipleListener = {
+  name: 'multipleListener',
+  description: 'This is a test for the multiple listeners support',
+
+  run (api, action) {
+    return api.events.fire('multiple', { value: 'raw' })
+    .then(response => { action.response.result = response })
+  }
+}
