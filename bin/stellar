@@ -16,7 +16,7 @@ const yargs = require('yargs')
 // --- define some global configurations ---------------------------------------
 
 // show a welcome message
-console.log(`\x1b[34m> Stellar Framework \x1b[37mversion \x1b[33m${pkg.version}\x1b[37m\n`)
+console.log(`\x1b[34m> Stellar Framework \x1b[37mversion \x1b[33m${pkg.version}\x1b[39m\n`)
 
 // set usage
 yargs.usage('Usage: stellar <command> [--options]')
@@ -25,8 +25,15 @@ yargs.usage('Usage: stellar <command> [--options]')
 yargs.help()
 yargs.alias('h', 'help')
 
-// show help on fail
-yargs.showHelpOnFail(true)
+// disable show help on fail
+yargs.showHelpOnFail(false)
+
+// --- register options --------------------------------------------------------
+
+yargs.option('daemon', {
+  describe: 'Execute the command as a daemon',
+  type: 'boolean'
+})
 
 // --- register commands -------------------------------------------------------
 
