@@ -5,46 +5,60 @@
 let Command = require('../Command')
 let Utils = require('../utils')
 
-// ----------------------------------------------------------------------------- [Class]
+// ----------------------------------------------------------------------------- [Command]
 
 class MakeModel extends Command {
 
   /**
    * Create a new MakeModel instance.
-   *
-   * @param args
    */
-  constructor (args) {
+  constructor () {
     // execute the super class constructor method
     super()
 
-    // define usage
-    this.usage = 'stellar makeModel <model_name> --module=<module_name> [--options]'
-
-    // save the parsed console arguments
-    this.args = args
+    // command definition
+    this.command = 'model <model_name>'
+    this.describe = 'Create a new Model'
+    this.builder = {
+      module: {
+        describe: 'Module where the files will be created',
+        type: 'string',
+        default: 'private'
+      },
+      force: {
+        describe: 'Overwrite existent files',
+        type: 'boolean',
+        default: false
+      },
+      crud: {
+        describe: 'Create a set of actions with the CRUD operations',
+        type: 'boolean',
+        default: false
+      },
+      actionName: {
+        describe: 'Overwrite the action file name',
+        type: 'string'
+      },
+      rest: {
+        describe: 'Generate RESTfull URLs for the generated actions',
+        type: 'boolean',
+        default: false
+      }
+    }
   }
 
   /**
    * Execute the command.
    */
-  execute () {
-    // we need at least two arguments. One: the command name, two: the model name
-    if (this.args._.length < 2) {
-      this.printUsage()
-      return false
-    }
-
+  run () {
     // we need the module name here the model must be created
-    if (this.args.module === undefined || typeof this.args.module !== 'string' || this.args.module.length === 0) {
-      this.printError('You need to specify the module here the model must be created')
-      return false
+    if (this.args.module.length === 0) {
+      return this.printError('You need to specify the module where the model must be created')
     }
 
     // check if the entered module name exists
     if (!Utils.moduleExists(this.args.module)) {
-      this.printError(`The module "${this.args.module}" does not exists`)
-      return false
+      return this.printError(`The module "${this.args.module}" does not exists`)
     }
 
     // build module path
@@ -54,7 +68,7 @@ class MakeModel extends Command {
     Utils.createFolder(`${modulePath}/models`)
 
     // build the new model file path
-    let modelNameNormalized = this.args._[ 1 ].toLowerCase()
+    let modelNameNormalized = this.args.model_name.toLowerCase()
     let modelNameCapitalize = modelNameNormalized.charAt(0).toUpperCase() + modelNameNormalized.slice(1)
     let newFilePath = `${modulePath}/models/${modelNameNormalized}.js`
 
@@ -62,10 +76,10 @@ class MakeModel extends Command {
     Utils.createFile(newFilePath, Utils.getTemplate('model'))
 
     // print success message
-    this.printSuccess(`The "${this.args._[ 1 ]}" model was created!`)
+    this.printSuccess(`The "${this.args.model_name}" model was created!`)
 
     // check if is to create an action file with the crud operations
-    if (this.args.crud !== undefined) {
+    if (this.args.crud) {
       // hash with the data to use on the template
       let data = {
         modelName: modelNameNormalized,
@@ -84,11 +98,11 @@ class MakeModel extends Command {
       Utils.generateFileFromTemplate('actionCrud', data, actionFilePath)
 
       // print success message
-      this.printSuccess(`The CRUD operations for the "${this.args._[ 1 ]}" model was created!`)
+      this.printSuccess(`The CRUD operations for the "${this.args.model_name}" model was created!`)
     }
 
     // if the crud and rest options are present generate actions
-    if (this.args.crud !== undefined && this.args.rest !== undefined) {
+    if (this.args.crud && this.args.rest) {
       let routes = {
         all: [],
         get: [],
@@ -111,13 +125,11 @@ class MakeModel extends Command {
       Utils.createFile(`${modulePath}/routes.json`, JSON.stringify(routes, null, 2))
 
       // success
-      this.printSuccess(`The routes for the "${this.args._[ 1 ]}" model was created!`)
+      this.printSuccess(`The routes for the "${this.args.model_name}" model was created!`)
     }
-
-    return true
   }
 
 }
 
-// exports the function to execute the command
-module.exports = args => (new MakeModel(args)).execute()
+// export command
+module.exports = new MakeModel()

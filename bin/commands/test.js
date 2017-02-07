@@ -9,7 +9,7 @@ const Utils = require('../utils')
 const Command = require('../Command')
 const Engine = require('../../dist/engine').default
 
-// ---------------------------------------------------------------------------- [Class]
+// ---------------------------------------------------------------------------- [Command]
 
 /**
  * Test command class.
@@ -27,11 +27,9 @@ class TestCommand extends Command {
     // execute the super class constructor method
     super()
 
-    // define the usage
-    this.usage = `stellar test [--options]`
-
-    // save the parsed console arguments
-    this.args = args
+    // command definition
+    this.command = 'test'
+    this.describe = 'Run application tests'
   }
 
   /**
@@ -46,15 +44,13 @@ class TestCommand extends Command {
   /**
    * Execute the command.
    */
-  execute () {
-    let self = this
-
+  run () {
     // get all active modules from the application
     const modules = Utils.getAppModules()
 
     // if the modules are empty return a message
     if (modules.length === 0) {
-      self.printInfo(`There is no active module to run tests.`)
+      this.printInfo(`There is no active module to run tests.`)
       return true
     }
 
@@ -63,7 +59,7 @@ class TestCommand extends Command {
 
     // iterate all modules and add the test file to the mocha
     modules.forEach(moduleName => {
-      let testsPath = self.getModuleTestPath(moduleName)
+      let testsPath = this.getModuleTestPath(moduleName)
 
       // ignore the folder if this not exists
       if (!Utils.exists(testsPath)) { return }
@@ -90,5 +86,5 @@ class TestCommand extends Command {
 
 }
 
-// exports the function to execute the command
-module.exports = args => (new TestCommand(args)).execute()
+// export the command
+module.exports = new TestCommand()

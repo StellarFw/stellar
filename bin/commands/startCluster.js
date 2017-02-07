@@ -1,16 +1,18 @@
 'use strict'
 
-// ----------------------------------------------------------------------------------------------------------- [Imports]
+// ----------------------------------------------------------------------------- [Imports]
 
-var fs = require('fs')
-var os = require('os')
-var path = require('path')
 var async = require('async')
 var cluster = require('cluster')
-var winston = require('winston')
+var fs = require('fs')
 var isRunning = require('is-running')
+var os = require('os')
+var path = require('path')
+var winston = require('winston')
 
-// ------------------------------------------------------------------------------------------------------ [Worker Class]
+const Command = require('../Command')
+
+// ----------------------------------------------------------------------------- [Worker Class]
 
 /**
  * This class represent a cluster Worker.
@@ -37,13 +39,12 @@ class Worker {
    * @returns {string}
    */
   logPrefix () {
-    let self = this
     let s = ''
 
-    s += `[worker #${self.id}`
+    s += `[worker #${this.id}`
 
-    if (self.worker && self.worker.process) {
-      s += ` (${self.worker.process.pid})]: `
+    if (this.worker && this.worker.process) {
+      s += ` (${this.worker.process.pid})]: `
     } else {
       s += ']: '
     }
@@ -55,56 +56,54 @@ class Worker {
    * Start the worker execution.
    */
   start () {
-    let self = this
-
     // create the worker
-    self.worker = cluster.fork(self.env)
+    this.worker = cluster.fork(this.env)
 
     // define the exit action
-    self.worker.on('exit', () => {
-      self.parent.log(`${self.logPrefix()} exited`, 'info')
+    this.worker.on('exit', () => {
+      this.parent.log(`${this.logPrefix()} exited`, 'info')
 
       // remove worker
-      for (let i in self.parent.workers) {
-        if (self.parent.workers[ i ].id === self.id) {
-          self.parent.workers.splice(i, 1)
+      for (let i in this.parent.workers) {
+        if (this.parent.workers[ i ].id === this.id) {
+          this.parent.workers.splice(i, 1)
           break
         }
       }
 
-      self.parent.work()
+      this.parent.work()
     })
 
     // some early exception are not catch
-    self.worker.process.stderr.on('data', chunk => {
+    this.worker.process.stderr.on('data', chunk => {
       // get message
       let message = String(chunk)
 
-      self.parent.log(`uncaught exception => ${message}`, 'alert')
-      self.parent.flapCount++
+      this.parent.log(`uncaught exception => ${message}`, 'alert')
+      this.parent.flapCount++
     })
 
-    self.worker.on('message', message => {
+    this.worker.on('message', message => {
       // update the worker state if it exists in the message
       if (message.state) {
-        self.state = message.state
-        self.parent.log(`${self.logPrefix()}  ${message.state}`, 'info')
+        this.state = message.state
+        this.parent.log(`${this.logPrefix()}  ${message.state}`, 'info')
       }
 
       // is a 'uncaughtException'
       if (message.uncaughtException) {
-        self.parent.log(`uncaught exception => ${message.uncaughtException.message}`, 'alert')
-        message.uncaughtException.state.forEach(line => self.parent.log(`${self.logPrefix()}   ${line}`, 'alert'))
-        self.parent.flapCount++
+        this.parent.log(`uncaught exception => ${message.uncaughtException.message}`, 'alert')
+        message.uncaughtException.state.forEach(line => this.parent.log(`${this.logPrefix()}   ${line}`, 'alert'))
+        this.parent.flapCount++
       }
 
       // if is a 'unhandledRejection'
       if (message.unhandledRejection) {
-        self.parent.log(`unhandled rejection => ${JSON.stringify(message.unhandledRejection)}`, 'alert')
-        self.parent.flapCount++
+        this.parent.log(`unhandled rejection => ${JSON.stringify(message.unhandledRejection)}`, 'alert')
+        this.parent.flapCount++
       }
 
-      self.parent.work()
+      this.parent.work()
     })
   }
 
@@ -120,7 +119,7 @@ class Worker {
 
 }
 
-// --------------------------------------------------------------------------------------------- [Cluster Manager Class]
+// ----------------------------------------------------------------------------- [Cluster Manager Class]
 
 /**
  * Cluster manager class.
@@ -133,20 +132,18 @@ class ClusterManager {
    * @param args Options
    */
   constructor (args) {
-    let self = this
-
     // class variables
-    self.workers = []
-    self.workersToRestart = []
-    self.flapCount = 0
+    this.workers = []
+    this.workersToRestart = []
+    this.flapCount = 0
 
     // get default options
-    self.options = ClusterManager.defaults()
+    this.options = ClusterManager.defaults()
 
     // subscribe default options
-    for (let i in self.options) {
+    for (let i in this.options) {
       if (args[ i ] !== null && args[ i ] !== undefined) {
-        self.options[ i ] = args[ i ]
+        this.options[ i ] = args[ i ]
       }
     }
 
@@ -155,19 +152,19 @@ class ClusterManager {
 
     // add a file logger by default
     transports.push(new (winston.transports.File)({
-      filename: self.options.logPath + '/' + self.options.logFile
+      filename: this.options.logPath + '/' + this.options.logFile
     }))
 
     // if this is the master process add a console transport
     if (cluster.isMaster && args.silent !== true) {
       transports.push(new (winston.transports.Console)({
         colorize: true,
-        timestamp: () => `${self.options.id} @ ${new Date().toISOString()}`
+        timestamp: () => `${this.options.id} @ ${new Date().toISOString()}`
       }))
     }
 
     // init the logger
-    self.logger = new (winston.Logger)({
+    this.logger = new (winston.Logger)({
       levels: winston.config.syslog.levels,
       transports: transports
     })
@@ -181,7 +178,7 @@ class ClusterManager {
    */
   static configurePath (path, callback) {
     // make the 'logs' folder if not exists
-    if (!fs.existsSync(path)) { fs.mkdirSync(path); }
+    if (!fs.existsSync(path)) { fs.mkdirSync(path) }
 
     // executes the callback function
     callback()
@@ -193,10 +190,7 @@ class ClusterManager {
    * @param message   Message to be logged.
    * @param severity  Severity of the message.
    */
-  log (message, severity) {
-    let self = this
-    self.logger.log(severity, message)
-  }
+  log (message, severity) { this.logger.log(severity, message) }
 
   /**
    * Return the cluster default options.
@@ -206,7 +200,7 @@ class ClusterManager {
   static defaults () {
     return {
       id: 'StellarCluster',
-      stopTimeout: 3000,
+      stopTimeout: 1000,
       expectedWorkers: os.cpus().length,
       flapWindow: 1000 * 30,
       execPath: __filename,
@@ -228,13 +222,11 @@ class ClusterManager {
    * @returns {*}     Hash with the environment options.
    */
   buildEnv (workerId) {
-    let self = this
-
-    if (typeof self.options.buildEnv === 'function') {
-      return self.options.buildEnv.call(self, workerId)
+    if (typeof this.options.buildEnv === 'function') {
+      return this.options.buildEnv.call(this, workerId)
     } else {
       return {
-        title: self.options.workerTitlePrefix + workerId
+        title: this.options.workerTitlePrefix + workerId
       }
     }
   }
@@ -245,10 +237,8 @@ class ClusterManager {
    * @param callback  Callback function.
    */
   writePidFile (callback) {
-    let self = this
-
     // build the pid file path
-    let file = self.options.pidPath + '/' + self.options.pidFile
+    let file = this.options.pidPath + '/' + this.options.pidFile
 
     // if exists throw an error. We can not have two instances of the same project
     if (fs.existsSync(file)) {
@@ -271,101 +261,100 @@ class ClusterManager {
    * @param callback  Callback function.
    */
   start (callback) {
-    let self = this
     let jobs = []
 
     // log the options
-    self.log(JSON.stringify(self.options), 'debug')
+    this.log(JSON.stringify(this.options), 'debug')
 
     // configure the master
     cluster.setupMaster({
-      exec: self.options.execPath,
-      args: self.options.args.split(' '),
+      exec: this.options.execPath,
+      args: this.options.args.split(' '),
       silent: true
     })
 
     // set 'SIGINT' event
     process.on('SIGINT', () => {
-      self.log('Signal: SIGINT', 'info')
-      self.stop(process.exit)
+      this.log('Signal: SIGINT', 'info')
+      this.stop(process.exit)
     })
 
     // set 'SIGTERM' event
     process.on('SIGTERM', () => {
-      self.log('Signal: SIGTERM', 'info')
-      self.stop(process.exit)
+      this.log('Signal: SIGTERM', 'info')
+      this.stop(process.exit)
     })
 
     // set 'SIGUSR2' event
     process.on('SIGUSR2', () => {
-      self.log('Signal: SIGUSR2', 'info')
-      self.log('swap out new workers one-by-one', 'info')
-      self.workers.forEach(worker => self.workersToRestart.push(worker.id))
-      self.work()
+      this.log('Signal: SIGUSR2', 'info')
+      this.log('swap out new workers one-by-one', 'info')
+      this.workers.forEach(worker => this.workersToRestart.push(worker.id))
+      this.work()
     })
 
     // set 'SIGHUP' event
     process.on('SIGHUP', () => {
-      self.log('Signal: SIGHUP', 'info')
-      self.log('reload all workers now', 'info')
-      self.workers.forEach(worker => worker.restart())
+      this.log('Signal: SIGHUP', 'info')
+      this.log('reload all workers now', 'info')
+      this.workers.forEach(worker => worker.restart())
     })
 
     // set 'SIGTTIN' event
     process.on('SIGTTIN', () => {
-      self.log('Signal: SIGTTIN', 'info')
-      self.log('add a worker', 'info')
-      self.options.expectedWorkers++
-      self.work()
+      this.log('Signal: SIGTTIN', 'info')
+      this.log('add a worker', 'info')
+      this.options.expectedWorkers++
+      this.work()
     })
 
     // set 'SIGTTOU' event
     process.on('SIGTTOU', () => {
-      self.log('Signal: SIGTTOU', 'info')
-      self.log('remove a worker', 'info')
-      self.options.expectedWorkers--
-      self.work()
+      this.log('Signal: SIGTTOU', 'info')
+      this.log('remove a worker', 'info')
+      this.options.expectedWorkers--
+      this.work()
     })
 
     // push the initial job to the queue. This will print out a welcome message.
     jobs.push(done => {
-      self.log('--- Starting Cluster ---', 'notice')
-      self.log(`pid: ${process.pid}`, 'notice')
+      this.log('--- Starting Cluster ---', 'notice')
+      this.log(`pid: ${process.pid}`, 'notice')
       process.nextTick(done)
     })
 
     jobs.push(done => {
-      if (self.flapTimer) { clearInterval(self.flapTimer) }
+      if (this.flapTimer) { clearInterval(this.flapTimer) }
 
-      self.flapTimer = setInterval(() => {
-        if (self.flapCount > (self.options.expectedWorkers * 2)) {
-          self.log(`CLUSTER IS FLAPPING (${self.flapCount} crashes in ${self.options.flapWindow} ms). Stopping`, 'emerg')
-          self.stop(process.exit)
+      this.flapTimer = setInterval(() => {
+        if (this.flapCount > (this.options.expectedWorkers * 2)) {
+          this.log(`CLUSTER IS FLAPPING (${this.flapCount} crashes in ${this.options.flapWindow} ms). Stopping`, 'emerg')
+          this.stop(process.exit)
         } else {
-          self.flapCount = 0
+          this.flapCount = 0
         }
-      }, self.options.flapWindow)
+      }, this.options.flapWindow)
 
       // finish the job execution
       done()
     })
 
     // config some folders
-    jobs.push(done => { ClusterManager.configurePath(self.options.tempPath, done) })
-    jobs.push(done => { ClusterManager.configurePath(self.options.logPath, done) })
-    jobs.push(done => { ClusterManager.configurePath(self.options.pidPath, done) })
+    jobs.push(done => { ClusterManager.configurePath(this.options.tempPath, done) })
+    jobs.push(done => { ClusterManager.configurePath(this.options.logPath, done) })
+    jobs.push(done => { ClusterManager.configurePath(this.options.pidPath, done) })
 
     // write workers pids
-    jobs.push(done => { self.writePidFile(done) })
+    jobs.push(done => { this.writePidFile(done) })
 
     // execute the queued jobs
     async.series(jobs, error => {
       if (error) {
-        self.log(error, 'error')
+        this.log(error, 'error')
         process.exit(1)
       } else {
-        self.work()
-        if (typeof callback === 'function') { callback(); }
+        this.work()
+        if (typeof callback === 'function') { callback() }
       }
     })
   }
@@ -376,31 +365,26 @@ class ClusterManager {
    * @param callback Function to be executed at the end.
    */
   stop (callback) {
-    let self = this
-
     // execute the callback when the number of works goes to zero
-    if (self.workers.length === 0) {
-      self.log('all workers stopped', 'notice')
+    if (this.workers.length === 0) {
+      this.log('all workers stopped', 'notice')
       callback()
     } else {
-      self.log(`${self.workers.length} workers running, waiting on stop`, 'info')
-      setTimeout(() => { self.stop(callback); }, self.options.stopTimeout)
+      this.log(`${this.workers.length} workers running, waiting on stop`, 'info')
+      setTimeout(() => { this.stop(callback) }, this.options.stopTimeout)
     }
 
     // prevent the creation of new workers
-    if (self.options.expectedWorkers > 0) {
-      self.options.expectedWorkers = 0
-      self.work()
+    if (this.options.expectedWorkers > 0) {
+      this.options.expectedWorkers = 0
+      this.work()
     }
   }
 
   /**
    * Sort the workers.
    */
-  sortWorkers () {
-    let self = this
-    self.workers.sort((a, b) => (a.id - b.id))
-  }
+  sortWorkers () { this.workers.sort((a, b) => (a.id - b.id)) }
 
   /**
    * Check work to be done.
@@ -411,31 +395,31 @@ class ClusterManager {
     let workerId
 
     // sort the workers
-    self.sortWorkers()
+    this.sortWorkers()
 
     let stateCounts = {}
 
     // group workers by their state
-    self.workers.forEach(worker => {
+    this.workers.forEach(worker => {
       if (!stateCounts[ worker.state ]) { stateCounts[ worker.state ] = 0 }
       stateCounts[ worker.state ]++
     })
 
     // if the state changes log a message
-    if (self.options.expectedWorkers < self.workers.length && !stateCounts.stopping && !stateCounts.stopped && !stateCounts.restarting) {
-      worker = self.workers[ (self.workers.length - 1) ]
-      self.log(`signaling worker #${worker.id} to stop`, 'info')
+    if (this.options.expectedWorkers < this.workers.length && !stateCounts.stopping && !stateCounts.stopped && !stateCounts.restarting) {
+      worker = this.workers[ (this.workers.length - 1) ]
+      this.log(`signaling worker #${worker.id} to stop`, 'info')
       worker.stop()
-    } else if (self.options.expectedWorkers > self.workers.length && !stateCounts.starting && !stateCounts.restarting) {
+    } else if (this.options.expectedWorkers > this.workers.length && !stateCounts.starting && !stateCounts.restarting) {
       workerId = 1
-      self.workers.forEach(worker => {
+      this.workers.forEach(worker => {
         if (worker.id === workerId) { workerId++ }
       })
 
-      self.log(`starting worker #${workerId}`, 'info')
+      this.log(`starting worker #${workerId}`, 'info')
 
       // build the environment for the new worker who will be created
-      var env = self.buildEnv(workerId)
+      var env = this.buildEnv(workerId)
 
       // create a new worker
       worker = new Worker(self, workerId, env)
@@ -444,69 +428,74 @@ class ClusterManager {
       worker.start()
 
       // push the worker to the list of workers
-      self.workers.push(worker)
-    }
-    else if (
-      self.workersToRestart.length > 0 && !stateCounts.starting && !stateCounts.stopping && !stateCounts.stopped && !stateCounts.restarting
+      this.workers.push(worker)
+    } else if (
+      this.workersToRestart.length > 0 && !stateCounts.starting && !stateCounts.stopping && !stateCounts.stopped && !stateCounts.restarting
     ) {
-      workerId = self.workersToRestart.pop()
-      self.workers.forEach(worker => {
+      workerId = this.workersToRestart.pop()
+      this.workers.forEach(worker => {
         if (worker.id === workerId) { worker.stop() }
       })
-    }
-
-    else {
-      if (stateCounts.started === self.workers.length) {
-        self.log(`cluster equilibrium state reached with ${self.workers.length} workers`, 'notice')
+    } else {
+      if (stateCounts.started === this.workers.length) {
+        this.log(`cluster equilibrium state reached with ${this.workers.length} workers`, 'notice')
       }
     }
+  }
+}
+
+// ----------------------------------------------------------------------------- [Command]
+
+class RunClusterCommand extends Command {
+
+  constructor () {
+    super()
+  }
+
+  run () {
+    // create the options object to pass to the cluster manager
+    let options = {
+      execPath: path.normalize(__dirname + '/../stellar'),
+      args: 'run',
+      silent: this.args.silent,
+      expectedWorkers: this.args.workers,
+      id: this.args.id,
+      buildEnv: workerId => {
+        let env = {}
+
+        // configure the environment variables
+        for (let k in process.env) { env[ k ] = process.env[ k ] }
+
+        // get the worker prefix
+        let title = this.args.workerPrefix
+
+        // configure a default worker name in the case of the user give us an
+        // empty parameter
+        if (!title || title === '') {
+          title = 'stellar-worker-'
+        } else if (title === 'hostname') {
+          title = `${os.hostname()}-`
+        }
+
+        // attach worker id
+        title += workerId
+        env.title = title
+        env.STELLAR_TITLE = title
+
+        return env
+      }
+    }
+
+    // create a new cluster manager
+    const manager = new ClusterManager(options)
+
+    // start cluster
+    manager.start()
+
+    return true
   }
 
 }
 
-/**
- * Exports the module.
- */
-module.exports = args => {
-  // create the options object to pass to the cluster manager
-  let options = {
-    execPath: path.normalize(__dirname + '/../stellar'),
-    args: 'run',
-    silent: (args.silent === 'true' || args.silent === true),
-    expectedWorkers: args.workers,
-    id: args.id || 'stellar-custer-id',
-    buildEnv: workerId => {
-      let self = this
-      let env = {}
-
-      // configure the environment variables
-      for (let k in process.env) { env[ k ] = process.env[ k ] }
-
-      // get the worker prefix
-      let title = args.workerPrefix
-
-      // configure a default worker name in the case of the user give us an
-      // empty parameter
-      if (!title || title === '') {
-        title = 'stellar-worker-'
-      } else if (title === 'hostname') {
-        title = `${os.hostname()}-`
-      }
-
-      // attach worker id
-      title += workerId
-      env.title = title
-      env.STELLAR_TITLE = title
-
-      return env
-    }
-  }
-
-  // create a new cluster manager
-  let manager = new ClusterManager(options)
-
-  // start cluster
-  manager.start()
-
-  return true
-}
+// export command
+module.exports = new RunClusterCommand()
