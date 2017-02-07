@@ -44,7 +44,6 @@ yargs.command(require('./commands/makeListener'))
 yargs.command(require('./commands/makeModel'))
 yargs.command(require('./commands/makeTask'))
 yargs.command(require('./commands/run.js'))
-yargs.command(require('./commands/startCluster.js'))
 yargs.command(require('./commands/test.js'))
 
 // execute yargs

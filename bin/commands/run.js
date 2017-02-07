@@ -31,6 +31,31 @@ class RunCommand extends Command {
       },
       update: {
         describe: 'Update dependencies'
+      },
+
+      // cluster args
+
+      cluster: {
+        describe: 'Run Stellar as a cluster',
+        default: false,
+        type: 'boolean'
+      },
+      id: {
+        describe: 'Cluster identifier (for cluster)',
+        type: 'string',
+        default: 'stellar-custer'
+      },
+      silent: {
+        describe: 'No messages will be printed to the console (for cluster)',
+        type: 'boolean',
+        default: false
+      },
+      workers: {
+        describe: 'Number of workers (for cluster)'
+      },
+      workerPrefix: {
+        describe: `Worker's name prefix. If the value is equals to 'hostname'
+          the computer hostname will be used (for cluster)`
       }
     }
 
@@ -44,6 +69,12 @@ class RunCommand extends Command {
    * Execute the command.
    */
   run () {
+    // whether the `--cluster` options is defined we stop this command and load
+    // the startCluster
+    if (this.args.cluster === true) {
+      return require('./startCluster').handler(this.args)
+    }
+
     // number of ms to wait to do a force shutdown if the Stellar won't stop
     // gracefully
     if (process.env.STELLAR_SHUTDOWN_TIMEOUT) {
