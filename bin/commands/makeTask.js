@@ -21,7 +21,7 @@ class MakeTask extends Command {
     this.describe = 'Create a new Task'
     this.builder = {
       module: {
-        describe: 'Module here the files will be created',
+        describe: 'Module where the files will be created',
         type: 'string',
         default: 'private'
       },
@@ -38,7 +38,7 @@ class MakeTask extends Command {
    */
   run () {
     if (this.args.module.length === 0) {
-      return this.printError('You need to specify the module here the task must be created')
+      return this.printError('You need to specify the module where the task must be created')
     }
 
     // check if the module exists

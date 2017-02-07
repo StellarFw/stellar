@@ -53,7 +53,7 @@ class MakeModel extends Command {
   run () {
     // we need the module name here the model must be created
     if (this.args.module.length === 0) {
-      return this.printError('You need to specify the module here the model must be created')
+      return this.printError('You need to specify the module where the model must be created')
     }
 
     // check if the entered module name exists

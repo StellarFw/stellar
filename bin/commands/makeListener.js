@@ -38,7 +38,7 @@ class MakeListener extends Command {
    */
   run () {
     if (this.args.module.length === 0) {
-      return this.printError('You need to specify the module here the listener must be created')
+      return this.printError('You need to specify the module where the listener must be created')
     }
 
     // check if the module exists

@@ -37,7 +37,7 @@ class MakeAction extends Command {
    */
   run () {
     if (this.args.module.length === 0) {
-      return this.printError('You need to specify the module here the action must be created')
+      return this.printError('You need to specify the module where the action must be created')
     }
 
     // check if the module exists

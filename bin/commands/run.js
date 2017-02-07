@@ -23,7 +23,7 @@ class RunCommand extends Command {
         describe: 'Enable production mode'
       },
       port: {
-        describe: 'Port here the server will listening',
+        describe: 'Port where the server will listening',
         default: 8080
       },
       clean: {
