@@ -5,42 +5,48 @@
 let Command = require('../Command')
 let Utils = require('../utils')
 
-// ----------------------------------------------------------------------------- [Class]
+// ----------------------------------------------------------------------------- [Command]
 
 class MakeAction extends Command {
 
   /**
    * Create a new MakeAction instance.
-   * @param args
    */
-  constructor (args) {
+  constructor () {
     // execute the super class constructor method
     super()
 
-    // define usage
-    this.usage = 'stellar makeAction <action_name> --module=<module_name> [--options]'
-
-    // save the parsed console arguments
-    this.args = args
+    // command definition
+    this.command = 'action <action_name>'
+    this.describe = 'Create a new action file'
+    this.builder = {
+      module: {
+        describe: 'Module where the action must be created',
+        type: 'string',
+        default: 'private'
+      },
+      force: {
+        describe: 'Overwrite existent files',
+        default: false
+      }
+    }
   }
 
   /**
    * Execute the command
    */
-  execute () {
-    if (this.args.module === undefined || typeof this.args.module !== 'string' || this.args.module.length === 0) {
-      this.printError('You need to specify the module here the action must be created')
-      return false
+  run () {
+    if (this.args.module.length === 0) {
+      return this.printError('You need to specify the module here the action must be created')
     }
 
     // check if the module exists
     if (!Utils.moduleExists(this.args.module)) {
-      this.printError(`The module "${this.args.module}" does not exists`)
-      return false
+      return this.printError(`The module "${this.args.module}" does not exists`)
     }
 
     // get useful action information
-    let actionName = this.args._[ 1 ] || this.args.model
+    let actionName = this.args.action_name || this.args.model
     let actionsPath = `${Utils.getCurrentUniverse()}/modules/${this.args.module}/actions`
     let outputPath = `${actionsPath}/${actionName.replace('.', '_')}.js`
 
@@ -89,25 +95,5 @@ class MakeAction extends Command {
   }
 }
 
-// -----------------------------------------------------------------------------
-
-// command
-exports.command = 'makeAction'
-
-// command description
-exports.describe = 'Create a new action file'
-
-// command options
-exports.builder = {
-  module: {
-    describe: 'Module here the action must be created',
-    default: 'private'
-  },
-  force: {
-    describe: 'Overwrite existent files',
-    default: false
-  }
-}
-
-// command handler
-exports.handler = args => (new MakeAction(args)).execute()
+// export command
+module.exports = new MakeAction()

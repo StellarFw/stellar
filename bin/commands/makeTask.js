@@ -1,88 +1,68 @@
 'use strict'
 
-// ----------------------------------------------------------------------------------------------------------- [Imports]
+// ----------------------------------------------------------------------------- [Imports]
 
 let Command = require('../Command')
 let Utils = require('../utils')
 
-// ------------------------------------------------------------------------------------------------------------- [Class]
+// ----------------------------------------------------------------------------- [Command]
 
 class MakeTask extends Command {
 
   /**
    * Create a new instance of this command.
-   *
-   * @param args  Arguments passed by console.
    */
-  constructor (args) {
+  constructor () {
     // execute the super class constructor method
     super()
 
-    // define usage
-    this.usage = 'stellar makeTask <task_name> --module=<module_name> [--options]'
-
-    // save the parsed console arguments
-    this.args = args
+    // command
+    this.command = 'task <task_name>'
+    this.describe = 'Create a new Task'
+    this.builder = {
+      module: {
+        describe: 'Module here the files will be created',
+        type: 'string',
+        default: 'private'
+      },
+      force: {
+        describe: 'Overwrite existent files',
+        type: 'boolean',
+        default: false
+      }
+    }
   }
 
   /**
    * Execute the command
    */
-  execute () {
-    // we need to have the task name and the module name
-    // here the action must be created
-    if (this.args._.length < 2) {
-      this.printUsage()
-      return false
-    }
-
-    if (this.args.module === undefined || typeof this.args.module !== 'string' || this.args.module.length === 0) {
-      this.printError('You need to specify the module here the task must be created')
-      return false
+  run () {
+    if (this.args.module.length === 0) {
+      return this.printError('You need to specify the module here the task must be created')
     }
 
     // check if the module exists
     if (!Utils.moduleExists(this.args.module)) {
-      this.printError(`The module "${this.args.module}" does not exists`)
-      return false
+      return this.printError(`The module "${this.args.module}" does not exists`)
     }
 
     // ensure the task folder exists
     let tasksFolder = `${Utils.getCurrentUniverse()}/modules/${this.args.module}/tasks`
     if (!Utils.exists(tasksFolder)) { Utils.createFolder(tasksFolder) }
 
+    // get task name
+    const taskName = this.args.task_name
+
     // build the output path
-    let newFilePath = `${tasksFolder}/${this.args._[ 1 ]}.js`
+    let newFilePath = `${tasksFolder}/${taskName}.js`
 
     // generate the new file
-    Utils.generateFileFromTemplate('task', { taskName: this.args._[ 1 ] }, newFilePath)
+    Utils.generateFileFromTemplate('task', { taskName }, newFilePath)
 
     // print a success message
-    this.printSuccess(`The "${this.args._[ 1 ]}" task was created!`)
-
-    return true
+    this.printSuccess(`The "${taskName}" task was created!`)
   }
 }
 
-// -----------------------------------------------------------------------------
-
-// command
-exports.command = 'makeTask'
-
-// command description
-exports.describe = 'Create a new Task'
-
-// command options
-exports.builder = {
-  module: {
-    describe: 'Module here the files will be created',
-    default: 'private'
-  },
-  force: {
-    describe: 'Overwrite existent files',
-    default: false
-  }
-}
-
-// command handler
-exports.handler = args => (new MakeTask(args)).execute()
+// export command
+module.exports = new MakeTask()

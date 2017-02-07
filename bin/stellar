@@ -13,6 +13,14 @@ require('yargonaut')
 // load Yargs
 const yargs = require('yargs')
 
+function checkCommands (yargs, argv, numRequired) {
+  if (argv._.length < numRequired) {
+    yargs.showHelp()
+  } else {
+    // check for unknown command
+  }
+}
+
 // --- define some global configurations ---------------------------------------
 
 // show a welcome message
@@ -28,6 +36,9 @@ yargs.alias('h', 'help')
 // show help menu when the command fails
 yargs.showHelpOnFail(true)
 
+// disable wrap
+yargs.wrap(null)
+
 // --- register options --------------------------------------------------------
 
 yargs.option('daemon', {
@@ -39,10 +50,19 @@ yargs.option('daemon', {
 
 yargs.command(require('./commands/dockerIt.js'))
 yargs.command(require('./commands/init.js'))
-yargs.command(require('./commands/makeAction'))
-yargs.command(require('./commands/makeListener'))
-yargs.command(require('./commands/makeModel'))
-yargs.command(require('./commands/makeTask'))
+yargs.command('make', 'Generate some project components', yargs => {
+  // register the inner commands
+  yargs.command(require('./commands/makeAction'))
+  yargs.command(require('./commands/makeListener'))
+  yargs.command(require('./commands/makeModel'))
+  yargs.command(require('./commands/makeTask'))
+
+  // execute the yargs
+  const argv = yargs.argv
+
+  // check if we have at least 2 arguments
+  checkCommands(yargs, argv, 2)
+})
 yargs.command(require('./commands/run.js'))
 yargs.command(require('./commands/test.js'))
 
@@ -50,13 +70,4 @@ yargs.command(require('./commands/test.js'))
 const argv = yargs.argv
 
 // check if the there is at least one command, otherwise show the menu
-
-function checkCommands (yargs, argv, numRequired) {
-  if (argv._.length < numRequired) {
-    yargs.showHelp()
-  } else {
-    // check for unknown command
-  }
-}
-
 checkCommands(yargs, argv, 1)
