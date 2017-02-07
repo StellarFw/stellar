@@ -90,5 +90,11 @@ class TestCommand extends Command {
 
 }
 
-// exports the function to execute the command
-module.exports = args => (new TestCommand(args)).execute()
+// command
+exports.command = 'test'
+
+// command description
+exports.describe = 'run application tests'
+
+// command handler
+exports.handler = args => (new TestCommand(args)).execute()

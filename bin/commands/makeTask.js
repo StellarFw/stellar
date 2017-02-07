@@ -64,5 +64,25 @@ class MakeTask extends Command {
   }
 }
 
-// export the function to execute the command
-module.exports = args => (new MakeTask(args)).execute()
+// -----------------------------------------------------------------------------
+
+// command
+exports.command = 'makeTask'
+
+// command description
+exports.describe = 'Create a new Task'
+
+// command options
+exports.builder = {
+  module: {
+    describe: 'Module here the files will be created',
+    default: 'private'
+  },
+  force: {
+    describe: 'Overwrite existent files',
+    default: false
+  }
+}
+
+// command handler
+exports.handler = args => (new MakeTask(args)).execute()

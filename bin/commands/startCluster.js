@@ -464,10 +464,33 @@ class ClusterManager {
 
 }
 
-/**
- * Exports the module.
- */
-module.exports = args => {
+// -----------------------------------------------------------------------------
+
+// command
+exports.command = 'startCluster'
+
+// command description
+exports.describe = 'Create a cluster'
+
+// command builder
+exports.builder = {
+  id: {
+    describe: 'Cluster identifier'
+  },
+  silent: {
+    describe: 'No messages will be printed to the console'
+  },
+  workers: {
+    describe: 'Number of workers'
+  },
+  workerPrefix: {
+    describe: `Worker's name prefix. If the value is equals to 'hostname' the
+      computer hostname will be used`
+  }
+}
+
+// command handler
+exports.handler = args => {
   // create the options object to pass to the cluster manager
   let options = {
     execPath: path.normalize(__dirname + '/../stellar'),

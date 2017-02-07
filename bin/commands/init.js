@@ -13,9 +13,6 @@ class InitCommand extends Command {
     // execute the super class constructor method
     super()
 
-    // define usage
-    this.usage = 'stellar init --name=<projectname> [--options]'
-
     // save the parsed console arguments
     this.args = args
   }
@@ -80,5 +77,27 @@ class InitCommand extends Command {
 
 }
 
-// export the function to execute the command
-module.exports = args => (new InitCommand(args)).execute()
+// -----------------------------------------------------------------------------
+
+// command
+exports.command = 'init'
+
+// command description
+exports.describe = 'Create a new Stellar project'
+
+// command options
+exports.builder = {
+  name: {
+    describe: 'Project name'
+  },
+  version: {
+    describe: 'Project version',
+    default: '1.0.0'
+  },
+  dockerIt: {
+    describe: 'Create a dockerfile for the new project'
+  }
+}
+
+// command handler
+exports.handler = args => (new InitCommand(args)).execute()

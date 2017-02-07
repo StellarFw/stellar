@@ -69,5 +69,25 @@ class MakeListener extends Command {
 
 }
 
-// export the function to execute the command
-module.exports = args => (new MakeListener(args)).execute()
+// -----------------------------------------------------------------------------
+
+// command
+exports.command = 'makeListener'
+
+// command description
+exports.describe = 'Create a new event listener'
+
+// command options
+exports.builder = {
+  module: {
+    describe: 'Module here the action must be created',
+    default: 'private'
+  },
+  force: {
+    describe: 'Overwrite existent files',
+    default: false
+  }
+}
+
+// command handler
+exports.handler = args => (new MakeListener(args)).execute()

@@ -89,5 +89,25 @@ class MakeAction extends Command {
   }
 }
 
-// export the function to execute the command
-module.exports = args => (new MakeAction(args)).execute()
+// -----------------------------------------------------------------------------
+
+// command
+exports.command = 'makeAction'
+
+// command description
+exports.describe = 'Create a new action file'
+
+// command options
+exports.builder = {
+  module: {
+    describe: 'Module here the action must be created',
+    default: 'private'
+  },
+  force: {
+    describe: 'Overwrite existent files',
+    default: false
+  }
+}
+
+// command handler
+exports.handler = args => (new MakeAction(args)).execute()

@@ -39,5 +39,13 @@ class dockerItCommand extends Command {
   }
 }
 
+// -----------------------------------------------------------------------------
+
+// command
+exports.command = 'dockerIt'
+
+// command description
+exports.describe = 'Create a new dockerfile for the stellar project'
+
 // export the function to execute the command
-module.exports = args => (new dockerItCommand(args)).execute()
+exports.handler = args => (new dockerItCommand(args)).execute()

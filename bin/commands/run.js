@@ -9,7 +9,33 @@ let Engine = require('../../dist/engine').default
 
 // ----------------------------------------------------------------------------- [Module]
 
-module.exports = function (args) {
+// -----------------------------------------------------------------------------
+
+// command
+exports.command = 'run'
+
+// command description
+exports.describe = 'Start a new Stellar instance'
+
+// command options
+exports.builder = {
+  prod: {
+    describe: 'Enable production mode'
+  },
+  port: {
+    describe: 'Port here the server will listening',
+    default: 8080
+  },
+  clean: {
+    describe: 'Remove all temporary files and node modules'
+  },
+  update: {
+    describe: 'Update dependencies'
+  }
+}
+
+// command handler
+exports.handler = function (args) {
   // build initial scope
   let scope = {
     rootPath: process.cwd(),

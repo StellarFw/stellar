@@ -119,5 +119,36 @@ class MakeModel extends Command {
 
 }
 
-// exports the function to execute the command
-module.exports = args => (new MakeModel(args)).execute()
+// -----------------------------------------------------------------------------
+
+// command
+exports.command = 'makeModel'
+
+// command description
+exports.describe = 'Create a new Model'
+
+// command options
+exports.builder = {
+  module: {
+    describe: 'Module here the files will be created',
+    default: 'private'
+  },
+  force: {
+    describe: 'Overwrite existent files',
+    default: false
+  },
+  crud: {
+    describe: 'Create a set of actions with the CRUD operations',
+    default: false
+  },
+  actionName: {
+    describe: 'Overwrite the action file name'
+  },
+  rest: {
+    describe: 'Generate RESTfull URLs for the generated actions',
+    default: false
+  }
+}
+
+// command handler
+exports.handler = args => (new MakeModel(args)).execute()

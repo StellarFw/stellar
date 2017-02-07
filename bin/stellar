@@ -1,74 +1,44 @@
 #!/usr/bin/env node
 'use strict'
 
-const Commander = require('./commander')
+// import the package manifest
+const pkg = require('../package.json')
 
-// create a new Commander instance
-const commander = new Commander()
+// config the command line appearance
+require('yargonaut')
+  .errorsStyle('red.bold')
+  .helpStyle('yellow')
+  .style('blue', 'choices')
 
-// register makeAction command
-commander.command('makeAction')
-  .description('Create a new action file')
-  .option('module', 'Module here the action must be created')
-  .option('force', 'Existent actions will be overwritten')
-  .action(require('./commands/makeAction'))
+// load Yargs
+const yargs = require('yargs')
 
-// register makeListener command
-commander.command('makeListener')
-  .description('Create a new event listener')
-  .option('module', 'Module here the listener must be created')
-  .action(require('./commands/makeListener'))
+// --- define some global configurations ---------------------------------------
 
-// register makeModel command
-commander.command('makeModel')
-  .description('Create a new model')
-  .option('module', 'Module here the model must be created')
-  .option('crud', 'Create a set of actions with the CRUD operations')
-  .option('actionName', 'Overwrite the action file name')
-  .option('rest', 'Generate RESTfull URLs for the generated actions')
-  .action(require('./commands/makeModel'))
+// show a welcome message
+console.log(`\x1b[34m> Stellar Framework \x1b[37mversion \x1b[33m${pkg.version}\x1b[37m\n`)
 
-// register makeTask command
-commander.command('makeTask')
-  .description('Create a new task')
-  .option('module', 'Module here the model must be created')
-  .action(require('./commands/makeTask'))
+// set usage
+yargs.usage('Usage: stellar <command> [--options]')
 
-// register run command
-commander.command('run')
-  .description('Run a Stellar instance')
-  .option('prod', 'Enable production mode')
-  .option('port', 'Define the port here the server will listening')
-  .option('clean', 'Remove all temporary files and node modules')
-  .option('update', 'Update dependencies')
-  .action(require('./commands/run'))
+// enable help
+yargs.help()
+yargs.alias('h', 'help')
 
-// register test command
-commander.command('test')
-  .description('Run the app tests')
-  .action(require('./commands/test'))
+// show help on fail
+yargs.showHelpOnFail(true)
 
-// register cluster command
-commander.command('startCluster')
-  .description('Create a custer')
-  .option('id', 'Cluster identifier')
-  .option('silent', 'No messages will be printed to the console')
-  .option('workers', 'Number of workers')
-  .option('workerPrefix', `Worker's name prefix. If the value is equals to 'hostname' the computer hostname will be used`)
-  .action(require('./commands/startCluster'))
+// --- register commands -------------------------------------------------------
 
-// register init command
-commander.command('init')
-  .description('Create a new Stellar project')
-  .option('dockerIt', 'Create a dockerfile for the new project')
-  .option('name', 'Project name')
-  .option('version', 'Project version')
-  .action(require('./commands/init'))
+yargs.command(require('./commands/dockerIt.js'))
+yargs.command(require('./commands/init.js'))
+yargs.command(require('./commands/makeAction'))
+yargs.command(require('./commands/makeListener'))
+yargs.command(require('./commands/makeModel'))
+yargs.command(require('./commands/makeTask'))
+yargs.command(require('./commands/run.js'))
+yargs.command(require('./commands/startCluster.js'))
+yargs.command(require('./commands/test.js'))
 
-// register dockerIt command
-commander.command('dockerIt')
-    .description('Create a new dockerfile for the stellar project')
-    .action(require('./commands/dockerIt'))
-
-// parse the command line argument an execute the requested action
-commander.parse(process.argv)
+// show the menu
+yargs.argv
