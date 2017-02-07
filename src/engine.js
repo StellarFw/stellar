@@ -113,6 +113,7 @@ export default class Engine {
     status: 'stopped',
 
     commands: {
+      initialize: null,
       start: null,
       stop: null,
       restart: null
@@ -199,6 +200,7 @@ export default class Engine {
 
     // define the available engine commands
     self.api.commands = {
+      initialize: self.initialize,
       start: self.start,
       stop: self.stop,
       restart: self.restart
@@ -207,16 +209,8 @@ export default class Engine {
 
   // --------------------------------------------------------------------------- [State Manager Functions]
 
-  /**
-   * Start engine execution.
-   *
-   * @param callback This function is called when the Engine finish their startup.
-   */
-  start (callback = null) {
+  initialize (callback = null) {
     let self = this
-
-    // reset start counter
-    startCount = 0
 
     // if this function has called outside of the Engine the 'this'
     // variable has an invalid reference
@@ -226,8 +220,39 @@ export default class Engine {
     // print current execution path
     self.api.log(`Current universe "${self.api.scope.rootPath}"`, 'info')
 
-    // start stage0 loading method
-    self.stage0(callback)
+    // execute the stage 0
+    this.stage0(callback)
+  }
+
+  /**
+   * Start engine execution.
+   *
+   * @param callback This function is called when the Engine finish their startup.
+   */
+  start (callback = null) {
+    let self = this
+
+    // if this function has called outside of the Engine the 'this'
+    // variable has an invalid reference
+    if (this._self) { self = this._self }
+    self.api._self = self
+
+    // reset start counter
+    startCount = 0
+
+    // check if the engine was already initialized
+    if (self.api.status !== 'init_stage0') {
+      return self.initialize((error, api) => {
+        // if an error occurs we stop here
+        if (error) { return callback(error, api) }
+
+        // start stage1 loading method
+        self.stage1(callback)
+      })
+    }
+
+    // start stage1 loading method
+    return self.stage1(callback)
   }
 
   /**
@@ -373,11 +398,14 @@ export default class Engine {
       this.initialSatellites.push(next => this.satellites[ initializer ].load(this.api, next))
     })
 
-    // stage1 is called at the end of execution of all initial satellites
-    this.initialSatellites.push(() => this.stage1(callback))
-
     // execute stage0 satellites in series
-    async.series(this.initialSatellites, error => Engine.fatalError(this.api, error, 'stage0'))
+    async.series(this.initialSatellites, error => {
+      // execute the callback
+      callback(error, this.api)
+
+      // if an error occurs show
+      if (error) { Engine.fatalError(this.api, error, 'stage0') }
+    })
   }
 
   /**
