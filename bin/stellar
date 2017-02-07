@@ -47,5 +47,17 @@ yargs.command(require('./commands/run.js'))
 yargs.command(require('./commands/startCluster.js'))
 yargs.command(require('./commands/test.js'))
 
-// show the menu
-yargs.argv
+// execute yargs
+const argv = yargs.argv
+
+// check if the there is at least one command, otherwise show the menu
+
+function checkCommands (yargs, argv, numRequired) {
+  if (argv._.length < numRequired) {
+    yargs.showHelp()
+  } else {
+    // check for unknown command
+  }
+}
+
+checkCommands(yargs, argv, 1)
