@@ -21,13 +21,17 @@ module.exports = class {
    * handler method execution.
    */
   constructor (initialize = false) {
-    // define the console colors
+    // define console colors
     this.FgRed = '\x1b[31m'
     this.FgGreen = '\x1b[32m'
     this.FgYellow = '\x1b[33m'
     this.FgBlue = '\x1b[34m'
     this.FgWhite = '\x1b[37m'
     this.FgDefault = '\x1b[39m'
+
+    // define console font states
+    this.FontBold = '\x1b[1m'
+    this.FontNormal = '\x1b[0m'
 
     // store if is to initialize
     this.isToInitialize = initialize
@@ -116,20 +120,20 @@ module.exports = class {
    *
    * @param msg Message to be printed.
    */
-  printError (msg) { console.log(`\n${this.FgRed}Error: ${msg}${this.FgDefault}\n`) }
+  printError (msg) { console.log(`${this.FontBold}${this.FgRed}Error: ${msg}${this.FgDefault}${this.FontNormal}`) }
 
   /**
    * Print an info message.
    *
    * @param msg Message to be printed.
    */
-  printInfo (msg) { console.log(`\n${this.FgBlue}Info: ${msg}${this.FgDefault}\n`) }
+  printInfo (msg) { console.log(`${this.FgBlue}Info: ${msg}${this.FgDefault}`) }
 
   /**
    * Print a success message.
    *
    * @param msg Message to be printed.
    */
-  printSuccess (msg) { console.log(`\n${this.FgGreen}Success: ${msg}${this.FgDefault}\n`) }
+  printSuccess (msg) { console.log(`${this.FgGreen}Success: ${msg}${this.FgDefault}`) }
 
 }
