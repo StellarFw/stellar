@@ -116,20 +116,20 @@ module.exports = class {
    *
    * @param msg Message to be printed.
    */
-  printError (msg) { console.log(`\n${this.FgRed}Error: ${msg}\n`) }
+  printError (msg) { console.log(`\n${this.FgRed}Error: ${msg}${this.FgDefault}\n`) }
 
   /**
    * Print an info message.
    *
    * @param msg Message to be printed.
    */
-  printInfo (msg) { console.log(`\n${this.FgBlue}Info: ${msg}\n`) }
+  printInfo (msg) { console.log(`\n${this.FgBlue}Info: ${msg}${this.FgDefault}\n`) }
 
   /**
    * Print a success message.
    *
    * @param msg Message to be printed.
    */
-  printSuccess (msg) { console.log(`\n${this.FgGreen}Success: ${msg}\n`) }
+  printSuccess (msg) { console.log(`\n${this.FgGreen}Success: ${msg}${this.FgDefault}\n`) }
 
 }

@@ -25,8 +25,8 @@ yargs.usage('Usage: stellar <command> [--options]')
 yargs.help()
 yargs.alias('h', 'help')
 
-// disable show help on fail
-yargs.showHelpOnFail(false)
+// show help menu when the command fails
+yargs.showHelpOnFail(true)
 
 // --- register options --------------------------------------------------------
 

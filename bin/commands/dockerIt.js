@@ -1,30 +1,27 @@
 'use strict'
 
-// ----------------------------------------------------------------------------------------------------------- [Imports]
+// ----------------------------------------------------------------------------- [Imports]
 
 let Command = require('../Command')
 let Utils = require('../utils')
 
-// ------------------------------------------------------------------------------------------------------------- [Class]
+// ----------------------------------------------------------------------------- [Command]
 
 class dockerItCommand extends Command {
 
-  constructor (args) {
+  constructor () {
     // execute the super class constructor method
-    super()
+    super(false)
 
-    // define usage
-    this.usage = 'stellar dockerIt'
-
-    // save the parsed console arguments
-    this.args = args
+    // command
+    this.command = 'dockerIt'
+    this.describe = 'Create a new dockerfile for the stellar project'
   }
 
   /**
    * Execute the command.
-   *
    */
-  execute () {
+  run () {
     // see if a dockerfile already exists
     if (Utils.exists(process.cwd() + '/dockerfile')) {
       this.printError('A dockerfile already exists')
@@ -41,11 +38,5 @@ class dockerItCommand extends Command {
 
 // -----------------------------------------------------------------------------
 
-// command
-exports.command = 'dockerIt'
-
-// command description
-exports.describe = 'Create a new dockerfile for the stellar project'
-
-// export the function to execute the command
-exports.handler = args => (new dockerItCommand(args)).execute()
+// export the command
+module.exports = (new dockerItCommand())
