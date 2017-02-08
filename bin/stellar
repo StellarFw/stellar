@@ -39,6 +39,12 @@ yargs.showHelpOnFail(true)
 // disable wrap
 yargs.wrap(null)
 
+// enable recommended commands
+yargs.recommendCommands()
+
+// enable completion
+yargs.completion()
+
 // --- register options --------------------------------------------------------
 
 yargs.option('daemon', {
