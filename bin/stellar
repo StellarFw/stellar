@@ -54,6 +54,7 @@ yargs.option('daemon', {
 
 // --- register commands -------------------------------------------------------
 
+yargs.command(require('./commands/console.js'))
 yargs.command(require('./commands/dockerIt.js'))
 yargs.command(require('./commands/init.js'))
 yargs.command('make', 'Generate some project components', yargs => {
