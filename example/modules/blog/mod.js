@@ -35,7 +35,10 @@ module.exports = api => {
         metadata: {
           // in this case we are add a new property named "modProp" with the
           // value of "OK",
-          modProp: 'OK'
+          modProp: 'OK',
+
+          '+customProp': [ 'c' ],
+          '-customProp2': [ 'b' ]
         }
       }
     }

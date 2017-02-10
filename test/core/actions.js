@@ -86,6 +86,23 @@ describe('Core: Actions', () => {
         done()
       })
     })
+
+    it('can add new items to an array', done => {
+      api.actions.call('groupAddItems').then(response => {
+        response.result.should.be.Array()
+        response.result.should.containDeep([ 'a', 'b', 'c' ])
+        done()
+      })
+    })
+
+    it('can remove items from the array', done => {
+      api.actions.call('groupRmItems').then(response => {
+        response.result.should.be.Array()
+        response.result.should.containDeep([ 'a' ])
+        response.result.should.not.containDeep([ 'b' ])
+        done()
+      })
+    })
   })
 
   // ------------------------------------------------------------------- [Other]

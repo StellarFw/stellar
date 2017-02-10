@@ -427,11 +427,33 @@ class Actions {
     const metadata = this.groups.get(groupName)
 
     // iterate all modification keys
-    for (const key of Object.keys(metadata)) {
+    for (let key of Object.keys(metadata)) {
       let value = metadata[key]
 
       // if there is a protected key, ignore it
-      if (PROTECTED_KEYS.includes(value)) { continue }
+      if (PROTECTED_KEYS.includes(key)) { continue }
+
+      // check if the key start with a '+'. If yes, that means that is to
+      // append an item to an array, or create it if not exists
+      if (key.charAt(0) === '+') {
+        // create a sub-string without the plus sign
+        key = key.substring(1, key.length)
+
+        // set the new value
+        action[key] = (action[key] || []).concat(value)
+
+        continue
+      } else if (key.charAt(0) === '-') {
+        // create a sub-string without the plus sign
+        key = key.substring(1, key.length)
+
+        // this needs to be an Array
+        if (Array.isArray(action[key])) {
+          action[key] = action[key].filter(item => !value.includes(item))
+        }
+
+        continue
+      }
 
       // if the value is a function we need process it
       if (typeof value === 'function') { value = value(action, action[key]) }
