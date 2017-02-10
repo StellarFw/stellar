@@ -39,6 +39,13 @@ class Actions {
   globalMiddleware = []
 
   /**
+   * This Map stores the actions associated with a group.
+   *
+   * @type {Map}
+   */
+  groupsActions = new Map()
+
+  /**
    * Create a new actions manager instance.
    *
    * @param api
@@ -163,6 +170,18 @@ class Actions {
       for (let i in collection) {
         // get action object
         action = collection[ i ]
+
+        // when the action has a group defined, the action name must be pushed
+        // to the `groupsActions`
+        if (this.api.utils.isNonEmptyString(action.group)) {
+          // if the key doesn't exists we must create one with an empty array
+          if (!this.groupsActions.has(action.group)) {
+            this.groupsActions.set(action.group, [ ])
+          }
+
+          // push the action name to the correspondent array
+          this.groupsActions.get(action.group).push(action.name)
+        }
 
         // if there is no version defined set it to 1.0
         if (action.version === null || action.version === undefined) { action.version = 1.0 }

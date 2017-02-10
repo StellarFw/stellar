@@ -27,6 +27,8 @@ describe('Core: Actions', () => {
     })
   })
 
+  // ----------------------------------------------------------- [Internal Call]
+
   describe('can execute internally', () => {
 
     it('without params', done => {
@@ -46,6 +48,23 @@ describe('Core: Actions', () => {
     })
 
   })
+
+  // ------------------------------------------------------------------ [Groups]
+
+  describe('Groups', () => {
+    it('can read the group from an action', done => {
+      api.actions.groupsActions.should.have.key('example')
+      done()
+    })
+
+    it('the action name exists on the group', done => {
+      const arrayOfAction = api.actions.groupsActions.get('example')
+      arrayOfAction.should.containDeep([ 'groupTest' ])
+      done()
+    })
+  })
+
+  // ------------------------------------------------------------------- [Other]
 
   it('is possible finish an action retuning a promise', done => {
     api.actions.call('promiseAction')

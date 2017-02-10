@@ -456,6 +456,17 @@ export class Utils {
        }
      }
    }
+
+   // ------------------------------------------------------------ [Type Checks]
+
+   /**
+    * Checks if the given var is an non empty string.
+    *
+    * @param {string} value Value to be validated.
+    */
+   isNonEmptyString (value) {
+     return (typeof value === 'string' && value.length > 0)
+   }
 }
 
 export default class {
