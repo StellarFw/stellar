@@ -65,7 +65,7 @@ class Modules {
     } else if (this.api.utils.isNonEmptyString(value)) {
       arrayOfActions.push(value)
     } else {
-      throw new Error(`Value got an invalid state`)
+      throw new Error('Value got an invalid state')
     }
   }
 

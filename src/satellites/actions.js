@@ -208,13 +208,13 @@ class Actions {
         }
 
         if (!reload) {
-          // associate the action to the module (this must only made once)
+          // associate the action to the module (this must only be made once)
           this.api.modules.regModuleAction(moduleName, action.name)
         } else {
           // Groups: apply the necessary actions modifications (this is only
           // made on the reload because on the loading we don't have the
           // necessary information for this)
-          this._applyGroupModificationsToAction(action)
+          this._applyModificationsToAction(action)
         }
 
         // put the action on correct version slot
@@ -358,6 +358,8 @@ class Actions {
     }
   }
 
+  // ----------------------------------------------------- [Modification System]
+
   /**
    * Load the modifier and apply it to all already loaded actions.
    *
@@ -415,6 +417,10 @@ class Actions {
 
   /**
    * Apply the group modification to the action.
+   *
+   * @param {string} groupName Group name
+   * @param {object} action Action object where the modifications must be
+   *                        applied.
    */
   _applyGroupModToAction (groupName, action) {
     // get group metadata modifications
@@ -435,7 +441,13 @@ class Actions {
     }
   }
 
-  _applyGroupModificationsToAction (action) {
+  /**
+   * Applies the modifications to an action from each group that them makes part
+   * of.
+   *
+   * @param {object} action Action object.
+   */
+  _applyModificationsToAction (action) {
     // when the action has a group defined, the action name must be pushed
     // to the `groupsActions`
     if (this.api.utils.isNonEmptyString(action.group)) {
@@ -444,8 +456,14 @@ class Actions {
         this.groupsActions.set(action.group, [ ])
       }
 
-      // push the action name to the correspondent array
-      this.groupsActions.get(action.group).push(action.name)
+      // get the array of actions
+      const arrayOfActions = this.groupsActions.get(action.group)
+
+      // to prevent duplicated entries, it's necessary check if the array
+      // already exists on the array
+      if (!arrayOfActions.includes(action.name)) {
+        arrayOfActions.push(action.name)
+      }
     }
 
     // check the groups here the action is present and apply the modifications
@@ -467,7 +485,7 @@ class Actions {
       // iterate all action versions
       Object.keys(actionVersion).forEach(versionNumber => {
         // apply the group modifications
-        this._applyGroupModificationsToAction(actionVersion[versionNumber])
+        this._applyModificationsToAction(actionVersion[versionNumber])
       })
     })
   }
