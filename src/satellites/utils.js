@@ -424,49 +424,49 @@ export class Utils {
    *
    * @param String dir  Path for the directory to be created.
    */
-   mkdir (dir, mode) {
-     try {
-       fs.mkdirSync(dir, mode)
-     } catch (e) {
-       if (e.code === 'ENOENT') {
-         this.mkdir(path.dirname(dir), mode)
-         this.mkdir(dir, mode)
-       }
-     }
-   }
+  mkdir (dir, mode) {
+    try {
+      fs.mkdirSync(dir, mode)
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        this.mkdir(path.dirname(dir), mode)
+        this.mkdir(dir, mode)
+      }
+    }
+  }
 
-   /**
-    * Custom require function to load from the core scope and then from the
-    * project scope.
-    *
-    * @note: this is a ugly hack but it's working!
-    */
-   require (path) {
-     // try load module from the core
-     try {
-       return require(path)
-     } catch (e) {
-       if (this.api == null) { throw e }
+  /**
+   * Custom require function to load from the core scope and then from the
+   * project scope.
+   *
+   * @note: this is a ugly hack but it's working!
+   */
+  require (path) {
+    // try load module from the core
+    try {
+      return require(path)
+    } catch (e) {
+      if (this.api == null) { throw e }
 
-       // if fails try load from the project folder
-       try {
-         return require(`${this.api.scope.rootPath}/node_modules/${path}`)
-       } catch (e) {
-         throw e
-       }
-     }
-   }
+      // if fails try load from the project folder
+      try {
+        return require(`${this.api.scope.rootPath}/node_modules/${path}`)
+      } catch (e) {
+        throw e
+      }
+    }
+  }
 
-   // ------------------------------------------------------------ [Type Checks]
+  // ------------------------------------------------------------- [Type Checks]
 
-   /**
-    * Checks if the given var is an non empty string.
-    *
-    * @param {string} value Value to be validated.
-    */
-   isNonEmptyString (value) {
-     return (typeof value === 'string' && value.length > 0)
-   }
+  /**
+   * Checks if the given var is an non empty string.
+   *
+   * @param {string} value Value to be validated.
+   */
+  isNonEmptyString (value) {
+    return (typeof value === 'string' && value.length > 0)
+  }
 }
 
 export default class {
