@@ -32,11 +32,42 @@ class Modules {
   modulesPaths = new Map()
 
   /**
+   * This map contains all the actions who are part of each module.
+   *
+   * @type {Map}
+   */
+  moduleActions = new Map()
+
+  /**
    * Create a new class instance.
    *
    * @param api
    */
   constructor (api) { this.api = api }
+
+  /**
+   * Register a new action name for a module.
+   *
+   * @param {string} moduleName Module name
+   * @param {string|array} value Array of action name to be stored.
+   */
+  regModuleAction (moduleName, value) {
+    // first, check there is already a slot to store the actions of this module
+    if (!this.moduleActions.has(moduleName)) {
+      this.moduleActions.set(moduleName, [ ])
+    }
+
+    // get the array where the action name must be stored
+    const arrayOfActions = this.moduleActions.get(moduleName)
+
+    if (Array.isArray(value)) {
+      this.moduleActions.set(moduleName, arrayOfActions.concat(value))
+    } else if (this.api.utils.isNonEmptyString(value)) {
+      arrayOfActions.push(value)
+    } else {
+      throw new Error(`Value got an invalid state`)
+    }
+  }
 
   /**
    * Load all active modules into memory.

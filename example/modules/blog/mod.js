@@ -20,7 +20,7 @@ module.exports = api => {
 
         // we can also add all the action of a module to a group, for that we
         // define the `module` array
-        // modules: [],
+        modules: [ 'test2' ],
 
         // the `metadata` is an hash that contains the modifications to be
         // applied to each action that is part of this group

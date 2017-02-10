@@ -62,6 +62,30 @@ describe('Core: Actions', () => {
       arrayOfAction.should.containDeep([ 'groupTest' ])
       done()
     })
+
+    it('support the group property', done => {
+      api.actions.call('groupTest').then(response => {
+        response.result.should.be.String()
+        response.result.should.be.equal('OK')
+        done()
+      })
+    })
+
+    it('support modules', done => {
+      api.actions.call('modModuleTest').then(response => {
+        response.result.should.be.String()
+        response.result.should.be.equal('OK')
+        done()
+      })
+    })
+
+    it('support the actions property', done => {
+      api.actions.call('modTest').then(response => {
+        response.result.should.be.String()
+        response.result.should.be.equal('OK')
+        done()
+      })
+    })
   })
 
   // ------------------------------------------------------------------- [Other]
