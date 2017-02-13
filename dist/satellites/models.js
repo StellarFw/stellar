@@ -4,195 +4,212 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _async2 = require('async');
+
+var _async3 = _interopRequireDefault(_async2);
+
+var _waterline = require('waterline');
+
+var _waterline2 = _interopRequireDefault(_waterline);
+
 var _path = require('path');
 
 var _path2 = _interopRequireDefault(_path);
-
-var _mongoose = require('mongoose');
-
-var _mongoose2 = _interopRequireDefault(_mongoose);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 /**
- * Manage the models.
+ * Satellite to manage the models using Waterline ORM.
+ *
+ * Using Waterline allow us interact with different kinds of database systems.
  */
 class Models {
 
   /**
-   * Create a new Models call instance.
+   * Create a new class instance.
    *
    * @param api   API reference.
    */
 
 
   /**
-   * Connection status.
+   * Waterline instance.
    *
-   * @type {boolean}
+   * @type null
+   */
+  constructor(api) {
+    this.api = null;
+    this.waterline = null;
+    this.ontology = null;
+    this.api = api;
+  }
+
+  /**
+   * Create a new Waterline instance.
+   */
+
+
+  /**
+   * Object with the Waterline ontology.
+   *
+   * @type WaterlineOntology
    */
 
 
   /**
    * Reference for the API object.
    *
-   * @type {null}
+   * @type null
    */
-  constructor(api) {
-    this.api = null;
-    this.mongoose = null;
-    this.connected = false;
-    this.models = new Map();
-    this.api = api;
+  createNewInstance() {
+    var _this = this;
+
+    return _asyncToGenerator(function* () {
+      _this.waterline = new _waterline2.default();
+    })();
   }
 
   /**
-   * Open connection to MongoDB server.
+   * Initialize the Waterline instance.
    *
    * @param callback  Callback function.
    */
+  initialize(callback) {
+    // initialize the Waterline system
+    this.waterline.initialize(this.api.config.models, (error, ontology) => {
+      // if an error occurred we need stop the execution
+      if (error) {
+        return callback(error);
+      }
 
+      // save the ontology for later
+      this.ontology = ontology;
 
-  /**
-   * Hash with all registered models.
-   *
-   * @type {Map}
-   */
-
-
-  /**
-   * Mongoose object.
-   *
-   * @type {null}
-   */
-  openConnection(callback) {
-    let self = this;
-
-    // if the connection has already open return and execute the callback
-    if (self.status()) {
-      return callback(new Error('Connection is already open'));
-    }
-
-    // hack: this fix a strange bug on the test environment
-    if (self.api.env === 'test' && _mongoose2.default.connections[0]._hasOpened === true) {
-      // save the mongoose instance
-      self.mongoose = _mongoose2.default;
-
-      // mark mongoose was connected
-      self.connected = true;
-
-      // execute the callback function and return
-      return callback();
-    }
-
-    let connectCallback = () => {
-      // save mongoose object
-      self.mongoose = _mongoose2.default;
-
-      // set mongoose to use native ES6 promises
-      _mongoose2.default.Promise = global.Promise;
-
-      // open the new connection
-      self.mongoose.connect(self.api.config.models.connectionString, error => {
-        if (error) {
-          return self.api.log(`MongoDB Error: ${ error }`, 'emerg');
-        }
-
-        self.api.log('connected to MongoDB', 'debug');
-        self.connected = true;
-        callback();
-      });
-
-      // define handler for disconnected event
-      self.mongoose.connection.on('disconnected', () => {
-        self.connected = false;
-        self.api.log('MongoDB Connection Closed', 'debug');
-      });
-    };
-
-    // check if we are use a mock version of the package
-    if (self.api.config.models.pkg === 'mockgoose') {
-      // require mockgoose
-      let mockgoose = require('mockgoose');
-
-      // wrap mongoose with mockgoose
-      mockgoose(_mongoose2.default).then(connectCallback);
-
-      // log an warning
-      self.api.log('running with mockgoose', 'warning');
-    } else {
-      connectCallback();
-    }
+      // yup, is just this! Now the models system is read to fly.
+      callback();
+    });
   }
 
   /**
-   * Close connection.
+   * Finish the model system.
    *
    * @param callback  Callback function.
    */
-  closeConnection(callback) {
-    let self = this;
-
-    // if there is not connection open return now
-    if (!self.status()) {
-      callback(new Error('There is no connection open'));
-      return;
-    }
-
-    self.mongoose.connection.close(callback);
-  }
-
-  /**
-   * Return the connection status.
-   *
-   * @returns {boolean}
-   */
-  status() {
-    return this.connected;
+  finish(callback) {
+    this.waterline.teardown(callback);
   }
 
   /**
    * Add a new model.
    *
-   * If the model already exists it will be replaced.
-   *
    * @param name    Model name.
-   * @param schema  Model schema.
+   * @param model   Model instance.
    */
-  add(name, schema) {
-    var _this = this;
+  add(name, model) {
+    var _this2 = this;
 
     return _asyncToGenerator(function* () {
-      // if the model already exists that can't be overwrite
-      if (_this.models.has(name)) {
-        return;
+      // the model definition can be a function, whether it happens we need pass
+      // the api reference.
+      if (typeof model === 'function') {
+        model = model(_this2.api);
       }
 
-      // the schema definition can be a function, pass the api reference and
-      // the mongoose object
-      if (typeof schema === 'function') {
-        schema = schema(_this.api, _mongoose2.default);
+      // execute the add event to allow other modules modify this model before it
+      // gets compiled
+      const response = yield _this2.api.events.fire(`core.models.add.${name}`, { model });
+
+      // when there is no identity property defined we use the file basename
+      if (!response.model.identity) {
+        response.model.identity = name;
       }
 
-      // execute the add event
-      let eventObj = { schema, mongoose: _this.mongoose };
-      const response = yield _this.api.events.fire(`core.models.add.${ name }`, eventObj);
+      // if there is no connection set we use the default connection
+      if (!response.model.connection) {
+        response.model.connection = _this2.api.config.models.defaultConnection;
+      }
 
-      // save the new model instance
-      _this.models.set(name, _this.mongoose.model(name, response.schema));
+      // if there is a no schema property on set the model, we use the the default
+      // configuration
+      if (!response.model.schema) {
+        response.model.schema = _this2.api.config.models.schema;
+      }
+
+      // create a Waterline collection
+      const collection = _waterline2.default.Collection.extend(response.model);
+
+      // load the connection into the waterline instance
+      _this2.waterline.loadCollection(collection);
     })();
   }
 
   /**
-   * Get a model object from the repository.
+   * Load models from the modules.
+   */
+  loadModels() {
+    return new Promise(resolve => {
+      const work = [];
+
+      // read models files from the modules
+      this.api.modules.modulesPaths.forEach(modulePath => {
+        this.api.utils.recursiveDirectoryGlob(`${modulePath}/models`).forEach(moduleFile => {
+          // get file basename
+          let basename = _path2.default.basename(moduleFile, '.js');
+
+          // start watching for changes on the model
+          this._watchForChanges(moduleFile);
+
+          // push a new work to the array
+          work.push(callback => {
+            this.add(basename, require(moduleFile).default);
+            this.api.log(`model loaded: ${basename}`, 'debug');
+            callback();
+          });
+        });
+      });
+
+      // process the all work and resolve the promise at the end
+      _async3.default.parallel(work, () => resolve());
+    });
+  }
+
+  /**
+   * If the development mode is active we must watch for changes.
    *
-   * @param modelName   model name to get.
-   * @returns {V}       model object.
+   * When the file changes we tack the following steps:
+   *  - log a message
+   *  - remove the file cache from require
+   *  - reload Stellar
+   */
+  _watchForChanges(file) {
+    // if the development mode is active we return
+    if (!this.api.config.general.developmentMode) {
+      return;
+    }
+
+    // watch for changes on the model file
+    this.api.configs.watchFileAndAct(file, () => {
+      // log a information message
+      this.api.log(`\r\n\r\n*** rebooting due to model change (${file}) ***\r\n\r\n`, 'info');
+
+      // remove require cache
+      delete require.cache[require.resolve(file)];
+
+      // reload Stellar
+      this.api.commands.restart.call(this.api._self);
+    });
+  }
+
+  /**
+   * Get a model object from the ontology.
+   *
+   * @param modelName                 Model name to get.
+   * @returns {WaterlineCollection}   Model object.
    */
   get(modelName) {
-    return this.models.get(modelName);
+    return this.ontology.collections[modelName];
   }
 
   /**
@@ -202,6 +219,28 @@ class Models {
    */
   remove(modelName) {
     this.models.delete(modelName);
+  }
+
+  /**
+   * Process adapters.
+   */
+  processAdapters() {
+    // iterate all adapters and require the right modules. We need to do this
+    // here other wise the config system will break when the module isn't
+    // installed
+    for (const key in this.api.config.models.adapters) {
+      // get module name
+      const moduleName = this.api.config.models.adapters[key];
+
+      // when we are restarting the server this already was replaced with the
+      // module, so we ignore it
+      if (typeof moduleName !== 'string') {
+        continue;
+      }
+
+      // replace the static value with the module instance
+      this.api.config.models.adapters[key] = this.api.utils.require(moduleName);
+    }
   }
 
 }
@@ -258,28 +297,13 @@ exports.default = class {
    * @param next  Callback function.
    */
   start(api, next) {
-    // cleanup mongoose cache
-    _mongoose2.default.models = {};
-    _mongoose2.default.modelSchemas = {};
-
-    // open connection
-    api.models.openConnection(() => {
-      // read models files from the modules
-      api.modules.modulesPaths.forEach(modulePath => {
-        api.utils.recursiveDirectoryGlob(`${ modulePath }/models`).forEach(moduleFile => {
-          // get file basename
-          let basename = _path2.default.basename(moduleFile, '.js');
-
-          // load the model
-          api.models.add(basename, require(moduleFile).default);
-
-          // log a message
-          api.log(`model loaded: ${ basename }`, 'debug');
-        });
-      });
-
-      // finish the initializer start
-      next();
+    // load the models from the modules and then initialize the Waterline system
+    api.models.createNewInstance().then(_ => {
+      api.models.loadModels();
+    }).then(_ => {
+      api.models.processAdapters();
+    }).then(_ => {
+      api.models.initialize(next);
     });
   }
 
@@ -291,6 +315,6 @@ exports.default = class {
    */
   stop(api, next) {
     // close connection
-    api.models.closeConnection(next);
+    api.models.finish(next);
   }
 };

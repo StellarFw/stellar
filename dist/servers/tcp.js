@@ -78,7 +78,7 @@ class Tcp extends _genericServer2.default {
 
     // on server error
     self.server.on('error', e => {
-      return callback(new Error(`Cannot start tcp server @ ${ self.options.bindIP }:${ self.options.port } => ${ e.message }`));
+      return callback(new Error(`Cannot start tcp server @ ${self.options.bindIP}:${self.options.port} => ${e.message}`));
     });
 
     // server listener
@@ -127,7 +127,7 @@ class Tcp extends _genericServer2.default {
     try {
       connection.rawConnection.write(JSON.stringify(message) + '\r\n');
     } catch (e) {
-      self.api.log(`socket write error: ${ e }`, 'error');
+      self.api.log(`socket write error: ${e}`, 'error');
     }
   }
 
@@ -235,7 +235,7 @@ class Tcp extends _genericServer2.default {
       // on error event
       connection.rawConnection.on('error', e => {
         if (connection.destroyed !== true) {
-          self.log(`server error: ${ e }`, 'error');
+          self.log(`server error: ${e}`, 'error');
 
           try {
             connection.rawConnection.end();
@@ -402,7 +402,7 @@ class Tcp extends _genericServer2.default {
     });
 
     if (pendingConnections > 0) {
-      self.log(`waiting on shutdown, there are still ${ pendingConnections } connected clients waiting on a response`, 'notice');
+      self.log(`waiting on shutdown, there are still ${pendingConnections} connected clients waiting on a response`, 'notice');
       setTimeout(() => {
         self._gracefulShutdown(next, true);
       }, 1000);

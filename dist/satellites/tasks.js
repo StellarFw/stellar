@@ -57,7 +57,7 @@ class TaskSatellite {
     // function to be used to log the task (re)load
     let loadMessage = loadedTasksName => {
       let reloadWord = reload ? '(re)' : '';
-      self.api.log(`task ${ reloadWord }loaded: ${ loadedTasksName }, ${ fullFilePath }`, 'debug');
+      self.api.log(`task ${reloadWord}loaded: ${loadedTasksName}, ${fullFilePath}`, 'debug');
     };
 
     // start watch for file changes
@@ -90,7 +90,7 @@ class TaskSatellite {
         loadMessage(task.name);
       }
     } catch (err) {
-      self.api.log(`[TaskSatellite::loadFile] ${ err }`);
+      self.api.log(`[TaskSatellite::loadFile] ${err}`);
 
       // handle the exception
       self.api.exceptionHandlers.loader(fullFilePath, err);
@@ -182,22 +182,22 @@ class TaskSatellite {
     let self = this;
 
     // function to be executed in case of the task validation fails
-    let fail = msg => self.api.log(`${ msg }; exiting`, 'emerg');
+    let fail = msg => self.api.log(`${msg}; exiting`, 'emerg');
 
     if (typeof task.name !== 'string' || task.name.length < 1) {
       fail(`a task is missing 'task.name'`);
       return false;
     } else if (typeof task.description !== 'string' || task.description.length < 1) {
-      fail(`Task ${ task.name } is missing 'task.description'`);
+      fail(`Task ${task.name} is missing 'task.description'`);
       return false;
     } else if (typeof task.frequency !== 'number') {
-      fail(`Task ${ task.name } has no frequency`);
+      fail(`Task ${task.name} has no frequency`);
       return false;
     } else if (typeof task.queue !== 'string') {
-      fail(`Task ${ task.name } has no queue`);
+      fail(`Task ${task.name} has no queue`);
       return false;
     } else if (typeof task.run !== 'function') {
-      fail(`Task ${ task.name } has no run method`);
+      fail(`Task ${task.name} has no run method`);
       return false;
     }
 
@@ -215,7 +215,7 @@ class TaskSatellite {
     // get all active modules
     self.api.modules.modulesPaths.forEach(modulePath => {
       // build the task folder path for the current module
-      let tasksFolder = `${ modulePath }/tasks`;
+      let tasksFolder = `${modulePath}/tasks`;
 
       // load task files
       this.api.utils.recursiveDirectoryGlob(tasksFolder).forEach(f => self.loadFile(f));
@@ -457,7 +457,7 @@ class TaskSatellite {
     self.del(task.queue, taskName, {}, () => {
       self.delDelayed(task.queue, taskName, {}, () => {
         self.enqueueIn(task.frequency, taskName, () => {
-          self.api.log(`re-enqueued recurrent job ${ taskName }`, self.api.config.tasks.schedulerLogging.reEnqueue);
+          self.api.log(`re-enqueued recurrent job ${taskName}`, self.api.config.tasks.schedulerLogging.reEnqueue);
           callback();
         });
       });
@@ -485,7 +485,7 @@ class TaskSatellite {
               return done(error);
             }
             if (toRun === true) {
-              self.api.log(`enqueuing periodic task ${ taskName }`, self.api.config.tasks.schedulerLogging.enqueue);
+              self.api.log(`enqueuing periodic task ${taskName}`, self.api.config.tasks.schedulerLogging.enqueue);
               loadedTasks.push(taskName);
             }
 

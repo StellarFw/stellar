@@ -4,9 +4,9 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _nodeUuid = require('uuid');
+var _uuid = require('uuid');
 
-var _nodeUuid2 = _interopRequireDefault(_nodeUuid);
+var _uuid2 = _interopRequireDefault(_uuid);
 
 var _genericServer = require('../genericServer');
 
@@ -97,7 +97,7 @@ class Helpers {
 
   connection() {
     let self = this;
-    let id = _nodeUuid2.default.v4();
+    let id = _uuid2.default.v4();
 
     self.api.servers.servers.testServer.buildConnection({
       id: id,
