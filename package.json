@@ -1,8 +1,8 @@
 {
   "name": "stellar-fw",
   "author": "Gil Mendes <gil00mendes@gmail.com>",
-  "version": "1.0.4",
-  "description": "A modules system based web framework based on actions to create WEB APIs in NodeJS",
+  "version": "1.1.0",
+  "description": "A modular Web framework based on actions, to create Web APIs easily",
   "keywords": [
     "api",
     "web framework",
