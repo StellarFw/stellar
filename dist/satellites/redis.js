@@ -8,9 +8,9 @@ var _async = require('async');
 
 var _async2 = _interopRequireDefault(_async);
 
-var _nodeUuid = require('uuid');
+var _uuid = require('uuid');
 
-var _nodeUuid2 = _interopRequireDefault(_nodeUuid);
+var _uuid2 = _interopRequireDefault(_uuid);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -142,20 +142,20 @@ class RedisManager {
 
           // on error event
           self.clients[r].on('error', error => {
-            self.api.log(`Redis connection ${ r } error`, error);
+            self.api.log(`Redis connection ${r} error`, error);
           });
 
           // on connect event
           self.clients[r].on('connect', () => {
-            self.api.log(`Redis connection ${ r } connected`, 'info');
+            self.api.log(`Redis connection ${r} connected`, 'info');
             done();
           });
         } else {
           self.clients[r] = self.api.config.redis[r].constructor.apply(null, self.api.config.redis[r].args);
           self.clients[r].on('error', error => {
-            self.api.log(`Redis connection ${ r } error`, 'error', error);
+            self.api.log(`Redis connection ${r} error`, 'error', error);
           });
-          self.api.log(`Redis connection ${ r } connected`, 'info');
+          self.api.log(`Redis connection ${r} connected`, 'info');
           done();
         }
       });
@@ -211,7 +211,7 @@ class RedisManager {
   doCluster(method, args, connectionId, callback) {
     let self = this;
 
-    let requestId = _nodeUuid2.default.v4();
+    let requestId = _uuid2.default.v4();
     let payload = {
       messageType: 'do',
       serverId: self.api.id,
@@ -291,7 +291,7 @@ exports.default = class {
         return next(error);
       }
 
-      api.redis.doCluster('api.log', `Stellar member ${ api.id } has joined the cluster`, null, null);
+      api.redis.doCluster('api.log', `Stellar member ${api.id} has joined the cluster`, null, null);
 
       // finish the loading
       process.nextTick(next);
@@ -313,7 +313,7 @@ exports.default = class {
     }
 
     // inform the cluster of stellar leaving
-    api.redis.doCluster('api.log', `Stellar member ${ api.id } has left the cluster`, null, null);
+    api.redis.doCluster('api.log', `Stellar member ${api.id} has left the cluster`, null, null);
 
     // unsubscribe stellar instance and finish the stop method execution
     process.nextTick(() => {

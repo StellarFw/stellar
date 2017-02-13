@@ -60,7 +60,7 @@ class Pids {
 
     // define the process name
     if (_cluster2.default.isMaster) {
-      self.title = `stellar-${ self._sanitizeId() }`;
+      self.title = `stellar-${self._sanitizeId()}`;
     } else {
       self.title = self._sanitizeId();
     }
@@ -76,7 +76,7 @@ class Pids {
    */
   writePidFile() {
     let self = this;
-    _fs2.default.writeFileSync(`${ self.path }/${ self.title }`, self.pid.toString(), 'ascii');
+    _fs2.default.writeFileSync(`${self.path}/${self.title}`, self.pid.toString(), 'ascii');
   }
 
   /**
@@ -86,7 +86,7 @@ class Pids {
     let self = this;
 
     try {
-      _fs2.default.unlinkSync(`${ self.path }/${ self.title }`);
+      _fs2.default.unlinkSync(`${self.path}/${self.title}`);
     } catch (e) {
       self.api.log('Unable to remove pidfile', 'error', e);
     }
@@ -162,7 +162,7 @@ exports.default = class {
     api.pids.writePidFile();
 
     // log the process pid
-    api.log(`pid: ${ process.pid }`, 'notice');
+    api.log(`pid: ${process.pid}`, 'notice');
 
     // finish the initializer start
     next();

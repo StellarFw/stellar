@@ -4,9 +4,9 @@
 
 // ----------------------------------------------------------------------------- [Util Functions]
 
-const warn = msg => console.warn(`[StellarClient warn]: ${ msg }`);
+const warn = msg => console.warn(`[StellarClient warn]: ${msg}`);
 
-const error = msg => console.error(`[StellarClient error]: ${ msg }`);
+const error = msg => console.error(`[StellarClient error]: ${msg}`);
 
 const isFunction = val => typeof val === 'function';
 
@@ -290,7 +290,7 @@ StellarClient.prototype.action = function (action, params = {}) {
       if (isFunction(handler)) {
         handler.call(this, params, next, reject);
       } else {
-        warn(`Invalid interceptor of type ${ typeof handler }, must be a function`);
+        warn(`Invalid interceptor of type ${typeof handler}, must be a function`);
         next();
       }
     };
@@ -343,14 +343,14 @@ StellarClient.prototype._actionWeb = function (params) {
     const method = (params.httpMethod || 'POST').toUpperCase();
 
     // define the URL to be called and append the action on the query params
-    const url = `${ this.options.url }${ this.options.apiPath }?action=${ params.action }`;
+    const url = `${this.options.url}${this.options.apiPath}?action=${params.action}`;
 
     if (method === 'GET') {
       for (let param in params) {
         if (~['action', 'httpMethod'].indexOf(param)) {
           continue;
         }
-        url += `&${ param }=${ params[param] }`;
+        url += `&${param}=${params[param]}`;
       }
     }
 

@@ -127,7 +127,7 @@ class Validator {
           if (typeof funcResponse === 'string') {
             errors.set(fieldName, funcResponse);
           } else if (funcResponse === false) {
-            errors.set(fieldName, `The ${ fieldName } field do not match with the validator function.`);
+            errors.set(fieldName, `The ${fieldName} field do not match with the validator function.`);
           }
 
           continue;
@@ -135,13 +135,13 @@ class Validator {
 
         // before continue we check if the validator exists
         if (!this._isAValidator(ruleName)) {
-          throw new Error(`The is no validator named '${ ruleName }'`);
+          throw new Error(`The is no validator named '${ruleName}'`);
         }
 
         // execute the correspondent validator and if the response if `false` a
         // failure message will be added to the errors hash. The exec methods
         // also can return
-        if (!this[`validator_${ ruleName }`](value, ruleParameters, fieldName)) {
+        if (!this[`validator_${ruleName}`](value, ruleParameters, fieldName)) {
           this._addFailure(fieldName, ruleName, ruleParameters, errors);
           continue;
         }
@@ -198,7 +198,7 @@ class Validator {
 
     // if there is no message for the validator throw an error
     if (message === undefined) {
-      throw new Error(`No error message was been specified for the '${ rule }' validator`);
+      throw new Error(`No error message was been specified for the '${rule}' validator`);
     }
 
     // replace the fields on the error message
@@ -251,7 +251,7 @@ class Validator {
     message = message.replace(/:attribute/gi, attribute);
 
     // check if there is a specific replacer for this type of rule
-    const replacerMethod = `replace_${ rule }`;
+    const replacerMethod = `replace_${rule}`;
     if (this[replacerMethod] !== undefined) {
       message = this[replacerMethod](message, attribute, rule, parameters);
     }
@@ -270,7 +270,7 @@ class Validator {
    */
   _requireParameterCount(count, parameters, rule) {
     if (!parameters || parameters.length < count) {
-      throw new InvalidArgumentException(`Validation rule ${ rule } requires at least ${ count } parameters.`);
+      throw new InvalidArgumentException(`Validation rule ${rule} requires at least ${count} parameters.`);
     }
   }
 
@@ -278,7 +278,7 @@ class Validator {
    * Check if it is a valid validator.
    */
   _isAValidator(validator) {
-    return this[`validator_${ validator }`] !== undefined;
+    return this[`validator_${validator}`] !== undefined;
   }
 
   // --------------------------------------------------------------------------- [Validators]
@@ -349,6 +349,18 @@ class Validator {
     return Date.parse(value) < Date.parse(args);
   }
 
+  validator_after(value, args) {
+    this._requireParameterCount(1, args, 'after');
+
+    // check if the argument are valid
+    if (isNaN(Date.parse(args))) {
+      return false;
+    }
+
+    // check if the specified date is greater than the required date
+    return Date.parse(value) > Date.parse(args);
+  }
+
   /**
    * Check if the value is between the two intervals.
    *
@@ -389,7 +401,7 @@ class Validator {
    */
   validator_confirmed(value, args, key) {
     // build the confirmation field name
-    let confirmationFieldName = `${ key }_confirmation`;
+    let confirmationFieldName = `${key}_confirmation`;
 
     // check if the confirmation field are not present
     if (this.params[confirmationFieldName] === undefined) {

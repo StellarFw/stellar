@@ -38,13 +38,13 @@ exports.default = {
       _fs2.default.mkdirSync(logDirectory);
     } catch (e) {
       if (e.code !== 'EEXIST') {
-        throw new Error(`Cannot create log directory @ ${ logDirectory }`);
+        throw new Error(`Cannot create log directory @ ${logDirectory}`);
       }
     }
 
     logger.transports.push((api, winston) => {
       return new winston.transports.File({
-        filename: `${ logDirectory }/${ api.pids.title }.log`,
+        filename: `${logDirectory}/${api.pids.title}.log`,
         level: 'info',
         timestamp: true
       });

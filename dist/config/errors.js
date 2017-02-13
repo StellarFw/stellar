@@ -57,7 +57,7 @@ exports.default = {
       // ---------------------------------------------------------------------
       // When a client make a call to a private action
       // ---------------------------------------------------------------------
-      privateActionCalled: actionName => `the action '${ actionName }' is private`,
+      privateActionCalled: actionName => `the action '${actionName}' is private`,
 
       // ---------------------------------------------------------------------
       // When a params for an action is invalid
@@ -73,7 +73,7 @@ exports.default = {
       // ---------------------------------------------------------------------
       // When a param was an invalid type
       // ---------------------------------------------------------------------
-      paramInvalidType: (paramName, expected) => `param '${ paramName }' has an invalid type, expected ${ expected }`,
+      paramInvalidType: (paramName, expected) => `param '${paramName}' has an invalid type, expected ${expected}`,
 
       // ---------------------------------------------------------------------
       // user required an unknown action
@@ -83,7 +83,7 @@ exports.default = {
       // ---------------------------------------------------------------------
       // action can be called by this client/server type
       // ---------------------------------------------------------------------
-      unsupportedServerType: type => `this action does not support the ${ type } connection type`,
+      unsupportedServerType: type => `this action does not support the ${type} connection type`,
 
       // ---------------------------------------------------------------------
       // Action failed because server is mid-shutdown
@@ -105,7 +105,7 @@ exports.default = {
       //  api.config.servers.tcp.maxDataLength
       // ---------------------------------------------------------------------
       dataLengthTooLarge: (maxLength, receivedLength) => {
-        return api.i18n.localize(`data length is too big (${ maxLength } received/${ receivedLength } max)`);
+        return api.i18n.localize(`data length is too big (${maxLength} received/${receivedLength} max)`);
       },
 
       // ---------------------------------------------------------------------
@@ -121,7 +121,7 @@ exports.default = {
       // ---------------------------------------------------------------------
       // function to be executed when occurs a error during file reading
       // ---------------------------------------------------------------------
-      fileReadError: (connection, error) => connection.localize(`error reading file: ${ String(error) }`),
+      fileReadError: (connection, error) => connection.localize(`error reading file: ${String(error)}`),
 
       // ---------------------------------------------------------------------
       // User didn't request a file
@@ -135,12 +135,12 @@ exports.default = {
       // ---------------------------------------------------------------------
       // Function to be executed when a verb is'nt found
       // ---------------------------------------------------------------------
-      verbNotFound: (connection, verb) => connection.localize(`the verb non't exists (${ verb })`),
+      verbNotFound: (connection, verb) => connection.localize(`the verb non't exists (${verb})`),
 
       // ---------------------------------------------------------------------
       // Function to be executed when a verb isn't not allowed
       // ---------------------------------------------------------------------
-      verbNotAllowed: (connection, verb) => connection.localize(`verb not found or not allowed (${ verb })`),
+      verbNotAllowed: (connection, verb) => connection.localize(`verb not found or not allowed (${verb})`),
 
       // ---------------------------------------------------------------------
       // Error handler when the room and the message are not present on the
@@ -151,13 +151,13 @@ exports.default = {
       // ---------------------------------------------------------------------
       // Error handle for a request made to a room who the user as not part of
       // ---------------------------------------------------------------------
-      connectionNotInRoom: (connection, room) => connection.localize(`connection not in this room (${ room })`),
+      connectionNotInRoom: (connection, room) => connection.localize(`connection not in this room (${room})`),
 
       // ---------------------------------------------------------------------
       // Error handler for a join request to a room which the user is already
       // part
       // ---------------------------------------------------------------------
-      connectionAlreadyInRoom: (connection, room) => connection.localize(`connection already in this room (${ room })`),
+      connectionAlreadyInRoom: (connection, room) => connection.localize(`connection already in this room (${room})`),
 
       // ---------------------------------------------------------------------
       // Error handle request for a deleted room.

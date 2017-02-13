@@ -26,29 +26,6 @@ class Modules {
 
 
   /**
-   * Map with the active modules.
-   *
-   * Keys are the modules slugs and the values are
-   * their manifests.
-   *
-   * @type {Map}
-   */
-  constructor(api) {
-    this.api = null;
-    this.activeModules = new Map();
-    this.modulesPaths = new Map();
-    this.api = api;
-  }
-
-  /**
-   * Load all active modules into memory.
-   *
-   * The private module is always loaded even if not present on the
-   * activeModules property.
-   */
-
-
-  /**
    * Map with the modules paths.
    *
    * @type {Map}
@@ -60,6 +37,61 @@ class Modules {
    *
    * @type {null}
    */
+  constructor(api) {
+    this.api = null;
+    this.activeModules = new Map();
+    this.modulesPaths = new Map();
+    this.moduleActions = new Map();
+    this.api = api;
+  }
+
+  /**
+   * Register a new action name for a module.
+   *
+   * @param {string} moduleName Module name
+   * @param {string|array} value Array of action name to be stored.
+   */
+
+
+  /**
+   * This map contains all the actions who are part of each module.
+   *
+   * @type {Map}
+   */
+
+
+  /**
+   * Map with the active modules.
+   *
+   * Keys are the modules slugs and the values are
+   * their manifests.
+   *
+   * @type {Map}
+   */
+  regModuleAction(moduleName, value) {
+    // first, check there is already a slot to store the actions of this module
+    if (!this.moduleActions.has(moduleName)) {
+      this.moduleActions.set(moduleName, []);
+    }
+
+    // get the array where the action name must be stored
+    const arrayOfActions = this.moduleActions.get(moduleName);
+
+    if (Array.isArray(value)) {
+      this.moduleActions.set(moduleName, arrayOfActions.concat(value));
+    } else if (this.api.utils.isNonEmptyString(value)) {
+      arrayOfActions.push(value);
+    } else {
+      throw new Error('Value got an invalid state');
+    }
+  }
+
+  /**
+   * Load all active modules into memory.
+   *
+   * The private module is always loaded even if not present on the
+   * activeModules property.
+   */
   loadModules(next) {
     let self = this;
 
@@ -67,7 +99,7 @@ class Modules {
     let modules = self.api.config.modules;
 
     // check if the private module folder exists
-    if (this.api.utils.directoryExists(`${ self.api.scope.rootPath }/modules/private`)) {
+    if (this.api.utils.directoryExists(`${self.api.scope.rootPath}/modules/private`)) {
       modules.push('private');
     }
 
@@ -80,20 +112,25 @@ class Modules {
       process.exit(1);
     }
 
-    // load all modules manifests
-    modules.forEach(moduleName => {
+    // load all modules declared in the manifest file
+    for (const moduleName of modules) {
       // build the full path
-      let path = `${ self.api.scope.rootPath }/modules/${ moduleName }`;
+      const path = `${self.api.scope.rootPath}/modules/${moduleName}`;
 
       // get module manifest file content
-      let manifest = require(`${ path }/manifest.json`);
+      try {
+        const manifest = require(`${path}/manifest.json`);
 
-      // save the module config on the engine instance
-      self.activeModules.set(manifest.id, manifest);
+        // save the module config on the engine instance
+        self.activeModules.set(manifest.id, manifest);
 
-      // save the module full path
-      self.modulesPaths.set(manifest.id, path);
-    });
+        // save the module full path
+        self.modulesPaths.set(manifest.id, path);
+      } catch (e) {
+        next(new Error(`There is an invalid module active, named "${moduleName}", fix this to start Stellar normally.`));
+        break;
+      }
+    }
   }
 
   /**
@@ -119,7 +156,7 @@ class Modules {
     // temporary files and process every thing again
     if (scope.args.clean) {
       // list of temporary files
-      let tempFilesLocations = [`${ scope.rootPath }/temp`, `${ scope.rootPath }/package.json`, `${ scope.rootPath }/node_modules`];
+      let tempFilesLocations = [`${scope.rootPath}/temp`, `${scope.rootPath}/package.json`, `${scope.rootPath}/node_modules`];
 
       // iterate all temp paths and remove all of them
       tempFilesLocations.forEach(path => this.api.utils.removePath(path));
@@ -127,7 +164,7 @@ class Modules {
 
     // if the `package.json` file already exists and Stellar isn't starting with
     // the `update` flag return now
-    if (this.api.utils.fileExists(`${ scope.rootPath }/package.json`) && !scope.args.update) {
+    if (this.api.utils.fileExists(`${scope.rootPath}/package.json`) && !scope.args.update) {
       return next();
     }
 
@@ -153,7 +190,7 @@ class Modules {
     };
 
     // generate project.json file
-    const packageJsonPath = `${ self.api.scope.rootPath }/package.json`;
+    const packageJsonPath = `${self.api.scope.rootPath}/package.json`;
     this.api.utils.removePath(packageJsonPath);
     _fs2.default.writeFileSync(packageJsonPath, JSON.stringify(projectJson, null, 2), 'utf8');
 

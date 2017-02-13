@@ -29,9 +29,9 @@ class ExceptionsManager {
       let extraMessages = [];
 
       if (type === 'loader') {
-        extraMessages.push(`! Failed to load ${ objects.fullFilePath }`);
+        extraMessages.push(`! Failed to load ${objects.fullFilePath}`);
       } else if (type === 'action') {
-        extraMessages.push(`! uncaught error from action: ${ name }`);
+        extraMessages.push(`! uncaught error from action: ${name}`);
 
         extraMessages.push('! connection details:');
         var relevantDetails = ['action', 'remoteIP', 'type', 'params', 'room'];
@@ -41,14 +41,14 @@ class ExceptionsManager {
           }
         }
       } else if (type === 'task') {
-        extraMessages.push(`! uncaught error from task: ${ name } on queue ${ objects.queue } (worker #${ objects.workerId })`);
+        extraMessages.push(`! uncaught error from task: ${name} on queue ${objects.queue} (worker #${objects.workerId})`);
         try {
           extraMessages.push('!     arguments: ' + JSON.stringify(objects.task.args));
         } catch (e) {}
       } else {
-        extraMessages.push(`! Error: ${ err.message }`);
-        extraMessages.push(`!     Type: ${ type }`);
-        extraMessages.push(`!     Name: ${ name }`);
+        extraMessages.push(`! Error: ${err.message}`);
+        extraMessages.push(`!     Type: ${type}`);
+        extraMessages.push(`!     Name: ${name}`);
         extraMessages.push('!     Data: ' + JSON.stringify(objects));
       }
 
@@ -60,7 +60,7 @@ class ExceptionsManager {
       // if there is one of the known core exceptions we need to add information
       // manually to inform the correct error information
       if (err.name) {
-        lines.push(`${ err.name }: ${ err.message }`);
+        lines.push(`${err.name}: ${err.message}`);
       }
 
       // add the stack trace
@@ -111,7 +111,7 @@ class ExceptionsManager {
    */
   loader(fullFilePath, err) {
     let self = this;
-    let name = `loader ${ fullFilePath }`;
+    let name = `loader ${fullFilePath}`;
     self.report(err, 'loader', name, { fullFilePath: fullFilePath }, 'alert');
   }
 
@@ -164,7 +164,7 @@ class ExceptionsManager {
       simpleName = error.message;
     }
 
-    self.api.exceptionHandlers.report(error, 'task', `task:${ simpleName }`, simpleName, {
+    self.api.exceptionHandlers.report(error, 'task', `task:${simpleName}`, simpleName, {
       task: task,
       queue: queue,
       workerId: workerId

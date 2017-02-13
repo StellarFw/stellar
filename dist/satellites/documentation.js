@@ -42,17 +42,14 @@ class DocumentationGenerator {
     this.api.utils.createFolder(self.api.config.general.paths.public);
 
     // build docs folder path
-    self.docsFolder = `${ self.api.config.general.paths.public }/docs`;
+    self.docsFolder = `${self.api.config.general.paths.public}/docs`;
 
     // build static folder path
-    self.staticFolder = `${ __dirname }/../../staticFiles/docs`;
+    self.staticFolder = `${__dirname}/../../staticFiles/docs`;
   }
 
   /**
-   * Get all actions who have toDocument different than false.
-   *
-   * @returns {{}}  Actions to generate documentation.
-   * @private
+   * Generate an array with all information needed to build the list of tasks.
    */
 
 
@@ -67,6 +64,29 @@ class DocumentationGenerator {
    * API reference object.
    *
    * @type {null}
+   */
+  _getTasksInformation() {
+    // array to store all the tasks
+    const tasks = [];
+
+    // iterate all registered tasks
+    Object.keys(this.api.tasks.tasks).forEach(key => {
+      const task = this.api.tasks.tasks[key];
+      tasks.push({
+        name: task.name,
+        description: task.description || 'N/A',
+        frequency: task.frequency || '-'
+      });
+    });
+
+    return tasks;
+  }
+
+  /**
+   * Get all actions who have toDocument different than false.
+   *
+   * @returns {{}}  Actions to generate documentation.
+   * @private
    */
   _getActionToGenerateDoc() {
     let self = this;
@@ -115,7 +135,7 @@ class DocumentationGenerator {
     let data = { actions: Object.keys(actions) };
 
     // get base template
-    let source = _fs2.default.readFileSync(`${ self.staticFolder }/action.html`).toString();
+    let source = _fs2.default.readFileSync(`${self.staticFolder}/action.html`).toString();
 
     // iterate all loaded actions
     for (let actionName in actions) {
@@ -141,7 +161,7 @@ class DocumentationGenerator {
       let template = _handlebars2.default.compile(source);
 
       // output the result to the temp folder
-      _fs2.default.writeFileSync(`${ self.docsFolder }/action_${ actionName }.html`, template(data), 'utf8');
+      _fs2.default.writeFileSync(`${self.docsFolder}/action_${actionName}.html`, template(data), 'utf8');
     }
 
     // build the index.html
@@ -168,14 +188,17 @@ class DocumentationGenerator {
     data.project.description = self.api.config.description;
     data.project.version = self.api.config.version;
 
+    // append the tasks information
+    data.tasks = this._getTasksInformation();
+
     // get template source
-    let source = _fs2.default.readFileSync(`${ self.staticFolder }/index.html`).toString();
+    let source = _fs2.default.readFileSync(`${self.staticFolder}/index.html`).toString();
 
     // compile source
     let template = _handlebars2.default.compile(source);
 
     // save index.html file on final docs folder
-    _fs2.default.writeFileSync(`${ self.docsFolder }/index.html`, template(data), 'utf8');
+    _fs2.default.writeFileSync(`${self.docsFolder}/index.html`, template(data), 'utf8');
   }
 
   /**
@@ -248,9 +271,9 @@ class DocumentationGenerator {
    */
   _copyResourceFiles() {
     let self = this;
-    this.api.utils.copyFile(`${ self.staticFolder }/reset.css`, `${ self.docsFolder }/reset.css`);
-    this.api.utils.copyFile(`${ self.staticFolder }/style.css`, `${ self.docsFolder }/style.css`);
-    this.api.utils.copyFile(`${ self.staticFolder }/highlight.js`, `${ self.docsFolder }/highlight.js`);
+    this.api.utils.copyFile(`${self.staticFolder}/reset.css`, `${self.docsFolder}/reset.css`);
+    this.api.utils.copyFile(`${self.staticFolder}/style.css`, `${self.docsFolder}/style.css`);
+    this.api.utils.copyFile(`${self.staticFolder}/highlight.js`, `${self.docsFolder}/highlight.js`);
   }
 
 }
@@ -261,7 +284,7 @@ class DocumentationGenerator {
  */
 exports.default = class {
   constructor() {
-    this.loadPriority = 510;
+    this.loadPriority = 710;
   }
 
   /**

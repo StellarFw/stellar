@@ -215,7 +215,7 @@ class StaticFile {
   logRequest(file, connection, length, duration, success) {
     let self = this;
 
-    self.api.log(`[ file @ ${ connection.type }]`, 'debug', {
+    self.api.log(`[ file @ ${connection.type}]`, 'debug', {
       to: connection.remoteIP,
       file: file,
       size: length,

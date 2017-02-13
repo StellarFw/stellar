@@ -135,7 +135,7 @@ class RoutesManager {
       if (matchTrailingPathParts === true && parseInt(i) === matchPart.len - 1) {
         for (let j in pathParts) {
           if (j > i) {
-            pathPart = `${ pathPart }/${ pathParts[j] }`;
+            pathPart = `${pathPart}/${pathParts[j]}`;
           }
         }
       }
@@ -219,7 +219,7 @@ class RoutesManager {
     self.api.params.postVariables = this.api.utils.arrayUniqueify(self.api.params.postVariables);
 
     // log the number of loaded routes
-    self.api.log(`${ counter } routes loaded`, 'debug');
+    self.api.log(`${counter} routes loaded`, 'debug');
 
     if (self.api.config.servers.web && self.api.config.servers.web.simpleRouting === true) {
       let simplePaths = [];
@@ -227,16 +227,16 @@ class RoutesManager {
       // iterate all registered actions
       for (let action in self.api.actions.actions) {
         // push the action name to the simples paths
-        simplePaths.push(`/${ action }`);
+        simplePaths.push(`/${action}`);
 
         // iterate all verbs
         self.verbs.forEach(verb => {
-          self.registerRoute(verb, `/${ action }`, action);
+          self.registerRoute(verb, `/${action}`, action);
         });
       }
 
       // log the number of simple routes loaded
-      self.api.log(`${ simplePaths.length } simple routes loaded from action names`, 'debug');
+      self.api.log(`${simplePaths.length} simple routes loaded from action names`, 'debug');
       self.api.log('routes: ', 'debug', self.routes);
     }
   }
@@ -254,7 +254,7 @@ class RoutesManager {
     self.api.modules.modulesPaths.forEach(modulePath => {
       try {
         // build the file path
-        let path = `${ modulePath }/routes.json`;
+        let path = `${modulePath}/routes.json`;
 
         // check if the module have a 'routes.js' file
         _fs2.default.accessSync(path, _fs2.default.F_OK);
