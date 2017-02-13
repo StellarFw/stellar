@@ -24,7 +24,7 @@ function checkCommands (yargs, argv, numRequired) {
 // --- define some global configurations ---------------------------------------
 
 // show a welcome message
-console.log(`\x1b[34m> Stellar Framework \x1b[37mversion \x1b[33m${pkg.version}\x1b[39m\n`)
+console.log(`\x1b[34m# Stellar Framework \x1b[37mversion \x1b[33m${pkg.version}\x1b[39m\n`)
 
 // set usage
 yargs.usage('Usage: stellar <command> [--options]')
@@ -63,6 +63,7 @@ yargs.command('make', 'Generate some project components', yargs => {
   yargs.command(require('./commands/makeListener'))
   yargs.command(require('./commands/makeModel'))
   yargs.command(require('./commands/makeTask'))
+  yargs.command(require('./commands/makeTest'))
 
   // execute the yargs
   const argv = yargs.argv

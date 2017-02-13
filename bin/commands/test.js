@@ -50,8 +50,7 @@ class TestCommand extends Command {
 
     // if the modules are empty return a message
     if (modules.length === 0) {
-      this.printInfo(`There is no active module to run tests.`)
-      return true
+      return this.printInfo(`There is no active module to run tests.`)
     }
 
     // instantiate a Mocha instance
@@ -81,7 +80,7 @@ class TestCommand extends Command {
     process.env.NODE_ENV = 'test'
 
     // run the tests
-    mocha.run(failures => { process.on('exit', () => process.exit(failures)) })
+    mocha.run(failures => { process.exit(failures) })
   }
 
 }
