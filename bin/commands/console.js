@@ -50,6 +50,14 @@ class ConsoleCommand extends Command {
 
         // put the api into context
         repl.context.api = api
+
+        // when the user exists REPL we must check if the Stella are stopped,
+        // otherwise we stop it first
+        repl.on('exit', () => {
+          if (api.status !== 'stopped') {
+            this.engine.stop(() => { process.exit(0) })
+          }
+        })
       }, 500)
     })
   }
