@@ -190,7 +190,7 @@ class GenericServer extends _events.EventEmitter {
    */
   log(message, severity, data) {
     let self = this;
-    self.api.log(`[Server: ${ this.type }] ${ message }`, severity, data);
+    self.api.log(`[Server: ${this.type}] ${message}`, severity, data);
   }
 
   /**

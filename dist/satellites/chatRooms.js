@@ -667,7 +667,7 @@ exports.default = class {
     // check if we need to create some starting chat rooms
     if (api.config.general.startingChatRooms) {
       for (let room in api.config.general.startingChatRooms) {
-        api.log(`ensuring the existence of the chatRoom: ${ room }`);
+        api.log(`ensuring the existence of the chatRoom: ${room}`);
         api.chatRoom.add(room);
       }
     }
