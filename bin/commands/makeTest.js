@@ -7,7 +7,7 @@ let Utils = require('../utils')
 
 // ----------------------------------------------------------------------------- [Command]
 
-class MakeTask extends Command {
+class MakeTest extends Command {
 
   /**
    * Create a new instance of this command.
@@ -17,8 +17,8 @@ class MakeTask extends Command {
     super()
 
     // command
-    this.command = 'task <task_name>'
-    this.describe = 'Create a new Task'
+    this.command = 'test <file_name>'
+    this.describe = 'Create a new test file'
     this.builder = {
       module: {
         describe: 'Module where the file will be created',
@@ -26,7 +26,7 @@ class MakeTask extends Command {
         default: 'private'
       },
       force: {
-        describe: 'Overwrite existent files',
+        describe: 'Overwrite existing files',
         type: 'boolean',
         default: false
       }
@@ -34,9 +34,10 @@ class MakeTask extends Command {
   }
 
   /**
-   * Execute the command
+   * Execute the command.
    */
   run () {
+    // check if the module was specified
     if (this.args.module.length === 0) {
       return this.printError('You need to specify the module where the task must be created')
     }
@@ -46,23 +47,29 @@ class MakeTask extends Command {
       return this.printError(`The module "${this.args.module}" does not exists`)
     }
 
-    // ensure the task folder exists
-    let tasksFolder = `${Utils.getCurrentUniverse()}/modules/${this.args.module}/tasks`
-    if (!Utils.exists(tasksFolder)) { Utils.createFolder(tasksFolder) }
+    // ensure the test folder exists
+    const testFolder = `${Utils.getCurrentUniverse()}/modules/${this.args.module}/tests`
+    if (!Utils.exists(testFolder)) { Utils.createFolder(testFolder) }
 
-    // get task name
-    const taskName = this.args.task_name
+    // get the file name
+    const fileName = this.args.file_name
 
     // build the output path
-    let newFilePath = `${tasksFolder}/${taskName}.js`
+    const newFilePath = `${testFolder}/${fileName}.js`
+
+    // check if the file already exists
+    if (!this.args.force && Utils.exists(newFilePath)) {
+      return this.printError(`The test file already exists. Use --force param to overwrite.`)
+    }
 
     // generate the new file
-    Utils.generateFileFromTemplate('task', { taskName }, newFilePath)
+    Utils.generateFileFromTemplate('test', { }, newFilePath)
 
     // print a success message
-    this.printSuccess(`The "${taskName}" task was created!`)
+    this.printSuccess(`The "${fileName}" test was created!`)
   }
+
 }
 
 // export command
-module.exports = new MakeTask()
+module.exports = new MakeTest()

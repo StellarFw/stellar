@@ -24,6 +24,13 @@ class EventsManager {
   events = new Map()
 
   /**
+   * Map to keep track of the file listeners.
+   *
+   * @type {Map}
+   */
+  fileListeners = new Map()
+
+  /**
    * Create a new instance.
    *
    * @param api   API reference object.
@@ -39,19 +46,17 @@ class EventsManager {
    * @param data        Params to pass to the listeners.
    */
   fire (eventName, data) {
-    let self = this
-
     // variable to store listener response data
     let responseData = data
 
     // build a new promise and return them
     return new Promise(resolve => {
       // if there is no listeners for the event finish the promise now
-      if (!self.events.has(eventName)) { resolve(responseData) }
+      if (!this.events.has(eventName)) { resolve(responseData) }
 
       // execute the listeners async in series
-      async.each(self.events.get(eventName),
-        (listener, callback) => listener.run(self.api, responseData, callback), () => {
+      async.each(this.events.get(eventName),
+        (listener, callback) => listener.run(this.api, responseData, callback), () => {
           // resolve the promise returning the response data
           resolve(responseData)
         })
@@ -90,40 +95,125 @@ class EventsManager {
    * @return boolean      True if is all okay, false otherwise.
    */
   _listenerObj (listenerObj) {
-    let self = this
-
     // validate event name
     if (listenerObj.event === undefined) {
-      self.api.log('invalid listener - missing event name', 'warning')
+      this.api.log('invalid listener - missing event name', 'warning')
       return false
     }
 
     // validate run
     if (listenerObj.run === undefined || typeof listenerObj.run !== 'function') {
-      self.api.log('invalid listener - missing run property or not a function', 'warning')
+      this.api.log('invalid listener - missing run property or not a function', 'warning')
       return false
     }
 
     // if priority are not defined
-    if (listenerObj.priority === undefined) { listenerObj.priority = self.api.config.general.defaultListenerPriority }
+    if (listenerObj.priority === undefined) {
+      listenerObj.priority = this.api.config.general.defaultListenerPriority
+    }
 
-    // if there is no listener for this event, create a new entry
-    // with an empty array
-    if (!self.events.has(listenerObj.event)) { self.events.set(listenerObj.event, []) }
+    // the event property can be an array, when the listener supports multiple
+    // events, so we need to iterate it. When the event property is an string we
+    // must convert it to an array in order to simplify the implementation
+    const events = (typeof listenerObj.event === 'string')
+      ? [ listenerObj.event ] : listenerObj.event
 
-    // get the array with all registered listeners for this event
-    let listeners = self.events.get(listenerObj.event)
+    // iterate the events array. There is no need to change the event name,
+    // because we don't use it when we execute the listener
+    for (const event of events) {
+      // if there is no listener for this event, create a new entry with an
+      // empty array
+      if (!this.events.has(event)) { this.events.set(event, [ ]) }
 
-    // register the new listener
-    listeners.push(listenerObj)
+      // get the array with all registered listeners for this event
+      let listeners = this.events.get(event)
 
-    // order the listeners by priority
-    listeners.sort((l1, l2) => l1.priority - l2.priority)
+      // register the new listener
+      listeners.push(listenerObj)
+
+      // order the listeners by priority
+      listeners.sort((l1, l2) => l1.priority - l2.priority)
+    }
 
     return true
   }
 
-  // --------------------------------------------------------------------------------------------------- [Other Methods]
+  /**
+   * Load a listener file.
+   */
+  _loadFile (path, reload = false) {
+    // function to show a (re)load message
+    const loadMessage = listener => {
+      const level = reload ? 'info' : 'debug'
+      let msg = null
+
+      if (reload) {
+        msg = `listener (re)loaded: ${listener.event}, ${path}`
+      } else {
+        msg = `listener loaded: ${listener.event}, ${path}`
+      }
+
+      // print the message out
+      this.api.log(msg, level)
+    }
+
+    // require listener file
+    let collection = require(path)
+
+    // start watching for changes on the model
+    if (!reload) { this._watchForChanges(path) }
+
+    // array to keep all file listeners
+    const listeners = []
+
+    for (let i in collection) {
+      // get action object
+      let listener = collection[ i ]
+
+      // insert the listener on the map
+      this._listenerObj(listener)
+
+      // push the listener to the array
+      listeners.push(listener)
+
+      // log a message
+      loadMessage(listener)
+    }
+
+    // keep track of the functions by file to make live-reload
+    this.fileListeners.set(path, listeners)
+  }
+
+  /**
+   * Adds a listener to watch for file changes in order to reload the listeners.
+   */
+  _watchForChanges (path) {
+    this.api.configs.watchFileAndAct(path, () => {
+      // remove old listeners
+      this.fileListeners.get(path).forEach(listener => {
+        // an listener can support multiple events, so we need iterate all
+        const events = (typeof listener.event === 'string')
+          ? [ listener.event ]
+          : listener.event
+
+        for (const event of events) {
+          // get array of functions
+          const listeners = this.events.get(event)
+
+          // get listener index
+          const index = listeners.indexOf(listener)
+
+          // remove listener
+          listeners.splice(index, 1)
+        }
+      })
+
+      // load the listeners again
+      this._loadFile(path, true)
+    })
+  }
+
+  // --------------------------------------------------------------------------- [Other Methods]
 
   /**
    * Iterate over all active modules and
@@ -131,10 +221,8 @@ class EventsManager {
    * @param next
    */
   loadListeners (next) {
-    let self = this
-
     // iterate all active modules
-    self.api.modules.modulesPaths.forEach(modulePath => {
+    this.api.modules.modulesPaths.forEach(modulePath => {
       // build path for the module listeners folder
       let listenersFolderPath = `${modulePath}/listeners`
 
@@ -142,18 +230,8 @@ class EventsManager {
       if (!this.api.utils.directoryExists(listenersFolderPath)) { return }
 
       // get all listeners files
-      this.api.utils.recursiveDirectoryGlob(listenersFolderPath, 'js').forEach(listenerPath => {
-        // require listener file
-        let collection = require(listenerPath)
-
-        for (let i in collection) {
-          // get action object
-          let listener = collection[ i ]
-
-          // insert the listener on the map
-          self._listenerObj(listener)
-        }
-      })
+      this.api.utils.recursiveDirectoryGlob(listenersFolderPath, 'js')
+      .forEach(listenerPath => { this._loadFile(listenerPath) })
     })
 
     // end listeners loading

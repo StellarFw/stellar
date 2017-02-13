@@ -335,6 +335,16 @@ class Validator {
     return Date.parse(value) < Date.parse(args)
   }
 
+  validator_after (value, args) {
+    this._requireParameterCount(1, args, 'after')
+
+    // check if the argument are valid
+    if (isNaN(Date.parse(args))) { return false }
+
+    // check if the specified date is greater than the required date
+    return Date.parse(value) > Date.parse(args)
+  }
+
   /**
    * Check if the value is between the two intervals.
    *

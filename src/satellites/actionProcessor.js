@@ -99,8 +99,12 @@ class ActionProcessor {
       error = new Error(error)
     }
 
-    if (error && !self.response.error) {
-      self.response.error = error
+    if (error && !this.response.error) {
+      if (typeof this.response === 'string' || Array.isArray(this.response)) {
+        this.response = error.toString()
+      } else {
+        this.response.error = error
+      }
     }
 
     self.incrementPendingActions(-1)
@@ -231,33 +235,33 @@ class ActionProcessor {
       // default
       if (self.params[ key ] === undefined && props.default !== undefined) {
         if (typeof props.default === 'function') {
-          self.params[ key ] = props.default(self.params[ key ], self)
+          self.params[ key ] = props.default(self)
         } else {
           self.params[ key ] = props.default
         }
       }
 
-      // convert
-      if (props.convertTo && this.params[key]) {
-        // Function
-        if (typeof props.convertTo === 'function') {
-          self.params[ key ] = props.convertTo.call(self.api, self.params[ key ], self)
-        } else if (props.convertTo === 'integer') {
+      // format the input to the requested type
+      if (props.format && this.params[key]) {
+        if (typeof props.format === 'function') {
+          self.params[ key ] = props.format.call(this.api, this.params[ key ], this)
+        } else if (props.format === 'integer') {
           self.params[ key ] = Number.parseInt(self.params[ key ])
-        } else if (props.convertTo === 'float') {
+        } else if (props.format === 'float') {
           self.params[ key ] = Number.parseFloat(self.params[ key ])
-        } else if (props.convertTo === 'string') {
+        } else if (props.format === 'string') {
           self.params[ key ] = String(self.params[ key ])
         }
 
         if (Number.isNaN(self.params[ key ])) {
-          self.validatorErrors.set(key, self.api.config.errors.paramInvalidType(key, props.convertTo))
+          self.validatorErrors.set(key, self.api.config.errors.paramInvalidType(key, props.format))
         }
       }
 
       // convert the required property to a validator to unify the validation
       // system
       if (props.required === true) {
+        // FIXME: this will throw an error when the validator is a function
         props.validator = (!props.validator) ? 'required' : 'required|' + props.validator
       }
 
@@ -291,7 +295,7 @@ class ActionProcessor {
       self.actionTemplate = self.api.actions.actions[ self.action ][ self.params.apiVersion ]
     }
 
-    if (self.api.running !== true) {
+    if (self.api.status !== 'running') {
       self.completeAction('server_shutting_down')
     } else if (self.getPendingActionCount(self.connection) > self.api.config.general.simultaneousActions) {
       self.completeAction('too_many_requests')
@@ -332,7 +336,7 @@ class ActionProcessor {
 
         // if the returnVal is a Promise we wait for the resolve/rejection and
         // after that we finish the action execution
-        if (returnVal instanceof Promise) {
+        if (returnVal && typeof returnVal.then === 'function') {
           returnVal
             .catch(error => { this.completeAction(error) })
             .then(_ => {

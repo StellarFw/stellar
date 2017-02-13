@@ -7,8 +7,8 @@ import path from 'path'
 import zlib from 'zlib'
 import etag from 'etag'
 import Mime from 'mime'
-import uuid from 'node-uuid'
-import formidable from 'formidable'
+import uuid from 'uuid'
+import formidable from 'st-formidable'
 import GenericServer from '../genericServer'
 import browser_fingerprint from 'browser_fingerprint'
 
@@ -427,13 +427,11 @@ export default class Web extends GenericServer {
   /**
    * Change socket permission.
    *
-   * @param bindIP
-   * @param port
+   * @param bindIP  IP here socket is listening.
+   * @param port    Port that socket is listening.
    */
   chmodSocket (bindIP, port) {
-    let self = this
-
-    if (!bindIP && self.options.port.indexOf('/') >= 0) { fs.chmodSync(port, 0o777) }
+    if (!bindIP && port.indexOf('/') >= 0) { fs.chmodSync(port, 0o777) }
   }
 
   /**

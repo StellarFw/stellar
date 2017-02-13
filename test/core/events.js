@@ -34,14 +34,12 @@ describe('Core: Event', function () {
   })
 
   it('can read events from the listeners folder', done => {
-    api.events.events.size.should.be.equal(1)
     api.events.events.has('example').should.be.equal(true)
     done()
   })
 
   it('event.listener', done => {
     api.events.listener('prog', (api, params, next) => {})
-    api.events.events.size.should.be.equal(2)
     api.events.events.has('prog').should.be.equal(true)
     done()
   })
@@ -89,5 +87,17 @@ describe('Core: Event', function () {
         response.value.should.be.equal('test01')
         done()
       })
+  })
+
+  it('reads multiple events in the same listener', done => {
+    should(api.events.events).have.key('multiple')
+    should(api.events.events).have.key('multiple_two')
+    done()
+  })
+
+  it('can execute a multiply event', done => {
+    api.events.fire('multiple', { value: 'raw' })
+    .then(response => { response.value.should.be.equal('raw_mod') })
+    .then(_ => { done() })
   })
 })

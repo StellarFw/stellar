@@ -1,3 +1,12 @@
+
+/**
+ * This contains all the protected keys, that can not be modified by the mod
+ * groups.
+ *
+ * @type {Array}
+ */
+const PROTECTED_KEYS = [ 'name', 'run' ]
+
 /**
  * This class manage all actions.
  */
@@ -37,6 +46,20 @@ class Actions {
    * @type {Array}
    */
   globalMiddleware = []
+
+  /**
+   * This Map contains all the metadata changes that be applied to the actions.
+   *
+   * @type {Map}
+   */
+  groups = new Map()
+
+  /**
+   * This Map stores the actions associated with a group.
+   *
+   * @type {Map}
+   */
+  groupsActions = new Map()
 
   /**
    * Create a new actions manager instance.
@@ -129,7 +152,7 @@ class Actions {
    * @param fullFilePath
    * @param reload
    */
-  loadFile (fullFilePath, reload = false) {
+  loadFile (fullFilePath, moduleName, reload = false) {
     let self = this
 
     let loadMessage = action => {
@@ -147,8 +170,13 @@ class Actions {
 
     // watch for changes on the action file
     self.api.configs.watchFileAndAct(fullFilePath, () => {
-      self.loadFile(fullFilePath, true)
+      // reload file
+      self.loadFile(fullFilePath, moduleName, true)
+
+      // reload post variables
       self.api.params.buildPostVariables()
+
+      // reload routes
       self.api.routes.loadRoutes()
     })
 
@@ -179,6 +207,16 @@ class Actions {
           return
         }
 
+        if (!reload) {
+          // associate the action to the module (this must only be made once)
+          this.api.modules.regModuleAction(moduleName, action.name)
+        } else {
+          // Groups: apply the necessary actions modifications (this is only
+          // made on the reload because on the loading we don't have the
+          // necessary information for this)
+          this._applyModificationsToAction(action)
+        }
+
         // put the action on correct version slot
         self.actions[ action.name ][ action.version ] = action
         if (self.versions[ action.name ] === null || self.versions[ action.name ] === undefined) {
@@ -196,7 +234,7 @@ class Actions {
     } catch (err) {
       try {
         self.api.exceptionHandlers.loader(fullFilePath, err)
-        delete self.actions[ action.name ][ action.version ]
+        if (action) { delete self.actions[ action.name ][ action.version ] }
       } catch (err2) {
         throw err
       }
@@ -319,6 +357,160 @@ class Actions {
       self.api.exceptionHandlers.loader(path, error)
     }
   }
+
+  // ----------------------------------------------------- [Modification System]
+
+  /**
+   * Load the modifier and apply it to all already loaded actions.
+   *
+   * @param {object} modifier
+   */
+  loadModifier (modifier) {
+    // the modifier is a hash that the keys correspond to group names
+    const groups = Object.keys(modifier)
+
+    // iterate all groups
+    groups.forEach(groupName => {
+      // get the group content
+      const group = modifier[groupName]
+
+      // array to store the group's actions
+      let actions = []
+
+      // process the `actions` property. This is simpler as concat the two arrays
+      if (Array.isArray(group.actions)) {
+        actions = actions.concat(group.actions)
+      }
+
+      // process the `modules` property
+      if (Array.isArray(group.modules)) {
+        // iterate all groups and for each one load the actions
+        group.modules.forEach(groupName => {
+          actions = actions.concat(this.api.modules.moduleActions.get(groupName) || [ ])
+        })
+      }
+
+      // save the actions that compose this group
+      this.groupsActions.set(groupName, actions)
+
+      // save the group metadata modifications to apply to the actions, later
+      this.groups.set(groupName, group.metadata)
+    })
+  }
+
+  /**
+   * Gets all the groups thats the given action is part of.
+   *
+   * @param {string} actionName
+   */
+  _checkWhatGroupsArePresent (actionName) {
+    // this array will store the groups of which the action is part
+    const result = []
+
+    // iterate all groups
+    this.groupsActions.forEach((actions, groupName) => {
+      if (actions.includes(actionName)) { result.push(groupName) }
+    })
+
+    return result
+  }
+
+  /**
+   * Apply the group modification to the action.
+   *
+   * @param {string} groupName Group name
+   * @param {object} action Action object where the modifications must be
+   *                        applied.
+   */
+  _applyGroupModToAction (groupName, action) {
+    // get group metadata modifications
+    const metadata = this.groups.get(groupName)
+
+    // iterate all modification keys
+    for (let key of Object.keys(metadata)) {
+      let value = metadata[key]
+
+      // if there is a protected key, ignore it
+      if (PROTECTED_KEYS.includes(key)) { continue }
+
+      // check if the key start with a '+'. If yes, that means that is to
+      // append an item to an array, or create it if not exists
+      if (key.charAt(0) === '+') {
+        // create a sub-string without the plus sign
+        key = key.substring(1, key.length)
+
+        // set the new value
+        action[key] = (action[key] || []).concat(value)
+
+        continue
+      } else if (key.charAt(0) === '-') {
+        // create a sub-string without the plus sign
+        key = key.substring(1, key.length)
+
+        // this needs to be an Array
+        if (Array.isArray(action[key])) {
+          action[key] = action[key].filter(item => !value.includes(item))
+        }
+
+        continue
+      }
+
+      // if the value is a function we need process it
+      if (typeof value === 'function') { value = value(action, action[key]) }
+
+      // replace the value
+      action[key] = value
+    }
+  }
+
+  /**
+   * Applies the modifications to an action from each group that them makes part
+   * of.
+   *
+   * @param {object} action Action object.
+   */
+  _applyModificationsToAction (action) {
+    // when the action has a group defined, the action name must be pushed
+    // to the `groupsActions`
+    if (this.api.utils.isNonEmptyString(action.group)) {
+      // if the key doesn't exists we must create one with an empty array
+      if (!this.groupsActions.has(action.group)) {
+        this.groupsActions.set(action.group, [ ])
+      }
+
+      // get the array of actions
+      const arrayOfActions = this.groupsActions.get(action.group)
+
+      // to prevent duplicated entries, it's necessary check if the array
+      // already exists on the array
+      if (!arrayOfActions.includes(action.name)) {
+        arrayOfActions.push(action.name)
+      }
+    }
+
+    // check the groups here the action is present and apply the modifications
+    const groupNames = this._checkWhatGroupsArePresent(action.name)
+
+    // apply the changes of all founded groups
+    groupNames.forEach(groupName => this._applyGroupModToAction(groupName, action))
+  }
+
+  /**
+   * Iterate all the actions and apply the respective group modifications.
+   */
+  _applyGroupModifications () {
+    // iterate all actions
+    Object.keys(this.actions).forEach(actionName => {
+      // get all action versions
+      const actionVersion = this.actions[actionName]
+
+      // iterate all action versions
+      Object.keys(actionVersion).forEach(versionNumber => {
+        // apply the group modifications
+        this._applyModificationsToAction(actionVersion[versionNumber])
+      })
+    })
+  }
 }
 
 /**
@@ -347,13 +539,28 @@ export default class {
     api.actions.loadSystemActions()
 
     // iterate all modules and load all actions
-    api.modules.modulesPaths.forEach(modulePath => {
+    api.modules.modulesPaths.forEach((modulePath, moduleName) => {
       // load modules middleware
       api.utils.recursiveDirectoryGlob(`${modulePath}/middleware`).forEach(path => api.actions.loadMiddlewareFromFile(path))
 
       // get all files from the module "actions" folder
-      api.utils.recursiveDirectoryGlob(`${modulePath}/actions`).forEach(actionFile => api.actions.loadFile(actionFile))
+      api.utils.recursiveDirectoryGlob(`${modulePath}/actions`).forEach(actionFile => api.actions.loadFile(actionFile, moduleName))
     })
+
+    // load the modules after the action in order to reduce the number of
+    // operations to apply the group modifications
+    api.modules.modulesPaths.forEach(modulePath => {
+      // build the mod path
+      const modPath = `${modulePath}/mod.js`
+
+      // if the module `mod.js` file exists, load it
+      if (api.utils.fileExists(modPath)) {
+        api.actions.loadModifier(require(modPath)(api).actions)
+      }
+    })
+
+    // apply the group modifications
+    api.actions._applyGroupModifications()
 
     // finish initializer loading
     next()

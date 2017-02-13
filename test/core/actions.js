@@ -27,6 +27,8 @@ describe('Core: Actions', () => {
     })
   })
 
+  // ----------------------------------------------------------- [Internal Call]
+
   describe('can execute internally', () => {
 
     it('without params', done => {
@@ -46,6 +48,64 @@ describe('Core: Actions', () => {
     })
 
   })
+
+  // ------------------------------------------------------------------ [Groups]
+
+  describe('Groups', () => {
+    it('can read the group from an action', done => {
+      api.actions.groupsActions.should.have.key('example')
+      done()
+    })
+
+    it('the action name exists on the group', done => {
+      const arrayOfAction = api.actions.groupsActions.get('example')
+      arrayOfAction.should.containDeep([ 'groupTest' ])
+      done()
+    })
+
+    it('support the group property', done => {
+      api.actions.call('groupTest').then(response => {
+        response.result.should.be.String()
+        response.result.should.be.equal('OK')
+        done()
+      })
+    })
+
+    it('support modules', done => {
+      api.actions.call('modModuleTest').then(response => {
+        response.result.should.be.String()
+        response.result.should.be.equal('OK')
+        done()
+      })
+    })
+
+    it('support the actions property', done => {
+      api.actions.call('modTest').then(response => {
+        response.result.should.be.String()
+        response.result.should.be.equal('OK')
+        done()
+      })
+    })
+
+    it('can add new items to an array', done => {
+      api.actions.call('groupAddItems').then(response => {
+        response.result.should.be.Array()
+        response.result.should.containDeep([ 'a', 'b', 'c' ])
+        done()
+      })
+    })
+
+    it('can remove items from the array', done => {
+      api.actions.call('groupRmItems').then(response => {
+        response.result.should.be.Array()
+        response.result.should.containDeep([ 'a' ])
+        response.result.should.not.containDeep([ 'b' ])
+        done()
+      })
+    })
+  })
+
+  // ------------------------------------------------------------------- [Other]
 
   it('is possible finish an action retuning a promise', done => {
     api.actions.call('promiseAction')
@@ -73,6 +133,14 @@ describe('Core: Actions', () => {
         error.message.should.be.equal('This is an error')
       })
       .then(_ => { done() })
+  })
+
+  it('can use a function to set a param default value', done => {
+    api.actions.call('input-default-function')
+      .then(response => {
+        response.value.should.be.equal(156)
+        done()
+      })
   })
 
 })

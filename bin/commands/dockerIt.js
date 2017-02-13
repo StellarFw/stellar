@@ -1,30 +1,27 @@
 'use strict'
 
-// ----------------------------------------------------------------------------------------------------------- [Imports]
+// ----------------------------------------------------------------------------- [Imports]
 
 let Command = require('../Command')
 let Utils = require('../utils')
 
-// ------------------------------------------------------------------------------------------------------------- [Class]
+// ----------------------------------------------------------------------------- [Command]
 
 class dockerItCommand extends Command {
 
-  constructor (args) {
+  constructor () {
     // execute the super class constructor method
-    super()
+    super(false)
 
-    // define usage
-    this.usage = 'stellar dockerIt'
-
-    // save the parsed console arguments
-    this.args = args
+    // command
+    this.command = 'dockerIt'
+    this.describe = 'Create a new dockerfile for the stellar project'
   }
 
   /**
    * Execute the command.
-   *
    */
-  execute () {
+  run () {
     // see if a dockerfile already exists
     if (Utils.exists(process.cwd() + '/dockerfile')) {
       this.printError('A dockerfile already exists')
@@ -35,9 +32,11 @@ class dockerItCommand extends Command {
     Utils.generateFileFromTemplate('dockerfile', {}, `${process.cwd()}/dockerfile`)
 
     // print a success message
-    this.printSuccess(`A dockerfile was created in the project root.\nCreate the image with: docker build -t <image_name>\nCreate a container with: docker run -t -p 8080:8080 --name <container_name> <image_name>`)
+    this.printSuccess(`A dockerfile was created in the project root.\nCreate the image with: docker build -t <image_name> .\nCreate a container with: docker run -t -p 8080:8080 --name <container_name> <image_name>`)
   }
 }
 
-// export the function to execute the command
-module.exports = args => (new dockerItCommand(args)).execute()
+// -----------------------------------------------------------------------------
+
+// export the command
+module.exports = (new dockerItCommand())

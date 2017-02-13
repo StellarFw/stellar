@@ -102,9 +102,30 @@
 <!-- load highlight -->
 <script src="highlight.js" charset="utf-8"></script>
 
-<!-- start code highlight -->
+<!-- startup code -->
 <script type="text/javascript">
+  // start the highlight.js
   hljs.initHighlightingOnLoad()
+
+  // set the selected action active
+  const sidebar = document.querySelector('.actionsList')
+  const parts = window.location.href.split('/')
+  const lastPart = parts[parts.length - 1]
+  const curPage = lastPart.substr(7, lastPart.length - 12)
+  const nodes = document.querySelector('.actionsList').getElementsByTagName('li')
+
+  for (let index = 0; index < nodes.length-1; index++) {
+    const item = nodes[index]
+
+    if (item.children[0].innerText === curPage) {
+      // scroll sidebar to the item location
+      sidebar.scrollTop = item.offsetTop - 50
+
+      // append active class
+      item.className += 'active'
+      break
+    }
+  }
 </script>
 
 </body>

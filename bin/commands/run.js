@@ -3,49 +3,148 @@
 // ----------------------------------------------------------------------------- [Imports]
 
 let os = require('os')
-let Utils = require('../utils')
 let cluster = require('cluster')
-let pkg = require('../../package.json')
-let Engine = require('../../dist/engine').default
 
-// ----------------------------------------------------------------------------- [Module]
+const Command = require('../Command.js')
 
-module.exports = function (args) {
-  // build initial scope
-  let scope = {
-    rootPath: process.cwd(),
-    stellarPackageJSON: pkg,
-    args
+// ----------------------------------------------------------------------------- [Command]
+
+class RunCommand extends Command {
+
+  constructor () {
+    // require the start of the engine
+    super(true)
+
+    // define command information
+    this.command = 'run'
+    this.describe = 'Start a new Stellar instance'
+    this.builder = {
+      prod: {
+        describe: 'Enable production mode'
+      },
+      port: {
+        describe: 'Port where the server will listening',
+        default: 8080
+      },
+      clean: {
+        describe: 'Remove all temporary files and node modules'
+      },
+      update: {
+        describe: 'Update dependencies'
+      },
+
+      // cluster args
+
+      cluster: {
+        describe: 'Run Stellar as a cluster',
+        default: false,
+        type: 'boolean'
+      },
+      id: {
+        describe: 'Cluster identifier (for cluster)',
+        type: 'string',
+        default: 'stellar-custer'
+      },
+      silent: {
+        describe: 'No messages will be printed to the console (for cluster)',
+        type: 'boolean',
+        default: false
+      },
+      workers: {
+        describe: 'Number of workers (for cluster)'
+      },
+      workerPrefix: {
+        describe: `Worker's name prefix. If the value is equals to 'hostname'
+          the computer hostname will be used (for cluster)`
+      }
+    }
+
+    // set some command vars
+    this.state = 'stopped'
+    this.shutdownTimeout = 1000 * 30
+    this.checkForInternalStopTimer = null
   }
 
-  // number of ms to wait to do a force shutdown if the Stellar won't stop gracefully
-  let shutdownTimeout = 1000 * 30
-  if (process.env.STELLAR_SHUTDOWN_TIMEOUT) { shutdownTimeout = parseInt(process.env.STELLAR_SHUTDOWN_TIMEOUT) }
-
-  // API reference
-  let api = null
-
-  // process state
-  let state = 'stopped'
-
-  // create a stellar engine instance
-  let engine = new Engine(scope)
-
-  // save the timer who checks the internal stop
-  let checkForInternalStopTimer
-
   /**
-   * Checks if the engine stops.
+   * Execute the command.
    */
-  let checkForInternalStop = function () {
-    // clear timeout
-    clearTimeout(checkForInternalStopTimer)
+  run () {
+    // whether the `--cluster` options is defined we stop this command and load
+    // the startCluster
+    if (this.args.cluster === true) {
+      return require('./startCluster').handler(this.args)
+    }
 
-    // if the engine executing stops finish the process
-    if (engine.api.running !== true) { process.exit(0) }
+    // number of ms to wait to do a force shutdown if the Stellar won't stop
+    // gracefully
+    if (process.env.STELLAR_SHUTDOWN_TIMEOUT) {
+      this.shutdownTimeout = parseInt(process.env.STELLAR_SHUTDOWN_TIMEOUT)
+    }
 
-    // create a new timeout
-    checkForInternalStopTimer = setTimeout(checkForInternalStop, shutdownTimeout)
+    // if the process is a worker we need configure it to communicate with the
+    // parent
+    if (cluster.isWorker) {
+      // set the communication behavior
+      process.on('message', (msg) => {
+        switch (msg) {
+          // start the server
+          case 'start':
+            this.startServer()
+            break
+          // stop the server
+          case 'stop':
+            this.stopServer()
+            break
+          // stop process
+          //
+          // in cluster, we cannot re-bind the port, so kill this worker, and
+          // then let the cluster start a new worker
+          case 'stopProcess':
+          case 'restart':
+            this.stopProcess()
+            break
+        }
+      })
+
+      // define action to be performed on an 'uncaughtException' event
+      process.on('uncaughtException', error => {
+        let stack
+
+        try {
+          stack = error.stack.split(os.EOL)
+        } catch (e) {
+          stack = [error]
+        }
+
+        // send the exception to the master
+        process.send({
+          uncaughtException: {
+            message: error.message,
+            stack
+          }
+        })
+
+        // finish the process on the next tick
+        process.nextTick(process.exit)
+      })
+
+      // define action to be performed on an 'unhandledRejection' event
+      process.on('unhandledRejection', (reason, p) => {
+        // send the reason the the master
+        process.send({ unhandledRejection: { reason, p } })
+
+        // finish the process on the next tick
+        process.nextTick(process.exit)
+      })
+    }
+
+    // defines the action to be performed when a particular event occurs
+    process.on('SIGINT', () => this.stopProcess())
+    process.on('SIGTERM', () => this.stopProcess())
+    process.on('SIGUSR2', () => this.restartServer())
+
+    // start the server!
+    this.startServer()
   }
 
   // --------------------------------------------------------------------------- [Actions]
@@ -55,35 +154,26 @@ module.exports = function (args) {
    *
    * @param callback Callback function.
    */
-  let startServer = function (callback) {
-    // set the engine state to 'starting'
-    state = 'starting'
-
-    // inform the new work start to the master
-    if (cluster.isWorker) { process.send({ state: state }) }
+  startServer (callback) {
+    // update the server state
+    this._updateServerState('starting')
 
     // start the engine
-    engine.start((err, apiFromCallback) => {
-      if (err) {
-        binary.log(err)
+    this.engine.start((error, _) => {
+      if (error) {
+        this.api.log(error)
         process.exit(1)
         return
       }
 
-      // set the engine state to 'started'
-      state = 'started'
-
-      // inform the new work start to the master
-      if (cluster.isWorker) { process.send({ state: state }) }
-
-      // save the api instance
-      api = apiFromCallback
+      // update the server state
+      this._updateServerState('started')
 
       // start check for the engine internal state
-      checkForInternalStop()
+      this._checkForInternalStop()
 
-      // execute the callback if defined
-      if (typeof callback === 'function') { callback(null, api) }
+      // execute the callback function
+      if (typeof callback === 'function') { callback(null, this.api) }
     })
   }
 
@@ -92,16 +182,17 @@ module.exports = function (args) {
    *
    * @param callback Callback function.
    */
-  let stopServer = function (callback) {
-    state = 'stopping'
+  stopServer (callback) {
+    // update the server state
+    this._updateServerState('stopping')
 
-    if (cluster.isWorker) { process.send({ state: state }) }
+    // call the server stop function
+    this.engine.stop(_ => {
+      // update the server state
+      this._updateServerState('stopped')
 
-    engine.stop(() => {
-      state = 'stopped'
-      if (cluster.isWorker) { process.send({ state: state }) }
-      api = null
-      if (typeof  callback === 'function') { callback(null, api) }
+      // execute the callback function
+      if (typeof callback === 'function') { callback(null, this.api) }
     })
   }
 
@@ -110,26 +201,20 @@ module.exports = function (args) {
    *
    * @param callback Callback function.
    */
-  let restartServer = function (callback) {
-    // set engine state to 'restarting'
-    state = 'restarting'
-
-    // if this process is a worker, inform the new state to the master
-    if (process.isWorker) { process.send({ state: state }) }
+  restartServer (callback) {
+    // update the server state
+    this._updateServerState('restarting')
 
     // restart the server
-    engine.restart((err, apiFromCallback) => {
-      // set the server state to 'started'
-      state = 'started'
+    this.engine.restart((error, _) => {
+      // if an error occurs throw it
+      if (error) { throw error }
 
-      // if this process is a worker, inform the new state to the master
-      if (process.isWorker) { process.send({ state: state }) }
+      // update the server state
+      this._updateServerState('started')
 
-      // save the new api object
-      api = apiFromCallback
-
-      // if the callback is defined execute him
-      if (typeof callback === 'function') { callback(null, api) }
+      // execute the callback function
+      if (typeof callback === 'function') { callback(null, this.api) }
     })
   }
 
@@ -138,67 +223,43 @@ module.exports = function (args) {
   /**
    * Stop the process.
    */
-  let stopProcess = function () {
+  stopProcess () {
     // put a time limit to shutdown the server
-    setTimeout(() => process.exit(1), shutdownTimeout)
+    setTimeout(() => process.exit(1), this.shutdownTimeout)
 
     // stop the server
-    stopServer(() => process.nextTick(() => process.exit()))
+    this.stopServer(() => process.nextTick(() => process.exit()))
   }
 
-  if (cluster.isWorker) {
-    // define action to te performed on 'message' event
-    process.on('message', (msg) => {
-      switch (msg) {
-        case 'start':
-          // start the server
-          startServer()
-          break
-        case 'stop':
-          // stop the server
-          stopServer()
-          break
-        case 'stopProcess':
-          // stop process
-          stopProcess()
-          break
-        case 'restart':
-          // in cluster, we cannot re-bind the port, so kill this worker, and
-          // then let the cluster start a new worker
-          stopProcess()
-          break
-      }
-    })
+  // --------------------------------------------------------------------------- [Helpers]
 
-    // define action to te performed on 'uncaughtException' event
-    process.on('uncaughtException', error => {
-      // send the exception to the master
-      process.send({
-        uncaughtException: {
-          message: error.message,
-          stack: error.stack.split(os.EOL)
-        }
-      })
-
-      // finish the process on the next tick
-      process.nextTick(process.exit)
-    })
-
-    // define action to te performed on 'unhandledRejection' event
-    process.on('unhandledRejection', (reason, p) => {
-      // send the reason the the master
-      process.send({ unhandledRejection: { reason: reason, p: p } })
-
-      // finish the process on the next tick
-      process.nextTick(process.exit)
-    })
+  /**
+   * Update the server state and notify the master if the current process is a
+   * cluster worker.
+   */
+  _updateServerState (newState) {
+    this.state = newState
+    if (cluster.isWorker) { process.send({ state: this.state }) }
   }
 
-  // defines the action to be performed when a particular event occurs
-  process.on('SIGINT', () => stopProcess())
-  process.on('SIGTERM', () => stopProcess())
-  process.on('SIGUSR2', () => restartServer())
+  /**
+   * Check if the engine stops.
+   */
+  _checkForInternalStop () {
+    // clear timeout
+    clearTimeout(this.checkForInternalStopTimer)
 
-  // start the server!
-  startServer()
+    // if the engine executing stops finish the process
+    if (this.api.status !== 'running' && this.status !== 'started') {
+      process.exit(0)
+    }
+
+    // create a new timeout
+    this.checkForInternalStopTimer = setTimeout(_ => {
+      this._checkForInternalStop()
+    }, this.shutdownTimeout)
+  }
 }
+
+// export the command instance
+module.exports = (new RunCommand())

@@ -1,4 +1,4 @@
-import uuid from 'node-uuid'
+import uuid from 'uuid'
 import GenericServer from '../genericServer'
 
 class TestServer extends GenericServer {

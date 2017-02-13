@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _nodeUuid = require('node-uuid');
+var _nodeUuid = require('uuid');
 
 var _nodeUuid2 = _interopRequireDefault(_nodeUuid);
 
