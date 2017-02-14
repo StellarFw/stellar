@@ -138,7 +138,6 @@ class Actions {
         name: 'status',
         description: 'Is a system action to show the server status',
         run: (api, action, next) => {
-
           // finish the action execution
           next()
         }
@@ -288,7 +287,7 @@ class Actions {
     let self = this
 
     // middleware require a name
-    if (!data.name) { throw new Error('middleware.name is required')}
+    if (!data.name) { throw new Error('middleware.name is required') }
 
     // if there is no defined priority use the default
     if (!data.priority) { data.priority = self.api.config.general.defaultMiddlewarePriority }

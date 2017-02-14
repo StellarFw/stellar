@@ -1,5 +1,3 @@
-/*eslint handle-callback-err: 0*/
-
 import fs from 'fs'
 import qs from 'qs'
 import url from 'url'
@@ -10,7 +8,7 @@ import Mime from 'mime'
 import uuid from 'uuid'
 import formidable from 'st-formidable'
 import GenericServer from '../genericServer'
-import browser_fingerprint from 'browser_fingerprint'
+import BrowserFingerprint from 'browser_fingerprint'
 
 // server type
 let type = 'web'
@@ -76,7 +74,6 @@ export default class Web extends GenericServer {
 
     // event to be executed after the action completion
     self.on('actionComplete', data => { self._completeResponse(data) })
-
   }
 
   // ------------------------------------------------------------------------------------------------ [REQUIRED METHODS]
@@ -319,7 +316,7 @@ export default class Web extends GenericServer {
       }
     } else {
       if (stringEncoder) {
-        stringEncoder(stringResponse, (error, zippedString) => {
+        stringEncoder(stringResponse, (_, zippedString) => {
           headers.push([ 'Content-Length', zippedString.length ])
           connection.rawConnection.res.writeHead(responseHttpCode, headers)
           connection.rawConnection.res.end(zippedString)
@@ -354,7 +351,9 @@ export default class Web extends GenericServer {
     let self = this
 
     // get the client fingerprint
-    browser_fingerprint.fingerprint(req, self.api.config.servers.web.fingerprintOptions, (fingerprint, elementHash, cookieHash) => {
+    BrowserFingerprint.fingerprint(req, self.api.config.servers.web.fingerprintOptions, (error, fingerprint, elementHash, cookieHash) => {
+      if (error) { throw error }
+
       let responseHeaders = []
       let cookies = this.api.utils.parseCookies(req)
       let responseHttpCode = 200
@@ -494,7 +493,7 @@ export default class Web extends GenericServer {
       connection.rawConnection.params.query = connection.rawConnection.parsedURL.query
 
       if (connection.rawConnection.method !== 'GET' && connection.rawConnection.method !== 'HEAD' &&
-        ( connection.rawConnection.req.headers[ 'content-type' ] || connection.rawConnection.req.headers[ 'Content-Type' ] )) {
+        (connection.rawConnection.req.headers[ 'content-type' ] || connection.rawConnection.req.headers[ 'Content-Type' ])) {
         connection.rawConnection.form = new formidable.IncomingForm()
 
         for (i in self.api.config.servers.web.formOptions) {
@@ -670,7 +669,7 @@ export default class Web extends GenericServer {
    * Build the requester information.
    *
    * @param connection
-   * @returns {{id: number, fingerprint: (*|browser_fingerprint.fingerprint|null), remoteIP: string, receivedParams: {}}}
+   * @returns {{id: number, fingerprint: (*|BrowserFingerprint.fingerprint|null), remoteIP: string, receivedParams: {}}}
    * @private
    */
   _buildRequesterInformation (connection) {

@@ -381,8 +381,8 @@ export default class Engine {
 
     // we need to load the config first
     let initialSatellites = [
-      path.resolve(__dirname + '/satellites/utils.js'),
-      path.resolve(__dirname + '/satellites/config.js')
+      path.resolve(`${__dirname}/satellites/utils.js`),
+      path.resolve(`${__dirname}/satellites/config.js`)
     ]
     initialSatellites.forEach(file => {
       // get full file name
@@ -392,7 +392,8 @@ export default class Engine {
       let initializer = filename.split('.')[ 0 ]
 
       // get the initializer
-      this.satellites[ initializer ] = new (require(file)).default()
+      const Satellite = require(file).default
+      this.satellites[ initializer ] = new Satellite()
 
       // add it to array
       this.initialSatellites.push(next => this.satellites[ initializer ].load(this.api, next))
@@ -446,7 +447,8 @@ export default class Engine {
         if (ext !== 'js') { continue }
 
         // get initializer module and instantiate it
-        this.satellites[ initializer ] = new (require(file).default)()
+        const Satellite = require(file).default
+        this.satellites[ initializer ] = new Satellite()
 
         // initializer load function
         let loadFunction = next => {
@@ -508,7 +510,7 @@ export default class Engine {
     }
 
     // get an array with all satellites
-    loadSatellitesInPlace(Utils.getFiles(__dirname + '/satellites'))
+    loadSatellitesInPlace(Utils.getFiles(`${__dirname}/satellites`))
 
     // load satellites from all the active modules
     this.api.config.modules.forEach(moduleName => {

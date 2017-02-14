@@ -167,7 +167,7 @@ export class Utils {
     if (req.headers.cookie) {
       req.headers.cookie.split(';').forEach(function (cookie) {
         let parts = cookie.split('=')
-        cookies[ parts[ 0 ].trim() ] = ( parts[ 1 ] || '' ).trim()
+        cookies[ parts[ 0 ].trim() ] = (parts[ 1 ] || '').trim()
       })
     }
     return cookies
@@ -466,6 +466,17 @@ export class Utils {
    */
   isNonEmptyString (value) {
     return (typeof value === 'string' && value.length > 0)
+  }
+
+  // ----------------------------------------------------------------- [Strings]
+
+  /**
+   * Convert snake case string to camel case.
+   *
+   * @param {string} s String to be converted.
+   */
+  snakeToCamel (s) {
+    return s.replace(/(\_\w)/g, m => m[1].toUpperCase())
   }
 }
 

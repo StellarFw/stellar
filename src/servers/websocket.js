@@ -4,7 +4,7 @@ import path from 'path'
 import Primus from 'primus'
 // import UglifyJS from 'uglify-js'
 import GenericServer from '../genericServer'
-import browser_fingerprint from 'browser_fingerprint'
+import BrowserFingerprint from 'browser_fingerprint'
 
 // server type
 let type = 'websocket'
@@ -191,7 +191,7 @@ export default class WebSocketServer extends GenericServer {
   _compileClientJS () {
     let self = this
 
-    let clientSource = fs.readFileSync(__dirname + '/../client.js').toString()
+    let clientSource = fs.readFileSync(`${__dirname}/../client.js`).toString()
     let url = self.api.config.servers.websocket.clientUrl
 
     // replace any url by client url
@@ -277,7 +277,7 @@ export default class WebSocketServer extends GenericServer {
   _handleConnection (rawConnection) {
     let self = this
 
-    let parsedCookies = browser_fingerprint.parseCookies(rawConnection)
+    let parsedCookies = BrowserFingerprint.parseCookies(rawConnection)
     let fingerPrint = parsedCookies[ self.api.config.servers.web.fingerprintOptions.cookieKey ]
 
     self.buildConnection({

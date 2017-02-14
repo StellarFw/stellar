@@ -80,7 +80,7 @@ class Connections {
     let self = this
 
     // middleware require a name
-    if (!data.name) { throw new Error('middleware.name is required')}
+    if (!data.name) { throw new Error('middleware.name is required') }
 
     // if there is no defined priority use the default
     if (!data.priority) { data.priority = self.api.config.general.defaultMiddlewarePriority }
@@ -429,7 +429,6 @@ class Connection {
 
         // execute the callback function
         if (typeof callback === 'function') { callback(null, details) }
-
       } else if (verb === 'say') {
         // get the room name
         room = words.shift()

@@ -1,5 +1,3 @@
-/*eslint handle-callback-err: 0*/
-
 import async from 'async'
 
 class ChatRooms {
@@ -193,7 +191,7 @@ class ChatRooms {
     let self = this
 
     // check if the room already exists
-    self.exists(room, (error, found) => {
+    self.exists(room, (_, found) => {
       // if the room already exists return an error
       if (found === true) {
         if (typeof callback === 'function') { callback(self.api.config.errors.connectionRoomExists(room), null) }
@@ -217,7 +215,7 @@ class ChatRooms {
     let self = this
 
     // check if the room exists
-    self.exists(room, (error, found) => {
+    self.exists(room, (_, found) => {
       // return an error if the room not exists
       if (found === false) {
         if (typeof callback === 'function') { callback(self.api.config.errors.connectionRoomNotExist(room), null) }
@@ -227,7 +225,7 @@ class ChatRooms {
       // broadcast the room destruction
       self.broadcast({}, room, self.api.config.errors.connectionRoomHasBeenDeleted(room), () => {
         // get all room members
-        self.api.redis.clients.client.hgetall(self.keys.members + room, (error, memberHash) => {
+        self.api.redis.clients.client.hgetall(self.keys.members + room, (_, memberHash) => {
           // remove each member from the room
           for (let id in memberHash) { self.removeMember(id, room) }
 
@@ -276,7 +274,7 @@ class ChatRooms {
     }
 
     // check if the room exists
-    self.exists(room, (err, found) => {
+    self.exists(room, (_, found) => {
       // the room need exists
       if (found !== true) {
         if (typeof callback === 'function') { callback(self.api.config.errors.connectionRoomNotExist(room), null) }
@@ -287,7 +285,7 @@ class ChatRooms {
       let key = self.keys.members + room
 
       // get all channel members
-      self.api.redis.clients.client.hgetall(key, (error, members) => {
+      self.api.redis.clients.client.hgetall(key, (_, members) => {
         let cleanedMembers = {}
         let count = 0
 
@@ -334,7 +332,7 @@ class ChatRooms {
     }
 
     // check if the room exists
-    self.exists(room, (error, found) => {
+    self.exists(room, (_, found) => {
       if (found !== true) {
         if (typeof callback === 'function') { callback(self.api.config.errors.connectionRoomNotExist(room), false) }
         return
@@ -381,7 +379,7 @@ class ChatRooms {
     }
 
     // check if the room exists
-    self.exists(room, (error, found) => {
+    self.exists(room, (_, found) => {
       // if the room has not been found returned an error
       if (found === false) {
         if (typeof callback === 'function') { callback(self.api.config.errors.connectionRoomNotExist(room), false) }

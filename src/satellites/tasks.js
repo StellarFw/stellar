@@ -1,5 +1,3 @@
-/*eslint handle-callback-err: 0*/
-
 import async from 'async'
 
 class TaskSatellite {
@@ -495,7 +493,7 @@ class TaskSatellite {
     let removedCount = 0
 
     // remove the task from the recurrent queue
-    self.del(task.queue, task.name, {}, 1, (error, count) => {
+    self.del(task.queue, task.name, {}, 1, (_, count) => {
       removedCount = removedCount + count
       self.delDelayed(task.queue, task.name, {}, (error, timestamps) => {
         removedCount = removedCount + timestamps.length
