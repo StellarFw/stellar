@@ -21,6 +21,8 @@
 
 ## Supporting Stellar
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/StellarFw/stellar.svg)](https://greenkeeper.io/)
+
 Stellar is an MIT-licensed open source project. Further development is only possible through funding. If you like the project, check out [Stellar's Patreon campaign](https://www.patreon.com/gil0mendes).
 
 ## Intro
