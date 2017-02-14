@@ -262,7 +262,7 @@ class Actions {
 
     // the name, description, run properties are required
     if (typeof action.name !== 'string' || action.name.length < 1) {
-      fail(`an action is missing 'action.name'`)
+      fail('an action is missing \'action.name\'')
       return false
     } else if (typeof action.description !== 'string' || action.description.length < 1) {
       fail(`Action ${action.name} is missing 'action.description'`)

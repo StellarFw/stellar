@@ -179,7 +179,7 @@ class Modules {
     self.api.log('updating NPM packages', 'info')
 
     // check the command to be executed
-    const npmCommand = (scope.args.update) ? `npm update` : `npm install`
+    const npmCommand = (scope.args.update) ? 'npm update' : 'npm install'
 
     // run npm command
     exec(npmCommand, error => {

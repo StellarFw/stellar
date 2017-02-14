@@ -62,7 +62,7 @@ export default class {
     }
 
     // save Stellar version
-    api.stellarVersion = require(`../../package.json`).version
+    api.stellarVersion = require('../../package.json').version
 
     // finish the initializer load
     next()

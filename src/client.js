@@ -39,7 +39,7 @@ const StellarClient = function (opts, client) {
 
   // this must print out an error when the Promise object can't be found
   if (Promise === undefined || typeof Promise !== 'function') {
-    error(`The browser does not support Promises, you must load a polyfill before load Stellar client lib`)
+    error('The browser does not support Promises, you must load a polyfill before load Stellar client lib')
   }
 }
 

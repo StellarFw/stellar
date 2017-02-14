@@ -160,7 +160,7 @@ class TaskSatellite {
     let fail = msg => self.api.log(`${msg}; exiting`, 'emerg')
 
     if (typeof task.name !== 'string' || task.name.length < 1) {
-      fail(`a task is missing 'task.name'`)
+      fail('a task is missing \'task.name\'')
       return false
     } else if (typeof task.description !== 'string' || task.description.length < 1) {
       fail(`Task ${task.name} is missing 'task.description'`)

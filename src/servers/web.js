@@ -47,7 +47,7 @@ export default class Web extends GenericServer {
     let self = this
 
     if ([ 'api', 'file' ].indexOf(self.api.config.servers.web.rootEndpointType) < 0) {
-      throw new Error(`api.config.servers.web.rootEndpointType can only be 'api' or 'file'.`)
+      throw new Error('api.config.servers.web.rootEndpointType can only be \'api\' or \'file\'.')
     }
 
     // -------------------------------------------------------------------------------------------------------- [EVENTS]

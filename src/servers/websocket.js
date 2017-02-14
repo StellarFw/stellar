@@ -261,7 +261,7 @@ export default class WebSocketServer extends GenericServer {
         fs.writeFileSync(`${base}.min.js`, self._renderClientJs(true))
         self.api.log(`wrote ${base}.min.js`, 'debug')
       } catch (e) {
-        self.api.log(`Cannot write client-side JS for websocket server:`, 'warning')
+        self.api.log('Cannot write client-side JS for websocket server:', 'warning')
         self.api.log(e, 'warning')
         throw e
       }
