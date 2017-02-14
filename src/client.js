@@ -1,4 +1,4 @@
-/*global Primus XMLHttpRequest*/
+/* global Primus XMLHttpRequest */
 
 // ----------------------------------------------------------------------------- [Util Functions]
 
@@ -235,12 +235,9 @@ StellarClient.prototype.action = function (action, params = {}) {
       }
 
       if (isFunction(response)) {
-
         // add the function to the response handlers
         resHandlers.unshift(response)
-
       } else if (isObject(response)) {
-
         // execute all the response handlers
         resHandlers.forEach(h => { h.call(this, response) })
 
@@ -310,7 +307,6 @@ StellarClient.prototype._actionWeb = function (params) {
 
       // the response only are received if the readyState is equals to 4
       if (xmlhttp.readyState === 4) {
-
         // if the HTTP status code is equals to 200 make a JSON parser.
         // in case of the request code be different of 200 we try make
         // a JSON parser too, but it can fail so we catch the exception
@@ -335,7 +331,7 @@ StellarClient.prototype._actionWeb = function (params) {
     const method = (params.httpMethod || 'POST').toUpperCase()
 
     // define the URL to be called and append the action on the query params
-    const url = `${this.options.url}${this.options.apiPath}?action=${params.action}`
+    let url = `${this.options.url}${this.options.apiPath}?action=${params.action}`
 
     if (method === 'GET') {
       for (let param in params) {

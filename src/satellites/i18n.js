@@ -1,3 +1,5 @@
+/* eslint no-eval: 0 */
+
 import i18n from 'i18n'
 
 class I18n {

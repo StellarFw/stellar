@@ -124,7 +124,8 @@ export default class GenericServer extends EventEmitter {
     let self = this
 
     // create a new action processor instance for this request
-    let actionProcessor = new this.api.actionProcessor(self.api, connection, data => {
+    const ActionProcessor = this.api.actionProcessor
+    let actionProcessor = new ActionProcessor(self.api, connection, data => {
       self.emit('actionComplete', data)
     })
 

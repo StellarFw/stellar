@@ -19,16 +19,16 @@ class Models {
   /**
    * Waterline instance.
    *
-   * @type null
+   * @type {[type]}
    */
-   waterline = null
+  waterline = null
 
    /**
     * Object with the Waterline ontology.
     *
     * @type WaterlineOntology
     */
-   ontology = null
+  ontology = null
 
   /**
    * Create a new class instance.

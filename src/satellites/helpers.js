@@ -134,7 +134,9 @@ class Helpers {
       connection.actionCallbacks[ (connection.messageCount) ] = next
     }
 
-    process.nextTick(() => {self.api.servers.servers.testServer.processAction(connection) })
+    process.nextTick(() => {
+      self.api.servers.servers.testServer.processAction(connection)
+    })
   }
 
   /**
