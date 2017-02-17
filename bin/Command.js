@@ -86,7 +86,7 @@ module.exports = class {
     this.args = args
 
     // if the user requested to run this as a deamon we must spawn a new process
-    if (this.args.deamon) {
+    if (this.args.daemon) {
       // create a new set of arguments removing the `--daemon` options
       const newArgs = process.argv.splice(2)
       for (const i in newArgs) {
@@ -100,7 +100,7 @@ module.exports = class {
       console.log(`Spawned child process with pid ${child.pid}`)
 
       // finish the current process
-      process.nextTick(process.exit)
+      process.nextTick(_ => { process.exit(0) })
       return
     }
 
