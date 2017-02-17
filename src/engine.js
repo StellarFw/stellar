@@ -85,17 +85,18 @@ export default class Engine {
     // if errors variables if not defined return
     if (!errors) { return }
 
-    // ensure the errors variable is an instance of Array
-    if (!(errors instanceof Array)) { errors = [ errors ] }
+    // ensure the errors variable is an Array
+    if (!Array.isArray(errors)) { errors = [ errors ] }
 
     // log an emergency message
-    api.log(`Error with satellite step: ${type}`, 'emergency')
+    console.log()
+    api.log(`Error with satellite step: ${type}`, 'emerg')
 
     // log all the errors
-    errors.forEach(err => api.log(err, 'emergency'))
+    errors.forEach(err => api.log(err, 'emerg'))
 
     // finish the process execution
-    process.exit(1)
+    api.commands.stop.call(api, () => { process.exit(1) })
   }
 
   // --------------------------------------------------------------------------- [Class]
@@ -458,7 +459,7 @@ export default class Engine {
 
             // call `load` property
             this.satellites[ initializer ].load(this.api, err => {
-              this.api.log(`   loaded: ${initializer}`, 'debug')
+              if (!err) { this.api.log(`   loaded: ${initializer}`, 'debug') }
               next(err)
             })
           } else {
@@ -474,7 +475,7 @@ export default class Engine {
 
             // execute start routine
             this.satellites[ initializer ].start(this.api, err => {
-              this.api.log(`   started: ${initializer}`, 'debug')
+              if (!err) { this.api.log(`   started: ${initializer}`, 'debug') }
               next(err)
             })
           } else {
@@ -488,7 +489,7 @@ export default class Engine {
             this.api.log(` > stop: ${initializer}`, 'debug')
 
             this.satellites[ initializer ].stop(this.api, err => {
-              this.api.log(`   stopped: ${initializer}`, 'debug')
+              if (!err) { this.api.log(`   stopped: ${initializer}`, 'debug') }
               next(err)
             })
           } else {
