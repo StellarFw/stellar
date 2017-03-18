@@ -41,7 +41,7 @@
     "primus": "^6.0.6",
     "qs": "^6.0.1",
     "sails-memory": "^0.10.7",
-    "source-map-support": "^0.4.0",
+    "source-map-support": "^0.4.14",
     "uglify-js": "^2.6.4",
     "uuid": "^3.0.0",
     "waterline": "^0.11.6",
