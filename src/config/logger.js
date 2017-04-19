@@ -1,5 +1,6 @@
 import fs from 'fs'
 import cluster from 'cluster'
+import 'winston-daily-rotate-file'
 
 export default {
 
@@ -29,8 +30,10 @@ export default {
     }
 
     logger.transports.push((api, winston) => {
-      return new (winston.transports.File)({
+      return new (winston.transports.DailyRotateFile)({
         filename: `${logDirectory}/${api.pids.title}.log`,
+        datePattern: 'yyyy-MM-dd.',
+        prepend: true,
         level: 'info',
         timestamp: true
       })
