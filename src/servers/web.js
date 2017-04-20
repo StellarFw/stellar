@@ -28,7 +28,6 @@ let attributes = {
  * This implements the HTTP web server.
  */
 export default class Web extends GenericServer {
-
   /**
    * Http server instance.
    */
@@ -177,95 +176,112 @@ export default class Web extends GenericServer {
    * @param lastModified    Timestamp if the last modification.
    */
   sendFile (connection, error, fileStream, mime, length, lastModified) {
-    let self = this
-    let foundExpires = false
     let foundCacheControl = false
     let ifModifiedSince
     let reqHeaders
 
     // check if we should use cache mechanisms
     connection.rawConnection.responseHeaders.forEach(pair => {
-      if (pair[ 0 ].toLowerCase() === 'expires') { foundExpires = true }
-      if (pair[ 1 ].toLowerCase() === 'cache-control') { foundCacheControl = true }
+      if (pair[ 0 ].toLowerCase() === 'cache-control') { foundCacheControl = true }
     })
-
-    // get headers from the client request
-    reqHeaders = connection.rawConnection.req.headers
-
-    // get the 'if-modified-since' value if exists
-    if (reqHeaders[ 'if-modified-since' ]) { ifModifiedSince = new Date(reqHeaders[ 'if-modified-since' ]) }
 
     // add mime type to the response headers
     connection.rawConnection.responseHeaders.push([ 'Content-Type', mime ])
 
-    // check if file expires
-    if (foundExpires === false) {
-      connection.rawConnection.responseHeaders.push([ 'Expires',
-        new Date(new Date().getTime() + self.api.config.servers.web.flatFileCacheDuration * 1000).toUTCString() ])
-    }
-
-    // check if the client want use cache
-    if (foundCacheControl === false) {
-      connection.rawConnection.responseHeaders.push([ 'Cache-Control', 'max-age=' + self.api.config.servers.web.flatFileCacheDuration + ', must-revalidate, public' ])
+    // If is to use a cache mechanism we must append a cache control header to the response
+    if (fileStream) {
+      if (!foundCacheControl) {
+        connection.rawConnection.responseHeaders.push([
+          'Cache-Control', `max-age=${this.api.config.servers.web.flatFileCacheDuration}, must-revalidate, public`
+        ])
+      }
     }
 
     // add a header to the response with the last modified timestamp
-    connection.rawConnection.responseHeaders.push([ 'Last-Modified', new Date(lastModified) ])
-
-    // clean the connection headers
-    self._cleanHeaders(connection)
-
-    // get the response headers
-    let headers = connection.rawConnection.responseHeaders
-
-    // if an error exists change the status code to 404
-    if (error) { connection.rawConnection.responseHttpCode = 404 }
-
-    // if the lastModified is smaller than ifModifiedSince we respond with a 304 (use cache)
-    if (ifModifiedSince && lastModified <= ifModifiedSince) { connection.rawConnection.responseHttpCode = 304 }
-
-    // check if is to use ETag
-    if (self.api.config.servers.web.enableEtag && fileStream) {
-      // get a file buffer
-      let fileBuffer = !Buffer.isBuffer(fileStream) ? new Buffer(fileStream.toString(), 'utf8') : fileStream
-
-      // build the ETag header
-      let fileEtag = etag(fileBuffer, { weak: true })
-
-      // push the header to the response
-      connection.rawConnection.responseHeaders.push([ 'ETag', fileEtag ])
-
-      let noneMatchHeader = reqHeaders[ 'if-none-match' ]
-      let cacheCtrlHeader = reqHeaders[ 'cache-control' ]
-      let noCache = false
-      let etagMatches
-
-      // check for no-cache cache request directive
-      if (cacheCtrlHeader && cacheCtrlHeader.indexOf('no-cache') !== -1) { noCache = true }
-
-      // parse if-none-match
-      if (noneMatchHeader) { noneMatchHeader = noneMatchHeader.split(/ *, */) }
-
-      // if-none-match
-      if (noneMatchHeader) {
-        etagMatches = noneMatchHeader.some(match => match === '*' || match === fileEtag || match === 'W/' + fileEtag)
+    if (fileStream && !this.api.config.servers.web.enableEtag) {
+      if (lastModified) {
+        connection.rawConnection.responseHeaders.push(['Last-Modified', new Date(lastModified).toUTCString()])
       }
-
-      // use the cached object
-      if (etagMatches && !noCache) { connection.rawConnection.responseHeaders = 304 }
     }
 
-    // parse the HTTP status code to int
-    let responseHttpCode = parseInt(connection.rawConnection.responseHttpCode)
+    // clean the connection headers
+    this._cleanHeaders(connection)
 
+    // get headers from the client request
+    reqHeaders = connection.rawConnection.req.headers
+
+    // get the response headers
+    const headers = connection.rawConnection.responseHeaders
+
+    // This function is used to send the response to the client.
+    const sendRequestResult = () => {
+      // parse the HTTP status code to int
+      let responseHttpCode = parseInt(connection.rawConnection.responseHttpCode, 10)
+
+      if (error) {
+        this.sendWithCompression(connection, responseHttpCode, headers, String(error))
+      } else if (responseHttpCode !== 304) {
+        this.sendWithCompression(connection, responseHttpCode, headers, null, fileStream, length)
+      } else {
+        connection.rawConnection.res.writeHead(responseHttpCode, headers)
+        connection.rawConnection.res.end()
+        connection.destroy()
+      }
+    }
+
+    // if an error exists change the status code to 404 and send the response
     if (error) {
-      self.sendWithCompression(connection, responseHttpCode, headers, String(error))
-    } else if (responseHttpCode !== 304) {
-      self.sendWithCompression(connection, responseHttpCode, headers, null, fileStream, length)
+      connection.rawConnection.responseHttpCode = 404
+      return sendRequestResult()
+    }
+
+    // get the 'if-modified-since' value if exists
+    if (reqHeaders[ 'if-modified-since' ]) {
+      ifModifiedSince = new Date(reqHeaders[ 'if-modified-since' ])
+      lastModified.setMilliseconds(0)
+      if (lastModified <= ifModifiedSince) {
+        connection.rawConnection.responseHttpCode = 304
+      }
+      return sendRequestResult()
+    }
+
+    // check if is to use ETag
+    if (this.api.config.servers.web.enableEtag && fileStream && fileStream.path) {
+      // Get the file states in order to create the ETag header
+      fs.stat(fileStream.path, (error, filestats) => {
+        if (error) {
+          this.log(`Error receiving file statistics: ${String(error)}`)
+          return sendRequestResult()
+        }
+
+        // push the ETag header to the response
+        const fileEtag = etag(filestats, { weak: true })
+        connection.rawConnection.responseHeaders.push([ 'ETag', fileEtag ])
+
+        let noneMatchHeader = reqHeaders[ 'if-none-match' ]
+        let cacheCtrlHeader = reqHeaders[ 'cache-control' ]
+        let noCache = false
+        let etagMatches
+
+        // check for no-cache cache request directive
+        if (cacheCtrlHeader && cacheCtrlHeader.indexOf('no-cache') !== -1) { noCache = true }
+
+        // parse if-none-match
+        if (noneMatchHeader) { noneMatchHeader = noneMatchHeader.split(/ *, */) }
+
+        // if-none-match
+        if (noneMatchHeader) {
+          etagMatches = noneMatchHeader.some(match => match === '*' || match === fileEtag || match === 'W/' + fileEtag)
+        }
+
+        // use the cached object
+        if (etagMatches && !noCache) { connection.rawConnection.responseHeaders = 304 }
+
+        // send response
+        sendRequestResult()
+      })
     } else {
-      connection.rawConnection.res.writeHead(responseHttpCode, headers)
-      connection.rawConnection.res.end()
-      connection.destroy()
+      sendRequestResult()
     }
   }
 
