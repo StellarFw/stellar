@@ -15,9 +15,9 @@ module.exports = [ {
     }
   },
 
-  run: (api, data, next) => {
-    let key = 'cache_test_' + data.params.key
-    let value = data.params.value
+  run (api, data, next) {
+    const key = 'cache_test_' + data.params.key
+    const value = data.params.value
 
     // create the base response object
     data.response.cacheTestResults = {}
@@ -36,11 +36,11 @@ module.exports = [ {
         api.cache.load(key, (err, resp, expireTimestamp, createdAt, readAt) => {
           // append the load response to the request response
           data.response.cacheTestResults.loadResp = {
-            key: key,
+            key,
             value: resp,
-            expireTimestamp: expireTimestamp,
-            createdAt: createdAt,
-            readAt: readAt
+            expireTimestamp,
+            createdAt,
+            readAt
           }
 
           // try destroy the cache entry

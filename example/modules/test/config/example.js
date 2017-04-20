@@ -2,7 +2,7 @@
 
 exports.default = {
 
-  example: api => {
+  example (api) {
     return {
       exampleConfig: 'exampleValue'
     }

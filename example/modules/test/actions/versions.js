@@ -4,7 +4,7 @@ module.exports = [ {
   name: 'versionedAction',
   description: 'Is just a dummy action with a version property',
   version: 1,
-  run: (api, action, next) => {
+  run (api, action, next) {
     // finish the action execution
     next()
   }
@@ -17,7 +17,7 @@ module.exports = [ {
     news: 'new version'
   },
 
-  run: (api, action, next) => {
+  run (api, action, next) {
     // add a response property
     action.response.news = 'new version'
 

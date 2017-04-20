@@ -52,15 +52,12 @@ module.exports = [
       formatted: '3 + 3 = 6'
     },
 
-    run (api, action, next) {
+    run (api, action) {
       // make a internal call to 'sumANumber' action
-      api.actions.call('sumANumber', action.params)
-        .catch(error => { next(error) })
+      return api.actions.call('sumANumber', action.params)
         .then(response => {
           // build a cool string
           action.response.formatted = `${action.params.a} + ${action.params.b} = ${response.result}`
-
-          next()
         })
     }
   }

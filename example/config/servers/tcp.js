@@ -1,9 +1,9 @@
 exports.default = {
 	servers: {
-		tcp: function (api) {
+		tcp (api) {
 			return {
 				enable: true
-			};
+			}
 		}
 	}
-};
+}

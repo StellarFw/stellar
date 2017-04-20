@@ -8,7 +8,7 @@ module.exports = [ {
     }
   },
 
-  run (engine, action, next) {
+  run (api, action, next) {
     action.response.string = `Input > ${action.params.value}`
     next()
   }
@@ -22,7 +22,7 @@ module.exports = [ {
     }
   },
 
-  run (engine, action, next) {
+  run (api, action, next) {
     action.response.string = `Input > ${action.params.value}`
     next()
   }
@@ -50,7 +50,7 @@ module.exports = [ {
     }
   },
 
-  run (engine, action, next) {
+  run (api, action, next) {
     action.response.string = `Input > ${action.params.value}`
     next()
   }
@@ -60,11 +60,11 @@ module.exports = [ {
 
   inputs: {
     'value': {
-      validator: (param) => param === 'asd'
+      validator: param => param === 'asd'
     }
   },
 
-  run (engine, action, next) {
+  run (api, action, next) {
     action.response.string = `Input > ${action.params.value}`
     next()
   }
