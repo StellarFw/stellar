@@ -2,8 +2,7 @@
  * General configs.
  */
 export default {
-
-  general: api => {
+  general (api) {
     return {
       // ---------------------------------------------------------------------
       // API version
@@ -156,14 +155,21 @@ export default {
  * @type {{}}
  */
 export const test = {
-  general: api => {
+  general (api) {
     return {
+      // set the server identifier during testing
       id: 'test-server',
-      developmentMode: true,
+
+      // disable dev mode to speed up the tests
+      developmentMode: false,
+
+      // Ensure the creation of the `defaultRoom` and `otherRoom` rooms
       startingChatRooms: {
         defaultRoom: {},
         otherRoom: {}
       },
+
+      // we don't need to generate documentation during testing
       generateDocumentation: false
     }
   }
@@ -175,7 +181,7 @@ export const test = {
  * @type {{}}
  */
 export const production = {
-  general: api => {
+  general (api) {
     return {
       developmentMode: false
     }
