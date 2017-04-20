@@ -105,6 +105,35 @@ describe('Core: Actions', () => {
     })
   })
 
+  // ------------------------------------------------------------------- [Timeout]
+
+  describe('Timeout', () => {
+    // define the timeout to just 100 ms
+    before(done => {
+      api.config.general.actionTimeout = 100
+      done()
+    })
+
+    // reset the actionTimeout to the normal value
+    after(done => {
+      api.config.general.actionTimeout = 30000
+      done()
+    })
+
+    it('when the action exceed the config time it timeout', () => {
+      return api.actions.call('sleep', { sleepDuration: 150 }).should.be.rejected()
+    })
+
+    it('throw a well formed error', done => {
+      api.actions.call('sleep', { sleepDuration: 150 })
+      .catch(error => {
+        error.code.should.be.equal('022')
+        error.message.should.be.equal(`Response timeout for action 'sleep'`)
+        done()
+      })
+    })
+  })
+
   // ------------------------------------------------------------------- [Other]
 
   it('is possible finish an action retuning a promise', done => {

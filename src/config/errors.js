@@ -262,7 +262,7 @@ export default {
       connectionRoomExists (room) {
         return {
           code: '020',
-          message: `Toom (${room}) already exists`
+          message: `Room (${room}) already exists`
         }
       },
 
@@ -273,7 +273,19 @@ export default {
       connectionRoomRequired (room) {
         return {
           code: '021',
-          message: `A room is required`
+          message: 'A room is required'
+        }
+      },
+
+      // ---------------------------------------------------------------------
+      // Error handler for a timeout during a request. This means that the
+      // action doesn't responded during the time specified on the
+      // `general.actionTimeout` config.
+      // ---------------------------------------------------------------------
+      responseTimeout (action) {
+        return {
+          code: '022',
+          message: `Response timeout for action '${action}'`
         }
       }
     }

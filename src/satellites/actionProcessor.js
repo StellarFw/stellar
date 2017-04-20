@@ -27,6 +27,20 @@ class ActionProcessor {
   actionStatus = null
 
   /**
+   * Timer that is used to timeout the action call.
+   */
+  timeoutTimer = null
+
+  /**
+   * When this flag is set to true we block any after response.
+   *
+   * This is essential used when a timeout happens.
+   *
+   * @type {boolean}
+   */
+  errorRendered = false
+
+  /**
    * Create a new Action Processor instance.
    *
    * @param api API reference.
@@ -90,13 +104,13 @@ class ActionProcessor {
       error = self.api.config.errors.unsupportedServerType(self.connection.type)
     } else if (status === 'validator_errors') {
       error = self.api.config.errors.invalidParams(self.validatorErrors)
+    } else if (status === 'response_timeout') {
+      error = this.api.config.errors.responseTimeout(this.action)
     } else if (status) {
       error = status
     }
 
-    if (error && typeof error === 'string') {
-      error = new Error(error)
-    }
+    if (error && typeof error === 'string') { error = new Error(error) }
 
     if (error && !this.response.error) {
       if (typeof this.response === 'string' || Array.isArray(this.response)) {
@@ -324,23 +338,55 @@ class ActionProcessor {
       } else if (this.validatorErrors.size > 0) {
         this.completeAction('validator_errors')
       } else if (this.toProcess === true && !error) {
+        // create a timer that will be used to timeout the action if needed. The time timeout is reached a timeout error
+        // is sent to the client.
+        this.timeoutTimer = setTimeout(() => {
+          // finish action with a timeout error
+          this.completeAction('response_timeout')
+
+          // ensure that the action wouldn't respond
+          this.errorRendered = true
+        }, this.api.config.general.actionTimeout)
+
         // execute the action logic
         const returnVal = this.actionTemplate.run(this.api, this, error => {
-          if (error) {
-            this.completeAction(error)
-          } else {
-            this.postProcessAction(error => this.completeAction(error))
-          }
+          // stop the timeout timer
+          clearTimeout(this.timeoutTimer)
+
+          // when the error rendered flag is set we don't send a response
+          if (this.errorRendered) { return }
+
+          // catch the error messages and send to the client an error as a response
+          if (error) { return this.completeAction(error) }
+
+          // execute the post action process
+          this.postProcessAction(error => this.completeAction(error))
         })
 
         // if the returnVal is a Promise we wait for the resolve/rejection and
         // after that we finish the action execution
         if (returnVal && typeof returnVal.then === 'function') {
           returnVal
-            .catch(error => { this.completeAction(error) })
-            .then(_ => {
+            // execute the post action process
+            .then(() => {
+              // when the error rendered flag is set we don't send a response
+              if (this.errorRendered) { return }
+
+              // post process the action
               this.postProcessAction(error => this.completeAction(error))
             })
+
+            // catch error responses
+            .catch(error => {
+              // when the error rendered flag is set we don't send a response
+              if (this.errorRendered) { return }
+
+              // complete the action with an error message
+              this.completeAction(error)
+            })
+
+            // stop the timeout timer
+            .then(() => clearTimeout(this.timeoutTimer))
         }
       } else {
         this.completeAction()

@@ -143,7 +143,15 @@ export default {
       // ---------------------------------------------------------------------
       // Number of round to use on the salt generation
       // ---------------------------------------------------------------------
-      saltRounds: 10
+      saltRounds: 10,
+
+      // ---------------------------------------------------------------------
+      // Time that an action have to send a response to the client.
+      //
+      // NOTE: The values is specified into milliseconds.
+      // DEFAULT: 30 seconds
+      // ---------------------------------------------------------------------
+      actionTimeout: 30000
     }
   }
 
