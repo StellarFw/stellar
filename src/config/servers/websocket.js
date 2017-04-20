@@ -32,7 +32,7 @@ export default {
         // WebSocket client options
         // ---------------------------------------------------------------------
         client: {
-          // the api base endpoint on your actionhero server
+          // API base endpoint on your server
           apiPath: '/api'
         },
 

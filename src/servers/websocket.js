@@ -202,6 +202,9 @@ export default class WebSocketServer extends GenericServer {
     }
     defaults.url = url
 
+    // append the number of simultaneous connections allowed
+    defaults.simultaneousActions = this.api.config.general.simultaneousActions
+
     let defaultsString = util.inspect(defaults)
     defaultsString = defaultsString.replace('\'window.location.origin\'', 'window.location.origin')
     clientSource = clientSource.replace('\'%%DEFAULTS%%\'', defaultsString)

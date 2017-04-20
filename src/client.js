@@ -27,6 +27,10 @@ const StellarClient = function (opts, client) {
   this.state = 'disconnected'
   this.messageCount = 0
 
+  // Array to store the pending requests to made and a counter with the number of pending requests
+  this.pendingRequestsQueue = []
+  this.pendingRequestsCounter = 0
+
   this.options = this.defaults() || {}
 
   // override default options
@@ -149,6 +153,22 @@ StellarClient.prototype.configure = function () {
   })
 }
 
+// ----------------------------------------------------------------------------- [Pending Requests]
+
+/**
+ * Process the next pending request if available.
+ */
+StellarClient.prototype.processNextPendingRequest = function () {
+  // check if there is some pending request to be processes
+  if (this.pendingRequestsQueue.length === 0) { return }
+
+  // get the next request to be processed
+  const requestFn = this.pendingRequestsQueue.shift()
+
+  // execute the process
+  requestFn()
+}
+
 // ----------------------------------------------------------------------------- [Messaging]
 
 /**
@@ -261,13 +281,32 @@ StellarClient.prototype.action = function (action, params = {}) {
           method = this._actionWebSocket
         }
 
-        method.call(this, params)
-          .then(res => {
-            next(res)
-          }, error => {
-            next(null, error)
-          })
+        // increment the number of pending requests
+        this.pendingRequestsCounter += 1
 
+        // calling this function will make process the requests
+        const processRequest = () => {
+          // make the request
+          method.call(this, params)
+            .then(res => { next(res) })
+            .catch(error => { next(null, error) })
+            .then(() => {
+              // decrement the number of pending responses
+              this.pendingRequestsCounter -= 1
+
+              // process the next request
+              this.processNextPendingRequest()
+            })
+        }
+
+        // if the number of pending request is bigger than the server limit, the request must be
+        // placed on the a queue to be processed later.
+        if (this.pendingRequestsCounter >= this.options.simultaneousActions) {
+          return this.pendingRequestsQueue.push(processRequest)
+        }
+
+        // we can make the request now
+        processRequest()
         return
       }
 

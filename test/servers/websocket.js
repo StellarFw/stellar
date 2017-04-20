@@ -127,6 +127,8 @@ describe('Servers: Web Socket', function () {
     })
   })
 
+  // We are using the Stellar Client library, so we must the able to call over the limit of simultaneous connections
+  // because we have a mechanism that keep a queue os pending requests
   it('will limit how many simultaneous connections a client can have', function (done) {
     let responses = []
     client1.action('sleep', {sleepDuration: 100}).then(response => responses.push(response))
@@ -134,20 +136,14 @@ describe('Servers: Web Socket', function () {
     client1.action('sleep', {sleepDuration: 300}).then(response => responses.push(response))
     client1.action('sleep', {sleepDuration: 400}).then(response => responses.push(response))
     client1.action('sleep', {sleepDuration: 500}).then(response => responses.push(response))
-    client1.action('sleep', {sleepDuration: 600}).catch(response => responses.push(response))
+    client1.action('sleep', {sleepDuration: 600}).then(response => responses.push(response))
 
     setTimeout(() => {
+      // we must have an array with six responses
       responses.length.should.equal(6)
 
-      for (let i in responses) {
-        let response = responses[ i ]
-
-        if (i === 0 || i === '0') {
-          response.error.code.should.be.equal('007')
-        } else {
-          should.not.exist(response.error)
-        }
-      }
+      // none of the response must have a 007 error
+      for (const response of responses) { should.not.exist(response.error) }
 
       done()
     }, 1000)
