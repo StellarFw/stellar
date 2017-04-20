@@ -1,7 +1,6 @@
 import async from 'async'
 
 class TaskSatellite {
-
   /**
    * API reference object.
    *
@@ -543,14 +542,12 @@ class TaskSatellite {
 
     async.series(jobs, callback)
   }
-
 }
 
 /**
  * This loads the task features to the API object.
  */
 export default class {
-
   /**
    * Satellite load priority.
    *
@@ -595,5 +592,4 @@ export default class {
       next()
     }
   }
-
 }

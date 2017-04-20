@@ -24,7 +24,6 @@ let startCount = 0
  * instruction to accomplish a certain goal.
  */
 export default class Engine {
-
   // --------------------------------------------------------------------------- [STATIC]
 
   /**

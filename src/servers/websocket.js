@@ -27,7 +27,6 @@ let attributes = {
 }
 
 export default class WebSocketServer extends GenericServer {
-
   /**
    * Server instance.
    */

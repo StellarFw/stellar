@@ -61,7 +61,7 @@ describe('Servers: HTTP', function () {
   it('can not call private actions', done => {
     request(`${url}/api/sumANumber?a=3&b=4`, (error, response, body) => {
       body = JSON.parse(body)
-      body.error.should.equal(api.config.errors.privateActionCalled('sumANumber'))
+      body.error.code.should.equal('002')
       done()
     })
   })
@@ -87,7 +87,7 @@ describe('Servers: HTTP', function () {
   it('will generate an error call an action with an invalid type', done => {
     request(`${url}/api/formattedSum?a=3&b=thisIsInvalid`, (error, response, body) => {
       body = JSON.parse(body)
-      body.error.b.should.equal(`param 'b' has an invalid type, expected integer`)
+      body.error.b.code.should.be.equal('003')
       done()
     })
   })
@@ -193,7 +193,7 @@ describe('Servers: HTTP', function () {
   it('not existing actions have the right response', done => {
     request.get(`${url}/api/someNotExistingAction`, (error, response, body) => {
       body = JSON.parse(body)
-      body.error.should.equal('unknown action or invalid apiVersion')
+      body.error.code.should.equal('004')
       done()
     })
   })

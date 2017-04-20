@@ -44,8 +44,8 @@ const StellarClient = function (opts, client) {
 }
 
 if (typeof Primus === 'undefined') {
-  var util = require('util')
-  var EventEmitter = require('events').EventEmitter
+  const util = require('util')
+  const EventEmitter = require('events').EventEmitter
   util.inherits(StellarClient, EventEmitter)
 } else {
   StellarClient.prototype = new Primus.EventEmitter()
@@ -131,7 +131,7 @@ StellarClient.prototype.connect = function () {
 }
 
 StellarClient.prototype.configure = function () {
-  return new Promise((resolve, reject) => {
+  return new Promise(resolve => {
     // join to all default rooms
     if (this.options.rooms) {
       this.options.rooms.forEach(room => this.send({ event: 'roomAdd', room }))
@@ -158,7 +158,7 @@ StellarClient.prototype.configure = function () {
  * @return Promise
  */
 StellarClient.prototype.send = function (args) {
-  return new Promise((resolve, reject) => {
+  return new Promise(resolve => {
     // primus will buffer messages when nor connected
     this.messageCount++
 

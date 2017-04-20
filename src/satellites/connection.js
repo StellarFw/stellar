@@ -17,7 +17,6 @@ let cleanConnection = connection => {
 }
 
 class Connections {
-
   /**
    * API reference object.
    */
@@ -138,7 +137,6 @@ class Connections {
  * Class who represents an active connection.
  */
 class Connection {
-
   /**
    * Api reference.
    */
@@ -451,7 +449,6 @@ class Connection {
 }
 
 export default class {
-
   /**
    * Satellite load priority.
    *
@@ -475,5 +472,4 @@ export default class {
     // finish the loading process
     next()
   }
-
 }

@@ -8,7 +8,6 @@ import path from 'path'
  * Using Waterline allow us interact with different kinds of database systems.
  */
 class Models {
-
   /**
    * Reference for the API object.
    *
@@ -198,14 +197,12 @@ class Models {
       this.api.config.models.adapters[key] = this.api.utils.require(moduleName)
     }
   }
-
 }
 
 /**
  * Initializer for the models features.
  */
 export default class {
-
   /**
    * Initializer load priority.
    *

@@ -7,7 +7,6 @@ import uuid from 'uuid'
  * This creates a interface to connect with a redis server.
  */
 class RedisManager {
-
   /**
    * API reference.
    *
@@ -223,7 +222,6 @@ class RedisManager {
  * Redis initializer.
  */
 export default class {
-
   /**
    * Initializer load priority.
    *
@@ -284,5 +282,4 @@ export default class {
       next()
     })
   }
-
 }

@@ -11,7 +11,6 @@ const PROTECTED_KEYS = [ 'name', 'run' ]
  * This class manage all actions.
  */
 class Actions {
-
   /**
    * API reference.
    *
@@ -516,7 +515,6 @@ class Actions {
  * Initializer to load the actions features into the Engine.
  */
 export default class {
-
   /**
    * Initializer load priority.
    *
@@ -564,5 +562,4 @@ export default class {
     // finish initializer loading
     next()
   }
-
 }

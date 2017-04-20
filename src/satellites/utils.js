@@ -3,7 +3,6 @@ import fs from 'fs'
 import path from 'path'
 
 export class Utils {
-
   /**
    * Reference for the API object.
    *
@@ -481,7 +480,6 @@ export class Utils {
 }
 
 export default class {
-
   /**
    * Satellite load priority.
    *
@@ -493,5 +491,4 @@ export default class {
     api.utils = new Utils(api)
     next()
   }
-
 }

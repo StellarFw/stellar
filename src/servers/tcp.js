@@ -32,7 +32,6 @@ let attributes = {
  * TCP server implementation.
  */
 export default class Tcp extends GenericServer {
-
   /**
    * TCP server socket.
    */
@@ -273,7 +272,7 @@ export default class Tcp extends GenericServer {
       if (!error) {
         // send an success response message
         self.sendMessage(connection, { status: 'OK', context: 'response', data: data })
-      } else if (error.match('verb not found or not allowed')) {
+      } else if (error.code.match('014')) { // Error: Verb not found or not allowed
         // check for and attempt to check single-use params
         try {
           // parse JSON request
@@ -388,5 +387,4 @@ export default class Tcp extends GenericServer {
       next()
     }
   }
-
 }

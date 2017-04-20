@@ -7,7 +7,6 @@ import bcrypt from 'bcrypt'
  * and hash to validate them.
  */
 class Hash {
-
   /**
    * API reference object.
    *
@@ -122,11 +121,9 @@ class Hash {
       saltLength: self.api.config.general.saltLength
     }, _configs)
   }
-
 }
 
 export default class {
-
   /**
    * Satellite load priority.
    *
@@ -147,5 +144,4 @@ export default class {
     // finish the satellite loading
     next()
   }
-
 }

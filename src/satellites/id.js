@@ -13,7 +13,6 @@ import cluster from 'cluster'
  * - or one can be generated automatically using the external server IP.
  */
 export default class {
-
   /**
    * Load priority.
    *
@@ -81,5 +80,4 @@ export default class {
     // finish the initializer start
     next()
   }
-
 }

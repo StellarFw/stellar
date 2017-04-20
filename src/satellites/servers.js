@@ -6,7 +6,6 @@ import async from 'async'
  * Manager for server instances.
  */
 class Servers {
-
   /**
    * Engine API instance.
    * @type {null}
@@ -158,7 +157,6 @@ class Servers {
 }
 
 export default class {
-
   /**
    * This should be loaded after all engine
    * loading satellites.
@@ -194,5 +192,4 @@ export default class {
     // stop servers
     api.servers.stopServers(next)
   }
-
 }

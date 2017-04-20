@@ -1,7 +1,6 @@
 import async from 'async'
 
 class ChatRooms {
-
   /**
    * API reference.
    *
@@ -543,7 +542,6 @@ class ChatRooms {
  * Initializer.
  */
 export default class {
-
   /**
    * Initializer load priority.
    *
@@ -593,5 +591,4 @@ export default class {
     // end the initializer starting
     next()
   }
-
 }

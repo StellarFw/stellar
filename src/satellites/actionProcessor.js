@@ -4,7 +4,6 @@ import async from 'async'
  * This class process an action request.
  */
 class ActionProcessor {
-
   /**
    * API reference.
    *
@@ -354,7 +353,6 @@ class ActionProcessor {
  * Action processor Satellite.
  */
 export default class {
-
   /**
    * Initializer load priority.
    *
@@ -375,5 +373,4 @@ export default class {
     // finish the load
     next()
   }
-
 }

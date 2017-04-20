@@ -10,7 +10,6 @@ let methodNotDefined = () => { throw new Error('The containing method should be 
  * of servers inherit from.
  */
 export default class GenericServer extends EventEmitter {
-
   /**
    * API object reference.
    */
@@ -203,5 +202,4 @@ export default class GenericServer extends EventEmitter {
    * @param reason      Reason for disconnection.
    */
   goodbye (connection, reason) { methodNotDefined() }
-
 }

@@ -114,7 +114,7 @@ describe('Servers: Web Socket', function () {
 
   it('can not call private actions', done => {
     client1.action('sumANumber', {a: 3, b: 4}).catch(response => {
-      response.error.should.equal(api.config.errors.privateActionCalled('sumANumber'))
+      response.error.code.should.be.equal('002')
       done()
     })
   })
@@ -143,7 +143,7 @@ describe('Servers: Web Socket', function () {
         let response = responses[ i ]
 
         if (i === 0 || i === '0') {
-          response.error.should.eql('you have too many pending requests')
+          response.error.code.should.be.equal('007')
         } else {
           should.not.exist(response.error)
         }

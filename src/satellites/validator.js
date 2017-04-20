@@ -22,7 +22,6 @@ class InvalidArgumentException {
  * </code>
  */
 class Validator {
-
   /**
    * API reference object.
    *
@@ -856,14 +855,12 @@ class Validator {
   replaceSize (message, attribute, rule, parameters) {
     return message.replace(/:size/i, parameters[0])
   }
-
 }
 
 /**
  * Validator satellite.
  */
 export default class {
-
   /**
    * Satellite priority.
    *
@@ -884,5 +881,4 @@ export default class {
     // finish the load process
     next()
   }
-
 }

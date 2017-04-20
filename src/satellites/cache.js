@@ -6,7 +6,6 @@ import async from 'async'
  * This class provides an easy way for developers to make use of a cache system.
  */
 class CacheManager {
-
   /**
    * API reference.
    *
@@ -441,7 +440,6 @@ class CacheManager {
  * Cache initializer.
  */
 export default class {
-
   /**
    * Initializer load priority
    *
@@ -462,5 +460,4 @@ export default class {
     // finish the initializer loading
     next()
   }
-
 }

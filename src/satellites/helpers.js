@@ -2,7 +2,6 @@ import uuid from 'uuid'
 import GenericServer from '../genericServer'
 
 class TestServer extends GenericServer {
-
   constructor (api, type, options, attributes) {
     super(api, type, options, attributes)
 
@@ -56,11 +55,9 @@ class TestServer extends GenericServer {
   }
 
   goodbye () {}
-
 }
 
 class Helpers {
-
   /**
    * API reference object.
    *
@@ -152,7 +149,6 @@ class Helpers {
 }
 
 export default class {
-
   /**
    * Satellite load priority.
    *
@@ -202,5 +198,4 @@ export default class {
     // finish the satellite start
     next()
   }
-
 }

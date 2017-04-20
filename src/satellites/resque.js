@@ -4,7 +4,6 @@ import NR from 'node-resque'
  * Node-Resque manager.
  */
 class ResqueManager {
-
   /**
    * API reference object.
    *
@@ -214,7 +213,6 @@ class ResqueManager {
  * Satellite to start the resque manager.
  */
 export default class {
-
   /**
    * Satellite load priority.
    *
@@ -286,5 +284,4 @@ export default class {
       })
     })
   }
-
 }

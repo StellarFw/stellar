@@ -2,7 +2,6 @@ import fs from 'fs'
 import path from 'path'
 
 class ConfigManager {
-
   /**
    * Api reference object.
    *
@@ -218,7 +217,6 @@ class ConfigManager {
  * This initializer loads all app configs to the current running instance.
  */
 export default class {
-
   /**
    * Load priority.
    *
@@ -264,5 +262,4 @@ export default class {
     // finish the satellite stop
     next()
   }
-
 }

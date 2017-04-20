@@ -1,7 +1,6 @@
 import os from 'os'
 
 class ExceptionsManager {
-
   /**
    * API reference.
    *
@@ -164,7 +163,6 @@ class ExceptionsManager {
  * Satellite definition.
  */
 export default class {
-
   /**
    * Satellite load priority.
    *
@@ -185,5 +183,4 @@ export default class {
     // finish the satellite load
     next()
   }
-
 }
