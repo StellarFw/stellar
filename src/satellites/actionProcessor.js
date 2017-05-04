@@ -99,7 +99,7 @@ class ActionProcessor {
     } else if (status === 'too_many_requests') {
       error = self.api.config.errors.tooManyPendingActions()
     } else if (status === 'unknown_action') {
-      error = self.api.config.errors.unknownAction(self.connection.action)
+      error = self.api.config.errors.unknownAction(this.action)
     } else if (status === 'unsupported_server_type') {
       error = self.api.config.errors.unsupportedServerType(self.connection.type)
     } else if (status === 'validator_errors') {
