@@ -36,16 +36,16 @@ class TaskSatellite {
    * @param reload        This should be true is a reload.
    */
   loadFile (fullFilePath, reload = false) {
-    let self = this
-
     // function to be used to log the task (re)load
     let loadMessage = (loadedTasksName) => {
-      let reloadWord = reload ? '(re)' : ''
-      self.api.log(`task ${reloadWord}loaded: ${loadedTasksName}, ${fullFilePath}`, 'debug')
+      const level = reload ? 'info' : 'debug'
+      const reloadWord = reload ? '(re)' : ''
+
+      this.api.log(`task ${reloadWord}loaded: ${loadedTasksName}, ${fullFilePath}`, level)
     }
 
     // start watch for file changes
-    self.api.configs.watchFileAndAct(fullFilePath, () => self.loadFile(fullFilePath, true))
+    this.api.configs.watchFileAndAct(fullFilePath, () => this.loadFile(fullFilePath, true))
 
     // temporary task info
     let task = null
@@ -60,26 +60,26 @@ class TaskSatellite {
         task = collection[ i ]
 
         // create a new task entry
-        self.tasks[ task.name ] = task
+        this.tasks[ task.name ] = task
 
         // validate task
-        if (self._validateTask(self.tasks[ task.name ]) === false) { return }
+        if (this._validateTask(this.tasks[ task.name ]) === false) { return }
 
         // create a job wrapper on the new task
-        self.jobs[ task.name ] = self._jobWrapper(task.name)
+        this.jobs[ task.name ] = this._jobWrapper(task.name)
 
         // log the load message
         loadMessage(task.name)
       }
     } catch (err) {
-      self.api.log(`[TaskSatellite::loadFile] ${err}`)
+      this.api.log(`[TaskSatellite::loadFile] ${err}`)
 
       // handle the exception
-      self.api.exceptionHandlers.loader(fullFilePath, err)
+      this.api.exceptionHandlers.loader(fullFilePath, err)
 
       // remove the task if that exists
-      delete self.tasks[ task.name ]
-      delete self.jobs[ task.name ]
+      delete this.tasks[ task.name ]
+      delete this.jobs[ task.name ]
     }
   }
 
