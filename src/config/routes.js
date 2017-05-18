@@ -1,5 +1,5 @@
 export default {
-  routes: function (api) {
+  routes (api) {
     return {}
   }
 }

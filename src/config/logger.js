@@ -1,10 +1,9 @@
-import fs from 'fs'
 import cluster from 'cluster'
+import fs from 'fs'
 import 'winston-daily-rotate-file'
 
 export default {
-
-  logger: function (api) {
+  logger (api) {
     let logger = {transports: []}
 
     // check if this Stellar instance is the Master
@@ -48,7 +47,7 @@ export default {
 }
 
 export const test = {
-  logger: api => {
+  logger (api) {
     return {
       transports: null
     }

@@ -1,5 +1,5 @@
 export default {
-  errors: api => {
+  errors (api) {
     return {
       '_toExpand': false,
 
