@@ -1,6 +1,7 @@
 import cluster from 'cluster'
 import fs from 'fs'
 import 'winston-daily-rotate-file'
+import BeautifulLogger from '../BeautifulLogger'
 
 export default {
   logger (api) {
@@ -8,8 +9,8 @@ export default {
 
     // check if this Stellar instance is the Master
     if (cluster.isMaster) {
-      logger.transports.push((api, winston) => {
-        return new (winston.transports.Console)({
+      logger.transports.push(() => {
+        return new BeautifulLogger({
           colorize: true,
           level: 'info',
           timestamp: true
