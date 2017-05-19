@@ -17,7 +17,6 @@ const colors = {
 }
 
 export default class BeautifulLogger extends Transport {
-
   constructor (options) {
     super(options)
     options = options || {}
@@ -125,12 +124,12 @@ export default class BeautifulLogger extends Transport {
         } else if (this.prettyPrint) {
           output += ` \n${util.inspect(meta, false, this.depth || null, this.colorize)}`
         } else if (
-          Object.keys(meta).length
-          && meta.hasOwnProperty('date')
-          && meta.hasOwnProperty('process')
-          && meta.hasOwnProperty('os')
-          && meta.hasOwnProperty('trace')
-          && meta.hasOwnProperty('stack')) {
+          Object.keys(meta).length &&
+          meta.hasOwnProperty('date') &&
+          meta.hasOwnProperty('process') &&
+          meta.hasOwnProperty('os') &&
+          meta.hasOwnProperty('trace') &&
+          meta.hasOwnProperty('stack')) {
           // if meta carries unhandled exception data serialize the stack nicely
           const stack = meta.stack
           delete meta.stack
@@ -169,21 +168,19 @@ export default class BeautifulLogger extends Transport {
     }
 
     if (obj === null) {
-      obj = 'null';
-    }
-    else if (obj === undefined) {
-      obj = 'undefined';
-    }
-    else if (obj === false) {
-      obj = 'false';
+      obj = 'null'
+    } else if (obj === undefined) {
+      obj = 'undefined'
+    } else if (obj === false) {
+      obj = 'false'
     }
 
     if (typeof obj !== 'object') {
-      return key ? key + '=' + obj : obj;
+      return key ? key + '=' + obj : obj
     }
 
     if (obj instanceof Buffer) {
-      return key ? key + '=' + obj.toString('base64') : obj.toString('base64');
+      return key ? key + '=' + obj.toString('base64') : obj.toString('base64')
     }
 
     let msg = ''
@@ -192,30 +189,27 @@ export default class BeautifulLogger extends Transport {
 
     for (let i = 0; i < length; i++) {
       if (Array.isArray(obj[ keys[ i ] ])) {
-        msg += keys[ i ] + '=[';
+        msg += keys[ i ] + '=['
 
         for (let j = 0, l = obj[ keys[ i ] ].length; j < l; j++) {
-          msg += BeautifulLogger.serialize(obj[ keys[ i ] ][ j ]);
+          msg += BeautifulLogger.serialize(obj[ keys[ i ] ][ j ])
           if (j < l - 1) {
-            msg += ', ';
+            msg += ', '
           }
         }
 
-        msg += ']';
-      }
-      else if (obj[ keys[ i ] ] instanceof Date) {
-        msg += keys[ i ] + '=' + obj[ keys[ i ] ];
-      }
-      else {
-        msg += BeautifulLogger.serialize(obj[ keys[ i ] ], keys[ i ]);
+        msg += ']'
+      } else if (obj[ keys[ i ] ] instanceof Date) {
+        msg += keys[ i ] + '=' + obj[ keys[ i ] ]
+      } else {
+        msg += BeautifulLogger.serialize(obj[ keys[ i ] ], keys[ i ])
       }
 
       if (i < length - 1) {
-        msg += ', ';
+        msg += ', '
       }
     }
 
-    return msg;
+    return msg
   }
-
 }
