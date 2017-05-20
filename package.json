@@ -43,7 +43,7 @@
     "sails-memory": "^0.10.7",
     "source-map-support": "^0.4.14",
     "st-formidable": "^1.0.18",
-    "uglify-js": "^3.0.0",
+    "uglify-es": "^3.0.9",
     "uuid": "^3.0.0",
     "waterline": "^0.11.6",
     "winston": "^2.1.1",

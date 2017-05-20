@@ -1,4 +1,4 @@
-/* global Primus XMLHttpRequest */
+/* global Primus fetch Headers Request */
 
 // ----------------------------------------------------------------------------- [Util Functions]
 
@@ -335,59 +335,44 @@ StellarClient.prototype.action = function (action, params = {}) {
  * @return Promise
  * @private
  */
-StellarClient.prototype._actionWeb = function (params) {
-  return new Promise((resolve, reject) => {
-    // create a new XMLHttpRequest instance
-    const xmlhttp = new XMLHttpRequest()
+StellarClient.prototype._actionWeb = async function (params) {
+  // define the HTTP method to be used (by default we use POST)
+  const method = (params.httpMethod || 'POST').toUpperCase()
 
-    // define the action to be executed at the end of the request
-    xmlhttp.onreadystatechange = () => {
-      let response = null
+  // define the URL to be called and append the action on the query params
+  let url = `${this.options.url}${this.options.apiPath}?action=${params.action}`
 
-      // the response only are received if the readyState is equals to 4
-      if (xmlhttp.readyState === 4) {
-        // if the HTTP status code is equals to 200 make a JSON parser.
-        // in case of the request code be different of 200 we try make
-        // a JSON parser too, but it can fail so we catch the exception
-        // and we make our own error message
-        if (xmlhttp.status === 200) {
-          response = JSON.parse(xmlhttp.responseText)
-
-          resolve(response)
-        } else {
-          try {
-            response = JSON.parse(xmlhttp.responseText)
-          } catch (e) {
-            response = { error: { statusText: xmlhttp.statusText, responseText: xmlhttp.responseText } }
-          }
-
-          reject(response)
-        }
-      }
+  // when it's a GET request we must append the params to the URL address
+  if (method === 'GET') {
+    for (let param in params) {
+      if (~[ 'action', 'httpMethod' ].indexOf(param)) { continue }
+      url += `&${param}=${params[ param ]}`
     }
+  }
 
-    // define the HTTP method to be used (by default we use POST)
-    const method = (params.httpMethod || 'POST').toUpperCase()
+  // build request options
+  const options = {
+    method,
+    mode: 'cors',
+    headers: new Headers({
+      'Content-Type': 'application/json'
+    })
+  }
 
-    // define the URL to be called and append the action on the query params
-    let url = `${this.options.url}${this.options.apiPath}?action=${params.action}`
+  // if it's a POST request we need to append the params to the request body
+  if (method === 'POST') { options.body = JSON.stringify(params) }
 
-    if (method === 'GET') {
-      for (let param in params) {
-        if (~[ 'action', 'httpMethod' ].indexOf(param)) { continue }
-        url += `&${param}=${params[ param ]}`
-      }
-    }
+  // build a new request instance
+  const request = new Request(url, options)
 
-    // open a new connection
-    xmlhttp.open(method, url, true)
+  // make the request
+  const response = await fetch(request)
 
-    // det the content type to JSON
-    xmlhttp.setRequestHeader('Content-Type', 'application/json')
+  // catch errors
+  if (response.status !== 200) { throw new Error(response.json()) }
 
-    // send the request
-    xmlhttp.send(JSON.stringify(params))
-  })
+  // return as a success message
+  return response.json()
 }
 
 /**
