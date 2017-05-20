@@ -2,7 +2,7 @@ import fs from 'fs'
 import util from 'util'
 import path from 'path'
 import Primus from 'primus'
-// import UglifyJS from 'uglify-js'
+import UglifyJS from 'uglify-es'
 import GenericServer from '../genericServer'
 import BrowserFingerprint from 'browser_fingerprint'
 
@@ -233,12 +233,10 @@ export default class WebSocketServer extends GenericServer {
       'exports.StellarClient = StellarClient; \r\n' +
       '})(typeof exports === \'undefined\' ? window : exports);'
 
-    // todo: find a way to minify ES6 code or not 😒
-    // if (minimize) {
-    //   return UglifyJS.minify(`${libSource}\r\n\r\n\r\n${clientSource}`, { fromString: true }).code
-    // } else {
+    // minify the client lib code using Uglify
+    if (minimize) { return UglifyJS.minify(`${libSource}\r\n\r\n\r\n${clientSource}`).code }
+
     return `${libSource}\r\n\r\n\r\n${clientSource}`
-    // }
   }
 
   /**
