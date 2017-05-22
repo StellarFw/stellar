@@ -369,7 +369,7 @@ StellarClient.prototype._actionWeb = async function (params) {
   const response = await fetch(request)
 
   // catch errors
-  if (response.status !== 200) { throw new Error(response.json()) }
+  if (response.status !== 200) { throw await response.json() }
 
   // return as a success message
   return response.json()
