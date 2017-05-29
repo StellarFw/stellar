@@ -167,6 +167,7 @@ export const test = {
     return {
       // set the server identifier during testing
       id: 'test-server',
+      serverToken: `server-Token-${process.pid}`,
 
       // disable dev mode to speed up the tests
       developmentMode: false,
