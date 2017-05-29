@@ -238,7 +238,7 @@ export default class {
    *
    * @type {number}
    */
-  stopPriority = 999
+  stopPriority = 99999
 
   /**
    * Initializer load method.
