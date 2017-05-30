@@ -220,7 +220,7 @@ export default {
       connectionNotInRoom (connection, room) {
         return {
           code: '016',
-          message: connection.localize(`Connection not in this room (${room})`)
+          message: connection.localize(`Connection (${connection.id}) not in room (${room})`)
         }
       },
 
@@ -231,7 +231,7 @@ export default {
       connectionAlreadyInRoom (connection, room) {
         return {
           code: '017',
-          message: connection.localize(`Connection already in this room (${room})`)
+          message: connection.localize(`Connection (${connection.id}) already in room (${room})`)
         }
       },
 
@@ -240,6 +240,7 @@ export default {
       // ---------------------------------------------------------------------
       connectionRoomHasBeenDeleted (room) {
         return {
+          name: 'ConnectionRoomHasBeenDeleted Error',
           code: '018',
           message: `Room (${room}) has been deleted`
         }
@@ -250,8 +251,9 @@ export default {
       // ---------------------------------------------------------------------
       connectionRoomNotExist (room) {
         return {
+          name: 'ConnectionRoomNotExist Error',
           code: '019',
-          message: `Room (${room}) does not exist`
+          message: `Room (${room}) does not exists`
         }
       },
 
@@ -261,6 +263,7 @@ export default {
       // ---------------------------------------------------------------------
       connectionRoomExists (room) {
         return {
+          name: 'ConnectionRoomExists Error',
           code: '020',
           message: `Room (${room}) already exists`
         }

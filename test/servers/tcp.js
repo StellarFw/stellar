@@ -333,18 +333,14 @@ describe('Servers: TCP', function () {
       api.chatRoom.addMiddleware({
         name: 'join chat middleware',
         join: (connection, room, callback) => {
-          api.chatRoom.broadcast({}, room, `I have entered the room: ${connection.id}`, e => {
-            callback()
-          })
+          api.chatRoom.emit(room, 'message', `I have entered the room: ${connection.id}`).then(_ => { callback() })
         }
       })
 
       api.chatRoom.addMiddleware({
         name: 'leave chat middleware',
         leave: (connection, room, callback) => {
-          api.chatRoom.broadcast({}, room, `I have left the room: ${connection.id}`, e => {
-            callback()
-          })
+          api.chatRoom.emit(room, 'message', `I have left the room: ${connection.id}`).then(_ => { callback() })
         }
       })
 
@@ -358,9 +354,9 @@ describe('Servers: TCP', function () {
     })
 
     beforeEach(done => {
-      makeSocketRequest(client1, 'roomAdd defaultRoom')
-      makeSocketRequest(client2, 'roomAdd defaultRoom')
-      makeSocketRequest(client3, 'roomAdd defaultRoom')
+      makeSocketRequest(client1, 'roomJoin defaultRoom')
+      makeSocketRequest(client2, 'roomJoin defaultRoom')
+      makeSocketRequest(client3, 'roomJoin defaultRoom')
 
       setTimeout(() => done(), 250)
     })
@@ -390,7 +386,7 @@ describe('Servers: TCP', function () {
     })
 
     it('rooms can be changed', done => {
-      makeSocketRequest(client1, 'roomAdd otherRoom', () => {
+      makeSocketRequest(client1, 'roomJoin otherRoom', () => {
         makeSocketRequest(client1, 'roomLeave defaultRoom', response => {
           response.status.should.equal('OK')
           makeSocketRequest(client1, 'roomView otherRoom', response => {
@@ -402,7 +398,7 @@ describe('Servers: TCP', function () {
     })
 
     it('connections in the first room see the count go down', done => {
-      makeSocketRequest(client1, 'roomAdd otherRoom', () => {
+      makeSocketRequest(client1, 'roomJoin otherRoom', () => {
         makeSocketRequest(client1, 'roomLeave defaultRoom', () => {
           makeSocketRequest(client2, 'roomView defaultRoom', response => {
             response.data.room.should.equal('defaultRoom')

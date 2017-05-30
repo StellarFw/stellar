@@ -204,7 +204,7 @@ StellarClient.prototype.handleMessage = function (message) {
     }
 
     delete this.callbacks[ message.messageCount ]
-  } else if (message.context === 'user') {
+  } else if (message.context === 'user') { // TODO this must be changed in order to support events
     this.emit('say', message)
   } else if (message.context === 'alert') {
     this.emit('alert', message)
@@ -447,8 +447,11 @@ StellarClient.prototype.roomView = function (room) {
  * @param room  Name for the room to be created.
  * @return Promise
  */
-StellarClient.prototype.roomAdd = function (room) {
-  return this.send({ event: 'roomAdd', room }).then(data => this.configure())
+StellarClient.prototype.join = async function (room) {
+  await this.send({ event: 'roomJoin', room })
+
+  // configure connection
+  return this.configure()
 }
 
 /**
@@ -457,7 +460,7 @@ StellarClient.prototype.roomAdd = function (room) {
  * @param room  Name the to leave.
  * @return Promise
  */
-StellarClient.prototype.roomLeave = function (room) {
+StellarClient.prototype.leave = async function (room) {
   // get the position of the room on the client rooms list
   let index = this.rooms.indexOf(room)
 
@@ -465,8 +468,10 @@ StellarClient.prototype.roomLeave = function (room) {
   if (index > -1) { this.rooms.splice(index, 1) }
 
   // make a server request to remove the client from the room
-  return this.send({ event: 'roomLeave', room: room })
-    .then(data => this.configure())
+  await this.send({ event: 'roomLeave', room: room })
+
+  // configure the connection
+  return this.configure()
 }
 
 /**

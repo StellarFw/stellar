@@ -18,11 +18,12 @@ let attributes = {
   verbs: [
     'quit',
     'exit',
-    'roomAdd',
+    'roomJoin',
     'roomLeave',
     'roomView',
     'detailsView',
-    'say'
+    'say',
+    'event'
   ]
 }
 
@@ -115,12 +116,8 @@ export default class WebSocketServer extends GenericServer {
    * @param messageCount    Message number.
    */
   sendMessage (connection, message, messageCount) {
-    let self = this
-
     // serialize the error if exists
-    if (message.error) {
-      message.error = self.api.config.errors.serializers.servers.websocket(message.error)
-    }
+    if (message.error) { message.error = this.api.config.errors.serializers.servers.websocket(message.error) }
 
     // if the message don't have a context set to 'response'
     if (!message.context) { message.context = 'response' }
@@ -306,8 +303,6 @@ export default class WebSocketServer extends GenericServer {
   }
 
   _handleData (connection, data) {
-    let self = this
-
     let verb = data.event
     delete data.event
 
@@ -320,7 +315,7 @@ export default class WebSocketServer extends GenericServer {
 
         connection.error = null
         connection.response = {}
-        self.processAction(connection)
+        this.processAction(connection)
         break
 
       case 'file':
@@ -330,7 +325,7 @@ export default class WebSocketServer extends GenericServer {
         }
 
         // process the file request
-        self.processFile(connection)
+        this.processFile(connection)
         break
 
       default:
@@ -348,12 +343,12 @@ export default class WebSocketServer extends GenericServer {
           // if exists an error, send it to the client
           if (error) {
             message = { status: error, context: 'response', data: data }
-            self.sendMessage(connection, message)
+            this.sendMessage(connection, message)
             return
           }
 
           message = { status: 'OK', context: 'response', data: data }
-          self.sendMessage(connection, message)
+          this.sendMessage(connection, message)
         })
         break
     }

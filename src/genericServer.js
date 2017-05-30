@@ -138,10 +138,8 @@ export default class GenericServer extends EventEmitter {
    * @param connection Connection object.
    */
   processFile (connection) {
-    let self = this
-
-    self.api.staticFile.get(connection, (connection, error, fileStream, mime, length, lastModified) => {
-      self.sendFile(connection, error, fileStream, mime, length, lastModified)
+    this.api.staticFile.get(connection, (connection, error, fileStream, mime, length, lastModified) => {
+      this.sendFile(connection, error, fileStream, mime, length, lastModified)
     })
   }
 

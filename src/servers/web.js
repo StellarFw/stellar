@@ -600,15 +600,13 @@ export default class Web extends GenericServer {
    * @private
    */
   _completeResponse (data) {
-    let self = this
-
     if (data.toRender === true) {
-      if (self.api.config.servers.web.metadataOptions.serverInformation) {
+      if (this.api.config.servers.web.metadataOptions.serverInformation) {
         let stopTime = new Date().getTime()
 
         data.response.serverInformation = {
-          serverName: self.api.config.general.serverName,
-          apiVersion: self.api.config.general.apiVersion,
+          serverName: this.api.config.general.serverName,
+          apiVersion: this.api.config.general.apiVersion,
           requestDuration: (stopTime - data.connection.connectedAt),
           currentTime: stopTime
         }
@@ -616,13 +614,13 @@ export default class Web extends GenericServer {
     }
 
     // check if is to use requester information
-    if (self.api.config.servers.web.metadataOptions.requesterInformation) {
-      data.response.requesterInformation = self._buildRequesterInformation(data.connection)
+    if (this.api.config.servers.web.metadataOptions.requesterInformation) {
+      data.response.requesterInformation = this._buildRequesterInformation(data.connection)
     }
 
     // is an error response?
     if (data.response.error) {
-      if (self.api.config.servers.web.returnErrorCodes === true && data.connection.rawConnection.responseHttpCode === 200) {
+      if (this.api.config.servers.web.returnErrorCodes === true && data.connection.rawConnection.responseHttpCode === 200) {
         if (data.actionStatus === 'unknown_action') {
           data.connection.rawConnection.responseHttpCode = 404
         } else if (data.actionStatus === 'missing_params') {
@@ -635,20 +633,20 @@ export default class Web extends GenericServer {
       }
     }
 
-    if (!data.response.error && data.action && data.params.apiVersion && self.api.actions.actions[ data.params.action ][ data.params.apiVersion ].matchExtensionMimeType === true && data.connection.extension) {
+    if (!data.response.error && data.action && data.params.apiVersion && this.api.actions.actions[ data.params.action ][ data.params.apiVersion ].matchExtensionMimeType === true && data.connection.extension) {
       data.connection.rawConnection.responseHeaders.push([ 'Content-Type', Mime.lookup(data.connection.extension) ])
     }
 
     // if its an error response we need to serialize the error object
     if (data.response.error) {
-      data.response.error = self.api.config.errors.serializers.servers.web(data.response.error)
+      data.response.error = this.api.config.errors.serializers.servers.web(data.response.error)
     }
 
     let stringResponse = ''
 
     // build the string response
-    if (self._extractHeader(data.connection, 'Content-Type').match(/json/)) {
-      stringResponse = JSON.stringify(data.response, null, self.api.config.servers.web.padding)
+    if (this._extractHeader(data.connection, 'Content-Type').match(/json/)) {
+      stringResponse = JSON.stringify(data.response, null, this.api.config.servers.web.padding)
       if (data.params.callback) {
         data.connection.rawConnection.responseHeaders.push([ 'Content-Type', 'application/javascript' ])
         stringResponse = data.connection.params.callback + '(' + stringResponse + ');'
@@ -658,7 +656,7 @@ export default class Web extends GenericServer {
     }
 
     // return the response to the client
-    self.sendMessage(data.connection, stringResponse)
+    this.sendMessage(data.connection, stringResponse)
   }
 
   /**

@@ -1,4 +1,5 @@
 import async from 'async'
+// import Bluebird from 'bluebird'
 import uuid from 'uuid'
 
 /**
@@ -57,15 +58,13 @@ class RedisManager {
    * @param api API reference.
    */
   constructor (api) {
-    let self = this
-
     // save api reference object
-    self.api = api
+    this.api = api
 
     // subscription handlers
 
-    self.subscriptionHandlers[ 'do' ] = message => {
-      if (!message.connectionId || (self.api.connections.connections[ message.connectionId ])) {
+    this.subscriptionHandlers[ 'do' ] = message => {
+      if (!message.connectionId || (this.api.connections.connections[ message.connectionId ])) {
         let cmdParts = message.method.split('.')
         let cmd = cmdParts.shift()
         if (cmd !== 'api') { throw new Error('cannot operate on a outside of the api object') }
@@ -73,7 +72,7 @@ class RedisManager {
 
         let callback = () => {
           let responseArgs = Array.apply(null, arguments).sort()
-          process.nextTick(() => { self.respondCluster(message.requestId, responseArgs) })
+          process.nextTick(() => { this.respondCluster(message.requestId, responseArgs) })
         }
 
         let args = message.args
@@ -88,58 +87,63 @@ class RedisManager {
       }
     }
 
-    self.subscriptionHandlers[ 'doResponse' ] = message => {
-      if (self.clusterCallbacks[ message.requestId ]) {
-        clearTimeout(self.clusterCallbackTimeouts[ message.requestId ])
-        self.clusterCallbacks[ message.requestId ].apply(null, message.response)
-        delete self.clusterCallbacks[ message.requestId ]
-        delete self.clusterCallbackTimeouts[ message.requestId ]
+    this.subscriptionHandlers[ 'doResponse' ] = message => {
+      if (this.clusterCallbacks[ message.requestId ]) {
+        clearTimeout(this.clusterCallbackTimeouts[ message.requestId ])
+        this.clusterCallbacks[ message.requestId ].apply(null, message.response)
+        delete this.clusterCallbacks[ message.requestId ]
+        delete this.clusterCallbackTimeouts[ message.requestId ]
       }
     }
   }
 
   initialize (callback) {
-    let self = this
-
     let jobs = []
+
+    // promisify Fake Redis API
+    // const FakeRedis = require('fakeredis')
+    // console.log('>>>', FakeRedis)//
+    // Object.getOwnPropertyNames(FakeRedis).forEach(key => {
+    //   FakeRedis[key] = Bluebird.promisify(FakeRedis[key])
+    // })
 
     // array with the queues to create
     let queuesToCreate = [ 'client', 'subscriber', 'tasks' ]
 
     queuesToCreate.forEach(r => {
       jobs.push(done => {
-        if (self.api.config.redis[ r ].buildNew === true) {
+        if (this.api.config.redis[ r ].buildNew === true) {
           // get arguments
-          var args = self.api.config.redis[ r ].args
+          var args = this.api.config.redis[ r ].args
 
           // create a new instance
-          self.clients[ r ] = new self.api.config.redis[ r ].constructor(args[ 0 ], args[ 1 ], args[ 2 ])
+          this.clients[ r ] = new this.api.config.redis[ r ].constructor(args[ 0 ], args[ 1 ], args[ 2 ])
 
           // on error event
-          self.clients[ r ].on('error', error => { self.api.log(`Redis connection ${r} error`, error) })
+          this.clients[ r ].on('error', error => { this.api.log(`Redis connection ${r} error`, error) })
 
           // on connect event
-          self.clients[ r ].on('connect', () => {
-            self.api.log(`Redis connection ${r} connected`, 'info')
+          this.clients[ r ].on('connect', () => {
+            this.api.log(`Redis connection ${r} connected`, 'info')
             done()
           })
         } else {
-          self.clients[ r ] = self.api.config.redis[ r ].constructor.apply(null, self.api.config.redis[ r ].args)
-          self.clients[ r ].on('error', error => { self.api.log(`Redis connection ${r} error`, 'error', error) })
-          self.api.log(`Redis connection ${r} connected`, 'info')
+          this.clients[ r ] = this.api.config.redis[ r ].constructor.apply(null, this.api.config.redis[ r ].args)
+          this.clients[ r ].on('error', error => { this.api.log(`Redis connection ${r} error`, 'error', error) })
+          this.api.log(`Redis connection ${r} connected`, 'info')
           done()
         }
       })
     })
 
-    if (!self.status.subscribed) {
+    if (!this.status.subscribed) {
       jobs.push(done => {
         // ensures that clients subscribe the default channel
-        self.clients.subscriber.subscribe(self.api.config.general.channel)
-        self.status.subscribed = true
+        this.clients.subscriber.subscribe(this.api.config.general.channel)
+        this.status.subscribed = true
 
         // on 'message' event execute the handler
-        self.clients.subscriber.on('message', (messageChannel, message) => {
+        this.clients.subscriber.on('message', (messageChannel, message) => {
           // parse the JSON message if exists
           try {
             message = JSON.parse(message)
@@ -147,9 +151,9 @@ class RedisManager {
             message = {}
           }
 
-          if (messageChannel === self.api.config.general.channel && message.serverToken === self.api.config.general.serverToken) {
-            if (self.subscriptionHandlers[ message.messageType ]) {
-              self.subscriptionHandlers[ message.messageType ](message)
+          if (messageChannel === this.api.config.general.channel && message.serverToken === this.api.config.general.serverToken) {
+            if (this.subscriptionHandlers[ message.messageType ]) {
+              this.subscriptionHandlers[ message.messageType ](message)
             }
           }
         })
@@ -168,57 +172,60 @@ class RedisManager {
    * @param payload Payload to be published.
    */
   publish (payload) {
-    let self = this
-
     // get default Redis channel
-    let channel = self.api.config.general.channel
+    let channel = this.api.config.general.channel
 
     // publish redis message
-    self.clients.client.publish(channel, JSON.stringify(payload))
+    this.clients.client.publish(channel, JSON.stringify(payload))
   }
 
   // ------------------------------------------------------------------------------------------------------------- [RPC]
 
-  doCluster (method, args, connectionId, callback) {
-    let self = this
+  doCluster (method, args, connectionId) {
+    return new Promise((resolve, reject) => {
+      this._doCluster(method, args, connectionId, (error, res) => {
+        if (error) { return reject(error) }
+        resolve(res)
+      })
+    })
+  }
 
+  _doCluster (method, args, connectionId, callback) {
     let requestId = uuid.v4()
     let payload = {
       messageType: 'do',
-      serverId: self.api.id,
-      serverToken: self.api.config.general.serverToken,
+      serverId: this.api.id,
+      serverToken: this.api.config.general.serverToken,
       requestId: requestId,
       method: method,
       connectionId: connectionId,
       args: args
     }
 
-    self.publish(payload)
+    this.publish(payload)
 
     if (typeof callback === 'function') {
-      self.clusterCallbacks[ requestId ] = callback
-      self.clusterCallbackTimeouts[ requestId ] = setTimeout((requestId) => {
-        if (typeof self.clusterCallbacks[ requestId ] === 'function') {
-          self.clusterCallbacks[ requestId ](new Error('RPC Timeout'))
+      this.clusterCallbacks[ requestId ] = callback
+      this.clusterCallbackTimeouts[ requestId ] = setTimeout((requestId) => {
+        if (typeof this.clusterCallbacks[ requestId ] === 'function') {
+          this.clusterCallbacks[ requestId ](new Error('RPC Timeout'))
         }
-        delete self.clusterCallbacks[ requestId ]
-        delete self.clusterCallbackTimeouts[ requestId ]
-      }, self.api.config.general.rpcTimeout, requestId)
+        delete this.clusterCallbacks[ requestId ]
+        delete this.clusterCallbackTimeouts[ requestId ]
+      }, this.api.config.general.rpcTimeout, requestId)
     }
   }
 
   respondCluster (requestId, response) {
-    let self = this
-
     let payload = {
       messageType: 'doResponse',
-      serverId: self.api.id,
-      serverToken: self.api.config.general.serverToken,
+      serverId: this.api.id,
+      serverToken: this.api.config.general.serverToken,
       requestId: requestId,
       response: response // args to pass back, including error
     }
 
-    self.publish(payload)
+    this.publish(payload)
   }
 }
 
@@ -255,7 +262,7 @@ export default class {
       // execute the callback if exists an error
       if (error) { return next(error) }
 
-      api.redis.doCluster('api.log', `Stellar member ${api.id} has joined the cluster`, null, null)
+      api.redis._doCluster('api.log', `Stellar member ${api.id} has joined the cluster`, null, null)
 
       // finish the loading
       process.nextTick(next)
@@ -272,12 +279,12 @@ export default class {
     // execute all existent timeouts and remove them
     for (let i in api.redis.clusterCallbackTimeouts) {
       clearTimeout(api.redis.clusterCallbackTimeouts[ i ])
-      delete api.redis.clusterCallbakTimeouts[ i ]
-      delete api.redis.clusterCallbaks[ i ]
+      delete api.redis.clusterCallbackTimeouts[ i ]
+      delete api.redis.clusterCallbacks[ i ]
     }
 
     // inform the cluster of stellar leaving
-    api.redis.doCluster('api.log', `Stellar member ${api.id} has left the cluster`, null, null)
+    api.redis._doCluster('api.log', `Stellar member ${api.id} has left the cluster`, null, null)
 
     // unsubscribe stellar instance and finish the stop method execution
     process.nextTick(() => {

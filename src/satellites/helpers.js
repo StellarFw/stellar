@@ -73,17 +73,16 @@ class Helpers {
   constructor (api) { this.api = api }
 
   connection () {
-    let self = this
     let id = uuid.v4()
 
-    self.api.servers.servers.testServer.buildConnection({
+    this.api.servers.servers.testServer.buildConnection({
       id: id,
       rawConnection: {},
       remoteAddress: 'testServer',
       remotePort: 0
     })
 
-    return self.api.connections.connections[ id ]
+    return this.api.connections.connections[ id ]
   }
 
   initialize (api, options, next) {

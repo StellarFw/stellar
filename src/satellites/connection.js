@@ -49,11 +49,12 @@ class Connections {
     'paramView',
     'paramsView',
     'paramsDelete',
-    'roomAdd',
+    'roomJoin',
     'roomLeave',
     'roomView',
     'detailsView',
-    'say'
+    'say',
+    'event'
   ]
 
   /**
@@ -112,7 +113,7 @@ class Connections {
       method = null
     }
 
-    self.api.redis.doCluster('api.connections.applyCatch', [ connectionId, method, args ], connectionId, callback)
+    self.api.redis._doCluster('api.connections.applyCatch', [ connectionId, method, args ], connectionId, callback)
   }
 
   applyCatch (connectionId, method, args, callback) {
@@ -300,7 +301,7 @@ class Connection {
 
     // remove the connection from all rooms
     if (self.canChat === true) {
-      self.rooms.forEach(room => self.api.chatRoom.removeMember(self.id, room))
+      self.rooms.forEach(room => self.api.chatRoom.leave(self.id, room))
     }
 
     // get server instance
@@ -339,7 +340,7 @@ class Connection {
    * @param words     Words are optional.
    * @param callback  Callback function.
    */
-  verbs (verb, words, callback) {
+  verbs (verb, words, callback = () => { }) {
     let self = this
 
     let key, value, room
@@ -390,25 +391,25 @@ class Connection {
         for (let i in self.params) { delete self.params[ i ] }
 
         if (typeof callback === 'function') { callback(null, null) }
-      } else if (verb === 'roomAdd') {
+      } else if (verb === 'roomJoin') {
         room = words[ 0 ]
 
-        self.api.chatRoom.addMember(self.id, room, (error, didHappen) => {
-          if (typeof callback === 'function') { callback(error, didHappen) }
-        })
+        self.api.chatRoom.join(self.id, room)
+          .then(didHappen => { callback(null, didHappen) })
+          .catch(error => { callback(error, false) })
       } else if (verb === 'roomLeave') {
         room = words[ 0 ]
-        self.api.chatRoom.removeMember(self.id, room, function (error, didHappen) {
-          if (typeof callback === 'function') { callback(error, didHappen) }
-        })
+        self.api.chatRoom.leave(self.id, room)
+          .then(didHappen => callback(null, didHappen))
+          .catch(error => callback(error, false))
       } else if (verb === 'roomView') {
         // get requested room name
         room = words[ 0 ]
 
         if (self.rooms.indexOf(room) > -1) {
-          self.api.chatRoom.roomStatus(room, (error, roomStatus) => {
-            if (typeof callback === 'function') { callback(error, roomStatus) }
-          })
+          self.api.chatRoom.status(room)
+            .then(status => callback(null, status))
+            .catch(error => callback(error))
         } else {
           if (typeof callback === 'function') { callback(`not member of room ${room}`) }
         }
@@ -432,9 +433,19 @@ class Connection {
         room = words.shift()
 
         // broadcast the message on the requested room
-        self.api.chatRoom.broadcast(self, room, words.join(' '), error => {
-          if (typeof callback === 'function') { callback(error) }
-        })
+        self.api.chatRoom.broadcast(self, room, words.join(' '))
+          .then(() => { callback(null) })
+          .catch(error => { callback(error) })
+      } else if (verb === 'event') {
+        // get the room name
+        room = words.shift()
+
+        // get the event name
+        const event = words.shift()
+
+        self.api.chatRoom.broadcast(self, room, { event, message: words.join(' ') })
+          .then(() => { callback(null) })
+          .catch(error => { callback(error) })
       } else {
         if (typeof callback === 'function') {
           callback(self.api.config.errors.verbNotFound(self, verb), null)

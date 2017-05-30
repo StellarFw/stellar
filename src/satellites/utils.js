@@ -2,6 +2,18 @@ import os from 'os'
 import fs from 'fs'
 import path from 'path'
 
+export class ExtendableError extends Error {
+  constructor (message) {
+    super(message)
+    this.name = this.constructor.name
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, this.constructor)
+    } else {
+      this.stack = (new Error(message)).stack
+    }
+  }
+}
+
 export class Utils {
   /**
    * Reference for the API object.
@@ -475,7 +487,7 @@ export class Utils {
    * @param {string} s String to be converted.
    */
   snakeToCamel (s) {
-    return s.replace(/(\_\w)/g, m => m[1].toUpperCase())
+    return s.replace(/(\_\w)/g, m => m[ 1 ].toUpperCase())
   }
 }
 
