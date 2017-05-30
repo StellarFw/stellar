@@ -219,7 +219,8 @@ export default class Web extends GenericServer {
       let responseHttpCode = parseInt(connection.rawConnection.responseHttpCode, 10)
 
       if (error) {
-        this.sendWithCompression(connection, responseHttpCode, headers, String(error))
+        const errorString = (error instanceof Error) ? String(error) : JSON.stringify(error)
+        this.sendWithCompression(connection, responseHttpCode, headers, errorString)
       } else if (responseHttpCode !== 304) {
         this.sendWithCompression(connection, responseHttpCode, headers, null, fileStream, length)
       } else {
