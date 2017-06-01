@@ -25,6 +25,16 @@ export class Utils {
   constructor (api = null) { this.api = api }
 
   /**
+   * A Promise abstraction for the setTimeout function.
+   *
+   * @param t             Time in millisecond.
+   * @returns {Promise}
+   */
+  delay (t) {
+    return new Promise(resolve => { setTimeout(resolve, t) })
+  }
+
+  /**
    * Read all files from the given directory.
    *
    * @param dir         Folder path to search.

@@ -19,17 +19,17 @@ export default {
 
         client: {
           constructor: require('ioredis'),
-          args: [ {port: port, host: host, password: password, db: db} ],
+          args: { port, host, password, db },
           buildNew: true
         },
         subscriber: {
           constructor: require('ioredis'),
-          args: [ {port: port, host: host, password: password, db: db} ],
+          args: { port, host, password, db },
           buildNew: true
         },
         tasks: {
           constructor: require('ioredis'),
-          args: [ {port: port, host: host, password: password, db: db} ],
+          args: { port, host, password, db },
           buildNew: true
         }
       }
@@ -39,18 +39,18 @@ export default {
       '_toExpand': false,
 
       client: {
-        constructor: require('fakeredis').createClient,
-        args: [ port, host, {fast: true} ],
+        constructor: require('then-fakeredis').createClient,
+        args: { port, host, fast: true },
         buildNew: false
       },
       subscriber: {
         constructor: require('fakeredis').createClient,
-        args: [ port, host, {fast: true} ],
+        args: { port, host, fast: true },
         buildNew: false
       },
       tasks: {
         constructor: require('fakeredis').createClient,
-        args: [ port, host, {fast: true} ],
+        args: { port, host, fast: true },
         buildNew: false
       }
     }

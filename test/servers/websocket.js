@@ -251,8 +251,6 @@ describe('Servers: Web Socket', function () {
       // add the client to the room
       await client1.join('otherRoom')
 
-      console.log('AQUI :D')
-
       // get the client details
       const response = await client1.detailsView()
 
@@ -281,6 +279,17 @@ describe('Servers: Web Socket', function () {
       client1.rooms[ 0 ].should.equal('otherRoom')
       should.not.exist(client1.rooms[ 1 ])
     })
+
+    // it('clients can send/catch events', done => {
+    //   const listener = data => {
+    //     client1.off('defaultRoom', 'someEvent', listener())
+    //     data.should.be.equal('Just A Message')
+    //     done()
+    //   }
+    //
+    //   client1.on('someEvent', listener)
+    //   client2.emit('defaultRoom', 'someEvent', 'Just A Message')
+    // })
 
     it('clients can talk to each other', done => {
       const listener = response => {

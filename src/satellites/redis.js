@@ -1,5 +1,4 @@
 import async from 'async'
-// import Bluebird from 'bluebird'
 import uuid from 'uuid'
 
 /**
@@ -100,13 +99,6 @@ class RedisManager {
   initialize (callback) {
     let jobs = []
 
-    // promisify Fake Redis API
-    // const FakeRedis = require('fakeredis')
-    // console.log('>>>', FakeRedis)//
-    // Object.getOwnPropertyNames(FakeRedis).forEach(key => {
-    //   FakeRedis[key] = Bluebird.promisify(FakeRedis[key])
-    // })
-
     // array with the queues to create
     let queuesToCreate = [ 'client', 'subscriber', 'tasks' ]
 
@@ -117,7 +109,7 @@ class RedisManager {
           var args = this.api.config.redis[ r ].args
 
           // create a new instance
-          this.clients[ r ] = new this.api.config.redis[ r ].constructor(args[ 0 ], args[ 1 ], args[ 2 ])
+          this.clients[ r ] = new this.api.config.redis[ r ].constructor(args)
 
           // on error event
           this.clients[ r ].on('error', error => { this.api.log(`Redis connection ${r} error`, error) })
@@ -128,9 +120,11 @@ class RedisManager {
             done()
           })
         } else {
-          this.clients[ r ] = this.api.config.redis[ r ].constructor.apply(null, this.api.config.redis[ r ].args)
+          this.clients[ r ] = this.api.config.redis[ r ].constructor(this.api.config.redis[ r ].args)
+
           this.clients[ r ].on('error', error => { this.api.log(`Redis connection ${r} error`, 'error', error) })
           this.api.log(`Redis connection ${r} connected`, 'info')
+
           done()
         }
       })
