@@ -2,7 +2,7 @@ const request = require('request')
 
 const should = require('should')
 const EngineClass = require(__dirname + '/../../dist/engine').default
-const engine = new EngineClass({rootPath: process.cwd() + '/example'})
+const engine = new EngineClass({ rootPath: process.cwd() + '/example' })
 
 let api = null
 
@@ -97,7 +97,7 @@ describe('Servers: Web Socket', function () {
   })
 
   it('does not have sticky params', function (done) {
-    client1.action('cacheTest', {key: 'testKey', value: 'testValue'}).then(response => {
+    client1.action('cacheTest', { key: 'testKey', value: 'testValue' }).then(response => {
       should.not.exist(response.error)
       response.cacheTestResults.loadResp.key.should.equal('cache_test_testKey')
       response.cacheTestResults.loadResp.value.should.equal('testValue')
@@ -110,7 +110,7 @@ describe('Servers: Web Socket', function () {
   })
 
   it('can not call private actions', done => {
-    client1.action('sumANumber', {a: 3, b: 4}).catch(response => {
+    client1.action('sumANumber', { a: 3, b: 4 }).catch(response => {
       response.error.code.should.be.equal('002')
       done()
     })
@@ -128,12 +128,12 @@ describe('Servers: Web Socket', function () {
   // because we have a mechanism that keep a queue os pending requests
   it('will limit how many simultaneous connections a client can have', function (done) {
     let responses = []
-    client1.action('sleep', {sleepDuration: 100}).then(response => responses.push(response))
-    client1.action('sleep', {sleepDuration: 200}).then(response => responses.push(response))
-    client1.action('sleep', {sleepDuration: 300}).then(response => responses.push(response))
-    client1.action('sleep', {sleepDuration: 400}).then(response => responses.push(response))
-    client1.action('sleep', {sleepDuration: 500}).then(response => responses.push(response))
-    client1.action('sleep', {sleepDuration: 600}).then(response => responses.push(response))
+    client1.action('sleep', { sleepDuration: 100 }).then(response => responses.push(response))
+    client1.action('sleep', { sleepDuration: 200 }).then(response => responses.push(response))
+    client1.action('sleep', { sleepDuration: 300 }).then(response => responses.push(response))
+    client1.action('sleep', { sleepDuration: 400 }).then(response => responses.push(response))
+    client1.action('sleep', { sleepDuration: 500 }).then(response => responses.push(response))
+    client1.action('sleep', { sleepDuration: 600 }).then(response => responses.push(response))
 
     setTimeout(() => {
       // we must have an array with six responses
@@ -280,16 +280,16 @@ describe('Servers: Web Socket', function () {
       should.not.exist(client1.rooms[ 1 ])
     })
 
-    // it('clients can send/catch events', done => {
-    //   const listener = data => {
-    //     client1.off('defaultRoom', 'someEvent', listener())
-    //     data.should.be.equal('Just A Message')
-    //     done()
-    //   }
-    //
-    //   client1.on('someEvent', listener)
-    //   client2.emit('defaultRoom', 'someEvent', 'Just A Message')
-    // })
+    it('clients can send/catch events', done => {
+      const listener = data => {
+        client1.to('defaultRoom').off('someEvent', listener)
+        data.should.be.equal('Just A Message')
+        done()
+      }
+
+      client1.on('someEvent', listener)
+      client2.emit('someEvent', 'Just A Message')
+    })
 
     it('clients can talk to each other', done => {
       const listener = response => {

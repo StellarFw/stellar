@@ -33,7 +33,9 @@ export default {
         // ---------------------------------------------------------------------
         client: {
           // API base endpoint on your server
-          apiPath: '/api'
+          apiPath: '/api',
+          // Default room for the chat system
+          defaultRoom: 'defaultRoom'
         },
 
         // ---------------------------------------------------------------------

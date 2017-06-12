@@ -1,3 +1,5 @@
+'use strict'
+
 /* global Primus fetch Headers Request */
 
 // ----------------------------------------------------------------------------- [Util Functions]
@@ -9,6 +11,102 @@ const error = msg => console.error(`[StellarClient error]: ${msg}`)
 const isFunction = val => typeof val === 'function'
 
 const isObject = obj => obj !== null && typeof obj === 'object'
+
+// ----------------------------------------------------------------------------- [Build Event]
+
+class Build {
+  /**
+   * Create a new instance.
+   *
+   * @param room    Room to add to the builder.
+   * @param client  Stellar client instance.
+   */
+  constructor (room, client) {
+    // save client instance
+    this.client = client
+
+    // store the room
+    if (Array.isArray(room)) {
+      this.rooms = room
+    } else {
+      this.rooms = [ room ]
+    }
+  }
+
+  /**
+   * Internal method to add room.
+   *
+   * @param room        Room to add.
+   * @returns {Build}   The instance of this class.
+   * @private
+   */
+  _innerRoomAdd (room) {
+    // we can also accept arrays, so we need to concat them in that case. Otherwise, push the new room.
+    if (Array.isArray(room)) {
+      this.rooms = this.rooms.concat(room)
+    } else {
+      this.rooms.push(room)
+    }
+
+    // return the current instance
+    return this
+  }
+
+  /**
+   * Add a new room where the event must be sent.
+   *
+   * @param room New room to append, or an array.
+   */
+  to (room) { return this._innerRoomAdd(room) }
+
+  /**
+   * Send the event to the server.
+   *
+   * We send an event for each room.
+   *
+   * @param event   Event name.
+   * @param data    data to send with the event.
+   */
+  emit (event, data) {
+    const work = []
+
+    // send an event for each room, and store the Promise on the array
+    this.rooms.forEach(room => { work.push(this.client.send({ room, event, data })) })
+
+    // return an array of Promises
+    return Promise.all(work)
+  }
+
+  /**
+   * Add a new room, to filter the event handler.
+   *
+   * @param room        Room to filter.
+   * @returns {Build}   Instance of this class.
+   */
+  from (room) { return this._innerRoomAdd(room) }
+
+  /**
+   * Handle an event reception.
+   *
+   * @param event     Event name.
+   * @param callback  Event handler.
+   */
+  on (event, callback) {
+    // create an handler for each room
+    this.rooms.forEach(room => { this.client.on(`[${room}].${event}`, callback) })
+
+    // return this instance
+    return this
+  }
+
+  off (event, func) {
+    // for each selected room we must remove the requested event.
+    this.rooms.forEach(room => { this.client.removeListener(`[${room}].${event}`, func) })
+
+    // return this instance
+    return this
+  }
+}
 
 // ----------------------------------------------------------------------------- [Stellar Client]
 
@@ -91,32 +189,33 @@ StellarClient.prototype.connect = function () {
           resolve(details)
         }
 
-        this.emit('connected')
+        this._emit('connected')
       })
     })
 
     // error
     this.client.on('error', err => {
-      this.emit('error', err)
+      reject(err)
+      this._emit('error', err)
     })
 
     // reconnect
     this.client.on('reconnect', () => {
       this.messageCount = 0
-      this.emit('reconnect')
+      this._emit('reconnect')
     })
 
     // reconnecting
     this.client.on('reconnecting', () => {
-      this.emit('reconnecting')
+      this._emit('reconnecting')
       this.state = 'reconnecting'
-      this.emit('disconnected')
+      this._emit('disconnected')
     })
 
     // timeout
     this.client.on('timeout', () => {
       this.state = 'timeout'
-      this.emit('timeout')
+      this._emit('timeout')
     })
 
     // end
@@ -125,7 +224,7 @@ StellarClient.prototype.connect = function () {
 
       if (this.state !== 'disconnected') {
         this.state = 'disconnected'
-        this.emit('disconnected')
+        this._emit('disconnected')
       }
     })
 
@@ -183,7 +282,7 @@ StellarClient.prototype.send = function (args) {
     this.messageCount++
 
     // add the resolve function as the callback for this message
-    this.callbacks[this.messageCount] = resolve
+    this.callbacks[ this.messageCount ] = resolve
 
     // send the message to the server
     this.client.write(args)
@@ -196,7 +295,7 @@ StellarClient.prototype.send = function (args) {
  * @param message
  */
 StellarClient.prototype.handleMessage = function (message) {
-  this.emit('message', message)
+  this._emit('message', message)
 
   if (message.context === 'response') {
     if (typeof this.callbacks[ message.messageCount ] === 'function') {
@@ -205,14 +304,26 @@ StellarClient.prototype.handleMessage = function (message) {
 
     delete this.callbacks[ message.messageCount ]
   } else if (message.context === 'user') { // TODO this must be changed in order to support events
-    this.emit('say', message)
+    // emit a global event
+    this._emit('say', message)
+
+    // check if it's an event and emit the correct events
+    if (message.message.event) {
+      const packet = message.message
+
+      // emit event into global scope
+      this._emit(packet.event, packet.data, message)
+
+      // emit an event specific for a given room
+      this._emit(`[${message.room}].${packet.event}`, packet.data, message)
+    }
   } else if (message.context === 'alert') {
-    this.emit('alert', message)
+    this._emit('alert', message)
   } else if (message.welcome && message.context === 'api') {
     this.welcomeMessage = message.welcome
-    this.emit('welcome', message)
+    this._emit('welcome', message)
   } else if (message.context === 'api') {
-    this.emit('api', message)
+    this._emit('api', message)
   }
 }
 
@@ -401,6 +512,48 @@ StellarClient.prototype._actionWebSocket = function (params) {
 
 // ----------------------------------------------------------------------------- [Commands]
 
+// save the original emit method to use as local event emitter
+StellarClient.prototype._emit = StellarClient.prototype.emit
+
+/**
+ * Send an event to the server.
+ *
+ * @param event   Event name.
+ * @param data    Data to send with the event. This can be optional.
+ */
+StellarClient.prototype.emit = function (event = null, data = null) {
+  // get default room
+  const room = this.options.defaultRoom
+
+  // send a new message to the server
+  return this.send({ event: 'event', params: { event, room, data } })
+}
+
+/**
+ * Send an event to a specific room.
+ *
+ * @param room
+ * @returns {Build}
+ */
+StellarClient.prototype.to = function (room) { return new Build(room, this) }
+
+/**
+ * Receive an event to a specific room.
+ *
+ * @param room
+ * @returns {Build}
+ */
+StellarClient.prototype.from = function (room) { return new Build(room, this) }
+
+/**
+ * Remove a listener for a a given event,
+ *
+ * @param event Event name.
+ * @param func  Listener to be removed.
+ * @returns {EventEmitter} The event emitter instance.
+ */
+StellarClient.prototype.off = function (event, func) { return this.removeListener(event, func) }
+
 /**
  * Send a message to a room.
  *
@@ -485,7 +638,7 @@ StellarClient.prototype.disconnect = function () {
   this.client.end()
 
   // emit the 'disconnected' event
-  this.emit('disconnected')
+  this._emit('disconnected')
 }
 
 exports.StellarClient = StellarClient

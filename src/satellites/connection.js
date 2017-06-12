@@ -437,15 +437,16 @@ class Connection {
           .then(() => { callback(null) })
           .catch(error => { callback(error) })
       } else if (verb === 'event') {
-        // get the room name
-        room = words.shift()
+        // get the vent information
+        const { room, event, data } = words.shift()
 
-        // get the event name
-        const event = words.shift()
+        // execute the event on the event system
+        this.api.events.fire(`event.${event}`, { room, data })
 
-        self.api.chatRoom.broadcast(self, room, { event, message: words.join(' ') })
+        // broadcast the event to the room
+        this.api.chatRoom.broadcast(this, room, { event, data })
           .then(() => { callback(null) })
-          .catch(error => { callback(error) })
+          .catch(error => callback(error))
       } else {
         if (typeof callback === 'function') {
           callback(self.api.config.errors.verbNotFound(self, verb), null)
