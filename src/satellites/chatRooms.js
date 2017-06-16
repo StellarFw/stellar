@@ -67,13 +67,14 @@ class ChatRooms {
   /**
    * This allow send an event to a chat room.
    *
-   * @param room
-   * @param event
-   * @param message
+   * @param room        Room here the message must be sent.
+   * @param event       Event to sent.
+   * @param data        Data to be sent.
+   * @param connection  Connection that originated the event, by default is used an empty connection.
    * @returns {*}
    */
-  emit (room, event, message) {
-    return this.broadcast({}, room, { event, message })
+  emit (room, event, data, connection = {}) {
+    return this.broadcast(connection, room, { event, data })
   }
 
   /**
