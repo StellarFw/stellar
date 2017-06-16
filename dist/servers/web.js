@@ -32,13 +32,13 @@ var _mime = require('mime');
 
 var _mime2 = _interopRequireDefault(_mime);
 
-var _nodeUuid = require('node-uuid');
+var _uuid = require('uuid');
 
-var _nodeUuid2 = _interopRequireDefault(_nodeUuid);
+var _uuid2 = _interopRequireDefault(_uuid);
 
-var _formidable = require('formidable');
+var _stFormidable = require('st-formidable');
 
-var _formidable2 = _interopRequireDefault(_formidable);
+var _stFormidable2 = _interopRequireDefault(_stFormidable);
 
 var _genericServer = require('../genericServer');
 
@@ -150,7 +150,7 @@ class Web extends _genericServer2.default {
       bootAttempts++;
 
       if (bootAttempts < self.api.config.servers.web.bootAttempts) {
-        self.log(`cannot boot web server; trying again [${ String(e) }]`, 'error');
+        self.log(`cannot boot web server; trying again [${String(e)}]`, 'error');
 
         if (bootAttempts === 1) {
           self._cleanSocket(self.options.bindIP, self.options.port);
@@ -161,7 +161,7 @@ class Web extends _genericServer2.default {
           self.server.listen(self.options.port, self.options.bindIP);
         }, 1000);
       } else {
-        return next(new Error(`Cannot start web server @ ${ self.options.bindIP }:${ self.options.port } => ${ e.message }`));
+        return next(new Error(`Cannot start web server @ ${self.options.bindIP}:${self.options.port} => ${e.message}`));
       }
     });
 
@@ -497,7 +497,7 @@ class Web extends _genericServer2.default {
           responseHttpCode: responseHttpCode,
           parsedURL: parsedURL
         },
-        id: `${ fingerprint }-${ _nodeUuid2.default.v4() }`,
+        id: `${fingerprint}-${_uuid2.default.v4()}`,
         fingerprint: fingerprint,
         remoteAddress: remoteIP,
         remotePort: remotePort
@@ -508,13 +508,11 @@ class Web extends _genericServer2.default {
   /**
    * Change socket permission.
    *
-   * @param bindIP
-   * @param port
+   * @param bindIP  IP here socket is listening.
+   * @param port    Port that socket is listening.
    */
   chmodSocket(bindIP, port) {
-    let self = this;
-
-    if (!bindIP && self.options.port.indexOf('/') >= 0) {
+    if (!bindIP && port.indexOf('/') >= 0) {
       _fs2.default.chmodSync(port, 0o777);
     }
   }
@@ -592,7 +590,7 @@ class Web extends _genericServer2.default {
       connection.rawConnection.params.query = connection.rawConnection.parsedURL.query;
 
       if (connection.rawConnection.method !== 'GET' && connection.rawConnection.method !== 'HEAD' && (connection.rawConnection.req.headers['content-type'] || connection.rawConnection.req.headers['Content-Type'])) {
-        connection.rawConnection.form = new _formidable2.default.IncomingForm();
+        connection.rawConnection.form = new _stFormidable2.default.IncomingForm();
 
         for (i in self.api.config.servers.web.formOptions) {
           connection.rawConnection.form[i] = self.api.config.servers.web.formOptions[i];
@@ -600,7 +598,7 @@ class Web extends _genericServer2.default {
 
         connection.rawConnection.form.parse(connection.rawConnection.req, (error, fields, files) => {
           if (error) {
-            self.log(`error processing form: ${ String(error) }`, 'error');
+            self.log(`error processing form: ${String(error)}`, 'error');
             connection.error = new Error('There was an error processing this form.');
           } else {
             connection.rawConnection.params.body = fields;
@@ -881,9 +879,9 @@ class Web extends _genericServer2.default {
     if (!bindIP && port.indexOf('/') >= 0) {
       _fs2.default.unlink(port, error => {
         if (error) {
-          self.log(`cannot remove stale socket @${ port }:${ error }`);
+          self.log(`cannot remove stale socket @${port}:${error}`);
         } else {
-          self.log(`removed stale unix socket @${ port }`);
+          self.log(`removed stale unix socket @${port}`);
         }
       });
     }

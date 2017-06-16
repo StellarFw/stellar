@@ -1,6 +1,6 @@
 exports.default = {
 
-  tasks: function (api) {
+  tasks (api) {
     return {
       workerLogging: {
         success: 'debug',
@@ -14,4 +14,4 @@ exports.default = {
       redis: api.config.redis
     }
   }
-};
+}

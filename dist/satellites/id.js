@@ -70,7 +70,7 @@ exports.default = class {
 
       api.id = externalIP;
       if (_cluster2.default.isWorker) {
-        api.id += `:${ process.pid }`;
+        api.id += `:${process.pid}`;
       }
     } else {
       api.id = api.config.general.id;
@@ -91,7 +91,7 @@ exports.default = class {
    */
   start(api, next) {
     // print out the server ID
-    api.log(`server ID: ${ api.id }`, 'notice');
+    api.log(`server ID: ${api.id}`, 'notice');
 
     // finish the initializer start
     next();

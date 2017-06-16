@@ -2,7 +2,6 @@ import fs from 'fs'
 import cluster from 'cluster'
 
 class Pids {
-
   /**
    * API reference.
    */
@@ -99,11 +98,9 @@ class Pids {
 
     return pidfile
   }
-
 }
 
 export default class {
-
   /**
    * Load priority.
    *
@@ -151,5 +148,4 @@ export default class {
     // finish the initializer start
     next()
   }
-
 }

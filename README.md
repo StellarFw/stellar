@@ -5,12 +5,26 @@
 </p>
 
 <p align="center">
-  <a href="https://travis-ci.org/StellarFw/stellar"><img src="https://img.shields.io/travis/StellarFw/stellar.svg?style=flat-square" alt="Build"></a>
-  <a href="https://coveralls.io/github/StellarFw/stellar"><img src="https://img.shields.io/coveralls/StellarFw/stellar.svg?style=flat-square" alt="Build"></a>
-  <a href="https://raw.githubusercontent.com/stellar-fw/stellar/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
+  <a href="https://travis-ci.org/StellarFw/stellar">
+    <img src="https://img.shields.io/travis/StellarFw/stellar.svg?style=flat-square" alt="Build">
+  </a>
+  <a href="https://www.codacy.com/app/gil00mendes/stellar?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=StellarFw/stellar&amp;utm_campaign=Badge_Grade">
+    <img src="https://img.shields.io/codacy/3dbaa2e22b9d4a46bf186a1bde5c64eb.svg?style=flat-square" alt="Quality">
+  </a>
+  <a href="https://coveralls.io/github/StellarFw/stellar">
+    <img src="https://img.shields.io/coveralls/StellarFw/stellar.svg?style=flat-square" alt="Coverage">
+  </a>
+  <a href="https://raw.githubusercontent.com/stellar-fw/stellar/master/LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License">
+  </a>
+  <a href="https://www.npmjs.com/package/stellar-fw">
+      <img src="https://img.shields.io/npm/v/stellar-fw.svg?style=flat-square" alt="Npm Version">
+    </a>
 </p>
 
 ## Supporting Stellar
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/StellarFw/stellar.svg)](https://greenkeeper.io/)
 
 Stellar is an MIT-licensed open source project. Further development is only possible through funding. If you like the project, check out [Stellar's Patreon campaign](https://www.patreon.com/gil0mendes).
 
@@ -24,7 +38,7 @@ Stellar is a web framework that makes it easy to build modular APIs. It is desig
 - Native support for HTTP, WebSocket and TCP connections
 - Powerful and simple to use [Validation system](https://stellar-framework.com/guide/validation.html)
 
-Note that Stellar only supports Node.js version 6 or upper.
+Note that Stellar only supports Node.js version 7 or upper.
 
 ## Questions/Issues
 
@@ -36,7 +50,7 @@ Please make sure to read the [Contributing Guide](https://github.com/stellarFw/s
 
 ## Changelog
 
-Details changes for each release are documented in the [release notes](https://github.com/stellarFw/stellar/releases) and the [Changelog](https://github.com/stellarFw/stellar/blob/dev/CHANGELOG.md) file.
+Details changes for each release are documented in the [release notes](https://github.com/stellarFw/stellar/releases).
 
 ## Stay In Touch
 
@@ -46,4 +60,4 @@ For latest releases and announcements, follow me on Twitter: [@gil0mendes](https
 
 [MIT](http://opensource.org/licenses/MIT)
 
-Copyright (c) 2015-2016 Gil Mendes
+Copyright (c) 2015-Present Gil Mendes

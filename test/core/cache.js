@@ -1,31 +1,28 @@
 'use strict'
 
-let should = require('should')
-let EngineClass = require(__dirname + '/../../dist/engine').default
-let engine = new EngineClass({rootPath: process.cwd() + '/example'})
+const should = require('should')
+const EngineClass = require(__dirname + '/../../dist/engine').default
+const engine = new EngineClass({rootPath: process.cwd() + '/example'})
 
-let async = require('async')
+const async = require('async')
 
 let api = null
 
-describe('Core: Cache', function () {
-
-  before(function (done) {
+describe('Core: Cache', () => {
+  before(done => {
     // start a Stellar instance
-    engine.start(function (error, a) {
+    engine.start((error, a) => {
       api = a
       done()
     })
   })
 
-  after(function (done) {
+  after(done => {
     // finish the Stellar instance execution
-    engine.stop(function () {
-      done()
-    })
+    engine.stop(() => { done() })
   })
 
-  it('cache methods should exist', function (done) {
+  it('cache methods should exist', (done) => {
     api.cache.should.be.an.instanceOf(Object)
     api.cache.save.should.be.an.instanceOf(Function)
     api.cache.load.should.be.an.instanceOf(Function)
@@ -33,340 +30,193 @@ describe('Core: Cache', function () {
     done()
   })
 
-  it('cache.save', function (done) {
-    api.cache.save('testKey', 'test123', null, (error, res) => {
-      should.not.exist(error)
-      res.should.equal(true)
-      done()
-    })
+  it('cache.save', async () => api.cache.save('testKey', 'test123', null).should.be.fulfilledWith(true))
+
+  it('cache.load', async () => {
+    const res = await api.cache.load('testKey')
+    res.value.should.be.equal('test123')
   })
 
-  it('cache.load', function (done) {
-    api.cache.load('testKey', (error, res) => {
-      res.should.equal('test123')
-      done()
-    })
+  it('cache.load failure', async () => api.cache.load('thisNotExists').should.be.rejectedWith('Object not found'))
+
+  it('cache.destroy', async () => api.cache.destroy('testKey').should.be.fulfilledWith(true))
+
+  it('cache.destroy failure', async () => await api.cache.destroy('testKey').should.be.fulfilledWith(false))
+
+  it('cache.save with expire time', async () => api.cache.save('testKey', 'test123', 10).should.be.fulfilledWith(true))
+
+  it('cache.load with expired items should not return them', async () => {
+    const saveRes = await api.cache.save('testKeyWait', 'test123', 10)
+    saveRes.should.equal(true)
+
+    await api.utils.delay(20)
+    return api.cache.load('testKeyWait').should.be.rejectedWith('Object expired')
   })
 
-  it('cache.load failure', function (done) {
-    api.cache.load('thisNotExists', (error, res) => {
-      String(error).should.equal('Error: Object not found')
-      should.equal(null, res)
-      done()
-    })
+  it('cache.load with negative expire times will never load', async () => {
+    await api.cache.save('testKeyInThePast', 'test123', -1).should.be.fulfilledWith(true)
+    return api.cache.load('testKeyInThePast').should.be.rejectedWith('Object expired')
   })
 
-  it('cache.destroy', function (done) {
-    api.cache.destroy('testKey', (err, res) => {
-      res.should.equal(true)
-      done()
-    })
+  it('cache.save does not need to pass expireTime', async () => {
+    await api.cache.save('testKeyForNullExpireTime', 'test123').should.be.fulfilledWith(true)
+
+    const { value } = await api.cache.load('testKeyForNullExpireTime')
+    value.should.be.equal('test123')
   })
 
-  it('cache.destroy failure', function (done) {
-    api.cache.destroy('testKey', (err, res) => {
-      res.should.equal(false)
-      done()
-    })
+  it('cache.load without changing the expireTime will re-apply the redis expire', async () => {
+    const key = 'testKey'
+
+    await api.cache.save(key, 'val', 1000).should.be.fulfilled()
+    const { value } = await api.cache.load(key)
+    value.should.be.equal('val')
+
+    await api.utils.delay(1001)
+    return api.cache.load(key).should.be.rejectedWith('Object not found')
   })
 
-  it('cache.save with expire time', function (done) {
-    api.cache.save('testKey', 'test123', 10, (error, res) => {
-      res.should.equal(true)
-      done()
-    })
-  })
-
-  it('cache.load with expired items should not return them', function (done) {
-    api.cache.save('testKeyWait', 'test123', 10, (error, saveRes) => {
-      saveRes.should.equal(true)
-
-      setTimeout(() => {
-        api.cache.load('testKeyWait', (error, loadRes) => {
-          String(error).should.equal('Error: Object expired')
-          should.equal(null, loadRes)
-          done()
-        })
-      }, 20)
-    })
-  })
-
-  it('cache.load with negative expire times will never load', function (done) {
-    api.cache.save('testKeyInThePast', 'test123', -1, (error, saveRes) => {
-      saveRes.should.equal(true)
-
-      api.cache.load('testKeyInThePast', (error, loadRes) => {
-        (String(error).indexOf('Error: Object') >= 0).should.equal(true)
-        should.equal(null, loadRes)
-        done()
-      })
-    })
-  })
-
-  it('cache.save does not need to pass expireTime', function (done) {
-    api.cache.save('testKeyForNullExpireTime', 'test123', (error, saveRes) => {
-      saveRes.should.equal(true)
-
-      api.cache.load('testKeyForNullExpireTime', (error, loadRes) => {
-        loadRes.should.equal('test123')
-        done()
-      })
-    })
-  })
-
-  it('cache.load without changing the expireTime will re-apply the redis expire', function (done) {
-    let key = 'testKey'
-
-    api.cache.save(key, 'val', 1000, () => {
-      api.cache.load(key, (error, loadRes) => {
-        loadRes.should.equal('val')
-
-        setTimeout(() => {
-          api.cache.load(key, (error, loadRes) => {
-            String(error).should.equal('Error: Object not found')
-            should.equal(null, loadRes)
-            done()
-          })
-        }, 1001)
-      })
-    })
-  })
-
-  it('cache.load with options that extending expireTime should return cached item', function (done) {
-    let timeout = 200
-    let expireTime = 400
-    let value = 'test123'
-    let key = 'testKeyWait'
+  it('cache.load with options that extending expireTime should return cached item', async () => {
+    const timeout = 200
+    const expireTime = 400
+    const value = 'test123'
+    const key = 'testKeyWait'
 
     // save the initial key
-    api.cache.save(key, value, expireTime, (error, saveRes) => {
-      saveRes.should.equal(true)
+    await api.cache.save(key, value, expireTime).should.be.fulfilledWith(true)
 
-      // wait for `timeout` and try to load the key with a extended expireTime
-      setTimeout(() => {
-        api.cache.load(key, {expireTimeMS: expireTime}, (error, loadRes) => {
-          loadRes.should.equal(value)
+    // wait for `timeout` and try to load the key with a extended expireTime
+    await api.utils.delay(timeout)
+    const { value: valueToTest } = await api.cache.load(key, {expireTimeMS: expireTime})
+    valueToTest.should.be.equal(value)
 
-          // wait another `timeout` and load the key again without an extended expire time
-          setTimeout(() => {
-            api.cache.load(key, (error, loadRes) => {
-              loadRes.should.equal(value)
+    // wait another `timeout` and load the key again without an extended expire time
+    await api.utils.delay(timeout)
+    const { value: valueToTest2 } = await api.cache.load(key)
+    valueToTest.should.be.equal(valueToTest2)
 
-              // wait another `timeout` and the key load should fail without the extended time
-              setTimeout(() => {
-                api.cache.load(key, (error, loadRes) => {
-                  String(error).should.equal('Error: Object not found')
-                  should.equal(null, loadRes)
-                  done()
-                })
-              }, timeout)
-            })
-          }, timeout)
-        })
-      }, timeout)
-    })
+    // wait another `timeout` and the key load should fail without the extended time
+    await api.utils.delay(timeout)
+    return api.cache.load(key).should.be.rejectedWith('Object not found')
   })
 
-  it('cache.save works with arrays', function (done) {
-    api.cache.save('arrayKey', [ 1, 2, 3 ], (error, saveRes) => {
-      saveRes.should.be.equal(true)
+  it('cache.save works with arrays', async () => {
+    await api.cache.save('arrayKey', [ 1, 2, 3 ]).should.be.fulfilledWith(true)
 
-      api.cache.load('arrayKey', (error, loadRes) => {
-        loadRes[ 0 ].should.equal(1)
-        loadRes[ 1 ].should.equal(2)
-        loadRes[ 2 ].should.equal(3)
+    const { value: loadRes } = await api.cache.load('arrayKey')
 
-        done()
-      })
-    })
+    loadRes[ 0 ].should.equal(1)
+    loadRes[ 1 ].should.equal(2)
+    loadRes[ 2 ].should.equal(3)
   })
 
-  it('cache.save works with objects', function (done) {
-    let key = 'objectKey'
-    let data = {
+  it('cache.save works with objects', async () => {
+    const key = 'objectKey'
+    const data = {
       oneThing: 'someData',
       otherThing: [ 1, 2, 3 ]
     }
 
-    api.cache.save(key, data, (error, saveRes) => {
-      saveRes.should.equal(true)
+    await api.cache.save(key, data).should.be.fulfilledWith(true)
 
-      api.cache.load(key, (error, loadRes) => {
-        loadRes.oneThing.should.equal(data.oneThing)
-        loadRes.otherThing[ 0 ].should.equal(data.otherThing[ 0 ])
-        loadRes.otherThing[ 1 ].should.equal(data.otherThing[ 1 ])
-        loadRes.otherThing[ 2 ].should.equal(data.otherThing[ 2 ])
-        done()
-      })
-    })
+    const { value: loadRes } = await api.cache.load(key)
+    loadRes.oneThing.should.equal(data.oneThing)
+    loadRes.otherThing[ 0 ].should.equal(data.otherThing[ 0 ])
+    loadRes.otherThing[ 1 ].should.equal(data.otherThing[ 1 ])
+    loadRes.otherThing[ 2 ].should.equal(data.otherThing[ 2 ])
   })
 
-  it('can clear the cache entirely', function (done) {
-    api.cache.save('cacheClearKey', 123, () => {
-      api.cache.size((error, count) => {
-        (count > 0).should.equal(true)
+  it('can clear the cache entirely', async () => {
+    await api.cache.save('cacheClearKey', 123)
 
-        api.cache.clear(() => {
-          api.cache.size((error, count) => {
-            count.should.equal(0)
-            done()
-          })
-        })
-      })
-    })
+    const count = await api.cache.size();
+    (count > 0).should.equal(true)
+
+    await api.cache.clear()
+    return api.cache.size().should.be.fulfilledWith(0)
   })
 
-  describe('lists', function () {
-    it('can push and pop from an array', function (done) {
+  describe('lists', () => {
+    it('can push and pop from an array', async () => {
       let jobs = []
 
-      jobs.push(next => api.cache.push('testListKey', 'a string', next))
-      jobs.push(next => api.cache.push('testListKey', [ 'an array' ], next))
-      jobs.push(next => api.cache.push('testListKey', {look: 'an object'}, next))
+      jobs.push(api.cache.push('testListKey', 'a string'))
+      jobs.push(api.cache.push('testListKey', [ 'an array' ]))
+      jobs.push(api.cache.push('testListKey', { look: 'an object' }))
 
       // process the operations in parallel
-      async.parallel(jobs, error => {
-        should.not.exist(error)
+      await Promise.all(jobs).should.be.fulfilled()
 
-        jobs = []
+      jobs = []
 
-        jobs.push(next => {
-          api.cache.pop('testListKey', (error, data) => {
-            data.should.equal('a string')
-            next()
-          })
+      jobs.push(api.cache.pop('testListKey').should.be.fulfilledWith('a string'))
+      jobs.push(api.cache.pop('testListKey').should.be.fulfilledWith([ 'an array' ]))
+      jobs.push(api.cache.pop('testListKey').should.be.fulfilledWith({ look: 'an object' }))
 
-        })
-
-        jobs.push(next => {
-          api.cache.pop('testListKey', (error, data) => {
-            data.should.deepEqual([ 'an array' ])
-            next()
-          })
-        })
-
-        jobs.push(next => {
-          api.cache.pop('testListKey', (error, data) => {
-            data.should.deepEqual({look: 'an object'})
-            next()
-          })
-        })
-
-        // process all the tests in series
-        async.series(jobs, error => {
-          should.not.exist(error)
-          done()
-        })
-      })
+      // process all the tests in series
+      return Promise.all(jobs).should.be.fulfilled()
     })
 
-    it('will return null if the list is empty', function (done) {
-      api.cache.pop('emptyListKey', (error, data) => {
-        should.not.exist(error)
-        should.not.exist(data)
-        done()
-      })
+    it('will return null if the list is empty', async () => api.cache.pop('emptyListKey').should.be.fulfilledWith(null))
+
+    it('can get the length of an array when full', async () => {
+      await api.cache.push('testListKeyTwo', 'a string').should.be.fulfilled()
+      return api.cache.listLength('testListKeyTwo').should.be.fulfilledWith(1)
     })
 
-    it('can get the length of an array when full', function (done) {
-      api.cache.push('testListKeyTwo', 'a string', () => {
-        api.cache.listLength('testListKeyTwo', (error, size) => {
-          should.not.exist(error)
-          size.should.equal(1)
-          done()
-        })
-      })
-    })
-
-    it('will return 0 length when the key does not exist', function (done) {
-      api.cache.listLength('testListKeyNotExists', (error, size) => {
-        should.not.exist(error)
-        size.should.equal(0)
-        done()
-      })
-    })
+    it('will return 0 length when the key does not exist', async () => api.cache.listLength('testListKeyNotExists').should.be.fulfilledWith(0))
   })
 
   describe('locks', function () {
-    let key = 'testKey'
+    const key = 'testKey'
 
     // reset the lockName and unlock the key after each test
-    afterEach(function (done) {
+    afterEach(() => {
       api.cache.lockName = api.id
-      api.cache.unlock(key, done)
+      return api.cache.unlock(key)
     })
 
-    it('thing can be locked checked and unlocked', function (done) {
+    it('thing can be locked checked and unlocked', async () => {
       // lock a key
-      api.cache.lock(key, 100, (error, lock) => {
-        lock.should.equal(true)
+      await api.cache.lock(key, 100).should.be.fulfilledWith(true)
 
-        // check the lock
-        api.cache.checkLock(key, null, (error, lock) => {
-          should.not.exist(error)
-          lock.should.equal(true)
+      // check the lock
+      await api.cache.checkLock(key, null).should.be.fulfilledWith(true)
 
-          // lock the key
-          api.cache.unlock(key, (error, unlock) => {
-            should.not.exist(error)
-            unlock.should.equal(true)
-
-            done()
-          })
-        })
-      })
+      // lock the key
+      return api.cache.unlock(key).should.be.fulfilledWith(true)
     })
 
-    it('locks have a TTL and the default will be assumed from config', function (done) {
+    it('locks have a TTL and the default will be assumed from config', async () => {
       // lock key
-      api.cache.lock(key, null, (error, lock) => {
-        lock.should.equal(true)
+      await api.cache.lock(key, null).should.be.fulfilledWith(true)
 
-        // check the lock TTL (Time To Live)
-        api.redis.clients.client.ttl(api.cache.lockPrefix + key, (error, ttl) => {
-          (ttl <= 10).should.be.equal(true)
-          done()
-        })
-      })
+      // check the lock TTL (Time To Live)
+      const ttl = await api.redis.clients.client.ttl(api.cache.lockPrefix + key);
+      (ttl <= 10).should.be.equal(true)
     })
 
-    it('you can save an item if you do hold the lock', function (done) {
-      api.cache.lock(key, null, (error, lock) => {
-        lock.should.equal(true)
-
-        api.cache.save(key, 'value', (error, success) => {
-          success.should.equal(true)
-          done()
-        })
-      })
+    it('you can save an item if you do hold the lock', async () => {
+      await api.cache.lock(key, null).should.be.fulfilledWith(true)
+      return api.cache.save(key, 'value').should.be.fulfilledWith(true)
     })
 
-    it('you cannot save a locked item if you do not hold the lock', function (done) {
-      api.cache.lock(key, null, (error, lock) => {
-        lock.should.equal(true)
+    it('you cannot save a locked item if you do not hold the lock', async () => {
+      await api.cache.lock(key, null).should.be.fulfilledWith(true)
 
-        // change the lock name
-        api.cache.lockName = 'otherId'
+      // change the lock name
+      api.cache.lockName = 'otherId'
 
-        api.cache.save(key, 'someValue', error => {
-          String(error).should.equal('Error: Object locked')
-          done()
-        })
-      })
+      return api.cache.save(key, 'someValue').should.be.rejectedWith('Object locked')
     })
 
-    it('you cannot destroy a locked item if you do not hold the lock', function (done) {
-      api.cache.lock(key, null, (error, lock) => {
-        lock.should.equal(true)
+    it('you cannot destroy a locked item if you do not hold the lock', async () => {
+      await api.cache.lock(key, null).should.be.fulfilledWith(true)
 
-        // change the lock name
-        api.cache.lockName = 'otherId'
+      // change the lock name
+      api.cache.lockName = 'otherId'
 
-        api.cache.destroy(key, error => {
-          String(error).should.equal('Error: Object locked')
-          done()
-        })
-      })
+      return api.cache.destroy(key).should.be.rejectedWith('Object locked')
     })
   })
 })

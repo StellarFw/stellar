@@ -1,6 +1,5 @@
 export default {
-
-  i18n: function (api) {
+  i18n (api) {
     return {
       // ---------------------------------------------------------------------
       // Active locales

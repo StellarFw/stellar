@@ -2,9 +2,37 @@ import os from 'os'
 import fs from 'fs'
 import path from 'path'
 
-export class Utils {
+export class ExtendableError extends Error {
+  constructor (message) {
+    super(message)
+    this.name = this.constructor.name
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, this.constructor)
+    } else {
+      this.stack = (new Error(message)).stack
+    }
+  }
+}
 
-  constructor () {}
+export class Utils {
+  /**
+   * Reference for the API object.
+   *
+   * @type {}
+   */
+  api = null
+
+  constructor (api = null) { this.api = api }
+
+  /**
+   * A Promise abstraction for the setTimeout function.
+   *
+   * @param t             Time in millisecond.
+   * @returns {Promise}
+   */
+  delay (t) {
+    return new Promise(resolve => { setTimeout(resolve, t) })
+  }
 
   /**
    * Read all files from the given directory.
@@ -160,7 +188,7 @@ export class Utils {
     if (req.headers.cookie) {
       req.headers.cookie.split(';').forEach(function (cookie) {
         let parts = cookie.split('=')
-        cookies[ parts[ 0 ].trim() ] = ( parts[ 1 ] || '' ).trim()
+        cookies[ parts[ 0 ].trim() ] = (parts[ 1 ] || '').trim()
       })
     }
     return cookies
@@ -417,20 +445,63 @@ export class Utils {
    *
    * @param String dir  Path for the directory to be created.
    */
-   mkdir (dir, mode) {
-     try {
-       fs.mkdirSync(dir, mode)
-     } catch (e) {
-       if (e.code === 'ENOENT') {
-         this.mkdir(path.dirname(dir), mode)
-         this.mkdir(dir, mode)
-       }
-     }
-   }
+  mkdir (dir, mode) {
+    try {
+      fs.mkdirSync(dir, mode)
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        this.mkdir(path.dirname(dir), mode)
+        this.mkdir(dir, mode)
+      }
+    }
+  }
+
+  /**
+   * Custom require function to load from the core scope and then from the
+   * project scope.
+   *
+   * @note: this is a ugly hack but it's working!
+   */
+  require (path) {
+    // try load module from the core
+    try {
+      return require(path)
+    } catch (e) {
+      if (this.api == null) { throw e }
+
+      // if fails try load from the project folder
+      try {
+        return require(`${this.api.scope.rootPath}/node_modules/${path}`)
+      } catch (e) {
+        throw e
+      }
+    }
+  }
+
+  // ------------------------------------------------------------- [Type Checks]
+
+  /**
+   * Checks if the given var is an non empty string.
+   *
+   * @param {string} value Value to be validated.
+   */
+  isNonEmptyString (value) {
+    return (typeof value === 'string' && value.length > 0)
+  }
+
+  // ----------------------------------------------------------------- [Strings]
+
+  /**
+   * Convert snake case string to camel case.
+   *
+   * @param {string} s String to be converted.
+   */
+  snakeToCamel (s) {
+    return s.replace(/(\_\w)/g, m => m[ 1 ].toUpperCase())
+  }
 }
 
 export default class {
-
   /**
    * Satellite load priority.
    *
@@ -439,8 +510,7 @@ export default class {
   loadPriority = 0
 
   load (api, next) {
-    api.utils = new Utils()
+    api.utils = new Utils(api)
     next()
   }
-
 }

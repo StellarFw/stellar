@@ -8,7 +8,7 @@ module.exports = [ {
     }
   },
 
-  run (engine, action, next) {
+  run (api, action, next) {
     action.response.string = `Input > ${action.params.value}`
     next()
   }
@@ -22,8 +22,22 @@ module.exports = [ {
     }
   },
 
-  run (engine, action, next) {
+  run (api, action, next) {
     action.response.string = `Input > ${action.params.value}`
+    next()
+  }
+}, {
+  name: 'input-default-function',
+  description: `Test input default value using a function`,
+
+  inputs: {
+    value: {
+      default (api) { return 156 }
+    }
+  },
+
+  run (api, action, next) {
+    action.response.value = action.params.value
     next()
   }
 }, {
@@ -36,7 +50,7 @@ module.exports = [ {
     }
   },
 
-  run (engine, action, next) {
+  run (api, action, next) {
     action.response.string = `Input > ${action.params.value}`
     next()
   }
@@ -46,11 +60,11 @@ module.exports = [ {
 
   inputs: {
     'value': {
-      validator: (param) => param === 'asd'
+      validator: param => param === 'asd'
     }
   },
 
-  run (engine, action, next) {
+  run (api, action, next) {
     action.response.string = `Input > ${action.params.value}`
     next()
   }

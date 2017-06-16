@@ -2,7 +2,7 @@ import os from 'os'
 
 export default {
   servers: {
-    web: api => {
+    web (api) {
       return {
         // ---------------------------------------------------------------------
         // Enable server?

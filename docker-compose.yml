@@ -1,0 +1,11 @@
+version: '3'
+services:
+  web:
+    build:
+      context: ./
+      args:
+        node_version: "${NODE_VERSION}"
+    image: stellar/stellar:${NODE_VERSION}
+    volumes:
+     - ./:/code
+     - /code/node_modules

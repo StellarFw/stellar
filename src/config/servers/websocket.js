@@ -1,6 +1,6 @@
 export default {
   servers: {
-    websocket: function (api) {
+    websocket (api) {
       return {
         // ---------------------------------------------------------------------
         // Enable the server?
@@ -32,8 +32,10 @@ export default {
         // WebSocket client options
         // ---------------------------------------------------------------------
         client: {
-          // the api base endpoint on your actionhero server
-          apiPath: '/api'
+          // API base endpoint on your server
+          apiPath: '/api',
+          // Default room for the chat system
+          defaultRoom: 'defaultRoom'
         },
 
         // ---------------------------------------------------------------------

@@ -6,7 +6,6 @@ import { exec } from 'child_process'
  * the NPM dependencies.
  */
 class Modules {
-
   /**
    * API reference object.
    *
@@ -32,11 +31,42 @@ class Modules {
   modulesPaths = new Map()
 
   /**
+   * This map contains all the actions who are part of each module.
+   *
+   * @type {Map}
+   */
+  moduleActions = new Map()
+
+  /**
    * Create a new class instance.
    *
    * @param api
    */
   constructor (api) { this.api = api }
+
+  /**
+   * Register a new action name for a module.
+   *
+   * @param {string} moduleName Module name
+   * @param {string|array} value Array of action name to be stored.
+   */
+  regModuleAction (moduleName, value) {
+    // first, check there is already a slot to store the actions of this module
+    if (!this.moduleActions.has(moduleName)) {
+      this.moduleActions.set(moduleName, [ ])
+    }
+
+    // get the array where the action name must be stored
+    const arrayOfActions = this.moduleActions.get(moduleName)
+
+    if (Array.isArray(value)) {
+      this.moduleActions.set(moduleName, arrayOfActions.concat(value))
+    } else if (this.api.utils.isNonEmptyString(value)) {
+      arrayOfActions.push(value)
+    } else {
+      throw new Error('Value got an invalid state')
+    }
+  }
 
   /**
    * Load all active modules into memory.
@@ -62,20 +92,25 @@ class Modules {
       process.exit(1)
     }
 
-    // load all modules manifests
-    modules.forEach(moduleName => {
+    // load all modules declared in the manifest file
+    for (const moduleName of modules) {
       // build the full path
-      let path = `${self.api.scope.rootPath}/modules/${moduleName}`
+      const path = `${self.api.scope.rootPath}/modules/${moduleName}`
 
       // get module manifest file content
-      let manifest = require(`${path}/manifest.json`)
+      try {
+        const manifest = require(`${path}/manifest.json`)
 
-      // save the module config on the engine instance
-      self.activeModules.set(manifest.id, manifest)
+        // save the module config on the engine instance
+        self.activeModules.set(manifest.id, manifest)
 
-      // save the module full path
-      self.modulesPaths.set(manifest.id, path)
-    })
+        // save the module full path
+        self.modulesPaths.set(manifest.id, path)
+      } catch (e) {
+        next(new Error(`There is an invalid module active, named "${moduleName}", fix this to start Stellar normally.`))
+        break
+      }
+    }
   }
 
   /**
@@ -143,7 +178,7 @@ class Modules {
     self.api.log('updating NPM packages', 'info')
 
     // check the command to be executed
-    const npmCommand = (scope.args.update) ? `npm update` : `npm install`
+    const npmCommand = (scope.args.update) ? 'npm update' : 'npm install'
 
     // run npm command
     exec(npmCommand, error => {
@@ -160,7 +195,6 @@ class Modules {
       next()
     })
   }
-
 }
 
 /**
@@ -168,7 +202,6 @@ class Modules {
  * engine instance.
  */
 export default class {
-
   /**
    * Initializer load priority.
    *
@@ -192,5 +225,4 @@ export default class {
     // process NPM dependencies
     api.modules.processNpmDependencies(next)
   }
-
 }

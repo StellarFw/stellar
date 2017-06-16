@@ -2,9 +2,9 @@ import fs from 'fs'
 import util from 'util'
 import path from 'path'
 import Primus from 'primus'
-// import UglifyJS from 'uglify-js'
+import UglifyJS from 'uglify-es'
 import GenericServer from '../genericServer'
-import browser_fingerprint from 'browser_fingerprint'
+import BrowserFingerprint from 'browser_fingerprint'
 
 // server type
 let type = 'websocket'
@@ -18,16 +18,16 @@ let attributes = {
   verbs: [
     'quit',
     'exit',
-    'roomAdd',
+    'roomJoin',
     'roomLeave',
     'roomView',
     'detailsView',
-    'say'
+    'say',
+    'event'
   ]
 }
 
 export default class WebSocketServer extends GenericServer {
-
   /**
    * Server instance.
    */
@@ -116,12 +116,8 @@ export default class WebSocketServer extends GenericServer {
    * @param messageCount    Message number.
    */
   sendMessage (connection, message, messageCount) {
-    let self = this
-
     // serialize the error if exists
-    if (message.error) {
-      message.error = self.api.config.errors.serializers.servers.websocket(message.error)
-    }
+    if (message.error) { message.error = this.api.config.errors.serializers.servers.websocket(message.error) }
 
     // if the message don't have a context set to 'response'
     if (!message.context) { message.context = 'response' }
@@ -191,7 +187,7 @@ export default class WebSocketServer extends GenericServer {
   _compileClientJS () {
     let self = this
 
-    let clientSource = fs.readFileSync(__dirname + '/../client.js').toString()
+    let clientSource = fs.readFileSync(`${__dirname}/../client.js`).toString()
     let url = self.api.config.servers.websocket.clientUrl
 
     // replace any url by client url
@@ -202,6 +198,9 @@ export default class WebSocketServer extends GenericServer {
       defaults[ i ] = self.api.config.servers.websocket.client[ i ]
     }
     defaults.url = url
+
+    // append the number of simultaneous connections allowed
+    defaults.simultaneousActions = this.api.config.general.simultaneousActions
 
     let defaultsString = util.inspect(defaults)
     defaultsString = defaultsString.replace('\'window.location.origin\'', 'window.location.origin')
@@ -231,12 +230,10 @@ export default class WebSocketServer extends GenericServer {
       'exports.StellarClient = StellarClient; \r\n' +
       '})(typeof exports === \'undefined\' ? window : exports);'
 
-    // todo: find a way to minify ES6 code or not 😒
-    // if (minimize) {
-    //   return UglifyJS.minify(`${libSource}\r\n\r\n\r\n${clientSource}`, { fromString: true }).code
-    // } else {
+    // minify the client lib code using Uglify
+    if (minimize) { return UglifyJS.minify(`${libSource}\r\n\r\n\r\n${clientSource}`).code }
+
     return `${libSource}\r\n\r\n\r\n${clientSource}`
-    // }
   }
 
   /**
@@ -261,7 +258,7 @@ export default class WebSocketServer extends GenericServer {
         fs.writeFileSync(`${base}.min.js`, self._renderClientJs(true))
         self.api.log(`wrote ${base}.min.js`, 'debug')
       } catch (e) {
-        self.api.log(`Cannot write client-side JS for websocket server:`, 'warning')
+        self.api.log('Cannot write client-side JS for websocket server:', 'warning')
         self.api.log(e, 'warning')
         throw e
       }
@@ -277,7 +274,7 @@ export default class WebSocketServer extends GenericServer {
   _handleConnection (rawConnection) {
     let self = this
 
-    let parsedCookies = browser_fingerprint.parseCookies(rawConnection)
+    let parsedCookies = BrowserFingerprint.parseCookies(rawConnection)
     let fingerPrint = parsedCookies[ self.api.config.servers.web.fingerprintOptions.cookieKey ]
 
     self.buildConnection({
@@ -306,8 +303,6 @@ export default class WebSocketServer extends GenericServer {
   }
 
   _handleData (connection, data) {
-    let self = this
-
     let verb = data.event
     delete data.event
 
@@ -320,7 +315,7 @@ export default class WebSocketServer extends GenericServer {
 
         connection.error = null
         connection.response = {}
-        self.processAction(connection)
+        this.processAction(connection)
         break
 
       case 'file':
@@ -330,7 +325,7 @@ export default class WebSocketServer extends GenericServer {
         }
 
         // process the file request
-        self.processFile(connection)
+        this.processFile(connection)
         break
 
       default:
@@ -348,12 +343,12 @@ export default class WebSocketServer extends GenericServer {
           // if exists an error, send it to the client
           if (error) {
             message = { status: error, context: 'response', data: data }
-            self.sendMessage(connection, message)
+            this.sendMessage(connection, message)
             return
           }
 
           message = { status: 'OK', context: 'response', data: data }
-          self.sendMessage(connection, message)
+          this.sendMessage(connection, message)
         })
         break
     }

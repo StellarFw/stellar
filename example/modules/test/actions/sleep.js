@@ -1,3 +1,5 @@
+'use strict'
+
 exports.sleep = {
   name: 'sleep',
   description: 'This action sleep for a while and then return',
@@ -17,10 +19,10 @@ exports.sleep = {
   },
 
   run: (api, data, next) => {
-    let sleepDuration = data.params.sleepDuration
-    let sleepStarted = new Date().getTime()
+    const sleepDuration = data.params.sleepDuration
+    const sleepStarted = new Date().getTime()
 
-    setTimeout(function () {
+    setTimeout(() => {
       let sleepEnded = new Date().getTime()
       let sleepDelta = sleepEnded - sleepStarted
 

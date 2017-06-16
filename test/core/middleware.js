@@ -8,7 +8,7 @@ let async = require('async')
 
 let api = null
 
-describe('Core: Errors', function () {
+describe('Core: Middleware', function () {
 
   before(function (done) {
     // start a Stellar instance

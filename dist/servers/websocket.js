@@ -96,7 +96,7 @@ class WebSocketServer extends _genericServer2.default {
     self.server.on('connection', rawConnection => self._handleConnection(rawConnection));
     self.server.on('disconnection', rawConnection => self._handleDisconnection(rawConnection));
 
-    self.api.log(`webSocket bound to ${ webserver.options.bindIP }:${ webserver.options.port }`, 'debug');
+    self.api.log(`webSocket bound to ${webserver.options.bindIP}:${webserver.options.port}`, 'debug');
     self.server.active = true;
 
     // write client js
@@ -259,7 +259,7 @@ class WebSocketServer extends _genericServer2.default {
     // if (minimize) {
     //   return UglifyJS.minify(`${libSource}\r\n\r\n\r\n${clientSource}`, { fromString: true }).code
     // } else {
-    return `${ libSource }\r\n\r\n\r\n${ clientSource }`;
+    return `${libSource}\r\n\r\n\r\n${clientSource}`;
     // }
   }
 
@@ -270,18 +270,18 @@ class WebSocketServer extends _genericServer2.default {
     let self = this;
 
     // ensure the public folder exists
-    if (!this.api.utils.directoryExists(`${ self.api.config.general.paths.public }`)) {
-      this.api.utils.createFolder(`${ self.api.config.general.paths.public }`);
+    if (!this.api.utils.directoryExists(`${self.api.config.general.paths.public}`)) {
+      this.api.utils.createFolder(`${self.api.config.general.paths.public}`);
     }
 
     if (self.api.config.servers.websocket.clientJsName) {
       let base = _path2.default.normalize(self.api.config.general.paths.public + _path2.default.sep + self.api.config.servers.websocket.clientJsName);
 
       try {
-        _fs2.default.writeFileSync(`${ base }.js`, self._renderClientJs(false));
-        self.api.log(`write ${ base }.js`, 'debug');
-        _fs2.default.writeFileSync(`${ base }.min.js`, self._renderClientJs(true));
-        self.api.log(`wrote ${ base }.min.js`, 'debug');
+        _fs2.default.writeFileSync(`${base}.js`, self._renderClientJs(false));
+        self.api.log(`write ${base}.js`, 'debug');
+        _fs2.default.writeFileSync(`${base}.min.js`, self._renderClientJs(true));
+        self.api.log(`wrote ${base}.min.js`, 'debug');
       } catch (e) {
         self.api.log(`Cannot write client-side JS for websocket server:`, 'warning');
         self.api.log(e, 'warning');

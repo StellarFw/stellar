@@ -52,7 +52,7 @@ class I18n {
 
     // iterate all modules
     for (let module in self.api.modules.activeModules.keys()) {
-      let localePath = `${ self.api.scope.rootPath }/modules/${ module }/locale`;
+      let localePath = `${self.api.scope.rootPath}/modules/${module}/locale`;
 
       // check if the folder exists
       if (this.api.utils.directoryExists(localePath)) {
@@ -102,7 +102,7 @@ class I18n {
     }
 
     // execute method
-    let locale = eval(`self.api.${ cmdParts.join('.') }(connection)`);
+    let locale = eval(`self.api.${cmdParts.join('.')}(connection)`);
 
     // set locale
     self.i18n.setLocale(connection, locale);

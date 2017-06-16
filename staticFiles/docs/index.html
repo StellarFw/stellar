@@ -36,6 +36,32 @@
       <div class="panel-block">{{project.description}}</div>
     </div>
 
+    <!-- available tasks -->
+    <div class="panel">
+      <div class="panel-header">Available Tasks</div>
+      <div class="panel-block">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Frequency (ms)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#tasks}}
+            <tr>
+              <td>{{name}}</td>
+              <td>{{description}}</td>
+              <td>{{frequency}}</td>
+            </tr>
+            {{/tasks}}
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+
     <!-- action inputs
     <div class="panel">
       <div class="panel-header">Inputs</div>

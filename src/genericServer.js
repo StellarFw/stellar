@@ -10,7 +10,6 @@ let methodNotDefined = () => { throw new Error('The containing method should be 
  * of servers inherit from.
  */
 export default class GenericServer extends EventEmitter {
-
   /**
    * API object reference.
    */
@@ -124,7 +123,8 @@ export default class GenericServer extends EventEmitter {
     let self = this
 
     // create a new action processor instance for this request
-    let actionProcessor = new this.api.actionProcessor(self.api, connection, data => {
+    const ActionProcessor = this.api.actionProcessor
+    let actionProcessor = new ActionProcessor(self.api, connection, data => {
       self.emit('actionComplete', data)
     })
 
@@ -138,10 +138,8 @@ export default class GenericServer extends EventEmitter {
    * @param connection Connection object.
    */
   processFile (connection) {
-    let self = this
-
-    self.api.staticFile.get(connection, (connection, error, fileStream, mime, length, lastModified) => {
-      self.sendFile(connection, error, fileStream, mime, length, lastModified)
+    this.api.staticFile.get(connection, (connection, error, fileStream, mime, length, lastModified) => {
+      this.sendFile(connection, error, fileStream, mime, length, lastModified)
     })
   }
 
@@ -202,5 +200,4 @@ export default class GenericServer extends EventEmitter {
    * @param reason      Reason for disconnection.
    */
   goodbye (connection, reason) { methodNotDefined() }
-
 }

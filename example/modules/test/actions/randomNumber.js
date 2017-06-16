@@ -1,3 +1,5 @@
+'use strict'
+
 exports.randomNumber = {
   name: 'randomNumber',
   description: 'Generates a random number',

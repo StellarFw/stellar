@@ -1,9 +1,6 @@
-/*eslint handle-callback-err: 0*/
-
 import async from 'async'
 
 class TaskSatellite {
-
   /**
    * API reference object.
    *
@@ -39,16 +36,16 @@ class TaskSatellite {
    * @param reload        This should be true is a reload.
    */
   loadFile (fullFilePath, reload = false) {
-    let self = this
-
     // function to be used to log the task (re)load
     let loadMessage = (loadedTasksName) => {
-      let reloadWord = reload ? '(re)' : ''
-      self.api.log(`task ${reloadWord}loaded: ${loadedTasksName}, ${fullFilePath}`, 'debug')
+      const level = reload ? 'info' : 'debug'
+      const reloadWord = reload ? '(re)' : ''
+
+      this.api.log(`task ${reloadWord}loaded: ${loadedTasksName}, ${fullFilePath}`, level)
     }
 
     // start watch for file changes
-    self.api.configs.watchFileAndAct(fullFilePath, () => self.loadFile(fullFilePath, true))
+    this.api.configs.watchFileAndAct(fullFilePath, () => this.loadFile(fullFilePath, true))
 
     // temporary task info
     let task = null
@@ -63,26 +60,26 @@ class TaskSatellite {
         task = collection[ i ]
 
         // create a new task entry
-        self.tasks[ task.name ] = task
+        this.tasks[ task.name ] = task
 
         // validate task
-        if (self._validateTask(self.tasks[ task.name ]) === false) { return }
+        if (this._validateTask(this.tasks[ task.name ]) === false) { return }
 
         // create a job wrapper on the new task
-        self.jobs[ task.name ] = self._jobWrapper(task.name)
+        this.jobs[ task.name ] = this._jobWrapper(task.name)
 
         // log the load message
         loadMessage(task.name)
       }
     } catch (err) {
-      self.api.log(`[TaskSatellite::loadFile] ${err}`)
+      this.api.log(`[TaskSatellite::loadFile] ${err}`)
 
       // handle the exception
-      self.api.exceptionHandlers.loader(fullFilePath, err)
+      this.api.exceptionHandlers.loader(fullFilePath, err)
 
       // remove the task if that exists
-      delete self.tasks[ task.name ]
-      delete self.jobs[ task.name ]
+      delete this.tasks[ task.name ]
+      delete this.jobs[ task.name ]
     }
   }
 
@@ -162,7 +159,7 @@ class TaskSatellite {
     let fail = msg => self.api.log(`${msg}; exiting`, 'emerg')
 
     if (typeof task.name !== 'string' || task.name.length < 1) {
-      fail(`a task is missing 'task.name'`)
+      fail('a task is missing \'task.name\'')
       return false
     } else if (typeof task.description !== 'string' || task.description.length < 1) {
       fail(`Task ${task.name} is missing 'task.description'`)
@@ -495,7 +492,7 @@ class TaskSatellite {
     let removedCount = 0
 
     // remove the task from the recurrent queue
-    self.del(task.queue, task.name, {}, 1, (error, count) => {
+    self.del(task.queue, task.name, {}, 1, (_, count) => {
       removedCount = removedCount + count
       self.delDelayed(task.queue, task.name, {}, (error, timestamps) => {
         removedCount = removedCount + timestamps.length
@@ -545,14 +542,12 @@ class TaskSatellite {
 
     async.series(jobs, callback)
   }
-
 }
 
 /**
  * This loads the task features to the API object.
  */
 export default class {
-
   /**
    * Satellite load priority.
    *
@@ -597,5 +592,4 @@ export default class {
       next()
     }
   }
-
 }

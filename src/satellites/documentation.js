@@ -2,7 +2,6 @@ import fs from 'fs'
 import Handlebars from 'handlebars'
 
 class DocumentationGenerator {
-
   /**
    * API reference object.
    *
@@ -43,6 +42,26 @@ class DocumentationGenerator {
 
     // build static folder path
     self.staticFolder = `${__dirname}/../../staticFiles/docs`
+  }
+
+  /**
+   * Generate an array with all information needed to build the list of tasks.
+   */
+  _getTasksInformation () {
+    // array to store all the tasks
+    const tasks = []
+
+    // iterate all registered tasks
+    Object.keys(this.api.tasks.tasks).forEach(key => {
+      const task = this.api.tasks.tasks[key]
+      tasks.push({
+        name: task.name,
+        description: task.description || 'N/A',
+        frequency: task.frequency || '-'
+      })
+    })
+
+    return tasks
   }
 
   /**
@@ -149,6 +168,9 @@ class DocumentationGenerator {
     data.project.description = self.api.config.description
     data.project.version = self.api.config.version
 
+    // append the tasks information
+    data.tasks = this._getTasksInformation()
+
     // get template source
     let source = fs.readFileSync(`${self.staticFolder}/index.html`).toString()
 
@@ -233,7 +255,6 @@ class DocumentationGenerator {
     this.api.utils.copyFile(`${self.staticFolder}/style.css`, `${self.docsFolder}/style.css`)
     this.api.utils.copyFile(`${self.staticFolder}/highlight.js`, `${self.docsFolder}/highlight.js`)
   }
-
 }
 
 /**
@@ -241,13 +262,12 @@ class DocumentationGenerator {
  * for all project actions.
  */
 export default class {
-
   /**
    * Satellite load priority.
    *
    * @type {number}
    */
-  loadPriority = 510
+  loadPriority = 710
 
   /**
    * Satellite loading function.
@@ -268,5 +288,4 @@ export default class {
     // finish the satellite loading
     next()
   }
-
 }
