@@ -46,7 +46,7 @@
     "st-formidable": "^1.0.18",
     "then-fakeredis": "^2.0.1",
     "uglify-es": "^3.0.17",
-    "uuid": "^3.0.0",
+    "uuid": "3.0.1",
     "waterline": "^0.11.6",
     "winston": "^2.1.1",
     "winston-daily-rotate-file": "^1.4.6",
