@@ -38,7 +38,7 @@ Stellar is a web framework that makes it easy to build modular APIs. It is desig
 - Native support for HTTP, WebSocket and TCP connections
 - Powerful and simple to use [Validation system](https://stellar-framework.com/guide/validation.html)
 
-Note that Stellar only supports Node.js version 6 or upper.
+Note that Stellar only supports Node.js version 7 or upper.
 
 ## Questions/Issues
 
@@ -50,7 +50,7 @@ Please make sure to read the [Contributing Guide](https://github.com/stellarFw/s
 
 ## Changelog
 
-Details changes for each release are documented in the [release notes](https://github.com/stellarFw/stellar/releases) and the [Changelog](https://github.com/stellarFw/stellar/blob/dev/CHANGELOG.md) file.
+Details changes for each release are documented in the [release notes](https://github.com/stellarFw/stellar/releases).
 
 ## Stay In Touch
 
@@ -60,4 +60,4 @@ For latest releases and announcements, follow me on Twitter: [@gil0mendes](https
 
 [MIT](http://opensource.org/licenses/MIT)
 
-Copyright (c) 2015-2016 Gil Mendes
+Copyright (c) 2015-Present Gil Mendes
