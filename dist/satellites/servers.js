@@ -82,7 +82,7 @@ class Servers {
           self.servers[serverName] = new ServerConstructor(self.api, options);
 
           // log a debug message
-          self.api.log(`Initialized server: ${ serverName }`, 'debug');
+          self.api.log(`Initialized server: ${serverName}`, 'debug');
 
           // execute the done function
           return done();
@@ -112,16 +112,16 @@ class Servers {
 
       // only load the server if the server was enabled
       if (server.options.enable === true) {
-        let message = `Starting server: ${ serverName }`;
+        let message = `Starting server: ${serverName}`;
 
         // append the bind IP to log message
         if (self.api.config.servers[serverName].bindIP) {
-          message += ` @ ${ self.api.config.servers[serverName].bindIP }`;
+          message += ` @ ${self.api.config.servers[serverName].bindIP}`;
         }
 
         // append the port to log message
         if (self.api.config.servers[serverName].port) {
-          message += ` @ ${ self.api.config.servers[serverName].port }`;
+          message += ` @ ${self.api.config.servers[serverName].port}`;
         }
 
         // push a new job
@@ -131,7 +131,7 @@ class Servers {
             if (error) {
               return done(error);
             }
-            self.api.log(`Server started: ${ serverName }`, 'debug');
+            self.api.log(`Server started: ${serverName}`, 'debug');
             return done();
           });
         });
@@ -160,14 +160,14 @@ class Servers {
       // check if the server are enable
       if (server && server.options.enable === true || !server) {
         jobs.push(done => {
-          self.api.log(`Stopping server: ${ serverName }`, 'notice');
+          self.api.log(`Stopping server: ${serverName}`, 'notice');
 
           // call the server stop method
           server.stop(error => {
             if (error) {
               return done(error);
             }
-            self.api.log(`Server stopped ${ serverName }`, 'debug');
+            self.api.log(`Server stopped ${serverName}`, 'debug');
             return done();
           });
         });

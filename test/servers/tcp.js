@@ -1,11 +1,11 @@
 'use strict'
 
 let net = require('net')
-let uuid = require('node-uuid')
+let uuid = require('uuid')
 
 let should = require('should')
 let EngineClass = require(__dirname + '/../../dist/engine').default
-let engine = new EngineClass({rootPath: process.cwd() + '/example'})
+let engine = new EngineClass({ rootPath: process.cwd() + '/example' })
 
 let api = null
 
@@ -103,7 +103,7 @@ describe('Servers: TCP', function () {
   it('connections should be able to connect and get JSON', done => {
     makeSocketRequest(client1, 'hello', response => {
       response.should.be.an.instanceOf(Object)
-      response.error.should.equal('unknown action or invalid apiVersion')
+      response.error.code.should.be.equal('004')
       done()
     })
   })
@@ -117,15 +117,15 @@ describe('Servers: TCP', function () {
   })
 
   it('stringified JSON can also be send as actions', done => {
-    makeSocketRequest(client1, JSON.stringify({action: 'status', params: {somethings: 'example'}}), response => {
+    makeSocketRequest(client1, JSON.stringify({ action: 'status', params: { somethings: 'example' } }), response => {
       response.id.should.equal('test-server')
       done()
     })
   })
 
   it('can not call private actions', done => {
-    makeSocketRequest(client1, JSON.stringify({action: 'sumANumber', params: {a: 3, b: 4}}), response => {
-      response.error.should.equal(api.config.errors.privateActionCalled('sumANumber'))
+    makeSocketRequest(client1, JSON.stringify({ action: 'sumANumber', params: { a: 3, b: 4 } }), response => {
+      response.error.code.should.be.equal('002')
       done()
     })
   })
@@ -228,19 +228,19 @@ describe('Servers: TCP', function () {
   })
 
   it('only params sent is a JSON block are used', done => {
-    makeSocketRequest(client1, JSON.stringify({action: 'cacheTest', params: {key: 'someOtherKey'}}), response => {
+    makeSocketRequest(client1, JSON.stringify({ action: 'cacheTest', params: { key: 'someOtherKey' } }), response => {
       response.error.value.should.equal('The value field is required.')
       done()
     })
   })
 
   it('will limit how many simultaneous connection a client can have', done => {
-    client1.write(JSON.stringify({action: 'sleep', params: {sleepDuration: 500}}) + '\r\n')
-    client1.write(JSON.stringify({action: 'sleep', params: {sleepDuration: 600}}) + '\r\n')
-    client1.write(JSON.stringify({action: 'sleep', params: {sleepDuration: 700}}) + '\r\n')
-    client1.write(JSON.stringify({action: 'sleep', params: {sleepDuration: 800}}) + '\r\n')
-    client1.write(JSON.stringify({action: 'sleep', params: {sleepDuration: 900}}) + '\r\n')
-    client1.write(JSON.stringify({action: 'sleep', params: {sleepDuration: 1000}}) + '\r\n')
+    client1.write(JSON.stringify({ action: 'sleep', params: { sleepDuration: 500 } }) + '\r\n')
+    client1.write(JSON.stringify({ action: 'sleep', params: { sleepDuration: 600 } }) + '\r\n')
+    client1.write(JSON.stringify({ action: 'sleep', params: { sleepDuration: 700 } }) + '\r\n')
+    client1.write(JSON.stringify({ action: 'sleep', params: { sleepDuration: 800 } }) + '\r\n')
+    client1.write(JSON.stringify({ action: 'sleep', params: { sleepDuration: 900 } }) + '\r\n')
+    client1.write(JSON.stringify({ action: 'sleep', params: { sleepDuration: 1000 } }) + '\r\n')
 
     let responses = []
 
@@ -258,7 +258,7 @@ describe('Servers: TCP', function () {
           let response = responses[ i ]
 
           if (i === '0') {
-            response.error.should.eql('you have too many pending requests')
+            response.error.code.should.be.equal('007')
           } else {
             should.not.exist(response.error)
           }
@@ -285,7 +285,13 @@ describe('Servers: TCP', function () {
     }
 
     makeSocketRequest(client1, JSON.stringify(msg), response => {
-      response.should.containEql({status: 'error', error: 'data length is too big (64 received/449 max)'})
+      response.should.containEql({
+        status: 'error',
+        error: {
+          code: '008',
+          message: 'Data length is too big (64 received/449 max)'
+        }
+      })
 
       // return maxDataLength back to normal
       api.config.servers.tcp.maxDataLength = 0
@@ -305,7 +311,7 @@ describe('Servers: TCP', function () {
     it('will parse /newline data delimiter', done => {
       api.config.servers.tcp.delimiter = '\n'
 
-      makeSocketRequest(client1, JSON.stringify({action: 'status'}), response => {
+      makeSocketRequest(client1, JSON.stringify({ action: 'status' }), response => {
         response.context.should.equal('response')
         done()
       }, '\n')
@@ -314,7 +320,7 @@ describe('Servers: TCP', function () {
     it('will parse custom `^]` data delimiter', done => {
       api.config.servers.tcp.delimiter = '^]'
 
-      makeSocketRequest(client1, JSON.stringify({action: 'status'}), response => {
+      makeSocketRequest(client1, JSON.stringify({ action: 'status' }), response => {
         response.context.should.equal('response')
         done()
       }, '^]')
@@ -327,18 +333,14 @@ describe('Servers: TCP', function () {
       api.chatRoom.addMiddleware({
         name: 'join chat middleware',
         join: (connection, room, callback) => {
-          api.chatRoom.broadcast({}, room, `I have entered the room: ${connection.id}`, e => {
-            callback()
-          })
+          api.chatRoom.emit(room, 'message', `I have entered the room: ${connection.id}`).then(_ => { callback() })
         }
       })
 
       api.chatRoom.addMiddleware({
         name: 'leave chat middleware',
         leave: (connection, room, callback) => {
-          api.chatRoom.broadcast({}, room, `I have left the room: ${connection.id}`, e => {
-            callback()
-          })
+          api.chatRoom.emit(room, 'message', `I have left the room: ${connection.id}`).then(_ => { callback() })
         }
       })
 
@@ -352,9 +354,9 @@ describe('Servers: TCP', function () {
     })
 
     beforeEach(done => {
-      makeSocketRequest(client1, 'roomAdd defaultRoom')
-      makeSocketRequest(client2, 'roomAdd defaultRoom')
-      makeSocketRequest(client3, 'roomAdd defaultRoom')
+      makeSocketRequest(client1, 'roomJoin defaultRoom')
+      makeSocketRequest(client2, 'roomJoin defaultRoom')
+      makeSocketRequest(client3, 'roomJoin defaultRoom')
 
       setTimeout(() => done(), 250)
     })
@@ -384,7 +386,7 @@ describe('Servers: TCP', function () {
     })
 
     it('rooms can be changed', done => {
-      makeSocketRequest(client1, 'roomAdd otherRoom', () => {
+      makeSocketRequest(client1, 'roomJoin otherRoom', () => {
         makeSocketRequest(client1, 'roomLeave defaultRoom', response => {
           response.status.should.equal('OK')
           makeSocketRequest(client1, 'roomView otherRoom', response => {
@@ -396,7 +398,7 @@ describe('Servers: TCP', function () {
     })
 
     it('connections in the first room see the count go down', done => {
-      makeSocketRequest(client1, 'roomAdd otherRoom', () => {
+      makeSocketRequest(client1, 'roomJoin otherRoom', () => {
         makeSocketRequest(client1, 'roomLeave defaultRoom', () => {
           makeSocketRequest(client2, 'roomView defaultRoom', response => {
             response.data.room.should.equal('defaultRoom')

@@ -21,7 +21,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 class Utils {
 
-  constructor() {}
+  constructor(api = null) {
+    this.api = null;
+    this.api = api;
+  }
 
   /**
    * Read all files from the given directory.
@@ -29,11 +32,18 @@ class Utils {
    * @param dir         Folder path to search.
    * @returns {Array}   Array with the files paths.
    */
+
+
+  /**
+   * Reference for the API object.
+   *
+   * @type {}
+   */
   getFiles(dir) {
     var results = [];
 
     _fs2.default.readdirSync(dir).forEach(file => {
-      file = `${ dir }/${ file }`;
+      file = `${dir}/${file}`;
       var stat = _fs2.default.statSync(file);
 
       if (stat && !stat.isDirectory()) {
@@ -269,7 +279,7 @@ class Utils {
     // iterate all folders and files on the directory
     filesList.forEach(file => {
       // get full file path
-      let filePath = `${ path }/${ file }`;
+      let filePath = `${path}/${file}`;
 
       // check if it's a file
       if (_fs2.default.statSync(filePath).isFile()) {
@@ -467,6 +477,41 @@ class Utils {
       }
     }
   }
+
+  /**
+   * Custom require function to load from the core scope and then from the
+   * project scope.
+   *
+   * @note: this is a ugly hack but it's working!
+   */
+  require(path) {
+    // try load module from the core
+    try {
+      return require(path);
+    } catch (e) {
+      if (this.api == null) {
+        throw e;
+      }
+
+      // if fails try load from the project folder
+      try {
+        return require(`${this.api.scope.rootPath}/node_modules/${path}`);
+      } catch (e) {
+        throw e;
+      }
+    }
+  }
+
+  // ------------------------------------------------------------- [Type Checks]
+
+  /**
+   * Checks if the given var is an non empty string.
+   *
+   * @param {string} value Value to be validated.
+   */
+  isNonEmptyString(value) {
+    return typeof value === 'string' && value.length > 0;
+  }
 }
 
 exports.Utils = Utils;
@@ -483,7 +528,7 @@ exports.default = class {
 
 
   load(api, next) {
-    api.utils = new Utils();
+    api.utils = new Utils(api);
     next();
   }
 

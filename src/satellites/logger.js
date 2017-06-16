@@ -1,7 +1,6 @@
 import winston from 'winston'
 
 export default class {
-
   loadPriority = 120
 
   load (api, next) {
@@ -51,5 +50,4 @@ export default class {
 
     next()
   }
-
 }

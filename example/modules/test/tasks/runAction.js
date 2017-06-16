@@ -7,17 +7,17 @@ exports.sayHello = {
   run (api, params = {}, next) {
     // execute the requested action
     api.actions.call(params.action, params)
-      .catch(error => {
-        // log the error
-        api.log(`task error: ${error}`, 'error', { params: JSON.stringify(params) })
+    .then(response => {
+      // log the task call
+      api.log(`[ action @ task ]`, 'debug', { params: JSON.stringify(params) })
 
-        next(error, null)
-      })
-      .then(response => {
-        // log the task call
-        api.log(`[ action @ task ]`, 'debug', { params: JSON.stringify(params) })
+      next(null, response)
+    })
+    .catch(error => {
+      // log the error
+      api.log(`task error: ${error}`, 'error', { params: JSON.stringify(params) })
 
-        next(null, response)
-      })
+      next(error, null)
+    })
   }
 }

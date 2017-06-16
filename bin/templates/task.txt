@@ -7,9 +7,10 @@ exports.{{taskName}} = {
   queue: 'default',
   frequency: 1000,
 
-  run: (api, param, next) => {
+  run (api, param, next) {
     // do stuff...
 
+    // finish the task execution
     next()
   }
 }

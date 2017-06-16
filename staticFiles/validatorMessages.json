@@ -4,6 +4,7 @@
   "alpha_dash": "The :attribute may only contain letters, numbers, and dashes.",
   "array": "The :attribute must be an array.",
   "before": "The :attribute must be a date before :date.",
+  "after": "The :attribute must be a date after :date.",
   "between": {
     "numeric": "The :attribute must be between :min and :max.",
     "string": "The :attribute must be between :min and :max characters.",

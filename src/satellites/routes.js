@@ -4,7 +4,6 @@ import fs from 'fs'
  * Class to manage the HTTP action routes.
  */
 class RoutesManager {
-
   /**
    * API reference.
    *
@@ -249,7 +248,6 @@ class RoutesManager {
  * Initializer to load the class who process the routes requests.
  */
 export default class {
-
   /**
    * Initializer load priority.
    *
@@ -275,5 +273,4 @@ export default class {
     // finish the initializer loading
     next()
   }
-
 }

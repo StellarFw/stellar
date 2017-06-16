@@ -4,9 +4,9 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _nodeUuid = require('node-uuid');
+var _uuid = require('uuid');
 
-var _nodeUuid2 = _interopRequireDefault(_nodeUuid);
+var _uuid2 = _interopRequireDefault(_uuid);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -226,7 +226,7 @@ class Connection {
 
     requiredFields.forEach(req => {
       if (data[req] === null || data[req] === undefined) {
-        throw new Error(`${ req } is required to create a new connection object`);
+        throw new Error(`${req} is required to create a new connection object`);
       }
       self[req] = data[req];
     });
@@ -236,7 +236,7 @@ class Connection {
     enforcedConnectionProperties.forEach(req => {
       if (data[req] === null || data[req] === undefined) {
         if (self.api.config.general.enforceConnectionProperties === true) {
-          throw new Error(`${ req } is required to create a new connection object`);
+          throw new Error(`${req} is required to create a new connection object`);
         } else {
           data[req] = 0; // could be a random uuid as well?
         }
@@ -275,7 +275,7 @@ class Connection {
    * @private
    */
   _generateID() {
-    return _nodeUuid2.default.v4();
+    return _uuid2.default.v4();
   }
 
   /**
@@ -284,7 +284,7 @@ class Connection {
    * @param message
    */
   sendMessage(message) {
-    throw new Error(`I should be replaced with a connection-specific method [${ message }]`);
+    throw new Error(`I should be replaced with a connection-specific method [${message}]`);
   }
 
   /**
@@ -293,7 +293,7 @@ class Connection {
    * @param path
    */
   sendFile(path) {
-    throw new Error(`I should be replaced with a connection-specific method [${ path }]`);
+    throw new Error(`I should be replaced with a connection-specific method [${path}]`);
   }
 
   /**
@@ -456,7 +456,7 @@ class Connection {
           });
         } else {
           if (typeof callback === 'function') {
-            callback(`not member of room ${ room }`);
+            callback(`not member of room ${room}`);
           }
         }
       } else if (verb === 'detailsView') {

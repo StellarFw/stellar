@@ -4,7 +4,6 @@ import async from 'async'
  * This class process an action request.
  */
 class ActionProcessor {
-
   /**
    * API reference.
    *
@@ -26,6 +25,20 @@ class ActionProcessor {
   response = {}
   duration = null
   actionStatus = null
+
+  /**
+   * Timer that is used to timeout the action call.
+   */
+  timeoutTimer = null
+
+  /**
+   * When this flag is set to true we block any after response.
+   *
+   * This is essential used when a timeout happens.
+   *
+   * @type {boolean}
+   */
+  errorRendered = false
 
   /**
    * Create a new Action Processor instance.
@@ -86,21 +99,25 @@ class ActionProcessor {
     } else if (status === 'too_many_requests') {
       error = self.api.config.errors.tooManyPendingActions()
     } else if (status === 'unknown_action') {
-      error = self.api.config.errors.unknownAction(self.connection.action)
+      error = self.api.config.errors.unknownAction(this.action)
     } else if (status === 'unsupported_server_type') {
       error = self.api.config.errors.unsupportedServerType(self.connection.type)
     } else if (status === 'validator_errors') {
       error = self.api.config.errors.invalidParams(self.validatorErrors)
+    } else if (status === 'response_timeout') {
+      error = this.api.config.errors.responseTimeout(this.action)
     } else if (status) {
       error = status
     }
 
-    if (error && typeof error === 'string') {
-      error = new Error(error)
-    }
+    if (error && typeof error === 'string') { error = new Error(error) }
 
-    if (error && !self.response.error) {
-      self.response.error = error
+    if (error && !this.response.error) {
+      if (typeof this.response === 'string' || Array.isArray(this.response)) {
+        this.response = error.toString()
+      } else {
+        this.response.error = error
+      }
     }
 
     self.incrementPendingActions(-1)
@@ -231,33 +248,33 @@ class ActionProcessor {
       // default
       if (self.params[ key ] === undefined && props.default !== undefined) {
         if (typeof props.default === 'function') {
-          self.params[ key ] = props.default(self.params[ key ], self)
+          self.params[ key ] = props.default(self)
         } else {
           self.params[ key ] = props.default
         }
       }
 
-      // convert
-      if (props.convertTo && this.params[key]) {
-        // Function
-        if (typeof props.convertTo === 'function') {
-          self.params[ key ] = props.convertTo.call(self.api, self.params[ key ], self)
-        } else if (props.convertTo === 'integer') {
+      // format the input to the requested type
+      if (props.format && this.params[key]) {
+        if (typeof props.format === 'function') {
+          self.params[ key ] = props.format.call(this.api, this.params[ key ], this)
+        } else if (props.format === 'integer') {
           self.params[ key ] = Number.parseInt(self.params[ key ])
-        } else if (props.convertTo === 'float') {
+        } else if (props.format === 'float') {
           self.params[ key ] = Number.parseFloat(self.params[ key ])
-        } else if (props.convertTo === 'string') {
+        } else if (props.format === 'string') {
           self.params[ key ] = String(self.params[ key ])
         }
 
         if (Number.isNaN(self.params[ key ])) {
-          self.validatorErrors.set(key, self.api.config.errors.paramInvalidType(key, props.convertTo))
+          self.validatorErrors.set(key, self.api.config.errors.paramInvalidType(key, props.format))
         }
       }
 
       // convert the required property to a validator to unify the validation
       // system
       if (props.required === true) {
+        // FIXME: this will throw an error when the validator is a function
         props.validator = (!props.validator) ? 'required' : 'required|' + props.validator
       }
 
@@ -291,7 +308,7 @@ class ActionProcessor {
       self.actionTemplate = self.api.actions.actions[ self.action ][ self.params.apiVersion ]
     }
 
-    if (self.api.running !== true) {
+    if (self.api.status !== 'running') {
       self.completeAction('server_shutting_down')
     } else if (self.getPendingActionCount(self.connection) > self.api.config.general.simultaneousActions) {
       self.completeAction('too_many_requests')
@@ -312,27 +329,67 @@ class ActionProcessor {
    * Run an action.
    */
   runAction () {
-    let self = this
-
-    self.preProcessAction(error => {
+    this.preProcessAction(error => {
       // validate the request params with the action requirements
-      self.validateParams()
+      this.validateParams()
 
       if (error) {
-        self.completeAction(error)
-      } else if (self.validatorErrors.size > 0) {
-        self.completeAction('validator_errors')
-      } else if (self.toProcess === true && !error) {
+        this.completeAction(error)
+      } else if (this.validatorErrors.size > 0) {
+        this.completeAction('validator_errors')
+      } else if (this.toProcess === true && !error) {
+        // create a timer that will be used to timeout the action if needed. The time timeout is reached a timeout error
+        // is sent to the client.
+        this.timeoutTimer = setTimeout(() => {
+          // finish action with a timeout error
+          this.completeAction('response_timeout')
+
+          // ensure that the action wouldn't respond
+          this.errorRendered = true
+        }, this.api.config.general.actionTimeout)
+
         // execute the action logic
-        self.actionTemplate.run(self.api, self, error => {
-          if (error) {
-            self.completeAction(error)
-          } else {
-            self.postProcessAction(error => self.completeAction(error))
-          }
+        const returnVal = this.actionTemplate.run(this.api, this, error => {
+          // stop the timeout timer
+          clearTimeout(this.timeoutTimer)
+
+          // when the error rendered flag is set we don't send a response
+          if (this.errorRendered) { return }
+
+          // catch the error messages and send to the client an error as a response
+          if (error) { return this.completeAction(error) }
+
+          // execute the post action process
+          this.postProcessAction(error => this.completeAction(error))
         })
+
+        // if the returnVal is a Promise we wait for the resolve/rejection and
+        // after that we finish the action execution
+        if (returnVal && typeof returnVal.then === 'function') {
+          returnVal
+            // execute the post action process
+            .then(() => {
+              // when the error rendered flag is set we don't send a response
+              if (this.errorRendered) { return }
+
+              // post process the action
+              this.postProcessAction(error => this.completeAction(error))
+            })
+
+            // catch error responses
+            .catch(error => {
+              // when the error rendered flag is set we don't send a response
+              if (this.errorRendered) { return }
+
+              // complete the action with an error message
+              this.completeAction(error)
+            })
+
+            // stop the timeout timer
+            .then(() => clearTimeout(this.timeoutTimer))
+        }
       } else {
-        self.completeAction()
+        this.completeAction()
       }
     })
   }
@@ -342,7 +399,6 @@ class ActionProcessor {
  * Action processor Satellite.
  */
 export default class {
-
   /**
    * Initializer load priority.
    *
@@ -363,5 +419,4 @@ export default class {
     // finish the load
     next()
   }
-
 }

@@ -1,49 +1,42 @@
 'use strict'
 
-// ----------------------------------------------------------------------------------------------------------- [Imports]
+// ----------------------------------------------------------------------------- [Imports]
 
 let Command = require('../Command')
 let Utils = require('../utils')
 
-// ------------------------------------------------------------------------------------------------------------- [Class]
+// ----------------------------------------------------------------------------- [Command]
 
 class dockerItCommand extends Command {
 
-    constructor(args) {
-        // execute the super class constructor method
-        super()
+  constructor () {
+    // execute the super class constructor method
+    super(false)
 
-        // define usage
-        this.usage = 'stellar dockerIt'
+    // command
+    this.command = 'dockerIt'
+    this.describe = 'Create a new dockerfile for the stellar project'
+  }
 
-        // save the parsed console arguments
-        this.args = args
+  /**
+   * Execute the command.
+   */
+  run () {
+    // see if a dockerfile already exists
+    if (Utils.exists(process.cwd() + '/dockerfile')) {
+      this.printError('A dockerfile already exists')
+      return false
     }
 
-    /**
-     * Execute the command.
-     *
-     */
-    execute() {
-        console.log(Utils.exists(process.cwd() + '/dockerfile').toString())
-        console.log(process.cwd() + '/dockerfile')
-//see if a dockerfile already exists
-        if (Utils.exists(process.cwd() + '/dockerfile')) {
-            this.printError('A dockerfile already exists')
-            return false
-        }
+    // create manifest.json file
+    Utils.generateFileFromTemplate('dockerfile', {}, `${process.cwd()}/dockerfile`)
 
-
-        // create manifest.json file
-        Utils.generateFileFromTemplate('dockerfile', {}, `${process.cwd()}/dockerfile`)
-
-        // print a success message
-        this.printSuccess(`A dockerfile was created in the project root.\nCreate the image with docker build -t <image_name> .\nCreate a container with docker run -t -p 8080:8080 --name <container_name> <image_name> ! 😉 🌟`)
-
-
-    }
+    // print a success message
+    this.printSuccess(`A dockerfile was created in the project root.\nCreate the image with: docker build -t <image_name> .\nCreate a container with: docker run -t -p 8080:8080 --name <container_name> <image_name>`)
+  }
 }
 
-// export the function to execute the command
-module.exports = args => (new dockerItCommand(args)).execute()
+// -----------------------------------------------------------------------------
 
+// export the command
+module.exports = (new dockerItCommand())

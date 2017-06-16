@@ -67,6 +67,14 @@ describe('Core: Validators', function () {
     done()
   })
 
+  it('after', done => {
+    should(simplesValidator('after:2016-11-26', 'asd')).not.be.equal(true)
+    should(simplesValidator('after:2016-11-26', '2016-11-25')).not.be.equal(true)
+    should(simplesValidator('after:2016-11-26', '2016-11-26')).not.be.equal(true)
+    should(simplesValidator('after:2016-11-26', '2016-11-27')).be.equal(true)
+    done()
+  })
+
   it('between', done => {
     (() => simplesValidator('between', '')).should.throw()
     should(simplesValidator('between:20,50', 'asd')).not.be.equal(true)

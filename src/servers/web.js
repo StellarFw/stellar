@@ -1,5 +1,3 @@
-/*eslint handle-callback-err: 0*/
-
 import fs from 'fs'
 import qs from 'qs'
 import url from 'url'
@@ -7,10 +5,10 @@ import path from 'path'
 import zlib from 'zlib'
 import etag from 'etag'
 import Mime from 'mime'
-import uuid from 'node-uuid'
-import formidable from 'formidable'
+import uuid from 'uuid'
+import formidable from 'st-formidable'
 import GenericServer from '../genericServer'
-import browser_fingerprint from 'browser_fingerprint'
+import BrowserFingerprint from 'browser_fingerprint'
 
 // server type
 let type = 'web'
@@ -30,7 +28,6 @@ let attributes = {
  * This implements the HTTP web server.
  */
 export default class Web extends GenericServer {
-
   /**
    * Http server instance.
    */
@@ -49,7 +46,7 @@ export default class Web extends GenericServer {
     let self = this
 
     if ([ 'api', 'file' ].indexOf(self.api.config.servers.web.rootEndpointType) < 0) {
-      throw new Error(`api.config.servers.web.rootEndpointType can only be 'api' or 'file'.`)
+      throw new Error('api.config.servers.web.rootEndpointType can only be \'api\' or \'file\'.')
     }
 
     // -------------------------------------------------------------------------------------------------------- [EVENTS]
@@ -76,7 +73,6 @@ export default class Web extends GenericServer {
 
     // event to be executed after the action completion
     self.on('actionComplete', data => { self._completeResponse(data) })
-
   }
 
   // ------------------------------------------------------------------------------------------------ [REQUIRED METHODS]
@@ -180,95 +176,113 @@ export default class Web extends GenericServer {
    * @param lastModified    Timestamp if the last modification.
    */
   sendFile (connection, error, fileStream, mime, length, lastModified) {
-    let self = this
-    let foundExpires = false
     let foundCacheControl = false
     let ifModifiedSince
     let reqHeaders
 
     // check if we should use cache mechanisms
     connection.rawConnection.responseHeaders.forEach(pair => {
-      if (pair[ 0 ].toLowerCase() === 'expires') { foundExpires = true }
-      if (pair[ 1 ].toLowerCase() === 'cache-control') { foundCacheControl = true }
+      if (pair[ 0 ].toLowerCase() === 'cache-control') { foundCacheControl = true }
     })
-
-    // get headers from the client request
-    reqHeaders = connection.rawConnection.req.headers
-
-    // get the 'if-modified-since' value if exists
-    if (reqHeaders[ 'if-modified-since' ]) { ifModifiedSince = new Date(reqHeaders[ 'if-modified-since' ]) }
 
     // add mime type to the response headers
     connection.rawConnection.responseHeaders.push([ 'Content-Type', mime ])
 
-    // check if file expires
-    if (foundExpires === false) {
-      connection.rawConnection.responseHeaders.push([ 'Expires',
-        new Date(new Date().getTime() + self.api.config.servers.web.flatFileCacheDuration * 1000).toUTCString() ])
-    }
-
-    // check if the client want use cache
-    if (foundCacheControl === false) {
-      connection.rawConnection.responseHeaders.push([ 'Cache-Control', 'max-age=' + self.api.config.servers.web.flatFileCacheDuration + ', must-revalidate, public' ])
+    // If is to use a cache mechanism we must append a cache control header to the response
+    if (fileStream) {
+      if (!foundCacheControl) {
+        connection.rawConnection.responseHeaders.push([
+          'Cache-Control', `max-age=${this.api.config.servers.web.flatFileCacheDuration}, must-revalidate, public`
+        ])
+      }
     }
 
     // add a header to the response with the last modified timestamp
-    connection.rawConnection.responseHeaders.push([ 'Last-Modified', new Date(lastModified) ])
-
-    // clean the connection headers
-    self._cleanHeaders(connection)
-
-    // get the response headers
-    let headers = connection.rawConnection.responseHeaders
-
-    // if an error exists change the status code to 404
-    if (error) { connection.rawConnection.responseHttpCode = 404 }
-
-    // if the lastModified is smaller than ifModifiedSince we respond with a 304 (use cache)
-    if (ifModifiedSince && lastModified <= ifModifiedSince) { connection.rawConnection.responseHttpCode = 304 }
-
-    // check if is to use ETag
-    if (self.api.config.servers.web.enableEtag && fileStream) {
-      // get a file buffer
-      let fileBuffer = !Buffer.isBuffer(fileStream) ? new Buffer(fileStream.toString(), 'utf8') : fileStream
-
-      // build the ETag header
-      let fileEtag = etag(fileBuffer, { weak: true })
-
-      // push the header to the response
-      connection.rawConnection.responseHeaders.push([ 'ETag', fileEtag ])
-
-      let noneMatchHeader = reqHeaders[ 'if-none-match' ]
-      let cacheCtrlHeader = reqHeaders[ 'cache-control' ]
-      let noCache = false
-      let etagMatches
-
-      // check for no-cache cache request directive
-      if (cacheCtrlHeader && cacheCtrlHeader.indexOf('no-cache') !== -1) { noCache = true }
-
-      // parse if-none-match
-      if (noneMatchHeader) { noneMatchHeader = noneMatchHeader.split(/ *, */) }
-
-      // if-none-match
-      if (noneMatchHeader) {
-        etagMatches = noneMatchHeader.some(match => match === '*' || match === fileEtag || match === 'W/' + fileEtag)
+    if (fileStream && !this.api.config.servers.web.enableEtag) {
+      if (lastModified) {
+        connection.rawConnection.responseHeaders.push(['Last-Modified', new Date(lastModified).toUTCString()])
       }
-
-      // use the cached object
-      if (etagMatches && !noCache) { connection.rawConnection.responseHeaders = 304 }
     }
 
-    // parse the HTTP status code to int
-    let responseHttpCode = parseInt(connection.rawConnection.responseHttpCode)
+    // clean the connection headers
+    this._cleanHeaders(connection)
 
+    // get headers from the client request
+    reqHeaders = connection.rawConnection.req.headers
+
+    // get the response headers
+    const headers = connection.rawConnection.responseHeaders
+
+    // This function is used to send the response to the client.
+    const sendRequestResult = () => {
+      // parse the HTTP status code to int
+      let responseHttpCode = parseInt(connection.rawConnection.responseHttpCode, 10)
+
+      if (error) {
+        const errorString = (error instanceof Error) ? String(error) : JSON.stringify(error)
+        this.sendWithCompression(connection, responseHttpCode, headers, errorString)
+      } else if (responseHttpCode !== 304) {
+        this.sendWithCompression(connection, responseHttpCode, headers, null, fileStream, length)
+      } else {
+        connection.rawConnection.res.writeHead(responseHttpCode, headers)
+        connection.rawConnection.res.end()
+        connection.destroy()
+      }
+    }
+
+    // if an error exists change the status code to 404 and send the response
     if (error) {
-      self.sendWithCompression(connection, responseHttpCode, headers, String(error))
-    } else if (responseHttpCode !== 304) {
-      self.sendWithCompression(connection, responseHttpCode, headers, null, fileStream, length)
+      connection.rawConnection.responseHttpCode = 404
+      return sendRequestResult()
+    }
+
+    // get the 'if-modified-since' value if exists
+    if (reqHeaders[ 'if-modified-since' ]) {
+      ifModifiedSince = new Date(reqHeaders[ 'if-modified-since' ])
+      lastModified.setMilliseconds(0)
+      if (lastModified <= ifModifiedSince) {
+        connection.rawConnection.responseHttpCode = 304
+      }
+      return sendRequestResult()
+    }
+
+    // check if is to use ETag
+    if (this.api.config.servers.web.enableEtag && fileStream && fileStream.path) {
+      // Get the file states in order to create the ETag header
+      fs.stat(fileStream.path, (error, filestats) => {
+        if (error) {
+          this.log(`Error receiving file statistics: ${String(error)}`)
+          return sendRequestResult()
+        }
+
+        // push the ETag header to the response
+        const fileEtag = etag(filestats, { weak: true })
+        connection.rawConnection.responseHeaders.push([ 'ETag', fileEtag ])
+
+        let noneMatchHeader = reqHeaders[ 'if-none-match' ]
+        let cacheCtrlHeader = reqHeaders[ 'cache-control' ]
+        let noCache = false
+        let etagMatches
+
+        // check for no-cache cache request directive
+        if (cacheCtrlHeader && cacheCtrlHeader.indexOf('no-cache') !== -1) { noCache = true }
+
+        // parse if-none-match
+        if (noneMatchHeader) { noneMatchHeader = noneMatchHeader.split(/ *, */) }
+
+        // if-none-match
+        if (noneMatchHeader) {
+          etagMatches = noneMatchHeader.some(match => match === '*' || match === fileEtag || match === 'W/' + fileEtag)
+        }
+
+        // use the cached object
+        if (etagMatches && !noCache) { connection.rawConnection.responseHeaders = 304 }
+
+        // send response
+        sendRequestResult()
+      })
     } else {
-      connection.rawConnection.res.writeHead(responseHttpCode, headers)
-      connection.rawConnection.res.end()
-      connection.destroy()
+      sendRequestResult()
     }
   }
 
@@ -319,7 +333,7 @@ export default class Web extends GenericServer {
       }
     } else {
       if (stringEncoder) {
-        stringEncoder(stringResponse, (error, zippedString) => {
+        stringEncoder(stringResponse, (_, zippedString) => {
           headers.push([ 'Content-Length', zippedString.length ])
           connection.rawConnection.res.writeHead(responseHttpCode, headers)
           connection.rawConnection.res.end(zippedString)
@@ -354,7 +368,9 @@ export default class Web extends GenericServer {
     let self = this
 
     // get the client fingerprint
-    browser_fingerprint.fingerprint(req, self.api.config.servers.web.fingerprintOptions, (fingerprint, elementHash, cookieHash) => {
+    BrowserFingerprint.fingerprint(req, self.api.config.servers.web.fingerprintOptions, (error, fingerprint, elementHash, cookieHash) => {
+      if (error) { throw error }
+
       let responseHeaders = []
       let cookies = this.api.utils.parseCookies(req)
       let responseHttpCode = 200
@@ -427,13 +443,11 @@ export default class Web extends GenericServer {
   /**
    * Change socket permission.
    *
-   * @param bindIP
-   * @param port
+   * @param bindIP  IP here socket is listening.
+   * @param port    Port that socket is listening.
    */
   chmodSocket (bindIP, port) {
-    let self = this
-
-    if (!bindIP && self.options.port.indexOf('/') >= 0) { fs.chmodSync(port, 0o777) }
+    if (!bindIP && port.indexOf('/') >= 0) { fs.chmodSync(port, 0o777) }
   }
 
   /**
@@ -496,7 +510,7 @@ export default class Web extends GenericServer {
       connection.rawConnection.params.query = connection.rawConnection.parsedURL.query
 
       if (connection.rawConnection.method !== 'GET' && connection.rawConnection.method !== 'HEAD' &&
-        ( connection.rawConnection.req.headers[ 'content-type' ] || connection.rawConnection.req.headers[ 'Content-Type' ] )) {
+        (connection.rawConnection.req.headers[ 'content-type' ] || connection.rawConnection.req.headers[ 'Content-Type' ])) {
         connection.rawConnection.form = new formidable.IncomingForm()
 
         for (i in self.api.config.servers.web.formOptions) {
@@ -586,15 +600,13 @@ export default class Web extends GenericServer {
    * @private
    */
   _completeResponse (data) {
-    let self = this
-
     if (data.toRender === true) {
-      if (self.api.config.servers.web.metadataOptions.serverInformation) {
+      if (this.api.config.servers.web.metadataOptions.serverInformation) {
         let stopTime = new Date().getTime()
 
         data.response.serverInformation = {
-          serverName: self.api.config.general.serverName,
-          apiVersion: self.api.config.general.apiVersion,
+          serverName: this.api.config.general.serverName,
+          apiVersion: this.api.config.general.apiVersion,
           requestDuration: (stopTime - data.connection.connectedAt),
           currentTime: stopTime
         }
@@ -602,13 +614,13 @@ export default class Web extends GenericServer {
     }
 
     // check if is to use requester information
-    if (self.api.config.servers.web.metadataOptions.requesterInformation) {
-      data.response.requesterInformation = self._buildRequesterInformation(data.connection)
+    if (this.api.config.servers.web.metadataOptions.requesterInformation) {
+      data.response.requesterInformation = this._buildRequesterInformation(data.connection)
     }
 
     // is an error response?
     if (data.response.error) {
-      if (self.api.config.servers.web.returnErrorCodes === true && data.connection.rawConnection.responseHttpCode === 200) {
+      if (this.api.config.servers.web.returnErrorCodes === true && data.connection.rawConnection.responseHttpCode === 200) {
         if (data.actionStatus === 'unknown_action') {
           data.connection.rawConnection.responseHttpCode = 404
         } else if (data.actionStatus === 'missing_params') {
@@ -621,20 +633,20 @@ export default class Web extends GenericServer {
       }
     }
 
-    if (!data.response.error && data.action && data.params.apiVersion && self.api.actions.actions[ data.params.action ][ data.params.apiVersion ].matchExtensionMimeType === true && data.connection.extension) {
+    if (!data.response.error && data.action && data.params.apiVersion && this.api.actions.actions[ data.params.action ][ data.params.apiVersion ].matchExtensionMimeType === true && data.connection.extension) {
       data.connection.rawConnection.responseHeaders.push([ 'Content-Type', Mime.lookup(data.connection.extension) ])
     }
 
     // if its an error response we need to serialize the error object
     if (data.response.error) {
-      data.response.error = self.api.config.errors.serializers.servers.web(data.response.error)
+      data.response.error = this.api.config.errors.serializers.servers.web(data.response.error)
     }
 
     let stringResponse = ''
 
     // build the string response
-    if (self._extractHeader(data.connection, 'Content-Type').match(/json/)) {
-      stringResponse = JSON.stringify(data.response, null, self.api.config.servers.web.padding)
+    if (this._extractHeader(data.connection, 'Content-Type').match(/json/)) {
+      stringResponse = JSON.stringify(data.response, null, this.api.config.servers.web.padding)
       if (data.params.callback) {
         data.connection.rawConnection.responseHeaders.push([ 'Content-Type', 'application/javascript' ])
         stringResponse = data.connection.params.callback + '(' + stringResponse + ');'
@@ -644,7 +656,7 @@ export default class Web extends GenericServer {
     }
 
     // return the response to the client
-    self.sendMessage(data.connection, stringResponse)
+    this.sendMessage(data.connection, stringResponse)
   }
 
   /**
@@ -672,7 +684,7 @@ export default class Web extends GenericServer {
    * Build the requester information.
    *
    * @param connection
-   * @returns {{id: number, fingerprint: (*|browser_fingerprint.fingerprint|null), remoteIP: string, receivedParams: {}}}
+   * @returns {{id: number, fingerprint: (*|BrowserFingerprint.fingerprint|null), remoteIP: string, receivedParams: {}}}
    * @private
    */
   _buildRequesterInformation (connection) {

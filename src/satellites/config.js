@@ -2,7 +2,6 @@ import fs from 'fs'
 import path from 'path'
 
 class ConfigManager {
-
   /**
    * Api reference object.
    *
@@ -50,15 +49,13 @@ class ConfigManager {
    * TODO: use the command line arguments to define the environment
    */
   _setupEnvironment () {
-    let self = this
-
     // if (argv.NODE_ENV) {
-    //   self.api.env = argv.NODE_ENV
+    //   this.api.env = argv.NODE_ENV
     // } else
     if (process.env.NODE_ENV) {
-      self.api.env = process.env.NODE_ENV
+      this.api.env = process.env.NODE_ENV
     } else {
-      self.api.env = 'development'
+      this.api.env = 'development'
     }
   }
 
@@ -66,15 +63,11 @@ class ConfigManager {
    * Unwatch all files.
    */
   unwatchAllFiles () {
-    let self = this
-
     // iterate all watched files and say to the FS to stop watch the changes
-    for (let i in self._watchedFiles) {
-      fs.unwatchFile(self._watchedFiles[ i ])
-    }
+    this._watchedFiles.forEach(file => { fs.unwatchFile(file) })
 
     // reset the watch array
-    self._watchedFiles = []
+    this._watchedFiles = []
   }
 
   /**
@@ -85,8 +78,6 @@ class ConfigManager {
    * @param callback  Callback function.
    */
   watchFileAndAct (file, callback) {
-    let self = this
-
     // normalise file path
     file = path.normalize(file)
 
@@ -94,14 +85,14 @@ class ConfigManager {
     if (!fs.existsSync(file)) { throw new Error(`${file} does not exist, and cannot be watched`) }
 
     // the watch for files change only works on development mode
-    if (self.api.config.general.developmentMode !== true || self._watchedFiles.indexOf(file) > 0) { return }
+    if (this.api.config.general.developmentMode !== true || this._watchedFiles.indexOf(file) > 0) { return }
 
     // push the new file to the array of watched files
-    self._watchedFiles.push(file)
+    this._watchedFiles.push(file)
 
     // say to the FS to start watching for changes in this file with an interval of 1 seconds
     fs.watchFile(file, { interval: 1000 }, (curr, prev) => {
-      if (curr.mtime > prev.mtime && self.api.config.general.developmentMode === true) {
+      if (curr.mtime > prev.mtime && this.api.config.general.developmentMode === true) {
         process.nextTick(() => {
           let cleanPath = file
 
@@ -127,40 +118,39 @@ class ConfigManager {
    * @private
    */
   _rebootCallback (file) {
-    let self = this
-
-    self.api.log(`\r\n\r\n*** rebooting due to config change (${file}) ***\r\n\r\n`, 'info')
+    this.api.log(`\r\n\r\n*** rebooting due to config change (${file}) ***\r\n\r\n`, 'info')
     delete require.cache[ require.resolve(file) ]
-    self.api.commands.restart.call(self.api._self)
+    this.api.commands.restart.call(this.api._self)
   }
 
   _loadConfigs () {
-    let self = this
-
     // set config object on API
-    self.api.config = {}
+    this.api.config = {}
+
+    // we don't start watching for file changes on state0
+    const isToWatch = this.api.status === 'init_stage0'
 
     try {
       // read project manifest
-      self.api.config = require(`${self.api.scope.rootPath}/manifest.json`)
+      this.api.config = require(`${this.api.scope.rootPath}/manifest.json`)
     } catch (e) {
       // when the project manifest doesn't exists the user is informed
       // and the engine instance is terminated
-      self.api.log('Project `manifest.json` file does not exists.', 'emergency')
+      this.api.log('Project `manifest.json` file does not exists.', 'emergency')
 
       // finish process (we can not stop the Engine because it can not be run)
       process.exit(1)
     }
 
     // load the default config files from the Stellar core
-    self.loadConfigDirectory(__dirname + '/../config')
+    this.loadConfigDirectory(`${__dirname}/../config`, false)
 
     // load all the configs from the modules
-    self.api.config.modules.forEach(moduleName => self.loadConfigDirectory(`${self.api.scope.rootPath}/modules/${moduleName}/config`, true))
+    this.api.config.modules.forEach(moduleName => this.loadConfigDirectory(`${this.api.scope.rootPath}/modules/${moduleName}/config`, isToWatch))
 
-    // load the config files from the current universe if exists
-    // the platform should be reloaded when the project configs changes
-    self.loadConfigDirectory(`${self.api.scope.rootPath}/config`, true)
+    // load the config files from the current universe if exists the platform
+    // should be reloaded when the project configs changes
+    this.loadConfigDirectory(`${this.api.scope.rootPath}/config`, isToWatch)
   }
 
   /**
@@ -170,8 +160,6 @@ class ConfigManager {
    * @param watch
    */
   loadConfigDirectory (configPath, watch = false) {
-    let self = this
-
     // get all files from the config folder
     let configFiles = this.api.utils.recursiveDirectoryGlob(configPath)
 
@@ -185,8 +173,8 @@ class ConfigManager {
       try {
         // attempt configuration file load
         let localConfig = require(file)
-        if (localConfig.default) { self.api.config = this.api.utils.hashMerge(self.api.config, localConfig.default, self.api) }
-        if (localConfig[ self.api.env ]) { self.api.config = this.api.utils.hashMerge(self.api.config, localConfig[ self.api.env ], self.api) }
+        if (localConfig.default) { this.api.config = this.api.utils.hashMerge(this.api.config, localConfig.default, this.api) }
+        if (localConfig[ this.api.env ]) { this.api.config = this.api.utils.hashMerge(this.api.config, localConfig[ this.api.env ], this.api) }
 
         // configuration file load success: clear retries and errors since progress
         // has been made
@@ -194,7 +182,9 @@ class ConfigManager {
         loadErrors = {}
 
         // configuration file loaded: set watch
-        if (watch !== false) { self.watchFileAndAct(file, self._rebootCallback.bind(self)) }
+        if (watch !== false) {
+          this.watchFileAndAct(file, this._rebootCallback.bind(this))
+        }
       } catch (error) {
         // error loading configuration, abort if all remaining configuration files
         // have been tried and failed indicating inability to progress
@@ -217,10 +207,8 @@ class ConfigManager {
    * @private
    */
   _createTempFolder () {
-    let self = this
-
-    if (!this.api.utils.directoryExists(`${self.api.scope.rootPath}/temp`)) {
-      this.api.utils.createFolder(`${self.api.scope.rootPath}/temp`)
+    if (!this.api.utils.directoryExists(`${this.api.scope.rootPath}/temp`)) {
+      this.api.utils.createFolder(`${this.api.scope.rootPath}/temp`)
     }
   }
 }
@@ -229,7 +217,6 @@ class ConfigManager {
  * This initializer loads all app configs to the current running instance.
  */
 export default class {
-
   /**
    * Load priority.
    *
@@ -268,4 +255,11 @@ export default class {
     next()
   }
 
+  stop (api, next) {
+    // stop watching all files
+    api.configs.unwatchAllFiles()
+
+    // finish the satellite stop
+    next()
+  }
 }

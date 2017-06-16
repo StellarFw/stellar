@@ -9,14 +9,12 @@ module.exports = [ {
     content: {required: true}
   },
 
-  run: function (api, action, next) {
-    var Post = api.models.get('post')
+  run (api, action, next) {
+    const Post = api.models.get('post')
 
-    var newPost = new Post(action.params)
+    const newPost = new Post(action.params)
 
-    // newPost.create('post', params, callback)
-
-    newPost.save(function (err) {
+    newPost.save(err => {
       if (err) {
         // return an error message to the client
         next(new Error('We can create that resource!'))
@@ -33,8 +31,8 @@ module.exports = [ {
   name: 'getPosts',
   description: 'Get all posts',
 
-  run: function (api, action, next) {
-    api.models.get('post').find({}, function (err, posts) {
+  run (api, action, next) {
+    api.models.get('post').find({}, (err, posts) => {
       action.response.posts = posts
       next()
     })
@@ -48,9 +46,9 @@ module.exports = [ {
       id: {required: true}
     },
 
-    run: function (api, action, next) {
+    run (api, action, next) {
       // search for the request post on the DB
-      api.models.get('post').findById(action.params.id, function (err, post) {
+      api.models.get('post').findById(action.params.id, (err, post) => {
         // put post information in response object
         action.response.post = post
 

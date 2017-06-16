@@ -1,8 +1,7 @@
-import uuid from 'node-uuid'
+import uuid from 'uuid'
 import GenericServer from '../genericServer'
 
 class TestServer extends GenericServer {
-
   constructor (api, type, options, attributes) {
     super(api, type, options, attributes)
 
@@ -56,11 +55,9 @@ class TestServer extends GenericServer {
   }
 
   goodbye () {}
-
 }
 
 class Helpers {
-
   /**
    * API reference object.
    *
@@ -76,17 +73,16 @@ class Helpers {
   constructor (api) { this.api = api }
 
   connection () {
-    let self = this
     let id = uuid.v4()
 
-    self.api.servers.servers.testServer.buildConnection({
+    this.api.servers.servers.testServer.buildConnection({
       id: id,
       rawConnection: {},
       remoteAddress: 'testServer',
       remotePort: 0
     })
 
-    return self.api.connections.connections[ id ]
+    return this.api.connections.connections[ id ]
   }
 
   initialize (api, options, next) {
@@ -134,7 +130,9 @@ class Helpers {
       connection.actionCallbacks[ (connection.messageCount) ] = next
     }
 
-    process.nextTick(() => {self.api.servers.servers.testServer.processAction(connection) })
+    process.nextTick(() => {
+      self.api.servers.servers.testServer.processAction(connection)
+    })
   }
 
   /**
@@ -150,7 +148,6 @@ class Helpers {
 }
 
 export default class {
-
   /**
    * Satellite load priority.
    *
@@ -200,5 +197,4 @@ export default class {
     // finish the satellite start
     next()
   }
-
 }

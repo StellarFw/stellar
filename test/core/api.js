@@ -106,14 +106,14 @@ describe('Core: API', function () {
 
     it('will fail on a missing version', function (done) {
       api.helpers.runAction('versionedAction', {apiVersion: 16}, function (response) {
-        response.error.should.equal('Error: unknown action or invalid apiVersion')
+        response.error.code.should.equal('004')
         done()
       })
     })
 
     it('will fail in a missing action', function (done) {
       api.helpers.runAction('undefinedAction', {}, function (response) {
-        response.error.should.equal('Error: unknown action or invalid apiVersion')
+        response.error.code.should.equal('004')
         done()
       })
     })

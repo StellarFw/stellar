@@ -1,25 +1,25 @@
 'use strict'
 
 module.exports = [{
-    name: '{{actionName}}',
-    description: 'This action was generated using the command line tool',
+  name: '{{actionName}}',
+  description: 'This action was generated using the command line tool',
 
-    inputs: {
-        title: {
-            required: true,
-            validator: 'filled|max:20'
-        },
-        content: {
-            required: true,
-            default: 'Default value'
-        }
+  inputs: {
+    title: {
+      required: true,
+      validator: 'filled|max:20'
     },
-
-    run (api, action, next) {
-        // put the inputed parameters on the response object
-        action.response.inputtedData = action.params
-
-        // finish the action execution
-        next()
+    content: {
+      required: true,
+      default: 'Default value'
     }
+  },
+
+  run (api, action, next) {
+    // put the inputed parameters on the response object
+    action.response.inputtedData = action.params
+
+    // finish the action execution
+    next()
+  }
 }]

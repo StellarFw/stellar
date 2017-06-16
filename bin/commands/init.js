@@ -1,23 +1,36 @@
 'use strict'
 
-// ----------------------------------------------------------------------------------------------------------- [Imports]
+// ----------------------------------------------------------------------------- [Imports]
 
 let Command = require('../Command')
 let Utils = require('../utils')
 
-// ------------------------------------------------------------------------------------------------------------- [Class]
+// ----------------------------------------------------------------------------- [Command]
 
 class InitCommand extends Command {
 
-  constructor (args) {
+  constructor () {
     // execute the super class constructor method
     super()
 
-    // define usage
-    this.usage = 'stellar init --name=<projectname> [--options]'
-
-    // save the parsed console arguments
-    this.args = args
+    // command description
+    this.command = 'init'
+    this.describe = 'Create a new Stellar project'
+    this.builder = {
+      name: {
+        describe: 'Project name',
+        require: true,
+        type: 'string'
+      },
+      version: {
+        describe: 'Project version',
+        default: '1.0.0',
+        type: 'string'
+      },
+      dockerIt: {
+        describe: 'Create a dockerfile for the new project'
+      }
+    }
   }
 
   /**
@@ -28,27 +41,17 @@ class InitCommand extends Command {
    *  - /config
    *  - /manifest.json
    */
-  execute () {
+  run () {
     // check if is a empty folder
     if (!Utils.folderIsEmpty(process.cwd())) {
       this.printError('This command can only be executed when the directory is empty')
       return false
     }
 
-    // the developer need to specify the project names
-    if (this.args.name === undefined || typeof this.args.name !== 'string') {
-      this.printError('You need to specify the project name')
-      this.printUsage()
-      return false
-    }
-
-    // get project version (by default use 1.0.0)
-    let projVersion = this.args.version || '1.0.0'
-
     // create manifest.json file
     Utils.generateFileFromTemplate('manifest', {
       projectName: this.args.name,
-      projectVersion: projVersion
+      projectVersion: this.args.version
     }, `${process.cwd()}/manifest.json`)
 
     // create .gitignore file
@@ -66,13 +69,18 @@ class InitCommand extends Command {
     // create config folder
     Utils.createFolder(process.cwd() + '/config')
 
+    // check if we need create a dockerfile
+    if (this.args.dockerIt !== undefined) {
+      // luckily, we can execute the command directly
+      require('./dockerIt').run()
+    }
+
     // print a success message
     this.printSuccess(`The directory was initiated with a Stellar project structure.\nHappy Codding! 😉 🌟`)
 
     return true
   }
-
 }
 
-// export the function to execute the command
-module.exports = args => (new InitCommand(args)).execute()
+// export command
+module.exports = new InitCommand()

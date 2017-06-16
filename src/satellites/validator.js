@@ -22,7 +22,6 @@ class InvalidArgumentException {
  * </code>
  */
 class Validator {
-
   /**
    * API reference object.
    *
@@ -131,15 +130,18 @@ class Validator {
           continue
         }
 
+        // convert the rule to camel case
+        const ruleNormalized = this._normalizeRuleName(ruleName)
+
         // before continue we check if the validator exists
-        if (!this._isAValidator(ruleName)) {
+        if (!this._isAValidator(ruleNormalized)) {
           throw new Error(`The is no validator named '${ruleName}'`)
         }
 
         // execute the correspondent validator and if the response if `false` a
         // failure message will be added to the errors hash. The exec methods
         // also can return
-        if (!this[`validator_${ruleName}`](value, ruleParameters, fieldName)) {
+        if (!this[`validator${ruleNormalized}`](value, ruleParameters, fieldName)) {
           this._addFailure(fieldName, ruleName, ruleParameters, errors)
           continue
         }
@@ -149,6 +151,17 @@ class Validator {
     // it was found no errors is returned true, otherwise a hash with all the
     // errors is returned
     return (errors.size === 0) ? true : errors
+  }
+
+  /**
+   * Normalize a rule name.
+   */
+  _normalizeRuleName (ruleName) {
+    // convert snake to camel case
+    let camelCase = this.api.utils.snakeToCamel(ruleName)
+
+    // capitalize the first letter
+    return camelCase.charAt(0).toUpperCase() + camelCase.slice(1)
   }
 
   /**
@@ -242,12 +255,15 @@ class Validator {
    * @param String rule
    * @param Array parameters
    */
-  _doReplacements (message, attribute, rule, parameters) {
+  _doReplacements (message, attribute, _rule, parameters) {
     // replace attribute placeholder
     message = message.replace(/:attribute/gi, attribute)
 
+    // normalize the rule name
+    const rule = this._normalizeRuleName(_rule)
+
     // check if there is a specific replacer for this type of rule
-    const replacerMethod = `replace_${rule}`
+    const replacerMethod = `replace${rule}`
     if (this[replacerMethod] !== undefined) {
       message = this[replacerMethod](message, attribute, rule, parameters)
     }
@@ -274,7 +290,7 @@ class Validator {
    * Check if it is a valid validator.
    */
   _isAValidator (validator) {
-    return this[`validator_${validator}`] !== undefined
+    return this[`validator${validator}`] !== undefined
   }
 
   // --------------------------------------------------------------------------- [Validators]
@@ -285,7 +301,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_alpha (value) {
+  validatorAlpha (value) {
     return typeof value === 'string' && /^[a-zA-Z]*$/.test(value)
   }
 
@@ -295,7 +311,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_alpha_num (value) { return /^[a-zA-Z0-9]*$/.test(value) }
+  validatorAlphaNum (value) { return /^[a-zA-Z0-9]*$/.test(value) }
 
   /**
    * Check if the value is a string only with alpha or (_, -) characters.
@@ -303,7 +319,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_alpha_dash (value) { return /^[a-zA-Z0-9-_]*$/.test(value) }
+  validatorAlphaDash (value) { return /^[a-zA-Z0-9-_]*$/.test(value) }
 
   /**
    * Check if the value is an array.
@@ -311,7 +327,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_array (value) { return Array.isArray(value) }
+  validatorArray (value) { return Array.isArray(value) }
 
   /**
    * Check if the value is before than the specified date.
@@ -320,7 +336,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_before (value, args) {
+  validatorBefore (value, args) {
     this._requireParameterCount(1, args, 'before')
 
     // check if the argument are valid
@@ -335,6 +351,16 @@ class Validator {
     return Date.parse(value) < Date.parse(args)
   }
 
+  validatorAfter (value, args) {
+    this._requireParameterCount(1, args, 'after')
+
+    // check if the argument are valid
+    if (isNaN(Date.parse(args))) { return false }
+
+    // check if the specified date is greater than the required date
+    return Date.parse(value) > Date.parse(args)
+  }
+
   /**
    * Check if the value is between the two intervals.
    *
@@ -342,7 +368,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_between (value, args) {
+  validatorBetween (value, args) {
     this._requireParameterCount(2, args, 'between')
 
     // check if the value is valid
@@ -361,7 +387,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_boolean (value) { return typeof value === 'boolean' }
+  validatorBoolean (value) { return typeof value === 'boolean' }
 
   /**
    * Check if exists a confirmation fields to the testing key with the same name.
@@ -371,7 +397,7 @@ class Validator {
    * @param key
    * @returns {*}
    */
-  validator_confirmed (value, args, key) {
+  validatorConfirmed (value, args, key) {
     // build the confirmation field name
     let confirmationFieldName = `${key}_confirmation`
 
@@ -390,7 +416,7 @@ class Validator {
    * @param value
    * @returns {*}
    */
-  validator_date (value) {
+  validatorDate (value) {
     if (isNaN(Date.parse(value))) { return false }
     return true
   }
@@ -402,7 +428,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_different (value, args) {
+  validatorDifferent (value, args) {
     this._requireParameterCount(1, args, 'different')
 
     return value !== this.params[ args[0] ]
@@ -414,7 +440,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_email (value) {
+  validatorEmail (value) {
     return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(value)
   }
 
@@ -424,7 +450,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_filled (value) { return value !== undefined && value !== null && value !== '' }
+  validatorFilled (value) { return value !== undefined && value !== null && value !== '' }
 
   /**
    * Check if the value are included in the array.
@@ -433,7 +459,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_in (value, args) {
+  validatorIn (value, args) {
     // check if the validator have a name
     if (args.length === 0) { throw new Error('validator needs an array') }
 
@@ -448,7 +474,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_not_in (value, args) {
+  validatorNotIn (value, args) {
     // check if the validator have a name
     if (args.length === 0) { throw new Error('validator needs an array') }
 
@@ -462,7 +488,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_integer (value) {
+  validatorInteger (value) {
     // try parse to pin
     let parsedValue = Number.parseInt(value)
 
@@ -476,7 +502,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_ip (value) { return /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/.test(value) }
+  validatorIp (value) { return /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/.test(value) }
 
   /**
    * Check if the field is a valid JSON.
@@ -484,7 +510,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_json (value) {
+  validatorJson (value) {
     try {
       let o = JSON.parse(value)
 
@@ -501,7 +527,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_max (value, args) {
+  validatorMax (value, args) {
     this._requireParameterCount(1, args, 'max')
 
     if (typeof value === 'string' || value instanceof Array) {
@@ -520,7 +546,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_min (value, args) {
+  validatorMin (value, args) {
     this._requireParameterCount(1, args, 'min')
 
     if (typeof value === 'string' || value instanceof Array) {
@@ -538,7 +564,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_required (value) { return value !== undefined }
+  validatorRequired (value) { return value !== undefined }
 
   /**
    * Check if the value matches with a regular expression.
@@ -546,7 +572,7 @@ class Validator {
    * @param Mixed value
    * @param Array parameters
    */
-  validator_regex (value, parameters) {
+  validatorRegex (value, parameters) {
     this._requireParameterCount(1, parameters, 'regex')
 
     // create an RegEx instance and validate
@@ -560,7 +586,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_numeric (value) { return typeof value === 'number' }
+  validatorNumeric (value) { return typeof value === 'number' }
 
   /**
    * Check if the field is required taking into account the parameters.
@@ -569,11 +595,11 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_required_if (value, args) {
+  validatorRequiredIf (value, args) {
     this._requireParameterCount(2, args, 'required_if')
 
     // if the args[0] param value is present in the values array the value is required
-    if (args.indexOf(String(this.params[ args[0] ])) > -1) { return this.validator_filled(value) }
+    if (args.indexOf(String(this.params[ args[0] ])) > -1) { return this.validatorFilled(value) }
 
     return true
   }
@@ -586,11 +612,11 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_required_unless (value, args) {
+  validatorRequiredUnless (value, args) {
     this._requireParameterCount(2, args, 'required_unless')
 
     // if the parameter not have a valid value the current parameter is required
-    if (args.indexOf(String(this.params[ args[0] ])) === -1) { return this.validator_filled(value) }
+    if (args.indexOf(String(this.params[ args[0] ])) === -1) { return this.validatorFilled(value) }
 
     return true
   }
@@ -603,7 +629,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_required_with (value, args) {
+  validatorRequiredWith (value, args) {
     this._requireParameterCount(1, args, 'required_with')
 
     // check if one of the parameters are present
@@ -612,7 +638,7 @@ class Validator {
       let paramName = args[ index ]
 
       // check if the value is filled
-      if (this.params[ paramName ] !== undefined) { return this.validator_filled(value) }
+      if (this.params[ paramName ] !== undefined) { return this.validatorFilled(value) }
     }
 
     return true
@@ -626,7 +652,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_required_with_all (value, args) {
+  validatorRequiredWithAll (value, args) {
     this._requireParameterCount(2, args, 'required_with_all')
 
     // check if all the parameters are present
@@ -638,7 +664,7 @@ class Validator {
     }
 
     // if all the fields are present the fields under validation is required
-    return this.validator_filled(value)
+    return this.validatorFilled(value)
   }
 
   /**
@@ -649,7 +675,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_required_without (value, args) {
+  validatorRequiredWithout (value, args) {
     this._requireParameterCount(1, args, 'required_without')
 
     // if one of the fields are not present the field under validation is required
@@ -657,7 +683,7 @@ class Validator {
       // get parameter name
       let paramName = args[ index ]
 
-      if (this.params[ paramName ] === undefined) { return this.validator_filled(value) }
+      if (this.params[ paramName ] === undefined) { return this.validatorFilled(value) }
     }
 
     return true
@@ -671,7 +697,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_required_without_all (value, args) {
+  validatorRequiredWithoutAll (value, args) {
     this._requireParameterCount(2, args, 'required_without_all')
 
     for (let index in args) {
@@ -682,7 +708,7 @@ class Validator {
       if (this.params[ paramName ] !== undefined) { return true }
     }
 
-    return this.validator_filled(value)
+    return this.validatorFilled(value)
   }
 
   /**
@@ -692,7 +718,7 @@ class Validator {
    * @param args
    * @returns {*}
    */
-  validator_same (value, args) {
+  validatorSame (value, args) {
     this._requireParameterCount(1, args, 'same')
 
     return this.params[ args[ 0 ] ] === value
@@ -704,7 +730,7 @@ class Validator {
    * @param value
    * @param args
    */
-  validator_size (value, args) {
+  validatorSize (value, args) {
     this._requireParameterCount(1, args, 'size')
 
     let length = parseInt(args[0])
@@ -724,7 +750,7 @@ class Validator {
    * @param value
    * @returns {boolean}
    */
-  validator_url (value) {
+  validatorUrl (value) {
     return /^(http|ftp|https):\/\/[\w-]+(\.[\w-]*)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?$/.test(value)
   }
 
@@ -733,14 +759,14 @@ class Validator {
   /**
    * Replace all place-holders for the before rule.
    */
-  replace_before (message, attribute, rule, parameters) {
+  replaceBefore (message, attribute, rule, parameters) {
     return message.replace(/:date/ig, parameters[0])
   }
 
   /**
    * Replace all place-holders for the between rule.
    */
-  replace_between (message, attribute, rule, parameters) {
+  replaceBetween (message, attribute, rule, parameters) {
     const repl = {':min': parameters[0], ':max': parameters[1]}
     return message.replace(/:min|:max/ig, match => repl[match])
   }
@@ -748,28 +774,28 @@ class Validator {
   /**
    * Replace all place-holders for the different rule.
    */
-  replace_different (message, attribute, rule, parameters) {
+  replaceDifferent (message, attribute, rule, parameters) {
     return message.replace(/:other/ig, parameters[0])
   }
 
   /**
    * Replace all place-holders for the max rule.
    */
-  replace_max (message, attribute, rule, parameters) {
+  replaceMax (message, attribute, rule, parameters) {
     return message.replace(/:max/ig, parameters[0])
   }
 
   /**
    * Replace all place-holders for the min rule.
    */
-  replace_min (message, attribute, rule, parameters) {
+  replaceMin (message, attribute, rule, parameters) {
     return message.replace(/:min/ig, parameters[0])
   }
 
   /**
    * Replace all place-holders for the required_if rule.
    */
-  replace_required_if (message, attribute, rule, parameters) {
+  replaceRequiredIf (message, attribute, rule, parameters) {
     const params = JSON.parse(JSON.stringify(parameters))
     params.shift()
 
@@ -780,7 +806,7 @@ class Validator {
   /**
    * Replace all place-holders for the required_unless rule.
    */
-  replace_required_unless (message, attribute, rule, parameters) {
+  replaceRequiredUnless (message, attribute, rule, parameters) {
     const params = JSON.parse(JSON.stringify(parameters))
     params.shift()
 
@@ -791,52 +817,50 @@ class Validator {
   /**
    * Replace all place-holders for the required_with rule.
    */
-  replace_required_with (message, attribute, rule, parameters) {
+  replaceRequiredWith (message, attribute, rule, parameters) {
     return message.replace(/:values/ig, parameters.join(', '))
   }
 
   /**
    * Replace all place-holders for the required_with_all rule.
    */
-  replace_required_with_all (message, attribute, rule, parameters) {
+  replaceRequiredWithAll (message, attribute, rule, parameters) {
     return message.replace(/:values/ig, parameters.join(', '))
   }
 
   /**
    * Replace all place-holders for the required_without rule.
    */
-  replace_required_without (message, attribute, rule, parameters) {
+  replaceRequiredWithout (message, attribute, rule, parameters) {
     return message.replace(/:values/ig, parameters.join(', '))
   }
 
   /**
    * Replace all place-holders for the required_without_all rule.
    */
-  replace_required_without_all (message, attribute, rule, parameters) {
+  replaceRequiredWithoutAll (message, attribute, rule, parameters) {
     return message.replace(/:values/ig, parameters.join(', '))
   }
 
   /**
    * Replace all place-holders for the same rule.
    */
-  replace_same (message, attribute, rule, parameters) {
+  replaceSame (message, attribute, rule, parameters) {
     return message.replace(/:other/i, parameters[0])
   }
 
   /**
    * Replace all place-holders for the size rule.
    */
-  replace_size (message, attribute, rule, parameters) {
+  replaceSize (message, attribute, rule, parameters) {
     return message.replace(/:size/i, parameters[0])
   }
-
 }
 
 /**
  * Validator satellite.
  */
 export default class {
-
   /**
    * Satellite priority.
    *
@@ -857,5 +881,4 @@ export default class {
     // finish the load process
     next()
   }
-
 }

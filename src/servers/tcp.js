@@ -20,11 +20,12 @@ let attributes = {
     'paramView',
     'paramsView',
     'paramsDelete',
-    'roomAdd',
+    'roomJoin',
     'roomLeave',
     'roomView',
     'detailsView',
-    'say'
+    'say',
+    'event'
   ]
 }
 
@@ -32,7 +33,6 @@ let attributes = {
  * TCP server implementation.
  */
 export default class Tcp extends GenericServer {
-
   /**
    * TCP server socket.
    */
@@ -270,10 +270,13 @@ export default class Tcp extends GenericServer {
     }
 
     connection.verbs(verb, words, (error, data) => {
+      // send an success response message, when there is no errors
       if (!error) {
-        // send an success response message
         self.sendMessage(connection, { status: 'OK', context: 'response', data: data })
-      } else if (error.match('verb not found or not allowed')) {
+        return
+      }
+
+      if (error.code && error.code.match('014')) { // Error: Verb not found or not allowed
         // check for and attempt to check single-use params
         try {
           // parse JSON request
@@ -296,10 +299,11 @@ export default class Tcp extends GenericServer {
 
         // process actions
         self.processAction(connection)
-      } else {
-        // send an error message
-        self.sendMessage(connection, { status: error, context: 'response', data: data })
+        return
       }
+
+      // send an error message
+      self.sendMessage(connection, { status: error, context: 'response', data: data })
     })
   }
 
@@ -388,5 +392,4 @@ export default class Tcp extends GenericServer {
       next()
     }
   }
-
 }

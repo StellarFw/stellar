@@ -118,8 +118,8 @@ class ResqueManager {
       self.scheduler.on('start', () => self.api.log('resque scheduler started', self.schedulerLogging.start));
       self.scheduler.on('end', () => self.api.log('resque scheduler ended', self.schedulerLogging.end));
       self.scheduler.on('poll', () => self.api.log('resque scheduler polling', self.schedulerLogging.poll));
-      self.scheduler.on('working_timestamp', timestamp => self.api.log(`resque scheduler working timestamp ${ timestamp }`, self.schedulerLogging.working_timestamp));
-      self.scheduler.on('transferred_job', (timestamp, job) => self.api.log(`resque scheduler enqueuing job ${ timestamp }`, self.schedulerLogging.transferred_job, job));
+      self.scheduler.on('working_timestamp', timestamp => self.api.log(`resque scheduler working timestamp ${timestamp}`, self.schedulerLogging.working_timestamp));
+      self.scheduler.on('transferred_job', (timestamp, job) => self.api.log(`resque scheduler enqueuing job ${timestamp}`, self.schedulerLogging.transferred_job, job));
 
       // start the scheduler
       self.scheduler.start();
@@ -177,9 +177,9 @@ class ResqueManager {
     // normal worker emitters
     self.multiWorker.on('start', workerId => self.api.log('worker: started', self.workerLogging.start, { workerId: workerId }));
     self.multiWorker.on('end', workerId => self.api.log('worker: ended', self.workerLogging.end, { workerId: workerId }));
-    self.multiWorker.on('cleaning_worker', (workerId, worker, pid) => self.api.log(`worker: cleaning old worker ${ worker }, (${ pid })`, self.workerLogging.cleaning_worker));
+    self.multiWorker.on('cleaning_worker', (workerId, worker, pid) => self.api.log(`worker: cleaning old worker ${worker}, (${pid})`, self.workerLogging.cleaning_worker));
     // for debug: self.multiWorker.on('poll', (queue) => self.api.log(`worker: polling ${queue}`, self.workerLogging.poll))
-    self.multiWorker.on('job', (workerId, queue, job) => self.api.log(`worker: working job ${ queue }`, self.workerLogging.job, {
+    self.multiWorker.on('job', (workerId, queue, job) => self.api.log(`worker: working job ${queue}`, self.workerLogging.job, {
       workerId: workerId,
       job: { class: job.class, queue: job.queue }
     }));
@@ -188,7 +188,7 @@ class ResqueManager {
       plugin: plugin,
       job: { class: job.class, queue: job.queue }
     }));
-    self.multiWorker.on('success', (workerId, queue, job, result) => self.api.log(`worker: job success ${ queue }`, self.workerLogging.success, {
+    self.multiWorker.on('success', (workerId, queue, job, result) => self.api.log(`worker: job success ${queue}`, self.workerLogging.success, {
       workerId: workerId,
       job: { class: job.class, queue: job.queue },
       result: result

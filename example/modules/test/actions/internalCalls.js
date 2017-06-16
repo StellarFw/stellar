@@ -7,12 +7,12 @@ module.exports = [
     inputs: {
       a: {
         description: 'First number',
-        convertTo: 'integer',
+        format: 'integer',
         required: true
       },
       b: {
         description: 'Second number',
-        convertTo: 'integer',
+        format: 'integer',
         required: true
       }
     },
@@ -38,12 +38,12 @@ module.exports = [
     inputs: {
       a: {
         description: 'First number',
-        convertTo: 'integer',
+        format: 'integer',
         required: true
       },
       b: {
         description: 'Second number',
-        convertTo: 'integer',
+        format: 'integer',
         required: true
       }
     },
@@ -52,15 +52,12 @@ module.exports = [
       formatted: '3 + 3 = 6'
     },
 
-    run (api, action, next) {
+    run (api, action) {
       // make a internal call to 'sumANumber' action
-      api.actions.call('sumANumber', action.params)
-        .catch(error => { next(error) })
+      return api.actions.call('sumANumber', action.params)
         .then(response => {
           // build a cool string
           action.response.formatted = `${action.params.a} + ${action.params.b} = ${response.result}`
-
-          next()
         })
     }
   }

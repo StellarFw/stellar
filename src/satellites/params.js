@@ -2,7 +2,6 @@
  * Manage the application secure params.
  */
 class Params {
-
   /**
    * API reference object
    *
@@ -63,7 +62,6 @@ class Params {
 }
 
 export default class {
-
   /**
    * Initializer load priority.
    *
@@ -87,5 +85,4 @@ export default class {
     // finish the initializer execution
     next()
   }
-
 }

@@ -1,9 +1,6 @@
-/*eslint handle-callback-err: 0*/
-
 import async from 'async'
 
 class ChatRooms {
-
   /**
    * API reference.
    *
@@ -48,31 +45,36 @@ class ChatRooms {
    * @param data  Middleware object.
    */
   addMiddleware (data) {
-    let self = this
-
     // middleware must have a name
     if (!data.name) { throw new Error('middleware.name is required') }
 
     // if the middleware don't have a priority set a default value
-    if (!data.priority) { data.priority = self.api.config.general.defaultMiddlewarePriority }
+    if (!data.priority) { data.priority = this.api.config.general.defaultMiddlewarePriority }
 
     // ensure the priority is a number
     data.priority = Number(data.priority)
 
     // save the middleware object
-    self.middleware[ data.name ] = data
+    this.middleware[ data.name ] = data
 
     // push the middleware name to the globalMiddleware
-    self.globalMiddleware.push(data.name)
+    this.globalMiddleware.push(data.name)
 
     // sort the globalMiddleware by priority
-    self.globalMiddleware.sort((a, b) => {
-      if (self.middleware[ a ].priority > self.middleware[ b ].priority) {
-        return 1
-      } else {
-        return -1
-      }
-    })
+    this.globalMiddleware.sort((a, b) => this.middleware[ a ].priority > this.middleware[ b ].priority ? 1 : -1)
+  }
+
+  /**
+   * This allow send an event to a chat room.
+   *
+   * @param room        Room here the message must be sent.
+   * @param event       Event to sent.
+   * @param data        Data to be sent.
+   * @param connection  Connection that originated the event, by default is used an empty connection.
+   * @returns {*}
+   */
+  emit (room, event, data, connection = {}) {
+    return this.broadcast(connection, room, { event, data })
   }
 
   /**
@@ -81,26 +83,23 @@ class ChatRooms {
    * @param connection  Source connection.
    * @param room        Room here the message need to be broadcast.
    * @param message     Message to broadcast.
-   * @param callback    Callback function.
    */
-  broadcast (connection, room, message, callback) {
-    let self = this
-
-    // check if the room are present
+  async broadcast (connection, room, message) {
+    // whe need the room name, and the message to sends
     if (!room || room.length === 0 || message === null || message.length === 0) {
-      if (typeof callback === 'function') {
-        process.nextTick(() => callback(self.api.config.errors.connectionRoomAndMessage(connection)))
-      }
-    } else if (connection.rooms === undefined || connection.rooms.indexOf(room) > -1) {
+      throw this.api.config.errors.connectionRoomAndMessage(connection)
+    }
+
+    if (connection.rooms === undefined || connection.rooms.indexOf(room) > -1) {
       // set id zero for default if there no one present
       if (connection.id === undefined) { connection.id = 0 }
 
       // create a new payload
       let payload = {
         messageType: 'chat',
-        serverToken: self.api.config.general.serverToken,
-        serverId: self.api.id,
-        message: message,
+        serverToken: this.api.config.general.serverToken,
+        serverId: this.api.id,
+        message,
         sentAt: new Date().getTime(),
         connection: {
           id: connection.id,
@@ -109,48 +108,31 @@ class ChatRooms {
       }
 
       // generate the message payload
-      let messagePayload = self._generateMessagePayload(payload)
+      let messagePayload = this._generateMessagePayload(payload)
 
       // handle callbacks
-      self._handleCallbacks(connection, messagePayload.room, 'onSayReceive', messagePayload, (error, newPayload) => {
-        // if an error occurs execute the callback and send the error with him
-        if (error) {
-          if (typeof callback === 'function') {
-            process.nextTick(() => { callback(error) })
-          }
-          return
-        }
+      const newPayload = await this._handleCallbacks(connection, messagePayload.room, 'onSayReceive', messagePayload)
 
-        // create the payload to send
-        let payloadToSend = {
-          messageType: 'chat',
-          serverToken: self.api.config.general.serverToken,
-          serverId: self.api.id,
-          message: newPayload.message,
-          sentAt: newPayload.sentAt,
-          connection: {
-            id: newPayload.from,
-            room: newPayload.room
-          }
+      // create the payload to send
+      let payloadToSend = {
+        messageType: 'chat',
+        serverToken: this.api.config.general.serverToken,
+        serverId: this.api.id,
+        message: newPayload.message,
+        sentAt: newPayload.sentAt,
+        connection: {
+          id: newPayload.from,
+          room: newPayload.room
         }
-
-        // send the payload to redis
-        self.api.redis.publish(payloadToSend)
-
-        // execute the callback
-        if (typeof callback === 'function') {
-          process.nextTick(() => {
-            callback(null)
-          })
-        }
-      })
-    } else {
-      if (typeof callback === 'function') {
-        process.nextTick(() => {
-          callback(self.api.config.errors.connectionNotInRoom(connection, room))
-        })
       }
+
+      // send the payload to redis
+      this.api.redis.publish(payloadToSend)
+      return
     }
+
+    // when the connection isn't on the room, throw an exception
+    throw this.api.config.errors.connectionNotInRoom(connection, room)
   }
 
   /**
@@ -159,153 +141,109 @@ class ChatRooms {
    * @param message Incoming message to be processed.
    */
   incomingMessage (message) {
-    let self = this
-
     // generate the message payload
-    let messagePayload = self._generateMessagePayload(message)
+    let messagePayload = this._generateMessagePayload(message)
 
     // iterate all connection
-    for (let i in self.api.connections.connections) {
-      self._incomingMessagePerConnection(self.api.connections.connections[ i ], messagePayload)
+    for (let i in this.api.connections.connections) {
+      this._incomingMessagePerConnection(this.api.connections.connections[ i ], messagePayload)
     }
   }
 
   /**
-   * List rooms.
-   *
-   * @param callback
+   * Get a list of rooms.
    */
-  list (callback) {
-    let self = this
-
-    self.api.redis.clients.client.smembers(self.api.chatRoom.keys.rooms, (error, rooms) => {
-      if (typeof callback === 'function') { callback(error, rooms) }
-    })
+  list () {
+    return this.api.redis.clients.client.smembers(this.keys.rooms)
   }
 
   /**
    * Create a new room.
    *
-   * @param room      Name of the room to be created.
-   * @param callback  Callback function.
+   * @param room  Name of the room to be created.
    */
-  add (room, callback) {
-    let self = this
-
+  async create (room) {
     // check if the room already exists
-    self.exists(room, (error, found) => {
-      // if the room already exists return an error
-      if (found === true) {
-        if (typeof callback === 'function') { callback(self.api.config.errors.connectionRoomExists(room), null) }
-        return
-      }
+    const found = await this.exists(room)
 
-      // create a new room
-      self.api.redis.clients.client.sadd(self.keys.rooms, room, (err, count) => {
-        if (typeof callback === 'function') { callback(err, count) }
-      })
-    })
+    // if the room already exists throw an error
+    if (found === true) { throw this.api.config.errors.connectionRoomExists(room) }
+
+    // create a new room
+    return this.api.redis.clients.client.sadd(this.keys.rooms, room)
   }
 
   /**
    * Destroy a room.
    *
-   * @param room      Room to be destroyed.
-   * @param callback  Callback function.
+   * @param room  Room to be destroyed.
    */
-  destroy (room, callback) {
-    let self = this
-
+  async destroy (room) {
     // check if the room exists
-    self.exists(room, (error, found) => {
-      // return an error if the room not exists
-      if (found === false) {
-        if (typeof callback === 'function') { callback(self.api.config.errors.connectionRoomNotExist(room), null) }
-        return
-      }
+    const found = await this.exists(room)
 
-      // broadcast the room destruction
-      self.broadcast({}, room, self.api.config.errors.connectionRoomHasBeenDeleted(room), () => {
-        // get all room members
-        self.api.redis.clients.client.hgetall(self.keys.members + room, (error, memberHash) => {
-          // remove each member from the room
-          for (let id in memberHash) { self.removeMember(id, room) }
+    // throw an error if th room not exists
+    if (found === false) { throw this.api.config.errors.connectionRoomNotExist(room) }
 
-          // delete de room on redis server
-          self.api.redis.clients.client.srem(self.keys.rooms, room, () => {
-            if (typeof callback === 'function') { callback() }
-          })
-        })
-      })
-    })
+    // emit destroy event to the room
+    await this.emit(room, 'destroy', this.api.config.errors.connectionRoomHasBeenDeleted(room))
+
+    // get all room members
+    const members = await this.api.redis.clients.client.hgetall(this.keys.members + room)
+
+    // remove each member from the room
+    for (let id in members) { await this.leave(id, room) }
+
+    // delete de room on redis server
+    return this.api.redis.clients.client.srem(this.keys.rooms, room)
   }
 
   /**
    * Check if the given room exists.
    *
    * @param room      Name of the room.
-   * @param callback  Callback function.
    */
-  exists (room, callback) {
-    let self = this
-
+  async exists (room) {
     // make a call to the redis server to check if the room exists
-    self.api.redis.clients.client.sismember(self.keys.rooms, room, (err, bool) => {
-      let found = false
-
-      if (bool === 1 || bool === true) { found = true }
-
-      // execute the callback
-      if (typeof callback === 'function') { callback(err, found) }
-    })
+    const bool = await this.api.redis.clients.client.sismember(this.keys.rooms, room)
+    return (bool === 1 || bool === true)
   }
 
   /**
    * Get the status of a room.
    *
-   * @param room      Name of the room to check.
-   * @param callback  Callback function.
+   * @param room  Name of the room to check.
    */
-  roomStatus (room, callback) {
-    let self = this
-
+  async status (room) {
     // we need a room to check their status
-    if (room === undefined || room === null) {
-      if (typeof callback === 'function') { callback(self.api.config.errors.connectionRoomRequired(), null) }
-      return
-    }
+    if (room === undefined || room === null) { throw this.api.config.errors.connectionRoomRequired() }
 
     // check if the room exists
-    self.exists(room, (err, found) => {
-      // the room need exists
-      if (found !== true) {
-        if (typeof callback === 'function') { callback(self.api.config.errors.connectionRoomNotExist(room), null) }
-        return
-      }
+    const found = await this.exists(room)
 
-      // generate the key
-      let key = self.keys.members + room
+    if (!found) { throw this.api.config.errors.connectionRoomNotExist(room) }
 
-      // get all channel members
-      self.api.redis.clients.client.hgetall(key, (error, members) => {
-        let cleanedMembers = {}
-        let count = 0
+    // generate the key
+    const key = this.keys.members + room
 
-        // iterate all members and add them to the list of members
-        for (let id in members) {
-          let data = JSON.parse(members[ id ])
-          cleanedMembers[ id ] = self._sanitizeMemberDetails(data)
-          count++
-        }
+    // get all room members
+    const members = await this.api.redis.clients.client.hgetall(key)
 
-        // execute the callback
-        callback(null, {
-          room: room,
-          members: cleanedMembers,
-          membersCount: count
-        })
-      })
-    })
+    let cleanedMembers = {}
+    let count = 0
+
+    // iterate all members and add them to the list of members
+    for (let id in members) {
+      const data = JSON.parse(members[ id ])
+      cleanedMembers[ id ] = this._sanitizeMemberDetails(data)
+      count++
+    }
+
+    return {
+      room,
+      members: cleanedMembers,
+      membersCount: count
+    }
   }
 
   /**
@@ -313,46 +251,37 @@ class ChatRooms {
    *
    * @param connectionId  Connection ID.
    * @param room          Room name where the client must be added.
-   * @param callback      Callback function.
    */
-  addMember (connectionId, room, callback) {
-    let self = this
-
+  async join (connectionId, room) {
     // if the connection not exists create a new one in every stellar instance and return
-    if (!self.api.connections.connections[ connectionId ]) {
-      self.api.redis.doCluster('api.chatRoom.addMember', [ connectionId, room ], connectionId, callback)
-      return
+    if (!this.api.connections.connections[ connectionId ]) {
+      return this.api.redis.doCluster('api.chatRoom.addMember', [ connectionId, room ], connectionId)
     }
 
     // get connection object
-    let connection = self.api.connections.connections[ connectionId ]
+    let connection = this.api.connections.connections[ connectionId ]
 
     // verifies that the connection is already within the room, if yes return now
-    if (connection.rooms.indexOf(room) > -1) {
-      if (typeof callback === 'function') { callback(self.api.config.errors.connectionAlreadyInRoom(connection, room), false) }
-      return
-    }
+    if (connection.rooms.indexOf(room) > -1) { throw this.api.config.errors.connectionAlreadyInRoom(connection, room) }
 
     // check if the room exists
-    self.exists(room, (error, found) => {
-      if (found !== true) {
-        if (typeof callback === 'function') { callback(self.api.config.errors.connectionRoomNotExist(room), false) }
-        return
-      }
+    const found = await this.exists(room)
 
-      self._handleCallbacks(connection, room, 'join', null, error => {
-        // if exists an error, execute the callback and return
-        if (error) { return callback(error, false) }
+    if (!found) { throw this.api.config.errors.connectionRoomNotExist(room) }
 
-        // generate the member details
-        let memberDetails = self._generateMemberDetails(connection)
+    // wait for callback
+    await this._handleCallbacks(connection, room, 'join', null)
 
-        self.api.redis.clients.client.hset(self.keys.members + room, connection.id, JSON.stringify(memberDetails), () => {
-          connection.rooms.push(room)
-          if (typeof callback === 'function') { callback(null, true) }
-        })
-      })
-    })
+    // generate the member details
+    let memberDetails = this._generateMemberDetails(connection)
+
+    // add member to the room
+    await this.api.redis.clients.client.hset(this.keys.members + room, connection.id, JSON.stringify(memberDetails))
+
+    // push the new room to the connection object
+    connection.rooms.push(room)
+
+    return true
   }
 
   /**
@@ -360,52 +289,39 @@ class ChatRooms {
    *
    * @param connectionId    Client connection object.
    * @param room            Room name.
-   * @param callback        Callback.
    */
-  removeMember (connectionId, room, callback) {
-    let self = this
-
+  async leave (connectionId, room) {
     // if the connection does not exists on the connections array perform a remove
     // member on the cluster
-    if (self.api.connections.connections[ connectionId ] === undefined) {
-      self.api.redis.doCluster('api.chatRoom.removeMember', [ connectionId, room ], connectionId, callback)
-      return
+    if (this.api.connections.connections[ connectionId ] === undefined) {
+      return this.api.redis.doCluster('api.chatRoom.leave', [ connectionId, room ], connectionId)
     }
 
-    let connection = self.api.connections.connections[ connectionId ]
+    // get connection
+    const connection = this.api.connections.connections[ connectionId ]
 
     // check if the client is connected with the room
-    if (connection.rooms.indexOf(room) < 0) {
-      if (typeof callback === 'function') { callback(self.api.config.errors.connectionNotInRoom(connection, room), false) }
-      return
-    }
+    if (connection.rooms.indexOf(room) < 0) { throw this.api.config.errors.connectionNotInRoom(connection, room) }
 
     // check if the room exists
-    self.exists(room, (error, found) => {
-      // if the room has not been found returned an error
-      if (found === false) {
-        if (typeof callback === 'function') { callback(self.api.config.errors.connectionRoomNotExist(room), false) }
-        return
-      }
+    const found = await this.exists(room)
 
-      // passes the response by the middleware
-      self._handleCallbacks(connection, room, 'leave', null, error => {
-        // execute the callback and return the error
-        if (error) { return callback(error, false) }
+    // if the room has not been found returned an error
+    if (!found) { throw this.api.config.errors.connectionRoomNotExist(room) }
 
-        // remove the user
-        self.api.redis.clients.client.hdel(self.keys.members + room, connection.id, () => {
-          // get the room index
-          let index = connection.rooms.indexOf(room)
+    // passes the response by the middleware
+    await this._handleCallbacks(connection, room, 'leave', null)
 
-          // remove room from the rooms array
-          if (index > -1) { connection.rooms.splice(index, 1) }
+    // remove the user
+    await this.api.redis.clients.client.hdel(this.keys.members + room, connection.id)
 
-          // execute the callback
-          if (typeof callback === 'function') { callback(null, true) }
-        })
-      })
-    })
+    // get the room index
+    let index = connection.rooms.indexOf(room)
+
+    // remove room from the rooms array
+    if (index > -1) { connection.rooms.splice(index, 1) }
+
+    return true
   }
 
   // --------------------------------------------------------------------------------------------------------- [Private]
@@ -418,12 +334,10 @@ class ChatRooms {
    * @private
    */
   _generateMemberDetails (connection) {
-    let self = this
-
     return {
       id: connection.id,
       joinedAt: new Date().getTime(),
-      host: self.api.id
+      host: this.api.id
     }
   }
 
@@ -453,22 +367,19 @@ class ChatRooms {
    * @param room              Room name.
    * @param direction         Message direction.
    * @param messagePayload    Message payload.
-   * @param callback          Callback function.
    * @private
    */
-  _handleCallbacks (connection, room, direction, messagePayload, callback) {
-    let self = this
-
-    let jobs = []
+  _handleCallbacks (connection, room, direction, messagePayload) {
+    const jobs = []
     let newMessagePayload
 
     // if the message payload are defined create a clone
     if (messagePayload) { newMessagePayload = this.api.utils.objClone(messagePayload) }
 
     // apply global middleware
-    self.globalMiddleware.forEach(name => {
+    this.globalMiddleware.forEach(name => {
       // get middleware object
-      let m = self.middleware[ name ]
+      let m = this.middleware[ name ]
 
       // the middleware should be a function
       if (typeof m[ direction ] !== 'function') { return }
@@ -488,17 +399,22 @@ class ChatRooms {
       })
     })
 
-    // execute all middleware
-    async.series(jobs, (error, data) => {
-      while (data.length > 0) {
-        let thisData = data.shift()
+    return new Promise((resolve, reject) => {
+      // execute all middleware
+      async.series(jobs, (error, data) => {
+        while (data.length > 0) {
+          let thisData = data.shift()
 
-        // change the new message object to the next middleware use it
-        if (thisData) { newMessagePayload = thisData }
-      }
+          // change the new message object to the next middleware use it
+          if (thisData) { newMessagePayload = thisData }
+        }
 
-      // execute the next middleware
-      callback(error, newMessagePayload)
+        // execute the next middleware
+        if (error) { return reject(error) }
+
+        // resolve the promise
+        resolve(newMessagePayload)
+      })
     })
   }
 
@@ -523,21 +439,22 @@ class ChatRooms {
    * @param messagePayload  Message payload to be sent.
    * @private
    */
-  _incomingMessagePerConnection (connection, messagePayload) {
-    let self = this
-
+  async _incomingMessagePerConnection (connection, messagePayload) {
     // check if the connection can chat
     if (connection.canChat !== true) { return }
 
     // check if the connection made part of the room
     if (connection.rooms.indexOf(messagePayload.room) < 0) { return }
 
-    // apply the middleware
-    self._handleCallbacks(connection, messagePayload.room, 'say', messagePayload, (err, newMessagePayload) => {
-      if (!err) {
-        connection.sendMessage(newMessagePayload, 'say')
-      }
-    })
+    try {
+      // apply the middleware
+      const newMessagePayload = await this._handleCallbacks(connection, messagePayload.room, 'say', messagePayload)
+
+      // send a message to the connection
+      connection.sendMessage(newMessagePayload, 'say')
+    } catch (e) {
+      // TODO should we do anything here?
+    }
   }
 }
 
@@ -545,7 +462,6 @@ class ChatRooms {
  * Initializer.
  */
 export default class {
-
   /**
    * Initializer load priority.
    *
@@ -581,6 +497,8 @@ export default class {
    * @param next  Callback.
    */
   start (api, next) {
+    let work = Promise.resolve()
+
     // subscribe new chat messages on the redis server
     api.redis.subscriptionHandlers[ 'chat' ] = message => { api.chatRoom.incomingMessage(message) }
 
@@ -588,12 +506,11 @@ export default class {
     if (api.config.general.startingChatRooms) {
       for (let room in api.config.general.startingChatRooms) {
         api.log(`ensuring the existence of the chatRoom: ${room}`)
-        api.chatRoom.add(room)
+        work.then(_ => api.chatRoom.create(room)).catch(_ => { })
       }
     }
 
     // end the initializer starting
-    next()
+    work.then(_ => { next() })
   }
-
 }
