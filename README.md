@@ -17,6 +17,9 @@
   <a href="https://raw.githubusercontent.com/stellar-fw/stellar/master/LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License">
   </a>
+  <a href="https://www.npmjs.com/package/stellar-fw">
+      <img src="https://img.shields.io/npm/v/stellar-fw.svg?style=flat-square" alt="Npm Version">
+    </a>
 </p>
 
 ## Supporting Stellar
