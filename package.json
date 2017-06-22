@@ -45,14 +45,14 @@
     "source-map-support": "^0.4.14",
     "st-formidable": "^1.0.18",
     "then-fakeredis": "^2.0.1",
-    "uglify-es": "^3.0.18",
+    "uglify-es": "^3.0.19",
     "uuid": "3.0.1",
     "waterline": "^0.11.6",
     "winston": "^2.1.1",
     "winston-daily-rotate-file": "^1.4.6",
     "ws": "^3.0.0",
     "yargonaut": "^1.1.2",
-    "yargs": "^8.0.2"
+    "yargs": "^7.1.0"
   },
   "devDependencies": {
     "babel-cli": "^6.11.4",
@@ -63,7 +63,7 @@
     "coveralls": "^2.11.9",
     "eslint": "^3.19.0",
     "eslint-config-standard": "^10.2.1",
-    "eslint-plugin-import": "^2.3.0",
+    "eslint-plugin-import": "^2.5.0",
     "eslint-plugin-node": "^5.0.0",
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-standard": "^3.0.1",
