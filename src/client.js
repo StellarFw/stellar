@@ -564,7 +564,14 @@ StellarClient.prototype.off = function (event, func) { return this.removeListene
  * @return Promise
  */
 StellarClient.prototype.say = function (room, message) {
-  return this.send({ event: 'say', room, message })
+  // set default room as target, and set message with the first argument
+  if (message === undefined) {
+    message = room
+    room = this.options.defaultRoom
+  }
+
+  // emit a 'say' event for the selected room
+  return this.to(room).emit('message', message)
 }
 
 /**

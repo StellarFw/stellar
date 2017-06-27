@@ -307,7 +307,7 @@ describe('Servers: Web Socket', function () {
       const listener = response => {
         client1.removeListener('say', listener)
         response.context.should.equal('user')
-        response.message.should.equal('hello from client 2')
+        response.message.data.should.equal('hello from client 2')
         done()
       }
 
