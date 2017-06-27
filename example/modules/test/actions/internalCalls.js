@@ -52,13 +52,12 @@ module.exports = [
       formatted: '3 + 3 = 6'
     },
 
-    run (api, action) {
+    async run (api, { params, response }) {
       // make a internal call to 'sumANumber' action
-      return api.actions.call('sumANumber', action.params)
-        .then(response => {
-          // build a cool string
-          action.response.formatted = `${action.params.a} + ${action.params.b} = ${response.result}`
-        })
+      const { result } = await api.actions.call('sumANumber', params)
+
+      // build a nice formatted string
+      response.formatted = `${params.a} + ${params.b} = ${result}`
     }
   }
 ]

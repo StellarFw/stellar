@@ -282,13 +282,25 @@ describe('Servers: Web Socket', function () {
 
     it('clients can send/catch events', done => {
       const listener = data => {
-        client1.to('defaultRoom').off('someEvent', listener)
+        client1.off('someEvent', listener)
         data.should.be.equal('Just A Message')
         done()
       }
 
       client1.on('someEvent', listener)
       client2.emit('someEvent', 'Just A Message')
+    })
+
+    it('client can specify the target room', done => {
+      const listener = data => {
+        client1.from('defaultRoom').off('someEvent', listener)
+        data.should.be.equal('Just A Message')
+        done()
+      }
+
+      // join client 1 to otherRoom
+      client1.from('defaultRoom').on('someEvent', listener)
+      client2.to('defaultRoom').emit('someEvent', 'Just A Message')
     })
 
     it('clients can talk to each other', done => {

@@ -71,7 +71,9 @@ class Build {
     const work = []
 
     // send an event for each room, and store the Promise on the array
-    this.rooms.forEach(room => { work.push(this.client.send({ room, event, data })) })
+    this.rooms.forEach(room => {
+      work.push(this.client.send({ event: 'event', params: { room, event, data } }))
+    })
 
     // return an array of Promises
     return Promise.all(work)
