@@ -85,7 +85,7 @@ class ChatRooms {
    * @param message     Message to broadcast.
    */
   async broadcast (connection, room, message) {
-    // whe need the room name, and the message to sends
+    // we need the room name and the message to send
     if (!room || room.length === 0 || message === null || message.length === 0) {
       throw this.api.config.errors.connectionRoomAndMessage(connection)
     }

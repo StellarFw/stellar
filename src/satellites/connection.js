@@ -430,6 +430,7 @@ class Connection {
 
         // execute the event on the event system
         this.api.events.fire(`event.${event}`, { room, data })
+        this.api.events.fire(`event.${room}.${event}`, { room, data })
 
         // broadcast the event to the room
         this.api.chatRoom.broadcast(this, room, { event, data })
