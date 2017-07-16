@@ -1,3 +1,5 @@
+'use strict'
+
 exports.modTest = {
   name: 'modTest',
   description: 'This action is used to test the action metadata manipulation',

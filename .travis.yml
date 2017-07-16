@@ -11,7 +11,8 @@ addons:
     - g++-4.8
 
 node_js:
-  - "6"
+# - "7"
+  - "8"
 
 env:
   - "FAKEREDIS=true CXX=g++-4.8"

@@ -13,7 +13,6 @@ import cluster from 'cluster'
  * - or one can be generated automatically using the external server IP.
  */
 export default class {
-
   /**
    * Load priority.
    *
@@ -62,7 +61,7 @@ export default class {
     }
 
     // save Stellar version
-    api.stellarVersion = require(`../../package.json`).version
+    api.stellarVersion = require('../../package.json').version
 
     // finish the initializer load
     next()
@@ -81,5 +80,4 @@ export default class {
     // finish the initializer start
     next()
   }
-
 }

@@ -11,7 +11,6 @@ const PROTECTED_KEYS = [ 'name', 'run' ]
  * This class manage all actions.
  */
 class Actions {
-
   /**
    * API reference.
    *
@@ -138,7 +137,6 @@ class Actions {
         name: 'status',
         description: 'Is a system action to show the server status',
         run: (api, action, next) => {
-
           // finish the action execution
           next()
         }
@@ -263,7 +261,7 @@ class Actions {
 
     // the name, description, run properties are required
     if (typeof action.name !== 'string' || action.name.length < 1) {
-      fail(`an action is missing 'action.name'`)
+      fail('an action is missing \'action.name\'')
       return false
     } else if (typeof action.description !== 'string' || action.description.length < 1) {
       fail(`Action ${action.name} is missing 'action.description'`)
@@ -288,7 +286,7 @@ class Actions {
     let self = this
 
     // middleware require a name
-    if (!data.name) { throw new Error('middleware.name is required')}
+    if (!data.name) { throw new Error('middleware.name is required') }
 
     // if there is no defined priority use the default
     if (!data.priority) { data.priority = self.api.config.general.defaultMiddlewarePriority }
@@ -517,7 +515,6 @@ class Actions {
  * Initializer to load the actions features into the Engine.
  */
 export default class {
-
   /**
    * Initializer load priority.
    *
@@ -555,7 +552,11 @@ export default class {
 
       // if the module `mod.js` file exists, load it
       if (api.utils.fileExists(modPath)) {
+        // load the modifier
         api.actions.loadModifier(require(modPath)(api).actions)
+
+        // when the modifier file changes we must reload the entire server
+        api.configs.watchFileAndAct(modPath, () => api.commands.restart.call(api._self))
       }
     })
 
@@ -565,5 +566,4 @@ export default class {
     // finish initializer loading
     next()
   }
-
 }

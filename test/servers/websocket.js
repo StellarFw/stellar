@@ -2,7 +2,7 @@ const request = require('request')
 
 const should = require('should')
 const EngineClass = require(__dirname + '/../../dist/engine').default
-const engine = new EngineClass({rootPath: process.cwd() + '/example'})
+const engine = new EngineClass({ rootPath: process.cwd() + '/example' })
 
 let api = null
 
@@ -31,7 +31,6 @@ let connectClients = callback => {
 }
 
 describe('Servers: Web Socket', function () {
-
   before(function (done) {
     // start a Stellar instance
     engine.start((error, a) => {
@@ -46,14 +45,12 @@ describe('Servers: Web Socket', function () {
     })
   })
 
-  after(function (done) {
+  after(done => {
     // finish the Stellar instance execution
-    engine.stop(function () {
-      done()
-    })
+    engine.stop(() => { done() })
   })
 
-  it('socket client connections should work: client 1', function (done) {
+  it('socket client connections should work: client 1', done => {
     client1.connect().then(data => {
       data.context.should.equal('response')
       data.data.totalActions.should.equal(0)
@@ -100,7 +97,7 @@ describe('Servers: Web Socket', function () {
   })
 
   it('does not have sticky params', function (done) {
-    client1.action('cacheTest', {key: 'testKey', value: 'testValue'}).then(response => {
+    client1.action('cacheTest', { key: 'testKey', value: 'testValue' }).then(response => {
       should.not.exist(response.error)
       response.cacheTestResults.loadResp.key.should.equal('cache_test_testKey')
       response.cacheTestResults.loadResp.value.should.equal('testValue')
@@ -113,8 +110,8 @@ describe('Servers: Web Socket', function () {
   })
 
   it('can not call private actions', done => {
-    client1.action('sumANumber', {a: 3, b: 4}).catch(response => {
-      response.error.should.equal(api.config.errors.privateActionCalled('sumANumber'))
+    client1.action('sumANumber', { a: 3, b: 4 }).catch(response => {
+      response.error.code.should.be.equal('002')
       done()
     })
   })
@@ -127,27 +124,23 @@ describe('Servers: Web Socket', function () {
     })
   })
 
+  // We are using the Stellar Client library, so we must the able to call over the limit of simultaneous connections
+  // because we have a mechanism that keep a queue os pending requests
   it('will limit how many simultaneous connections a client can have', function (done) {
     let responses = []
-    client1.action('sleep', {sleepDuration: 100}).then(response => responses.push(response))
-    client1.action('sleep', {sleepDuration: 200}).then(response => responses.push(response))
-    client1.action('sleep', {sleepDuration: 300}).then(response => responses.push(response))
-    client1.action('sleep', {sleepDuration: 400}).then(response => responses.push(response))
-    client1.action('sleep', {sleepDuration: 500}).then(response => responses.push(response))
-    client1.action('sleep', {sleepDuration: 600}).catch(response => responses.push(response))
+    client1.action('sleep', { sleepDuration: 100 }).then(response => responses.push(response))
+    client1.action('sleep', { sleepDuration: 200 }).then(response => responses.push(response))
+    client1.action('sleep', { sleepDuration: 300 }).then(response => responses.push(response))
+    client1.action('sleep', { sleepDuration: 400 }).then(response => responses.push(response))
+    client1.action('sleep', { sleepDuration: 500 }).then(response => responses.push(response))
+    client1.action('sleep', { sleepDuration: 600 }).then(response => responses.push(response))
 
     setTimeout(() => {
+      // we must have an array with six responses
       responses.length.should.equal(6)
 
-      for (let i in responses) {
-        let response = responses[ i ]
-
-        if (i === 0 || i === '0') {
-          response.error.should.eql('you have too many pending requests')
-        } else {
-          should.not.exist(response.error)
-        }
-      }
+      // none of the response must have a 007 error
+      for (const response of responses) { should.not.exist(response.error) }
 
       done()
     }, 1000)
@@ -213,24 +206,19 @@ describe('Servers: Web Socket', function () {
 
   })
 
-  describe('chat', function () {
-
+  describe('chat', () => {
     before(done => {
       api.chatRoom.addMiddleware({
         name: 'join chat middleware',
         join (connection, room, callback) {
-          api.chatRoom.broadcast({}, room, `I have entered the room: ${connection.id}`, e => {
-            callback()
-          })
+          api.chatRoom.broadcast({}, room, `I have entered the room: ${connection.id}`).then(() => { callback() })
         }
       })
 
       api.chatRoom.addMiddleware({
         name: 'leave chat middleware',
         leave (connection, room, callback) {
-          api.chatRoom.broadcast({}, room, `I have left the room: ${connection.id}`, e => {
-            callback()
-          })
+          api.chatRoom.broadcast({}, room, `I have left the room: ${connection.id}`).then(() => { callback() })
         }
       })
 
@@ -244,65 +232,82 @@ describe('Servers: Web Socket', function () {
       done()
     })
 
-    beforeEach(done => {
-      client1.roomAdd('defaultRoom')
-        .then(() => client2.roomAdd('defaultRoom'))
-        .then(() => client3.roomAdd('defaultRoom'))
-        .then(() => {
-          // give some time to send the welcome messages and clients join the room
-          setTimeout(done, 100)
-        })
+    beforeEach(async () => {
+      await client1.join('defaultRoom')
+      await client2.join('defaultRoom')
+      await client3.join('defaultRoom')
     })
 
-    afterEach(done => {
-      client1.roomLeave('defaultRoom')
-        .then(() => client2.roomLeave('defaultRoom'))
-        .then(() => client3.roomLeave('defaultRoom'))
-        .then(() => client1.roomLeave('otherRoom'))
-        .then(() => client2.roomLeave('otherRoom'))
-        .then(() => client3.roomLeave('otherRoom'))
-        .then(() => { done() })
+    afterEach(async () => {
+      await client1.leave('defaultRoom')
+      await client2.leave('defaultRoom')
+      await client3.leave('defaultRoom')
+      await client1.leave('otherRoom')
+      await client2.leave('otherRoom')
+      await client3.leave('otherRoom')
     })
 
-    it('can change rooms and get room details', done => {
-      client1.roomAdd('otherRoom')
-        .then((res) => client1.detailsView())
-        .then(response => {
-          should.not.exist(response.error)
-          response.data.rooms[ 0 ].should.equal('defaultRoom')
-          response.data.rooms[ 1 ].should.equal('otherRoom')
+    it('can change rooms and get room details', async () => {
+      // add the client to the room
+      await client1.join('otherRoom')
 
-          return client1.roomView('otherRoom')
-        })
-        .then(response => {
-          response.data.membersCount.should.equal(1)
-          done()
-        })
+      // get the client details
+      const response = await client1.detailsView()
+
+      should.not.exist(response.error)
+      response.data.rooms[ 0 ].should.equal('defaultRoom')
+      response.data.rooms[ 1 ].should.equal('otherRoom')
+
+      const { data } = await client1.roomView('otherRoom')
+      data.membersCount.should.equal(1)
     })
 
-    it('will update client info when they change rooms', function (done) {
+    it('will update client info when they change rooms', async () => {
       client1.rooms[ 0 ].should.equal('defaultRoom')
       should.not.exist(client1.rooms[ 1 ])
 
-      client1.roomAdd('otherRoom').then(response => {
-        should.not.exist(response.error)
-        client1.rooms[ 0 ].should.equal('defaultRoom')
-        client1.rooms[ 1 ].should.equal('otherRoom')
+      // add client to defaultRoom
+      let response = await client1.join('otherRoom')
 
-        client1.roomLeave('defaultRoom').then(response => {
-          should.not.exist(response.error)
-          client1.rooms[ 0 ].should.equal('otherRoom')
-          should.not.exist(client1.rooms[ 1 ])
-          done()
-        })
-      })
+      should.not.exist(response.error)
+      client1.rooms[ 0 ].should.equal('defaultRoom')
+      client1.rooms[ 1 ].should.equal('otherRoom')
+
+      response = await client1.leave('defaultRoom')
+
+      should.not.exist(response.error)
+      client1.rooms[ 0 ].should.equal('otherRoom')
+      should.not.exist(client1.rooms[ 1 ])
     })
 
-    it('clients can talk to each other', function (done) {
-      let listener = response => {
+    it('clients can send/catch events', done => {
+      const listener = data => {
+        client1.off('someEvent', listener)
+        data.should.be.equal('Just A Message')
+        done()
+      }
+
+      client1.on('someEvent', listener)
+      client2.emit('someEvent', 'Just A Message')
+    })
+
+    it('client can specify the target room', done => {
+      const listener = data => {
+        client1.from('defaultRoom').off('someEvent', listener)
+        data.should.be.equal('Just A Message')
+        done()
+      }
+
+      // join client 1 to otherRoom
+      client1.from('defaultRoom').on('someEvent', listener)
+      client2.to('defaultRoom').emit('someEvent', 'Just A Message')
+    })
+
+    it('clients can talk to each other', done => {
+      const listener = response => {
         client1.removeListener('say', listener)
         response.context.should.equal('user')
-        response.message.should.equal('hello from client 2')
+        response.message.data.should.equal('hello from client 2')
         done()
       }
 
@@ -338,9 +343,9 @@ describe('Servers: Web Socket', function () {
         done()
       }
 
-      client1.roomAdd('otherRoom').then(() => {
+      client1.join('otherRoom').then(() => {
         client1.on('say', listener)
-        client2.roomAdd('otherRoom')
+        client2.join('otherRoom')
       })
     })
 
@@ -353,11 +358,11 @@ describe('Servers: Web Socket', function () {
       }
 
       client1.on('say', listener)
-      client2.roomLeave('defaultRoom')
+      client2.leave('defaultRoom')
     })
 
     it('client will not get messages form other rooms', function (done) {
-      client2.roomAdd('otherRoom').then(response => {
+      client2.join('otherRoom').then(response => {
         should.not.exist(response.error)
         client2.rooms.length.should.equal(2)
 
@@ -383,7 +388,7 @@ describe('Servers: Web Socket', function () {
         .then(response => {
           response.data.membersCount.should.equal(3)
 
-          return client2.roomLeave('defaultRoom')
+          return client2.leave('defaultRoom')
         })
         .then(() => client1.roomView('defaultRoom'))
         .then(response => {
@@ -395,9 +400,9 @@ describe('Servers: Web Socket', function () {
     describe('middleware - say and onSay Receive', function () {
 
       before(function (done) {
-        client1.roomAdd('defaultRoom')
-          .then(() => client2.roomAdd('defaultRoom'))
-          .then(() => client3.roomAdd('defaultRoom'))
+        client1.join('defaultRoom')
+          .then(() => client2.join('defaultRoom'))
+          .then(() => client3.join('defaultRoom'))
           .then(() => {
             // timeout to skip welcome messages as clients join rooms
             setTimeout(() => { done() }, 100)
@@ -405,9 +410,9 @@ describe('Servers: Web Socket', function () {
       })
 
       after(function (done) {
-        client1.roomLeave('defaultRoom')
-          .then(() => client2.roomLeave('defaultRoom'))
-          .then(() => client3.roomLeave('defaultRoom'))
+        client1.leave('defaultRoom')
+          .then(() => client2.leave('defaultRoom'))
+          .then(() => client3.leave('defaultRoom'))
           .then(() => { done() })
       })
 

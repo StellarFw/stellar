@@ -85,7 +85,6 @@ class Actions {
    * @type {{}}
    */
 
-
   /**
    * API reference.
    *
@@ -154,7 +153,6 @@ class Actions {
         name: 'status',
         description: 'Is a system action to show the server status',
         run: (api, action, next) => {
-
           // finish the action execution
           next();
         }
@@ -187,13 +185,13 @@ class Actions {
     // watch for changes on the action file
     self.api.configs.watchFileAndAct(fullFilePath, () => {
       // reload file
-      self.loadFile(fullFilePath, moduleName, true);
+      self.loadFile(fullFilePath, moduleName, true
 
       // reload post variables
-      self.api.params.buildPostVariables();
+      );self.api.params.buildPostVariables
 
       // reload routes
-      self.api.routes.loadRoutes();
+      ();self.api.routes.loadRoutes();
     });
 
     let action = null;
@@ -201,10 +199,10 @@ class Actions {
     // try load the action
     try {
       // load action file
-      let collection = require(fullFilePath);
+      let collection = require(fullFilePath
 
       // iterate all collection definitions
-      for (let i in collection) {
+      );for (let i in collection) {
         // get action object
         action = collection[i];
 
@@ -239,13 +237,13 @@ class Actions {
           self.versions[action.name] = [];
         }
         self.versions[action.name].push(action.version);
-        self.versions[action.name].sort();
+        self.versions[action.name].sort
 
         // validate the action data
-        self.validateAction(self.actions[action.name][action.version]);
+        ();self.validateAction(self.actions[action.name][action.version]
 
         // send a log message
-        loadMessage(action);
+        );loadMessage(action);
       }
     } catch (err) {
       try {
@@ -268,10 +266,10 @@ class Actions {
     let self = this;
 
     // fail function
-    let fail = msg => self.api.log(msg, 'error');
+    let fail = msg => self.api.log(msg, 'error'
 
     // initialize inputs property
-    if (action.inputs === undefined) {
+    );if (action.inputs === undefined) {
       action.inputs = {};
     }
 
@@ -287,7 +285,7 @@ class Actions {
 
     // the name, description, run properties are required
     if (typeof action.name !== 'string' || action.name.length < 1) {
-      fail(`an action is missing 'action.name'`);
+      fail('an action is missing \'action.name\'');
       return false;
     } else if (typeof action.description !== 'string' || action.description.length < 1) {
       fail(`Action ${action.name} is missing 'action.description'`);
@@ -322,10 +320,10 @@ class Actions {
     }
 
     // ensure the priority is a number
-    data.priority = Number(data.priority);
+    data.priority = Number(data.priority
 
     // save the new middleware
-    self.middleware[data.name] = data;
+    );self.middleware[data.name] = data;
 
     // if this is a local middleware return now
     if (data.global !== true) {
@@ -333,10 +331,10 @@ class Actions {
     }
 
     // push the new middleware to the global list
-    self.globalMiddleware.push(data.name);
+    self.globalMiddleware.push(data.name
 
     // sort the global middleware array
-    self.globalMiddleware.sort((a, b) => {
+    );self.globalMiddleware.sort((a, b) => {
       if (self.middleware[a].priority > self.middleware[b].priority) {
         return 1;
       }
@@ -367,23 +365,23 @@ class Actions {
     };
 
     // watch for changes on the middleware file
-    self.api.configs.watchFileAndAct(path, () => self.loadMiddlewareFromFile(path, true));
+    self.api.configs.watchFileAndAct(path, () => self.loadMiddlewareFromFile(path, true)
 
     // try load the middleware
-    try {
+    );try {
       // load middleware file
-      let collection = require(path);
+      let collection = require(path
 
       // iterate all collection definitions
-      for (let index in collection) {
+      );for (let index in collection) {
         // get middleware object
         let middleware = collection[index];
 
         // try load middleware object
-        self.addMiddleware(middleware);
+        self.addMiddleware(middleware
 
         // send a log message
-        loadMessage(middleware);
+        );loadMessage(middleware);
       }
     } catch (error) {
       self.api.exceptionHandlers.loader(path, error);
@@ -399,10 +397,10 @@ class Actions {
    */
   loadModifier(modifier) {
     // the modifier is a hash that the keys correspond to group names
-    const groups = Object.keys(modifier);
+    const groups = Object.keys(modifier
 
     // iterate all groups
-    groups.forEach(groupName => {
+    );groups.forEach(groupName => {
       // get the group content
       const group = modifier[groupName];
 
@@ -423,10 +421,10 @@ class Actions {
       }
 
       // save the actions that compose this group
-      this.groupsActions.set(groupName, actions);
+      this.groupsActions.set(groupName, actions
 
       // save the group metadata modifications to apply to the actions, later
-      this.groups.set(groupName, group.metadata);
+      );this.groups.set(groupName, group.metadata);
     });
   }
 
@@ -458,10 +456,10 @@ class Actions {
    */
   _applyGroupModToAction(groupName, action) {
     // get group metadata modifications
-    const metadata = this.groups.get(groupName);
+    const metadata = this.groups.get(groupName
 
     // iterate all modification keys
-    for (let key of Object.keys(metadata)) {
+    );for (let key of Object.keys(metadata)) {
       let value = metadata[key];
 
       // if there is a protected key, ignore it
@@ -473,18 +471,18 @@ class Actions {
       // append an item to an array, or create it if not exists
       if (key.charAt(0) === '+') {
         // create a sub-string without the plus sign
-        key = key.substring(1, key.length);
+        key = key.substring(1, key.length
 
         // set the new value
-        action[key] = (action[key] || []).concat(value);
+        );action[key] = (action[key] || []).concat(value);
 
         continue;
       } else if (key.charAt(0) === '-') {
         // create a sub-string without the plus sign
-        key = key.substring(1, key.length);
+        key = key.substring(1, key.length
 
         // this needs to be an Array
-        if (Array.isArray(action[key])) {
+        );if (Array.isArray(action[key])) {
           action[key] = action[key].filter(item => !value.includes(item));
         }
 
@@ -517,20 +515,20 @@ class Actions {
       }
 
       // get the array of actions
-      const arrayOfActions = this.groupsActions.get(action.group);
+      const arrayOfActions = this.groupsActions.get(action.group
 
       // to prevent duplicated entries, it's necessary check if the array
       // already exists on the array
-      if (!arrayOfActions.includes(action.name)) {
+      );if (!arrayOfActions.includes(action.name)) {
         arrayOfActions.push(action.name);
       }
     }
 
     // check the groups here the action is present and apply the modifications
-    const groupNames = this._checkWhatGroupsArePresent(action.name);
+    const groupNames = this._checkWhatGroupsArePresent(action.name
 
     // apply the changes of all founded groups
-    groupNames.forEach(groupName => this._applyGroupModToAction(groupName, action));
+    );groupNames.forEach(groupName => this._applyGroupModToAction(groupName, action));
   }
 
   /**
@@ -558,7 +556,6 @@ exports.default = class {
   constructor() {
     this.loadPriority = 410;
   }
-
   /**
    * Initializer load priority.
    *
@@ -577,34 +574,37 @@ exports.default = class {
     api.actions = new Actions(api);
 
     // load system actions
-    api.actions.loadSystemActions();
+    api.actions.loadSystemActions
 
     // iterate all modules and load all actions
-    api.modules.modulesPaths.forEach((modulePath, moduleName) => {
+    ();api.modules.modulesPaths.forEach((modulePath, moduleName) => {
       // load modules middleware
-      api.utils.recursiveDirectoryGlob(`${modulePath}/middleware`).forEach(path => api.actions.loadMiddlewareFromFile(path));
+      api.utils.recursiveDirectoryGlob(`${modulePath}/middleware`).forEach(path => api.actions.loadMiddlewareFromFile(path)
 
       // get all files from the module "actions" folder
-      api.utils.recursiveDirectoryGlob(`${modulePath}/actions`).forEach(actionFile => api.actions.loadFile(actionFile, moduleName));
-    });
+      );api.utils.recursiveDirectoryGlob(`${modulePath}/actions`).forEach(actionFile => api.actions.loadFile(actionFile, moduleName));
+    }
 
     // load the modules after the action in order to reduce the number of
     // operations to apply the group modifications
-    api.modules.modulesPaths.forEach(modulePath => {
+    );api.modules.modulesPaths.forEach(modulePath => {
       // build the mod path
       const modPath = `${modulePath}/mod.js`;
 
       // if the module `mod.js` file exists, load it
       if (api.utils.fileExists(modPath)) {
-        api.actions.loadModifier(require(modPath)(api).actions);
+        // load the modifier
+        api.actions.loadModifier(require(modPath)(api).actions
+
+        // when the modifier file changes we must reload the entire server
+        );api.configs.watchFileAndAct(modPath, () => api.commands.restart.call(api._self));
       }
-    });
+    }
 
     // apply the group modifications
-    api.actions._applyGroupModifications();
+    );api.actions._applyGroupModifications
 
     // finish initializer loading
-    next();
+    ();next();
   }
-
 };

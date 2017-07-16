@@ -15,44 +15,40 @@ module.exports = [ {
     }
   },
 
-  run: (api, data, next) => {
-    let key = 'cache_test_' + data.params.key
-    let value = data.params.value
+  async run (api, { params, response }) {
+    const key = 'cache_test_' + params.key
 
     // create the base response object
-    data.response.cacheTestResults = {}
+    response.cacheTestResults = {}
 
     // create a new cache entry
-    api.cache.save(key, value, 5000, (err, resp) => {
-      // append the cache response to the request response
-      data.response.cacheTestResults.saveResp = resp
+    let resp = await api.cache.save(key, params.value, 5000)
 
-      // get the cache size
-      api.cache.size((err, numberOfCacheObjects) => {
-        // append the cache size to the response object
-        data.response.cacheTestResults.sizeResp = numberOfCacheObjects
+    // append the cache response to the request response
+    response.cacheTestResults.saveResp = resp
 
-        // load the cache entry
-        api.cache.load(key, (err, resp, expireTimestamp, createdAt, readAt) => {
-          // append the load response to the request response
-          data.response.cacheTestResults.loadResp = {
-            key: key,
-            value: resp,
-            expireTimestamp: expireTimestamp,
-            createdAt: createdAt,
-            readAt: readAt
-          }
+    // get the cache size
+    const numberOfCacheObjects = await api.cache.size()
 
-          // try destroy the cache entry
-          api.cache.destroy(key, (err, resp) => {
-            // append the response to the request response
-            data.response.cacheTestResults.deleteResp = resp
+    // append the cache size to the response object
+    response.cacheTestResults.sizeResp = numberOfCacheObjects
 
-            // finish the action execution
-            next()
-          })
-        })
-      })
-    })
+    // load the cache entry
+    const { value, expireTimestamp, createdAt, readAt } = await api.cache.load(key)
+
+    // append the load response to the request response
+    response.cacheTestResults.loadResp = {
+      key,
+      value,
+      expireTimestamp,
+      createdAt,
+      readAt
+    }
+
+    // try destroy the cache entry
+    resp = await api.cache.destroy(key)
+
+    // append the response to the request response
+    response.cacheTestResults.deleteResp = resp
   }
 } ]

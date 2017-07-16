@@ -28,7 +28,6 @@ exports.default = class {
     this.loadPriority = 100;
     this.startPriority = 2;
   }
-
   /**
    * Load priority.
    *
@@ -77,7 +76,7 @@ exports.default = class {
     }
 
     // save Stellar version
-    api.stellarVersion = require(`../../package.json`).version;
+    api.stellarVersion = require('../../package.json').version;
 
     // finish the initializer load
     next();
@@ -91,10 +90,9 @@ exports.default = class {
    */
   start(api, next) {
     // print out the server ID
-    api.log(`server ID: ${api.id}`, 'notice');
+    api.log(`server ID: ${api.id}`, 'notice'
 
     // finish the initializer start
-    next();
+    );next();
   }
-
 };

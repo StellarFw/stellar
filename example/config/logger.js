@@ -2,4 +2,4 @@ exports.default = {
 
   consoleLevel: 'debug'
 
-};
+}

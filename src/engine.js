@@ -24,7 +24,6 @@ let startCount = 0
  * instruction to accomplish a certain goal.
  */
 export default class Engine {
-
   // --------------------------------------------------------------------------- [STATIC]
 
   /**
@@ -85,17 +84,18 @@ export default class Engine {
     // if errors variables if not defined return
     if (!errors) { return }
 
-    // ensure the errors variable is an instance of Array
-    if (!(errors instanceof Array)) { errors = [ errors ] }
+    // ensure the errors variable is an Array
+    if (!Array.isArray(errors)) { errors = [ errors ] }
 
     // log an emergency message
-    api.log(`Error with satellite step: ${type}`, 'emergency')
+    console.log()
+    api.log(`Error with satellite step: ${type}`, 'emerg')
 
     // log all the errors
-    errors.forEach(err => api.log(err, 'emergency'))
+    errors.forEach(err => api.log(err, 'emerg'))
 
     // finish the process execution
-    process.exit(1)
+    api.commands.stop.call(api, () => { process.exit(1) })
   }
 
   // --------------------------------------------------------------------------- [Class]
@@ -381,8 +381,8 @@ export default class Engine {
 
     // we need to load the config first
     let initialSatellites = [
-      path.resolve(__dirname + '/satellites/utils.js'),
-      path.resolve(__dirname + '/satellites/config.js')
+      path.resolve(`${__dirname}/satellites/utils.js`),
+      path.resolve(`${__dirname}/satellites/config.js`)
     ]
     initialSatellites.forEach(file => {
       // get full file name
@@ -392,7 +392,8 @@ export default class Engine {
       let initializer = filename.split('.')[ 0 ]
 
       // get the initializer
-      this.satellites[ initializer ] = new (require(file)).default()
+      const Satellite = require(file).default
+      this.satellites[ initializer ] = new Satellite()
 
       // add it to array
       this.initialSatellites.push(next => this.satellites[ initializer ].load(this.api, next))
@@ -446,7 +447,8 @@ export default class Engine {
         if (ext !== 'js') { continue }
 
         // get initializer module and instantiate it
-        this.satellites[ initializer ] = new (require(file).default)()
+        const Satellite = require(file).default
+        this.satellites[ initializer ] = new Satellite()
 
         // initializer load function
         let loadFunction = next => {
@@ -456,7 +458,7 @@ export default class Engine {
 
             // call `load` property
             this.satellites[ initializer ].load(this.api, err => {
-              this.api.log(`   loaded: ${initializer}`, 'debug')
+              if (!err) { this.api.log(`   loaded: ${initializer}`, 'debug') }
               next(err)
             })
           } else {
@@ -472,7 +474,7 @@ export default class Engine {
 
             // execute start routine
             this.satellites[ initializer ].start(this.api, err => {
-              this.api.log(`   started: ${initializer}`, 'debug')
+              if (!err) { this.api.log(`   started: ${initializer}`, 'debug') }
               next(err)
             })
           } else {
@@ -486,7 +488,7 @@ export default class Engine {
             this.api.log(` > stop: ${initializer}`, 'debug')
 
             this.satellites[ initializer ].stop(this.api, err => {
-              this.api.log(`   stopped: ${initializer}`, 'debug')
+              if (!err) { this.api.log(`   stopped: ${initializer}`, 'debug') }
               next(err)
             })
           } else {
@@ -508,7 +510,7 @@ export default class Engine {
     }
 
     // get an array with all satellites
-    loadSatellitesInPlace(Utils.getFiles(__dirname + '/satellites'))
+    loadSatellitesInPlace(Utils.getFiles(`${__dirname}/satellites`))
 
     // load satellites from all the active modules
     this.api.config.modules.forEach(moduleName => {

@@ -1,3 +1,5 @@
+'use strict'
+
 exports.status = {
   name: 'status',
   description: 'This action returns some basic information about the API',
@@ -8,7 +10,7 @@ exports.status = {
     uptime: 10030
   },
 
-  run: (api, data, next) => {
+  run (api, data, next) {
     data.response.id = api.id
     data.response.stellarVersion = api.stellarVersion
     data.response.uptime = new Date().getTime() - api.bootTime

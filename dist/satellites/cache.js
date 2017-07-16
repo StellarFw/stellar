@@ -4,11 +4,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _async = require('async');
-
-var _async2 = _interopRequireDefault(_async);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 /**
  * Cache manager class.
@@ -37,7 +33,6 @@ class CacheManager {
    * @type {String}
    */
 
-
   /**
    * API reference.
    *
@@ -63,8 +58,6 @@ class CacheManager {
 
   /**
    * Get all cached keys.
-   *
-   * @param next  Callback.
    */
 
 
@@ -87,61 +80,56 @@ class CacheManager {
    *
    * @type {String}
    */
-  keys(next) {
-    let self = this;
-    self.api.redis.clients.client.keys(this.redisPrefix + '*', (err, keys) => {
-      next(err, keys);
-    });
+  keys() {
+    var _this = this;
+
+    return _asyncToGenerator(function* () {
+      return _this.api.redis.clients.client.keys(_this.redisPrefix + '*');
+    })();
   }
 
   /**
    * Get the total number of cached items.
-   *
-   * @param next  Callback.
    */
-  size(next) {
-    let self = this;
+  size() {
+    var _this2 = this;
 
-    // get all cached keys
-    self.keys((err, keys) => {
+    return _asyncToGenerator(function* () {
       let length = 0;
 
+      // get all cached keys
+      const keys = yield _this2.keys
+
       // get the keys length if present
-      if (keys) {
+      ();if (keys) {
         length = keys.length;
       }
 
-      next(err, length);
-    });
+      return length;
+    })();
   }
 
   /**
    * Remove all cached items.
-   *
-   * @param next  Callback.
    */
-  clear(callback) {
-    let self = this;
+  clear() {
+    var _this3 = this;
 
-    // get all cached keys
-    self.keys((error, keys) => {
-      if (error && typeof callback === 'function') {
-        return callback(error);
-      }
+    return _asyncToGenerator(function* () {
+      // get all cached keys
+      const keys = yield _this3.keys
 
       // array with the jobs to be done
-      let jobs = [];
+      ();let jobs = [];
 
       // iterate all keys and push a new jobs for the array
-      keys.forEach(key => jobs.push(done => self.api.redis.clients.client.del(key, done)));
+      keys.forEach(function (key) {
+        return jobs.push(_this3.api.redis.clients.client.del(key));
+      }
 
       // execute all the jobs, this can be done in parallel
-      _async2.default.parallel(jobs, error => {
-        if (typeof callback === 'function') {
-          return callback(error);
-        }
-      });
-    });
+      );return Promise.all(jobs);
+    })();
   }
 
   /**
@@ -150,58 +138,44 @@ class CacheManager {
    * @param key           Key to be saved.
    * @param value         Value to associate with the key.
    * @param expireTimeMS  Expire time in milliseconds.
-   * @param callback      Callback function.
    */
-  save(key, value, expireTimeMS, callback) {
-    let self = this;
+  save(key, value, expireTimeMS = null) {
+    var _this4 = this;
 
-    if (typeof expireTimeMS === 'function' && typeof callback === 'undefined') {
-      callback = expireTimeMS;
-      expireTimeMS = null;
-    }
+    return _asyncToGenerator(function* () {
+      let expireTimeSeconds = null;
+      let expireTimestamp = null;
 
-    let expireTimeSeconds = null;
-    let expireTimestamp = null;
-
-    // if expireTimeMS is different than null we calculate the expire time in seconds
-    // and the expire timestamp
-    if (expireTimeMS !== null) {
-      expireTimeSeconds = Math.ceil(expireTimeMS / 1000);
-      expireTimestamp = new Date().getTime() + expireTimeMS;
-    }
-
-    // build the cache object
-    let cacheObj = {
-      value: value,
-      expireTimestamp: expireTimestamp,
-      createdAt: new Date().getTime(),
-      readAt: null
-    };
-
-    // check if the key are locked
-    self.checkLock(key, null, (error, lockOk) => {
-      if (error || lockOk !== true) {
-        if (typeof callback === 'function') {
-          callback(new Error('Object locked'));
-        }
-      } else {
-        // save the new key and value
-        let keyToSave = self.redisPrefix + key;
-        self.api.redis.clients.client.set(keyToSave, JSON.stringify(cacheObj), err => {
-          // if the new cache entry has been saved define the expire date if needed
-          if (err === null && expireTimeSeconds) {
-            self.api.redis.clients.client.expire(keyToSave, expireTimeSeconds);
-          }
-
-          // execute the callback
-          if (typeof callback === 'function') {
-            process.nextTick(() => {
-              callback(err, true);
-            });
-          }
-        });
+      // if expireTimeMS is different than null we calculate the expire time in seconds and the expire timestamp
+      if (expireTimeMS !== null) {
+        expireTimeSeconds = Math.ceil(expireTimeMS / 1000);
+        expireTimestamp = new Date().getTime() + expireTimeMS;
       }
-    });
+
+      // build the cache object
+      let cacheObj = {
+        value: value,
+        expireTimestamp: expireTimestamp,
+        createdAt: new Date().getTime(),
+        readAt: null
+
+        // if the object is locked we throw an exception
+      };const lockOk = yield _this4.checkLock(key, null);
+      if (lockOk !== true) {
+        throw new Error('Object locked');
+      }
+
+      // save the new key and value
+      const keyToSave = _this4.redisPrefix + key;
+      yield _this4.api.redis.clients.client.set(keyToSave, JSON.stringify(cacheObj)
+
+      // if the new cache entry has been saved define the expire date if needed
+      );if (expireTimeSeconds) {
+        yield _this4.api.redis.clients.client.expire(keyToSave, expireTimeSeconds);
+      }
+
+      return true;
+    })();
   }
 
   /**
@@ -209,21 +183,18 @@ class CacheManager {
    *
    * @param key       Key to search.
    * @param options   Call options.
-   * @param next      Callback function.
    */
-  load(key, options, next) {
-    let self = this;
+  load(key, options = {}) {
+    var _this5 = this;
 
-    if (typeof options === 'function') {
-      next = options;
-      options = {};
-    }
+    return _asyncToGenerator(function* () {
+      let cacheObj = null;
 
-    // get the cache entry from redis server
-    self.api.redis.clients.client.get(self.redisPrefix + key, (err, cacheObj) => {
-      // log the error if exists
-      if (err) {
-        self.api.log(err, 'error');
+      try {
+        // get the cache entry from redis server
+        cacheObj = yield _this5.api.redis.clients.client.get(_this5.redisPrefix + key);
+      } catch (e) {
+        _this5.api.log(e, 'error');
       }
 
       // try parse the redis response
@@ -233,13 +204,11 @@ class CacheManager {
 
       // check if the object exist
       if (!cacheObj) {
-        if (typeof next === 'function') {
-          process.nextTick(() => {
-            next(new Error('Object not found'), null, null, null, null);
-          });
-        }
-      } else if (cacheObj.expireTimestamp >= new Date().getTime() || cacheObj.expireTimestamp === null) {
-        let lastReadAt = cacheObj.readAt;
+        throw new Error('Object not found');
+      }
+
+      if (cacheObj.expireTimestamp >= new Date().getTime() || cacheObj.expireTimestamp === null) {
+        const lastReadAt = cacheObj.readAt;
         let expireTimeSeconds;
 
         // update the readAt property
@@ -256,78 +225,76 @@ class CacheManager {
         }
 
         // check the cache entry lock
-        self.checkLock(key, options.retry, (err, lockOk) => {
-          if (err || lockOk !== true) {
-            if (typeof next === 'function') {
-              next(new Error('Object locked'));
-            }
-          } else {
-            self.api.redis.clients.client.set(self.redisPrefix + key, JSON.stringify(cacheObj), err => {
-              if (typeof expireTimeSeconds === 'number') {
-                self.api.redis.clients.client.expire(self.redisPrefix + key, expireTimeSeconds);
-              }
-              if (typeof next === 'function') {
-                process.nextTick(function () {
-                  next(err, cacheObj.value, cacheObj.expireTimestamp, cacheObj.createdAt, lastReadAt);
-                });
-              }
-            });
-          }
-        });
-      } else {
-        if (typeof next === 'function') {
-          process.nextTick(() => {
-            next(new Error('Object expired'), null, null, null, null);
-          });
+        let lockOk = null;
+        try {
+          lockOk = yield _this5.checkLock(key, options.retry);
+        } catch (e) {
+          throw new Error('Object locked');
         }
+
+        if (lockOk !== true) {
+          throw new Error('Object locked');
+        }
+
+        yield _this5.api.redis.clients.client.set(_this5.redisPrefix + key, JSON.stringify(cacheObj));
+
+        if (typeof expireTimeSeconds === 'number') {
+          yield _this5.api.redis.clients.client.expire(_this5.redisPrefix + key, expireTimeSeconds);
+        }
+
+        /// return an object with the last time that the resource was read and they content
+        return {
+          value: cacheObj.value,
+          expireTimestamp: cacheObj.expireTimestamp,
+          createdAt: cacheObj.createdAt,
+          lastReadAt
+        };
       }
-    });
+
+      throw new Error('Object expired');
+    })();
   }
 
   /**
    * Destroy a cache entry.
    *
    * @param key   Key to destroy.
-   * @param next  Callback.
    */
-  destroy(key, next) {
-    let self = this;
+  destroy(key) {
+    var _this6 = this;
 
-    // check cache entry lock
-    self.checkLock(key, null, (err, lockOk) => {
-      if (err || lockOk !== true) {
-        if (typeof next === 'function') {
-          next(new Error('Object locked'));
-        }
-      } else {
-        self.api.redis.clients.client.del(self.redisPrefix + key, (err, count) => {
-          if (err) {
-            self.api.log(err, 'error');
-          }
-          let resp = true;
-          if (count !== 1) {
-            resp = false;
-          }
-          if (typeof next === 'function') {
-            next(null, resp);
-          }
-        });
+    return _asyncToGenerator(function* () {
+      let lockOk = null;
+
+      try {
+        // check cache entry lock
+        lockOk = yield _this6.checkLock(key, null);
+      } catch (e) {
+        throw new Error('Object locked');
       }
-    });
+
+      if (lockOk !== true) {
+        throw new Error('Object locked');
+      }
+
+      let count = null;
+      try {
+        count = yield _this6.api.redis.clients.client.del(_this6.redisPrefix + key);
+      } catch (e) {
+        _this6.api.log(e, 'error');
+      }
+
+      return count === 1;
+    })();
   }
 
   // ------------------------------------------------------------------------------------------------------------ [Lock]
 
   /**
    * Get all existing locks.
-   *
-   * @param next Callback function.
    */
-  locks(next) {
-    let self = this;
-    self.api.redis.clients.client.keys(this.lockPrefix + '*', (err, keys) => {
-      next(err, keys);
-    });
+  locks() {
+    return this.api.redis.clients.client.keys(this.lockPrefix + '*');
   }
 
   /**
@@ -335,70 +302,61 @@ class CacheManager {
    *
    * @param key           Key to lock.
    * @param expireTimeMS  Expire time (optional)
-   * @param callback      Callback function.
    */
-  lock(key, expireTimeMS, callback) {
-    let self = this;
+  lock(key, expireTimeMS = null) {
+    var _this7 = this;
 
-    // if the expireTimeMS is a function that means the developer don't set a expire time
-    if (typeof expireTimeMS === 'function' && callback === null) {
-      callback = expireTimeMS;
-      expireTimeMS = null;
-    }
+    return _asyncToGenerator(function* () {
+      if (expireTimeMS === null) {
+        expireTimeMS = _this7.lockDuration;
+      }
 
-    // assign the default expire time if the expireTimeMS is equals to null
-    if (expireTimeMS === null) {
-      expireTimeMS = self.lockDuration;
-    }
-
-    // check the lock state
-    self.checkLock(key, null, (error, lock) => {
-      // if there is an error or the lock already exists
-      if (error || lock !== true) {
-        return callback(error, false);
+      // when the resource is locked we can change the lock
+      const lockOk = yield _this7.checkLock(key, null);
+      if (!lockOk) {
+        return false;
       }
 
       // create a new lock
-      let lockKey = self.lockPrefix + key;
-      self.api.redis.clients.client.setnx(lockKey, self.lockName, error => {
-        // return the error if exists
-        if (error) {
-          return callback(error);
-        }
+      const lockKey = _this7.lockPrefix + key;
+      yield _this7.api.redis.clients.client.setnx(lockKey, _this7.lockName
 
-        // set an expire date for the lock
-        self.api.redis.clients.client.expire(lockKey, Math.ceil(expireTimeMS / 1000), error => {
-          lock = !error;
-          return callback(error, lock);
-        });
-      });
-    });
+      // set an expire date for the lock
+      );try {
+        yield _this7.api.redis.clients.client.expire(lockKey, Math.ceil(expireTimeMS / 1000));
+      } catch (e) {
+        return false;
+      }
+
+      return true;
+    })();
   }
 
   /**
    * Unlock a cache entry.
    *
-   * @param key       Key to unlock.
-   * @param callback  Callback function.
+   * @param key Key to unlock.
    */
-  unlock(key, callback) {
-    let self = this;
+  unlock(key) {
+    var _this8 = this;
 
-    // check the lock state, if already unlocked returns.
-    self.checkLock(key, null, (error, lock) => {
-      if (error || lock !== true) {
-        return callback(error, false);
+    return _asyncToGenerator(function* () {
+      // check the lock state, if already unlocked returns.
+      try {
+        yield _this8.checkLock(key, null);
+      } catch (e) {
+        return false;
       }
 
       // remove the lock
-      self.api.redis.clients.client.del(self.lockPrefix + key, error => {
-        lock = true;
-        if (error) {
-          lock = false;
-        }
-        return callback(error, lock);
-      });
-    });
+      try {
+        yield _this8.api.redis.clients.client.del(_this8.lockPrefix + key);
+      } catch (e) {
+        return false;
+      }
+
+      return true;
+    })();
   }
 
   /**
@@ -406,36 +364,30 @@ class CacheManager {
    *
    * @param key       Key to check.
    * @param retry     If defined keep retrying until the lock is free to be re-obtained.
-   * @param callback      Callback function.
    * @param startTime This should not be used by the user.
    */
-  checkLock(key, retry, callback, startTime) {
-    let self = this;
+  checkLock(key, retry, startTime = new Date().getTime()) {
+    var _this9 = this;
 
-    // if the start time are not defined use the current timestamp
-    if (startTime === null) {
-      startTime = new Date().getTime();
-    }
+    return _asyncToGenerator(function* () {
+      // get the cache entry
+      const lockedBy = yield _this9.api.redis.clients.client.get(_this9.lockPrefix + key
 
-    // get the cache entry
-    self.api.redis.clients.client.get(self.lockPrefix + key, (error, lockedBy) => {
-      if (error) {
-        return callback(error, false);
-      } else if (lockedBy === self.lockName || lockedBy === null) {
-        return callback(null, true);
-      } else {
-        // calculate the time variation between the request and the response
-        let delta = new Date().getTime() - startTime;
-
-        if (retry === null || retry === false || delta > retry) {
-          return callback(null, false);
-        }
-
-        return setTimeout(() => {
-          self.checkLock(key, retry, callback, startTime);
-        }, self.lockRetry);
+      // if the lock name is equals to this instance lock name, the resource can be used
+      );if (lockedBy === _this9.lockName || lockedBy === null) {
+        return true;
       }
-    });
+
+      // calculate the time variation between the request and the response
+      let delta = new Date().getTime() - startTime;
+
+      if (retry === null || retry === false || delta > retry) {
+        return false;
+      }
+
+      yield _this9.api.utils.deplay(_this9.lockRetry);
+      return _this9.checkLock(key, retry, startTime);
+    })();
   }
 
   // ------------------------------------------------------------------------------------------------------------ [List]
@@ -445,20 +397,13 @@ class CacheManager {
    *
    * @param key       List key.
    * @param item      Item to cache.
-   * @param callback  Callback function.
    */
-  push(key, item, callback) {
-    let self = this;
-
+  push(key, item) {
     // stringify the data to save
-    let object = JSON.stringify({ data: item });
+    let object = JSON.stringify({ data: item }
 
     // push the new item to Redis
-    self.api.redis.clients.client.rpush(self.redisPrefix + key, object, error => {
-      if (typeof callback === 'function') {
-        callback(error);
-      }
-    });
+    );return this.api.redis.clients.client.rpush(this.redisPrefix + key, object);
   }
 
   /**
@@ -467,48 +412,34 @@ class CacheManager {
    * If the key not exists a null value will be returned.
    *
    * @param key       Key to search for.
-   * @param callback  Callback function.
    */
-  pop(key, callback) {
-    let self = this;
+  pop(key) {
+    var _this10 = this;
 
-    // pop the item from Redis
-    self.api.redis.clients.client.lpop(self.redisPrefix + key, (error, object) => {
-      // check if an error occurred during the request
-      if (error) {
-        return callback(error);
-      }
+    return _asyncToGenerator(function* () {
+      // pop the item from Redis
+      const object = yield _this10.api.redis.clients.client.lpop(_this10.redisPrefix + key
 
       // if the object not exist return null
-      if (!object) {
-        return callback();
+      );if (!object) {
+        return null;
       }
 
       // try parse the item and return it
-      let item = null;
-
-      try {
-        item = JSON.parse(object);
-      } catch (e) {
-        return callback(error);
-      }
+      let item = JSON.parse(object
 
       // return the parsed object
-      return callback(null, item.data);
-    });
+      );return item.data;
+    })();
   }
 
   /**
    * Get the length of the list.
    *
    * @param key       Key to search for.
-   * @param callback  Callback function.
    */
-  listLength(key, callback) {
-    let self = this;
-
-    // request the list's length to Redis
-    self.api.redis.clients.client.llen(self.redisPrefix + key, callback);
+  listLength(key) {
+    return this.api.redis.clients.client.llen(this.redisPrefix + key);
   }
 }
 
@@ -519,7 +450,6 @@ exports.default = class {
   constructor() {
     this.loadPriority = 300;
   }
-
   /**
    * Initializer load priority
    *
@@ -540,5 +470,4 @@ exports.default = class {
     // finish the initializer loading
     next();
   }
-
 };

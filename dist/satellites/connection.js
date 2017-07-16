@@ -52,7 +52,7 @@ class Connections {
   constructor(api) {
     this.middleware = {};
     this.globalMiddleware = [];
-    this.allowedVerbs = ['quit', 'exit', 'paramAdd', 'paramDelete', 'paramView', 'paramsView', 'paramsDelete', 'roomAdd', 'roomLeave', 'roomView', 'detailsView', 'say'];
+    this.allowedVerbs = ['quit', 'exit', 'paramAdd', 'paramDelete', 'paramView', 'paramsView', 'paramsDelete', 'roomJoin', 'roomLeave', 'roomView', 'detailsView', 'say', 'event'];
     this.connections = {};
     this.api = api;
   }
@@ -77,13 +77,10 @@ class Connections {
    * @type {Array}
    */
 
-
   /**
    * API reference object.
    */
   addMiddleware(data) {
-    let self = this;
-
     // middleware require a name
     if (!data.name) {
       throw new Error('middleware.name is required');
@@ -91,21 +88,21 @@ class Connections {
 
     // if there is no defined priority use the default
     if (!data.priority) {
-      data.priority = self.api.config.general.defaultMiddlewarePriority;
+      data.priority = this.api.config.general.defaultMiddlewarePriority;
     }
 
     // ensure the priority is a number
-    data.priority = Number(data.priority);
+    data.priority = Number(data.priority
 
     // save the new middleware
-    self.middleware[data.name] = data;
+    );this.middleware[data.name] = data;
 
     // push the new middleware to the global list
-    self.globalMiddleware.push(data.name);
+    this.globalMiddleware.push(data.name
 
     // sort the global middleware array
-    self.globalMiddleware.sort((a, b) => {
-      if (self.middleware[a].priority > self.middleware[b].priority) {
+    );this.globalMiddleware.sort((a, b) => {
+      if (this.middleware[a].priority > this.middleware[b].priority) {
         return 1;
       }
 
@@ -114,21 +111,18 @@ class Connections {
   }
 
   apply(connectionId, method, args, callback) {
-    let self = this;
-
     if (args === undefined && callback === undefined && typeof method === 'function') {
       callback = method;
       args = null;
       method = null;
     }
 
-    self.api.redis.doCluster('api.connections.applyCatch', [connectionId, method, args], connectionId, callback);
+    this.api.redis._doCluster('api.connections.applyCatch', [connectionId, method, args], connectionId, callback);
   }
 
   applyCatch(connectionId, method, args, callback) {
-    let self = this;
+    const connection = this.api.connections.connections[connectionId];
 
-    let connection = self.api.connections.connections[connectionId];
     if (method && args) {
       if (method === 'sendMessage' || method === 'sendFile') {
         connection[method](args);
@@ -163,7 +157,6 @@ class Connection {
    * @param data hash map
    */
 
-
   /**
    * Api reference.
    */
@@ -180,18 +173,16 @@ class Connection {
   constructor(api, data) {
     this.rooms = [];
 
-    let self = this;
-
-    self.api = api;
-    self._setup(data);
+    this.api = api;
+    this._setup(data
 
     // save this connection on the connection manager
-    api.connections.connections[self.id] = self;
+    );api.connections.connections[this.id] = this;
 
     // execute the middleware
-    self.api.connections.globalMiddleware.forEach(middlewareName => {
-      if (typeof self.api.connections.middleware[middlewareName].create === 'function') {
-        self.api.connections.middleware[middlewareName].create(self);
+    this.api.connections.globalMiddleware.forEach(middlewareName => {
+      if (typeof this.api.connections.middleware[middlewareName].create === 'function') {
+        this.api.connections.middleware[middlewareName].create(this);
       }
     });
   }
@@ -210,17 +201,15 @@ class Connection {
    * @type {Array}
    */
   _setup(data) {
-    let self = this;
-
     if (data.id) {
-      self.id = data.id;
+      this.id = data.id;
     } else {
       // generate an unique ID for this connection
-      self.id = self._generateID();
+      this.id = this._generateID();
     }
 
     // set the connection timestamp
-    self.connectedAt = new Date().getTime();
+    this.connectedAt = new Date().getTime();
 
     let requiredFields = ['type', 'rawConnection'];
 
@@ -228,24 +217,24 @@ class Connection {
       if (data[req] === null || data[req] === undefined) {
         throw new Error(`${req} is required to create a new connection object`);
       }
-      self[req] = data[req];
+      this[req] = data[req];
     });
 
     let enforcedConnectionProperties = ['remotePort', 'remoteIP'];
 
     enforcedConnectionProperties.forEach(req => {
       if (data[req] === null || data[req] === undefined) {
-        if (self.api.config.general.enforceConnectionProperties === true) {
+        if (this.api.config.general.enforceConnectionProperties === true) {
           throw new Error(`${req} is required to create a new connection object`);
         } else {
           data[req] = 0; // could be a random uuid as well?
         }
       }
-      self[req] = data[req];
-    });
+      this[req] = data[req];
+    }
 
     // set connection defaults
-    let connectionDefaults = {
+    );let connectionDefaults = {
       error: null,
       params: {},
       rooms: [],
@@ -257,15 +246,15 @@ class Connection {
     };
 
     for (let i in connectionDefaults) {
-      if (self[i] === undefined && data[i] !== undefined) {
-        self[i] = data[i];
+      if (this[i] === undefined && data[i] !== undefined) {
+        this[i] = data[i];
       }
-      if (self[i] === undefined) {
-        self[i] = connectionDefaults[i];
+      if (this[i] === undefined) {
+        this[i] = connectionDefaults[i];
       }
     }
 
-    self.api.i18n.invokeConnectionLocale(self);
+    this.api.i18n.invokeConnectionLocale(this);
   }
 
   /**
@@ -302,43 +291,40 @@ class Connection {
    * @param message   Message to be localized.
    */
   localize(message) {
-    let self = this;
-    return self.api.i18n.localize(message, self);
+    return this.api.i18n.localize(message, this);
   }
 
   destroy(callback) {
-    let self = this;
-
     // set connection as destroyed
-    self.destroyed = true;
+    this.destroyed = true;
 
     // execute the destroy middleware
-    self.api.connections.globalMiddleware.forEach(middlewareName => {
-      if (typeof self.api.connections.middleware[middlewareName].destroy === 'function') {
-        self.api.connections.middleware[middlewareName].destroy(self);
+    this.api.connections.globalMiddleware.forEach(middlewareName => {
+      if (typeof this.api.connections.middleware[middlewareName].destroy === 'function') {
+        this.api.connections.middleware[middlewareName].destroy(this);
       }
-    });
+    }
 
     // remove the connection from all rooms
-    if (self.canChat === true) {
-      self.rooms.forEach(room => self.api.chatRoom.removeMember(self.id, room));
+    );if (this.canChat === true) {
+      this.rooms.forEach(room => this.api.chatRoom.leave(this.id, room));
     }
 
     // get server instance
-    let server = self.api.servers.servers[self.type];
+    let server = this.api.servers.servers[this.type];
 
     if (server) {
       if (server.attributes.logExits === true) {
-        server.log('connection closed', 'info', { to: self.remoteIP });
+        server.log('connection closed', 'info', { to: this.remoteIP });
       }
 
       if (typeof server.goodbye === 'function') {
-        server.goodbye(self);
+        server.goodbye(this);
       }
     }
 
     // remove this connection from the connections array
-    delete self.api.connections.connections[self.id];
+    delete this.api.connections.connections[this.id];
 
     // execute the callback function
     if (typeof callback === 'function') {
@@ -351,10 +337,12 @@ class Connection {
    *
    * @param key
    * @param value
+   *
+   * @return Connection The current instance.
    */
   set(key, value) {
-    let self = this;
-    self[key] = value;
+    this[key] = value;
+    return this;
   }
 
   /**
@@ -364,11 +352,9 @@ class Connection {
    * @param words     Words are optional.
    * @param callback  Callback function.
    */
-  verbs(verb, words, callback) {
-    let self = this;
-
+  verbs(verb, words, callback = () => {}) {
     let key, value, room;
-    let server = self.api.servers.servers[self.type];
+    let server = this.api.servers.servers[this.type];
     let allowedVerbs = server.attributes.verbs;
 
     if (typeof words === 'function' && !callback) {
@@ -382,10 +368,10 @@ class Connection {
 
     if (server && allowedVerbs.indexOf(verb) >= 0) {
       // log verb message
-      server.log('verb', 'debug', { verb: verb, to: self.remoteIP, params: JSON.stringify(words) });
+      server.log('verb', 'debug', { verb: verb, to: this.remoteIP, params: JSON.stringify(words) });
 
       if (verb === 'quit' || verb === 'exit') {
-        server.goodbye(self);
+        server.goodbye(this);
       } else if (verb === 'paramAdd') {
         key = words[0];
         value = words[1];
@@ -396,7 +382,7 @@ class Connection {
           value = parts[1];
         }
 
-        self.params[key] = value;
+        this.params[key] = value;
 
         // execute the callback function
         if (typeof callback === 'function') {
@@ -404,7 +390,7 @@ class Connection {
         }
       } else if (verb === 'paramDelete') {
         key = words[0];
-        delete self.params[key];
+        delete this.params[key];
 
         // execute the callback function
         if (typeof callback === 'function') {
@@ -414,46 +400,38 @@ class Connection {
         key = words[0];
 
         if (typeof callback === 'function') {
-          callback(null, self.params[key]);
+          callback(null, this.params[key]);
         }
       } else if (verb === 'paramsView') {
         if (typeof callback === 'function') {
-          callback(null, self.params);
+          callback(null, this.params);
         }
       } else if (verb === 'paramsDelete') {
         // delete all params
-        for (let i in self.params) {
-          delete self.params[i];
+        for (let i in this.params) {
+          delete this.params[i];
         }
 
         if (typeof callback === 'function') {
           callback(null, null);
         }
-      } else if (verb === 'roomAdd') {
+      } else if (verb === 'roomJoin') {
         room = words[0];
 
-        self.api.chatRoom.addMember(self.id, room, (error, didHappen) => {
-          if (typeof callback === 'function') {
-            callback(error, didHappen);
-          }
+        this.api.chatRoom.join(this.id, room).then(didHappen => {
+          callback(null, didHappen);
+        }).catch(error => {
+          callback(error, false);
         });
       } else if (verb === 'roomLeave') {
         room = words[0];
-        self.api.chatRoom.removeMember(self.id, room, function (error, didHappen) {
-          if (typeof callback === 'function') {
-            callback(error, didHappen);
-          }
-        });
+        this.api.chatRoom.leave(this.id, room).then(didHappen => callback(null, didHappen)).catch(error => callback(error, false));
       } else if (verb === 'roomView') {
         // get requested room name
         room = words[0];
 
-        if (self.rooms.indexOf(room) > -1) {
-          self.api.chatRoom.roomStatus(room, (error, roomStatus) => {
-            if (typeof callback === 'function') {
-              callback(error, roomStatus);
-            }
-          });
+        if (this.rooms.indexOf(room) > -1) {
+          this.api.chatRoom.status(room).then(status => callback(null, status)).catch(error => callback(error));
         } else {
           if (typeof callback === 'function') {
             callback(`not member of room ${room}`);
@@ -461,39 +439,50 @@ class Connection {
         }
       } else if (verb === 'detailsView') {
         let details = {
-          id: self.id,
-          fingerprint: self.fingerprint,
-          remoteIP: self.remoteIP,
-          remotePort: self.remotePort,
-          params: self.params,
-          connectedAt: self.connectedAt,
-          rooms: self.rooms,
-          totalActions: self.totalActions,
-          pendingActions: self.pendingActions
-        };
+          id: this.id,
+          fingerprint: this.fingerprint,
+          remoteIP: this.remoteIP,
+          remotePort: this.remotePort,
+          params: this.params,
+          connectedAt: this.connectedAt,
+          rooms: this.rooms,
+          totalActions: this.totalActions,
+          pendingActions: this.pendingActions
 
-        // execute the callback function
-        if (typeof callback === 'function') {
+          // execute the callback function
+        };if (typeof callback === 'function') {
           callback(null, details);
         }
       } else if (verb === 'say') {
         // get the room name
-        room = words.shift();
+        room = words.shift
 
         // broadcast the message on the requested room
-        self.api.chatRoom.broadcast(self, room, words.join(' '), error => {
-          if (typeof callback === 'function') {
-            callback(error);
-          }
+        ();this.api.chatRoom.broadcast(this, room, words.join(' ')).then(() => {
+          callback(null);
+        }).catch(error => {
+          callback(error);
         });
+      } else if (verb === 'event') {
+        // get the vent information
+        const { room, event, data } = words.shift
+
+        // execute the event on the event system
+        ();this.api.events.fire(`event.${event}`, { room, data });
+        this.api.events.fire(`event.${room}.${event}`, { room, data }
+
+        // broadcast the event to the room
+        );this.api.chatRoom.broadcast(this, room, { event, data }).then(() => {
+          callback(null);
+        }).catch(error => callback(error));
       } else {
         if (typeof callback === 'function') {
-          callback(self.api.config.errors.verbNotFound(self, verb), null);
+          callback(this.api.config.errors.verbNotFound(this, verb), null);
         }
       }
     } else {
       if (typeof callback === 'function') {
-        callback(self.api.config.errors.verbNotAllowed(self, verb), null);
+        callback(this.api.config.errors.verbNotAllowed(this, verb), null);
       }
     }
   }
@@ -503,7 +492,6 @@ exports.default = class {
   constructor() {
     this.loadPriority = 400;
   }
-
   /**
    * Satellite load priority.
    *
@@ -527,5 +515,4 @@ exports.default = class {
     // finish the loading process
     next();
   }
-
 };

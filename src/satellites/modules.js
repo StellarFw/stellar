@@ -6,7 +6,6 @@ import { exec } from 'child_process'
  * the NPM dependencies.
  */
 class Modules {
-
   /**
    * API reference object.
    *
@@ -179,7 +178,7 @@ class Modules {
     self.api.log('updating NPM packages', 'info')
 
     // check the command to be executed
-    const npmCommand = (scope.args.update) ? `npm update` : `npm install`
+    const npmCommand = (scope.args.update) ? 'npm update' : 'npm install'
 
     // run npm command
     exec(npmCommand, error => {
@@ -196,7 +195,6 @@ class Modules {
       next()
     })
   }
-
 }
 
 /**
@@ -204,7 +202,6 @@ class Modules {
  * engine instance.
  */
 export default class {
-
   /**
    * Initializer load priority.
    *
@@ -228,5 +225,4 @@ export default class {
     // process NPM dependencies
     api.modules.processNpmDependencies(next)
   }
-
 }

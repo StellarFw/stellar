@@ -1,7 +1,8 @@
+/* eslint no-eval: 0 */
+
 import i18n from 'i18n'
 
 class I18n {
-
   /**
    * Stellar api object.
    */
@@ -111,7 +112,6 @@ class I18n {
 
     return self.i18n.__.apply(options, message)
   }
-
 }
 
 /**
@@ -120,7 +120,6 @@ class I18n {
  * This initializer adds support to i18n localization.
  */
 export default class {
-
   /**
    * Load priority.
    *
@@ -144,5 +143,4 @@ export default class {
     // call callback
     next()
   }
-
 }

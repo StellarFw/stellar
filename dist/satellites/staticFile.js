@@ -29,7 +29,6 @@ class StaticFile {
    * @param api API object reference.
    */
 
-
   /**
    * API object reference.
    *
@@ -133,15 +132,15 @@ class StaticFile {
         fileStream.on('close', () => {
           let duration = new Date().getTime() - start;
           self.logRequest(file, connection, length, duration, true);
-        });
+        }
 
         // add a listener to the 'error' event
-        fileStream.on('error', err => {
+        );fileStream.on('error', err => {
           self.api.log(err);
-        });
+        }
 
         // execute the callback
-        callback(connection, null, fileStream, mime, length, lastModified);
+        );callback(connection, null, fileStream, mime, length, lastModified);
       }
     });
   }
@@ -160,10 +159,10 @@ class StaticFile {
     connection.error = new Error(errorMessage);
 
     // load 404 error
-    self.logRequest('{404: not found}', connection, null, null, false);
+    self.logRequest('{404: not found}', connection, null, null, false
 
     // execute the callback function
-    callback(connection, self.api.config.errors.fileNotFound(), null, 'text/html', self.api.config.errors.fileNotFound().length);
+    );callback(connection, self.api.config.errors.fileNotFound(), null, 'text/html', self.api.config.errors.fileNotFound().length);
   }
 
   /**
@@ -179,8 +178,7 @@ class StaticFile {
       // if exists an error execute the callback
       // function and return
       if (error) {
-        callback(false, file);
-        return;
+        return callback(false, file);
       }
 
       if (stats.isDirectory()) {
@@ -229,7 +227,6 @@ exports.default = class {
   constructor() {
     this.loadPriority = 510;
   }
-
   /**
    * Satellite load priority.
    *

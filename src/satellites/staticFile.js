@@ -6,7 +6,6 @@ import Mime from 'mime'
  * Class to manage the static files.
  */
 class StaticFile {
-
   /**
    * API object reference.
    *
@@ -157,10 +156,7 @@ class StaticFile {
     fs.stat(file, (error, stats) => {
       // if exists an error execute the callback
       // function and return
-      if (error) {
-        callback(false, file)
-        return
-      }
+      if (error) { return callback(false, file) }
 
       if (stats.isDirectory()) {
         let indexPath = file + '/' + self.api.config.general.directoryFileType
@@ -205,7 +201,6 @@ class StaticFile {
 }
 
 export default class {
-
   /**
    * Satellite load priority.
    *

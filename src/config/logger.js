@@ -1,15 +1,16 @@
-import fs from 'fs'
 import cluster from 'cluster'
+import fs from 'fs'
+import 'winston-daily-rotate-file'
+import BeautifulLogger from '../BeautifulLogger'
 
 export default {
-
-  logger: function (api) {
+  logger (api) {
     let logger = {transports: []}
 
     // check if this Stellar instance is the Master
     if (cluster.isMaster) {
-      logger.transports.push((api, winston) => {
-        return new (winston.transports.Console)({
+      logger.transports.push(() => {
+        return new BeautifulLogger({
           colorize: true,
           level: 'info',
           timestamp: true
@@ -29,8 +30,10 @@ export default {
     }
 
     logger.transports.push((api, winston) => {
-      return new (winston.transports.File)({
+      return new (winston.transports.DailyRotateFile)({
         filename: `${logDirectory}/${api.pids.title}.log`,
+        datePattern: 'yyyy-MM-dd.',
+        prepend: true,
         level: 'info',
         timestamp: true
       })
@@ -45,7 +48,7 @@ export default {
 }
 
 export const test = {
-  logger: api => {
+  logger (api) {
     return {
       transports: null
     }

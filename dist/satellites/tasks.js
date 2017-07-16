@@ -45,59 +45,58 @@ class TaskSatellite {
    * @type {Map}
    */
 
-
   /**
    * API reference object.
    *
    * @type {null}
    */
   loadFile(fullFilePath, reload = false) {
-    let self = this;
-
     // function to be used to log the task (re)load
     let loadMessage = loadedTasksName => {
-      let reloadWord = reload ? '(re)' : '';
-      self.api.log(`task ${reloadWord}loaded: ${loadedTasksName}, ${fullFilePath}`, 'debug');
+      const level = reload ? 'info' : 'debug';
+      const reloadWord = reload ? '(re)' : '';
+
+      this.api.log(`task ${reloadWord}loaded: ${loadedTasksName}, ${fullFilePath}`, level);
     };
 
     // start watch for file changes
-    self.api.configs.watchFileAndAct(fullFilePath, () => self.loadFile(fullFilePath, true));
+    this.api.configs.watchFileAndAct(fullFilePath, () => this.loadFile(fullFilePath, true)
 
     // temporary task info
-    let task = null;
+    );let task = null;
 
     try {
       // get task collection
-      let collection = require(fullFilePath);
+      let collection = require(fullFilePath
 
       // iterate all collections
-      for (let i in collection) {
+      );for (let i in collection) {
         // get task logic
         task = collection[i];
 
         // create a new task entry
-        self.tasks[task.name] = task;
+        this.tasks[task.name] = task;
 
         // validate task
-        if (self._validateTask(self.tasks[task.name]) === false) {
+        if (this._validateTask(this.tasks[task.name]) === false) {
           return;
         }
 
         // create a job wrapper on the new task
-        self.jobs[task.name] = self._jobWrapper(task.name);
+        this.jobs[task.name] = this._jobWrapper(task.name
 
         // log the load message
-        loadMessage(task.name);
+        );loadMessage(task.name);
       }
     } catch (err) {
-      self.api.log(`[TaskSatellite::loadFile] ${err}`);
+      this.api.log(`[TaskSatellite::loadFile] ${err}`
 
       // handle the exception
-      self.api.exceptionHandlers.loader(fullFilePath, err);
+      );this.api.exceptionHandlers.loader(fullFilePath, err
 
       // remove the task if that exists
-      delete self.tasks[task.name];
-      delete self.jobs[task.name];
+      );delete this.tasks[task.name];
+      delete this.jobs[task.name];
     }
   }
 
@@ -138,13 +137,13 @@ class TaskSatellite {
       pluginsOptions: pluginOptions,
       perform: function () {
         // get the task arguments
-        let args = Array.prototype.slice.call(arguments);
+        let args = Array.prototype.slice.call(arguments
 
         // get the callback function
-        let cb = args.pop();
+        );let cb = args.pop
 
         // if there is no arguments
-        if (args.length === 0) {
+        ();if (args.length === 0) {
           args.push({});
         }
 
@@ -153,13 +152,13 @@ class TaskSatellite {
           self.enqueueRecurrentJob(taskName, () => {
             cb(error, resp);
           });
-        });
+        }
 
         // add the API object at the begin of the arguments array
-        args.unshift(self.api);
+        );args.unshift(self.api
 
         // execute the task
-        self.tasks[taskName].run.apply(self, args);
+        );self.tasks[taskName].run.apply(self, args);
       }
     };
   }
@@ -185,7 +184,7 @@ class TaskSatellite {
     let fail = msg => self.api.log(`${msg}; exiting`, 'emerg');
 
     if (typeof task.name !== 'string' || task.name.length < 1) {
-      fail(`a task is missing 'task.name'`);
+      fail('a task is missing \'task.name\'');
       return false;
     } else if (typeof task.description !== 'string' || task.description.length < 1) {
       fail(`Task ${task.name} is missing 'task.description'`);
@@ -522,7 +521,7 @@ class TaskSatellite {
     let removedCount = 0;
 
     // remove the task from the recurrent queue
-    self.del(task.queue, task.name, {}, 1, (error, count) => {
+    self.del(task.queue, task.name, {}, 1, (_, count) => {
       removedCount = removedCount + count;
       self.delDelayed(task.queue, task.name, {}, (error, timestamps) => {
         removedCount = removedCount + timestamps.length;
@@ -550,10 +549,10 @@ class TaskSatellite {
         }
         result.workers = workers;
       });
-    });
+    }
 
     // push all the queue to the result var
-    jobs.push(done => {
+    );jobs.push(done => {
       self.api.resque.queue.queues((error, queues) => {
         if (error) {
           return done(error);
@@ -578,20 +577,16 @@ class TaskSatellite {
 
     _async2.default.series(jobs, callback);
   }
-
 }
 
 /**
  * This loads the task features to the API object.
  */
-/*eslint handle-callback-err: 0*/
-
 exports.default = class {
   constructor() {
     this.loadPriority = 699;
     this.startPriority = 900;
   }
-
   /**
    * Satellite load priority.
    *
@@ -617,10 +612,10 @@ exports.default = class {
     api.tasks = new TaskSatellite(api);
 
     // load modules tasks
-    api.tasks.loadModulesTasks();
+    api.tasks.loadModulesTasks
 
     // finish the satellite initialization
-    next();
+    ();next();
   }
 
   /**
@@ -636,5 +631,4 @@ exports.default = class {
       next();
     }
   }
-
 };

@@ -4,7 +4,6 @@ import NR from 'node-resque'
  * Node-Resque manager.
  */
 class ResqueManager {
-
   /**
    * API reference object.
    *
@@ -61,14 +60,12 @@ class ResqueManager {
    * @param callback Callback function.
    */
   startQueue (callback) {
-    let self = this
-
     // we do this because the lint error
     let Queue = NR.queue
 
-    self.queue = new Queue({ connection: self.connectionDetails }, self.api.tasks.jobs)
-    self.queue.on('error', error => { self.api.log(error, 'error', '[api.resque.scheduler]') })
-    self.queue.connect(callback)
+    this.queue = new Queue({ connection: this.connectionDetails }, this.api.tasks.jobs)
+    this.queue.on('error', error => { this.api.log(error, 'error', '[api.resque.scheduler]') })
+    this.queue.connect(callback)
   }
 
   /**
@@ -214,7 +211,6 @@ class ResqueManager {
  * Satellite to start the resque manager.
  */
 export default class {
-
   /**
    * Satellite load priority.
    *
@@ -286,5 +282,4 @@ export default class {
       })
     })
   }
-
 }

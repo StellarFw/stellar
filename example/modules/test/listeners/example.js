@@ -5,7 +5,7 @@
  */
 exports.example = {
   event: 'example',
-  run: (api, params, next) => {
+  run (api, params, next) {
     // change the param value to 'thisIsATest'
     params.value = 'thisIsATest'
 

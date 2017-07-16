@@ -2,7 +2,6 @@ import fs from 'fs'
 import Handlebars from 'handlebars'
 
 class DocumentationGenerator {
-
   /**
    * API reference object.
    *
@@ -256,7 +255,6 @@ class DocumentationGenerator {
     this.api.utils.copyFile(`${self.staticFolder}/style.css`, `${self.docsFolder}/style.css`)
     this.api.utils.copyFile(`${self.staticFolder}/highlight.js`, `${self.docsFolder}/highlight.js`)
   }
-
 }
 
 /**
@@ -264,7 +262,6 @@ class DocumentationGenerator {
  * for all project actions.
  */
 export default class {
-
   /**
    * Satellite load priority.
    *
@@ -291,5 +288,4 @@ export default class {
     // finish the satellite loading
     next()
   }
-
 }

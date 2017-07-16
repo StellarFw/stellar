@@ -8,7 +8,6 @@ import async from 'async'
  * listeners must be stored in <moduleName>/listeners.
  */
 class EventsManager {
-
   /**
    * API reference object.
    *
@@ -231,20 +230,18 @@ class EventsManager {
 
       // get all listeners files
       this.api.utils.recursiveDirectoryGlob(listenersFolderPath, 'js')
-      .forEach(listenerPath => { this._loadFile(listenerPath) })
+        .forEach(listenerPath => { this._loadFile(listenerPath) })
     })
 
     // end listeners loading
     next()
   }
-
 }
 
 /**
  * Satellite to load the event manager.
  */
 export default class {
-
   /**
    * Satellite load priority.
    *
@@ -265,5 +262,4 @@ export default class {
     // load listeners
     api.events.loadListeners(next)
   }
-
 }

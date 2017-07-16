@@ -2,8 +2,19 @@ import os from 'os'
 import fs from 'fs'
 import path from 'path'
 
-export class Utils {
+export class ExtendableError extends Error {
+  constructor (message) {
+    super(message)
+    this.name = this.constructor.name
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, this.constructor)
+    } else {
+      this.stack = (new Error(message)).stack
+    }
+  }
+}
 
+export class Utils {
   /**
    * Reference for the API object.
    *
@@ -12,6 +23,16 @@ export class Utils {
   api = null
 
   constructor (api = null) { this.api = api }
+
+  /**
+   * A Promise abstraction for the setTimeout function.
+   *
+   * @param t             Time in millisecond.
+   * @returns {Promise}
+   */
+  delay (t) {
+    return new Promise(resolve => { setTimeout(resolve, t) })
+  }
 
   /**
    * Read all files from the given directory.
@@ -167,7 +188,7 @@ export class Utils {
     if (req.headers.cookie) {
       req.headers.cookie.split(';').forEach(function (cookie) {
         let parts = cookie.split('=')
-        cookies[ parts[ 0 ].trim() ] = ( parts[ 1 ] || '' ).trim()
+        cookies[ parts[ 0 ].trim() ] = (parts[ 1 ] || '').trim()
       })
     }
     return cookies
@@ -467,10 +488,20 @@ export class Utils {
   isNonEmptyString (value) {
     return (typeof value === 'string' && value.length > 0)
   }
+
+  // ----------------------------------------------------------------- [Strings]
+
+  /**
+   * Convert snake case string to camel case.
+   *
+   * @param {string} s String to be converted.
+   */
+  snakeToCamel (s) {
+    return s.replace(/(\_\w)/g, m => m[ 1 ].toUpperCase())
+  }
 }
 
 export default class {
-
   /**
    * Satellite load priority.
    *
@@ -482,5 +513,4 @@ export default class {
     api.utils = new Utils(api)
     next()
   }
-
 }

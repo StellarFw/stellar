@@ -27,7 +27,7 @@ describe('Core: Errors', function () {
 
   it('returns string errors properly', function (done) {
     api.helpers.runAction('aNotExistingAction', {}, response => {
-      response.error.should.equal('Error: unknown action or invalid apiVersion')
+      response.error.code.should.equal('004')
       done()
     })
   })

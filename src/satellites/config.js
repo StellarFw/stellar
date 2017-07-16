@@ -2,7 +2,6 @@ import fs from 'fs'
 import path from 'path'
 
 class ConfigManager {
-
   /**
    * Api reference object.
    *
@@ -144,7 +143,7 @@ class ConfigManager {
     }
 
     // load the default config files from the Stellar core
-    this.loadConfigDirectory(__dirname + '/../config', false)
+    this.loadConfigDirectory(`${__dirname}/../config`, false)
 
     // load all the configs from the modules
     this.api.config.modules.forEach(moduleName => this.loadConfigDirectory(`${this.api.scope.rootPath}/modules/${moduleName}/config`, isToWatch))
@@ -218,7 +217,6 @@ class ConfigManager {
  * This initializer loads all app configs to the current running instance.
  */
 export default class {
-
   /**
    * Load priority.
    *
@@ -264,5 +262,4 @@ export default class {
     // finish the satellite stop
     next()
   }
-
 }
