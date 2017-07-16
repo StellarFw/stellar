@@ -22,11 +22,11 @@ class Models {
    */
   waterline = null
 
-   /**
-    * Object with the Waterline ontology.
-    *
-    * @type WaterlineOntology
-    */
+  /**
+   * Object with the Waterline ontology.
+   *
+   * @type WaterlineOntology
+   */
   ontology = null
 
   /**
@@ -126,8 +126,15 @@ class Models {
 
             // push a new work to the array
             work.push(callback => {
-              this.add(basename, require(moduleFile).default)
-              this.api.log(`model loaded: ${basename}`, 'debug')
+              // if there is a syntax error on the model file we catch them an show a well formatted error
+              try {
+                this.add(basename, require(moduleFile).default)
+                this.api.log(`model loaded: ${basename}`, 'debug')
+              } catch (e) {
+                this.api.log(`Model error (${basename}): ${e.message}`, 'error')
+              }
+
+              // the callback is always executed
               callback()
             })
           })
@@ -169,7 +176,7 @@ class Models {
    * @param modelName                 Model name to get.
    * @returns {WaterlineCollection}   Model object.
    */
-  get (modelName) { return this.ontology.collections[modelName] }
+  get (modelName) { return this.ontology.collections[ modelName ] }
 
   /**
    * Remove a model from the repository.
@@ -187,14 +194,14 @@ class Models {
     // installed
     for (const key in this.api.config.models.adapters) {
       // get module name
-      const moduleName = this.api.config.models.adapters[key]
+      const moduleName = this.api.config.models.adapters[ key ]
 
       // when we are restarting the server this already was replaced with the
       // module, so we ignore it
       if (typeof moduleName !== 'string') { continue }
 
       // replace the static value with the module instance
-      this.api.config.models.adapters[key] = this.api.utils.require(moduleName)
+      this.api.config.models.adapters[ key ] = this.api.utils.require(moduleName)
     }
   }
 }
