@@ -26,7 +26,6 @@ class Servers {
    * @param api engine api instance.
    */
 
-
   /**
    * Engine API instance.
    * @type {null}
@@ -55,7 +54,7 @@ class Servers {
     let jobs = [];
 
     // get the list of servers to load
-    let serversFiles = this.api.utils.getFiles(_path2.default.resolve(__dirname + '/../servers'));
+    let serversFiles = this.api.utils.getFiles(_path2.default.resolve(`${__dirname}/../servers`));
 
     for (let k in serversFiles) {
       // get server filename
@@ -82,10 +81,10 @@ class Servers {
           self.servers[serverName] = new ServerConstructor(self.api, options);
 
           // log a debug message
-          self.api.log(`Initialized server: ${serverName}`, 'debug');
+          self.api.log(`Initialized server: ${serverName}`, 'debug'
 
           // execute the done function
-          return done();
+          );return done();
         });
       }
     }
@@ -136,10 +135,10 @@ class Servers {
           });
         });
       }
-    });
+    }
 
     // process all the jobs
-    _async2.default.series(jobs, next);
+    );_async2.default.series(jobs, next);
   }
 
   /**
@@ -160,10 +159,10 @@ class Servers {
       // check if the server are enable
       if (server && server.options.enable === true || !server) {
         jobs.push(done => {
-          self.api.log(`Stopping server: ${serverName}`, 'notice');
+          self.api.log(`Stopping server: ${serverName}`, 'notice'
 
           // call the server stop method
-          server.stop(error => {
+          );server.stop(error => {
             if (error) {
               return done(error);
             }
@@ -172,10 +171,10 @@ class Servers {
           });
         });
       }
-    });
+    }
 
     // execute all jobs
-    _async2.default.series(jobs, next);
+    );_async2.default.series(jobs, next);
   }
 }
 
@@ -185,7 +184,6 @@ exports.default = class {
     this.startPriority = 900;
     this.stopPriority = 100;
   }
-
   /**
    * This should be loaded after all engine
    * loading satellites.
@@ -217,5 +215,4 @@ exports.default = class {
     // stop servers
     api.servers.stopServers(next);
   }
-
 };

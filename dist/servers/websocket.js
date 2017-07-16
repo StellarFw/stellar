@@ -20,6 +20,10 @@ var _primus = require('primus');
 
 var _primus2 = _interopRequireDefault(_primus);
 
+var _uglifyEs = require('uglify-es');
+
+var _uglifyEs2 = _interopRequireDefault(_uglifyEs);
+
 var _genericServer = require('../genericServer');
 
 var _genericServer2 = _interopRequireDefault(_genericServer);
@@ -31,8 +35,6 @@ var _browser_fingerprint2 = _interopRequireDefault(_browser_fingerprint);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // server type
-
-// import UglifyJS from 'uglify-js'
 let type = 'websocket';
 
 // server attributes
@@ -41,7 +43,7 @@ let attributes = {
   logConnections: true,
   logExists: true,
   sendWelcomeMessage: true,
-  verbs: ['quit', 'exit', 'roomAdd', 'roomLeave', 'roomView', 'detailsView', 'say']
+  verbs: ['quit', 'exit', 'roomJoin', 'roomLeave', 'roomView', 'detailsView', 'say', 'event']
 };
 
 class WebSocketServer extends _genericServer2.default {
@@ -62,10 +64,10 @@ class WebSocketServer extends _genericServer2.default {
       connection.rawConnection.on('data', data => {
         self._handleData(connection, data);
       });
-    });
+    }
 
     // action complete event
-    self.on('actionComplete', data => {
+    );self.on('actionComplete', data => {
       if (data.toRender !== false) {
         data.connection.response.messageCount = data.messageCount;
         self.sendMessage(data.connection, data.response, data.messageCount);
@@ -80,7 +82,6 @@ class WebSocketServer extends _genericServer2.default {
    *
    * @param callback
    */
-
 
   /**
    * Server instance.
@@ -100,10 +101,10 @@ class WebSocketServer extends _genericServer2.default {
     self.server.active = true;
 
     // write client js
-    self._writeClientJS();
+    self._writeClientJS
 
     // execute the callback
-    callback();
+    ();callback();
   }
 
   /**
@@ -136,11 +137,9 @@ class WebSocketServer extends _genericServer2.default {
    * @param messageCount    Message number.
    */
   sendMessage(connection, message, messageCount) {
-    let self = this;
-
     // serialize the error if exists
     if (message.error) {
-      message.error = self.api.config.errors.serializers.servers.websocket(message.error);
+      message.error = this.api.config.errors.serializers.servers.websocket(message.error);
     }
 
     // if the message don't have a context set to 'response'
@@ -221,7 +220,7 @@ class WebSocketServer extends _genericServer2.default {
   _compileClientJS() {
     let self = this;
 
-    let clientSource = _fs2.default.readFileSync(__dirname + '/../client.js').toString();
+    let clientSource = _fs2.default.readFileSync(`${__dirname}/../client.js`).toString();
     let url = self.api.config.servers.websocket.clientUrl;
 
     // replace any url by client url
@@ -232,6 +231,9 @@ class WebSocketServer extends _genericServer2.default {
       defaults[i] = self.api.config.servers.websocket.client[i];
     }
     defaults.url = url;
+
+    // append the number of simultaneous connections allowed
+    defaults.simultaneousActions = this.api.config.general.simultaneousActions;
 
     let defaultsString = _util2.default.inspect(defaults);
     defaultsString = defaultsString.replace('\'window.location.origin\'', 'window.location.origin');
@@ -255,12 +257,12 @@ class WebSocketServer extends _genericServer2.default {
 
     clientSource = ';;;\r\n' + '(function(exports){ \r\n' + clientSource + '\r\n' + 'exports.StellarClient = StellarClient; \r\n' + '})(typeof exports === \'undefined\' ? window : exports);';
 
-    // todo: find a way to minify ES6 code or not 😒
-    // if (minimize) {
-    //   return UglifyJS.minify(`${libSource}\r\n\r\n\r\n${clientSource}`, { fromString: true }).code
-    // } else {
+    // minify the client lib code using Uglify
+    if (minimize) {
+      return _uglifyEs2.default.minify(`${libSource}\r\n\r\n\r\n${clientSource}`).code;
+    }
+
     return `${libSource}\r\n\r\n\r\n${clientSource}`;
-    // }
   }
 
   /**
@@ -283,7 +285,7 @@ class WebSocketServer extends _genericServer2.default {
         _fs2.default.writeFileSync(`${base}.min.js`, self._renderClientJs(true));
         self.api.log(`wrote ${base}.min.js`, 'debug');
       } catch (e) {
-        self.api.log(`Cannot write client-side JS for websocket server:`, 'warning');
+        self.api.log('Cannot write client-side JS for websocket server:', 'warning');
         self.api.log(e, 'warning');
         throw e;
       }
@@ -328,8 +330,6 @@ class WebSocketServer extends _genericServer2.default {
   }
 
   _handleData(connection, data) {
-    let self = this;
-
     let verb = data.event;
     delete data.event;
 
@@ -344,17 +344,16 @@ class WebSocketServer extends _genericServer2.default {
 
         connection.error = null;
         connection.response = {};
-        self.processAction(connection);
+        this.processAction(connection);
         break;
 
       case 'file':
         // setup the connection parameters
         connection.params = {
           file: data.file
-        };
 
-        // process the file request
-        self.processFile(connection);
+          // process the file request
+        };this.processFile(connection);
         break;
 
       default:
@@ -374,12 +373,12 @@ class WebSocketServer extends _genericServer2.default {
           // if exists an error, send it to the client
           if (error) {
             message = { status: error, context: 'response', data: data };
-            self.sendMessage(connection, message);
+            this.sendMessage(connection, message);
             return;
           }
 
           message = { status: 'OK', context: 'response', data: data };
-          self.sendMessage(connection, message);
+          this.sendMessage(connection, message);
         });
         break;
     }

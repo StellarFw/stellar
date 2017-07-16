@@ -62,5 +62,4 @@ exports.default = class {
 
     next();
   }
-
 };

@@ -28,13 +28,12 @@ let attributes = {
   logExits: true,
   pendingShutdownWaitLimit: 5000,
   sendWelcomeMessage: true,
-  verbs: ['quit', 'exit', 'paramAdd', 'paramDelete', 'paramView', 'paramsView', 'paramsDelete', 'roomAdd', 'roomLeave', 'roomView', 'detailsView', 'say']
-};
+  verbs: ['quit', 'exit', 'paramAdd', 'paramDelete', 'paramView', 'paramsView', 'paramsDelete', 'roomJoin', 'roomLeave', 'roomView', 'detailsView', 'say', 'event']
 
-/**
- * TCP server implementation.
- */
-class Tcp extends _genericServer2.default {
+  /**
+   * TCP server implementation.
+   */
+};class Tcp extends _genericServer2.default {
 
   /**
    * Create a new server instance.
@@ -44,10 +43,10 @@ class Tcp extends _genericServer2.default {
    */
   constructor(api, options) {
     // call super constructor
-    super(api, type, options, attributes);
+    super(api, type, options, attributes
 
     // define events
-    this.server = null;
+    );this.server = null;
     this._defineEvents();
   }
 
@@ -58,7 +57,6 @@ class Tcp extends _genericServer2.default {
    *
    * @param callback callback
    */
-
 
   /**
    * TCP server socket.
@@ -79,10 +77,10 @@ class Tcp extends _genericServer2.default {
     // on server error
     self.server.on('error', e => {
       return callback(new Error(`Cannot start tcp server @ ${self.options.bindIP}:${self.options.port} => ${e.message}`));
-    });
+    }
 
     // server listener
-    self.server.listen(self.options.port, self.options.bindIP, () => {
+    );self.server.listen(self.options.port, self.options.bindIP, () => {
       process.nextTick(callback);
     });
   }
@@ -219,10 +217,10 @@ class Tcp extends _genericServer2.default {
             data.split(delimiter).forEach(parseLine);
           }
         }
-      });
+      }
 
       // on end event
-      connection.rawConnection.on('end', () => {
+      );connection.rawConnection.on('end', () => {
         // if the connection isn't destroyed do it now
         if (connection.destroyed !== true) {
           try {
@@ -230,10 +228,10 @@ class Tcp extends _genericServer2.default {
           } catch (e) {}
           connection.destroy();
         }
-      });
+      }
 
       // on error event
-      connection.rawConnection.on('error', e => {
+      );connection.rawConnection.on('error', e => {
         if (connection.destroyed !== true) {
           self.log(`server error: ${e}`, 'error');
 
@@ -243,10 +241,10 @@ class Tcp extends _genericServer2.default {
           connection.destroy();
         }
       });
-    });
+    }
 
     // on actionComplete event
-    self.on('actionComplete', data => {
+    );self.on('actionComplete', data => {
       if (data.toRender === true) {
         data.response.context = 'response';
         self.sendMessage(data.connection, data.response, data.messageCount);
@@ -266,10 +264,10 @@ class Tcp extends _genericServer2.default {
   _parseRequest(connection, line) {
     let self = this;
 
-    let words = line.split(' ');
+    let words = line.split(' '
 
     // get the verb how are
-    let verb = words.shift();
+    );let verb = words.shift();
 
     if (verb === 'file') {
       if (words.length > 0) {
@@ -280,17 +278,21 @@ class Tcp extends _genericServer2.default {
     }
 
     connection.verbs(verb, words, (error, data) => {
+      // send an success response message, when there is no errors
       if (!error) {
-        // send an success response message
         self.sendMessage(connection, { status: 'OK', context: 'response', data: data });
-      } else if (error.match('verb not found or not allowed')) {
+        return;
+      }
+
+      if (error.code && error.code.match('014')) {
+        // Error: Verb not found or not allowed
         // check for and attempt to check single-use params
         try {
           // parse JSON request
-          let requestHash = JSON.parse(line);
+          let requestHash = JSON.parse(line
 
           // pass all founded params to the connection object
-          if (requestHash.params !== undefined) {
+          );if (requestHash.params !== undefined) {
             connection.params = {};
 
             for (let v in requestHash.params) {
@@ -312,10 +314,11 @@ class Tcp extends _genericServer2.default {
 
         // process actions
         self.processAction(connection);
-      } else {
-        // send an error message
-        self.sendMessage(connection, { status: error, context: 'response', data: data });
+        return;
       }
+
+      // send an error message
+      self.sendMessage(connection, { status: error, context: 'response', data: data });
     });
   }
 
@@ -410,6 +413,5 @@ class Tcp extends _genericServer2.default {
       next();
     }
   }
-
 }
 exports.default = Tcp;

@@ -54,8 +54,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 let type = 'web';
 
 // server attributes
-/*eslint handle-callback-err: 0*/
-
 let attributes = {
   canChat: false,
   logConnections: false,
@@ -64,12 +62,11 @@ let attributes = {
   verbs: [
     // no verbs for connections of this type, as they are to very short-lived
   ]
-};
 
-/**
- * This implements the HTTP web server.
- */
-class Web extends _genericServer2.default {
+  /**
+   * This implements the HTTP web server.
+   */
+};class Web extends _genericServer2.default {
 
   /**
    * Constructor.
@@ -85,7 +82,7 @@ class Web extends _genericServer2.default {
     let self = this;
 
     if (['api', 'file'].indexOf(self.api.config.servers.web.rootEndpointType) < 0) {
-      throw new Error(`api.config.servers.web.rootEndpointType can only be 'api' or 'file'.`);
+      throw new Error('api.config.servers.web.rootEndpointType can only be \'api\' or \'file\'.');
     }
 
     // -------------------------------------------------------------------------------------------------------- [EVENTS]
@@ -108,10 +105,10 @@ class Web extends _genericServer2.default {
             self._respondToTrace(connection);
         }
       });
-    });
+    }
 
     // event to be executed after the action completion
-    self.on('actionComplete', data => {
+    );self.on('actionComplete', data => {
       self._completeResponse(data);
     });
   }
@@ -123,7 +120,6 @@ class Web extends _genericServer2.default {
    *
    * @param next  Callback function.
    */
-
 
   /**
    * Http server instance.
@@ -180,10 +176,10 @@ class Web extends _genericServer2.default {
     let self = this;
 
     // close the server socket
-    self.server.close();
+    self.server.close
 
     // execute the callback function
-    process.nextTick(() => {
+    ();process.nextTick(() => {
       next();
     });
   }
@@ -207,16 +203,16 @@ class Web extends _genericServer2.default {
     }
 
     // clean HTTP headers
-    self._cleanHeaders(connection);
+    self._cleanHeaders(connection
 
     // get the response headers
-    let headers = connection.rawConnection.responseHeaders;
+    );let headers = connection.rawConnection.responseHeaders;
 
     // get the response status code
-    let responseHttpCode = parseInt(connection.rawConnection.responseHttpCode);
+    let responseHttpCode = parseInt(connection.rawConnection.responseHttpCode
 
     // send the response to the client (use compression if active)
-    self.sendWithCompression(connection, responseHttpCode, headers, stringResponse);
+    );self.sendWithCompression(connection, responseHttpCode, headers, stringResponse);
   }
 
   /**
@@ -230,110 +226,119 @@ class Web extends _genericServer2.default {
    * @param lastModified    Timestamp if the last modification.
    */
   sendFile(connection, error, fileStream, mime, length, lastModified) {
-    let self = this;
-    let foundExpires = false;
     let foundCacheControl = false;
     let ifModifiedSince;
     let reqHeaders;
 
     // check if we should use cache mechanisms
     connection.rawConnection.responseHeaders.forEach(pair => {
-      if (pair[0].toLowerCase() === 'expires') {
-        foundExpires = true;
-      }
-      if (pair[1].toLowerCase() === 'cache-control') {
+      if (pair[0].toLowerCase() === 'cache-control') {
         foundCacheControl = true;
       }
-    });
+    }
+
+    // add mime type to the response headers
+    );connection.rawConnection.responseHeaders.push(['Content-Type', mime]
+
+    // If is to use a cache mechanism we must append a cache control header to the response
+    );if (fileStream) {
+      if (!foundCacheControl) {
+        connection.rawConnection.responseHeaders.push(['Cache-Control', `max-age=${this.api.config.servers.web.flatFileCacheDuration}, must-revalidate, public`]);
+      }
+    }
+
+    // add a header to the response with the last modified timestamp
+    if (fileStream && !this.api.config.servers.web.enableEtag) {
+      if (lastModified) {
+        connection.rawConnection.responseHeaders.push(['Last-Modified', new Date(lastModified).toUTCString()]);
+      }
+    }
+
+    // clean the connection headers
+    this._cleanHeaders(connection
 
     // get headers from the client request
-    reqHeaders = connection.rawConnection.req.headers;
+    );reqHeaders = connection.rawConnection.req.headers;
+
+    // get the response headers
+    const headers = connection.rawConnection.responseHeaders;
+
+    // This function is used to send the response to the client.
+    const sendRequestResult = () => {
+      // parse the HTTP status code to int
+      let responseHttpCode = parseInt(connection.rawConnection.responseHttpCode, 10);
+
+      if (error) {
+        const errorString = error instanceof Error ? String(error) : JSON.stringify(error);
+        this.sendWithCompression(connection, responseHttpCode, headers, errorString);
+      } else if (responseHttpCode !== 304) {
+        this.sendWithCompression(connection, responseHttpCode, headers, null, fileStream, length);
+      } else {
+        connection.rawConnection.res.writeHead(responseHttpCode, headers);
+        connection.rawConnection.res.end();
+        connection.destroy();
+      }
+    };
+
+    // if an error exists change the status code to 404 and send the response
+    if (error) {
+      connection.rawConnection.responseHttpCode = 404;
+      return sendRequestResult();
+    }
 
     // get the 'if-modified-since' value if exists
     if (reqHeaders['if-modified-since']) {
       ifModifiedSince = new Date(reqHeaders['if-modified-since']);
-    }
-
-    // add mime type to the response headers
-    connection.rawConnection.responseHeaders.push(['Content-Type', mime]);
-
-    // check if file expires
-    if (foundExpires === false) {
-      connection.rawConnection.responseHeaders.push(['Expires', new Date(new Date().getTime() + self.api.config.servers.web.flatFileCacheDuration * 1000).toUTCString()]);
-    }
-
-    // check if the client want use cache
-    if (foundCacheControl === false) {
-      connection.rawConnection.responseHeaders.push(['Cache-Control', 'max-age=' + self.api.config.servers.web.flatFileCacheDuration + ', must-revalidate, public']);
-    }
-
-    // add a header to the response with the last modified timestamp
-    connection.rawConnection.responseHeaders.push(['Last-Modified', new Date(lastModified)]);
-
-    // clean the connection headers
-    self._cleanHeaders(connection);
-
-    // get the response headers
-    let headers = connection.rawConnection.responseHeaders;
-
-    // if an error exists change the status code to 404
-    if (error) {
-      connection.rawConnection.responseHttpCode = 404;
-    }
-
-    // if the lastModified is smaller than ifModifiedSince we respond with a 304 (use cache)
-    if (ifModifiedSince && lastModified <= ifModifiedSince) {
-      connection.rawConnection.responseHttpCode = 304;
+      lastModified.setMilliseconds(0);
+      if (lastModified <= ifModifiedSince) {
+        connection.rawConnection.responseHttpCode = 304;
+      }
+      return sendRequestResult();
     }
 
     // check if is to use ETag
-    if (self.api.config.servers.web.enableEtag && fileStream) {
-      // get a file buffer
-      let fileBuffer = !Buffer.isBuffer(fileStream) ? new Buffer(fileStream.toString(), 'utf8') : fileStream;
+    if (this.api.config.servers.web.enableEtag && fileStream && fileStream.path) {
+      // Get the file states in order to create the ETag header
+      _fs2.default.stat(fileStream.path, (error, filestats) => {
+        if (error) {
+          this.log(`Error receiving file statistics: ${String(error)}`);
+          return sendRequestResult();
+        }
 
-      // build the ETag header
-      let fileEtag = (0, _etag2.default)(fileBuffer, { weak: true });
+        // push the ETag header to the response
+        const fileEtag = (0, _etag2.default)(filestats, { weak: true });
+        connection.rawConnection.responseHeaders.push(['ETag', fileEtag]);
 
-      // push the header to the response
-      connection.rawConnection.responseHeaders.push(['ETag', fileEtag]);
+        let noneMatchHeader = reqHeaders['if-none-match'];
+        let cacheCtrlHeader = reqHeaders['cache-control'];
+        let noCache = false;
+        let etagMatches;
 
-      let noneMatchHeader = reqHeaders['if-none-match'];
-      let cacheCtrlHeader = reqHeaders['cache-control'];
-      let noCache = false;
-      let etagMatches;
+        // check for no-cache cache request directive
+        if (cacheCtrlHeader && cacheCtrlHeader.indexOf('no-cache') !== -1) {
+          noCache = true;
+        }
 
-      // check for no-cache cache request directive
-      if (cacheCtrlHeader && cacheCtrlHeader.indexOf('no-cache') !== -1) {
-        noCache = true;
-      }
+        // parse if-none-match
+        if (noneMatchHeader) {
+          noneMatchHeader = noneMatchHeader.split(/ *, */);
+        }
 
-      // parse if-none-match
-      if (noneMatchHeader) {
-        noneMatchHeader = noneMatchHeader.split(/ *, */);
-      }
+        // if-none-match
+        if (noneMatchHeader) {
+          etagMatches = noneMatchHeader.some(match => match === '*' || match === fileEtag || match === 'W/' + fileEtag);
+        }
 
-      // if-none-match
-      if (noneMatchHeader) {
-        etagMatches = noneMatchHeader.some(match => match === '*' || match === fileEtag || match === 'W/' + fileEtag);
-      }
+        // use the cached object
+        if (etagMatches && !noCache) {
+          connection.rawConnection.responseHeaders = 304;
+        }
 
-      // use the cached object
-      if (etagMatches && !noCache) {
-        connection.rawConnection.responseHeaders = 304;
-      }
-    }
-
-    // parse the HTTP status code to int
-    let responseHttpCode = parseInt(connection.rawConnection.responseHttpCode);
-
-    if (error) {
-      self.sendWithCompression(connection, responseHttpCode, headers, String(error));
-    } else if (responseHttpCode !== 304) {
-      self.sendWithCompression(connection, responseHttpCode, headers, null, fileStream, length);
+        // send response
+        sendRequestResult();
+      });
     } else {
-      connection.rawConnection.res.writeHead(responseHttpCode, headers);
-      connection.rawConnection.res.end();
-      connection.destroy();
+      sendRequestResult();
     }
   }
 
@@ -370,10 +375,10 @@ class Web extends _genericServer2.default {
     // the 'finish' event deontes a successful transfer
     connection.rawConnection.res.on('finish', () => {
       connection.destroy();
-    });
+    }
 
     // the 'close' event deontes a failed transfer, but it is probably the client's fault
-    connection.rawConnection.res.on('close', () => {
+    );connection.rawConnection.res.on('close', () => {
       connection.destroy();
     });
 
@@ -388,7 +393,7 @@ class Web extends _genericServer2.default {
       }
     } else {
       if (stringEncoder) {
-        stringEncoder(stringResponse, (error, zippedString) => {
+        stringEncoder(stringResponse, (_, zippedString) => {
           headers.push(['Content-Length', zippedString.length]);
           connection.rawConnection.res.writeHead(responseHttpCode, headers);
           connection.rawConnection.res.end(zippedString);
@@ -423,7 +428,11 @@ class Web extends _genericServer2.default {
     let self = this;
 
     // get the client fingerprint
-    _browser_fingerprint2.default.fingerprint(req, self.api.config.servers.web.fingerprintOptions, (fingerprint, elementHash, cookieHash) => {
+    _browser_fingerprint2.default.fingerprint(req, self.api.config.servers.web.fingerprintOptions, (error, fingerprint, elementHash, cookieHash) => {
+      if (error) {
+        throw error;
+      }
+
       let responseHeaders = [];
       let cookies = this.api.utils.parseCookies(req);
       let responseHttpCode = 200;
@@ -437,10 +446,10 @@ class Web extends _genericServer2.default {
       }
 
       // set content type to JSON
-      responseHeaders.push(['Content-Type', 'application/json; charset=utf-8']);
+      responseHeaders.push(['Content-Type', 'application/json; charset=utf-8']
 
       // push all the default headers to the response object
-      for (i in self.api.config.servers.web.httpHeaders) {
+      );for (i in self.api.config.servers.web.httpHeaders) {
         responseHeaders.push([i, self.api.config.servers.web.httpHeaders[i]]);
       }
 
@@ -461,8 +470,8 @@ class Web extends _genericServer2.default {
         let forwardedIp = req.headers['x-forwarded-for'].split(',')[0];
         if (forwardedIp.indexOf('.') >= 0 || forwardedIp.indexOf('.') < 0 && forwardedIp.indexOf(':') < 0) {
           // IPv4
-          forwardedIp = forwardedIp.replace('::ffff:', ''); // remove any IPv6 information, ie: '::ffff:127.0.0.1'
-          parts = forwardedIp.split(':');
+          forwardedIp = forwardedIp.replace('::ffff:', '' // remove any IPv6 information, ie: '::ffff:127.0.0.1'
+          );parts = forwardedIp.split(':');
           if (parts[0]) {
             remoteIP = parts[0];
           }
@@ -644,10 +653,10 @@ class Web extends _genericServer2.default {
     let self = this;
 
     // client lib
-    let file = _path2.default.normalize(self.api.config.general.paths.public + _path2.default.sep + self.api.config.servers.websocket.clientJsName + '.js');
+    let file = _path2.default.normalize(self.api.config.general.paths.public + _path2.default.sep + self.api.config.servers.websocket.clientJsName + '.js'
 
     // define the file to be loaded
-    connection.params.file = file;
+    );connection.params.file = file;
 
     // process like a file
     self.processFile(connection);
@@ -685,15 +694,13 @@ class Web extends _genericServer2.default {
    * @private
    */
   _completeResponse(data) {
-    let self = this;
-
     if (data.toRender === true) {
-      if (self.api.config.servers.web.metadataOptions.serverInformation) {
+      if (this.api.config.servers.web.metadataOptions.serverInformation) {
         let stopTime = new Date().getTime();
 
         data.response.serverInformation = {
-          serverName: self.api.config.general.serverName,
-          apiVersion: self.api.config.general.apiVersion,
+          serverName: this.api.config.general.serverName,
+          apiVersion: this.api.config.general.apiVersion,
           requestDuration: stopTime - data.connection.connectedAt,
           currentTime: stopTime
         };
@@ -701,13 +708,13 @@ class Web extends _genericServer2.default {
     }
 
     // check if is to use requester information
-    if (self.api.config.servers.web.metadataOptions.requesterInformation) {
-      data.response.requesterInformation = self._buildRequesterInformation(data.connection);
+    if (this.api.config.servers.web.metadataOptions.requesterInformation) {
+      data.response.requesterInformation = this._buildRequesterInformation(data.connection);
     }
 
     // is an error response?
     if (data.response.error) {
-      if (self.api.config.servers.web.returnErrorCodes === true && data.connection.rawConnection.responseHttpCode === 200) {
+      if (this.api.config.servers.web.returnErrorCodes === true && data.connection.rawConnection.responseHttpCode === 200) {
         if (data.actionStatus === 'unknown_action') {
           data.connection.rawConnection.responseHttpCode = 404;
         } else if (data.actionStatus === 'missing_params') {
@@ -720,20 +727,20 @@ class Web extends _genericServer2.default {
       }
     }
 
-    if (!data.response.error && data.action && data.params.apiVersion && self.api.actions.actions[data.params.action][data.params.apiVersion].matchExtensionMimeType === true && data.connection.extension) {
+    if (!data.response.error && data.action && data.params.apiVersion && this.api.actions.actions[data.params.action][data.params.apiVersion].matchExtensionMimeType === true && data.connection.extension) {
       data.connection.rawConnection.responseHeaders.push(['Content-Type', _mime2.default.lookup(data.connection.extension)]);
     }
 
     // if its an error response we need to serialize the error object
     if (data.response.error) {
-      data.response.error = self.api.config.errors.serializers.servers.web(data.response.error);
+      data.response.error = this.api.config.errors.serializers.servers.web(data.response.error);
     }
 
     let stringResponse = '';
 
     // build the string response
-    if (self._extractHeader(data.connection, 'Content-Type').match(/json/)) {
-      stringResponse = JSON.stringify(data.response, null, self.api.config.servers.web.padding);
+    if (this._extractHeader(data.connection, 'Content-Type').match(/json/)) {
+      stringResponse = JSON.stringify(data.response, null, this.api.config.servers.web.padding);
       if (data.params.callback) {
         data.connection.rawConnection.responseHeaders.push(['Content-Type', 'application/javascript']);
         stringResponse = data.connection.params.callback + '(' + stringResponse + ');';
@@ -743,7 +750,7 @@ class Web extends _genericServer2.default {
     }
 
     // return the response to the client
-    self.sendMessage(data.connection, stringResponse);
+    this.sendMessage(data.connection, stringResponse);
   }
 
   /**
@@ -771,7 +778,7 @@ class Web extends _genericServer2.default {
    * Build the requester information.
    *
    * @param connection
-   * @returns {{id: number, fingerprint: (*|browser_fingerprint.fingerprint|null), remoteIP: string, receivedParams: {}}}
+   * @returns {{id: number, fingerprint: (*|BrowserFingerprint.fingerprint|null), remoteIP: string, receivedParams: {}}}
    * @private
    */
   _buildRequesterInformation(connection) {
@@ -781,10 +788,9 @@ class Web extends _genericServer2.default {
       fingerprint: connection.fingerprint,
       remoteIP: connection.remoteIP,
       receivedParams: {}
-    };
 
-    // copy all the connection params to the request information
-    for (let param in connection.params) {
+      // copy all the connection params to the request information
+    };for (let param in connection.params) {
       requesterInformation.receivedParams[param] = connection.params[param];
     }
 
@@ -859,10 +865,10 @@ class Web extends _genericServer2.default {
     let self = this;
 
     // build the request information
-    let data = self._buildRequesterInformation(connection);
+    let data = self._buildRequesterInformation(connection
 
     // build the response string and send it to the client
-    let stringResponse = JSON.stringify(data, null, self.api.config.servers.web.padding);
+    );let stringResponse = JSON.stringify(data, null, self.api.config.servers.web.padding);
     self.sendMessage(connection, stringResponse);
   }
 

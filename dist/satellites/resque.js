@@ -70,23 +70,20 @@ class ResqueManager {
    * @type {null}
    */
 
-
   /**
    * API reference object.
    *
    * @type {null}
    */
   startQueue(callback) {
-    let self = this;
-
     // we do this because the lint error
     let Queue = _nodeResque2.default.queue;
 
-    self.queue = new Queue({ connection: self.connectionDetails }, self.api.tasks.jobs);
-    self.queue.on('error', error => {
-      self.api.log(error, 'error', '[api.resque.scheduler]');
+    this.queue = new Queue({ connection: this.connectionDetails }, this.api.tasks.jobs);
+    this.queue.on('error', error => {
+      this.api.log(error, 'error', '[api.resque.scheduler]');
     });
-    self.queue.connect(callback);
+    this.queue.connect(callback);
   }
 
   /**
@@ -110,22 +107,22 @@ class ResqueManager {
     self.scheduler = new Scheduler({ connection: self.connectionDetails, timeout: self.api.config.tasks.timeout });
 
     // define the handler for the on error event
-    self.scheduler.on('error', error => self.api.log(error, 'error', '[api.resque.scheduler]'));
+    self.scheduler.on('error', error => self.api.log(error, 'error', '[api.resque.scheduler]')
 
     // start the scheduler
-    self.scheduler.connect(() => {
+    );self.scheduler.connect(() => {
       // define some handlers to the scheduler events
       self.scheduler.on('start', () => self.api.log('resque scheduler started', self.schedulerLogging.start));
       self.scheduler.on('end', () => self.api.log('resque scheduler ended', self.schedulerLogging.end));
       self.scheduler.on('poll', () => self.api.log('resque scheduler polling', self.schedulerLogging.poll));
       self.scheduler.on('working_timestamp', timestamp => self.api.log(`resque scheduler working timestamp ${timestamp}`, self.schedulerLogging.working_timestamp));
-      self.scheduler.on('transferred_job', (timestamp, job) => self.api.log(`resque scheduler enqueuing job ${timestamp}`, self.schedulerLogging.transferred_job, job));
+      self.scheduler.on('transferred_job', (timestamp, job) => self.api.log(`resque scheduler enqueuing job ${timestamp}`, self.schedulerLogging.transferred_job, job)
 
       // start the scheduler
-      self.scheduler.start();
+      );self.scheduler.start
 
       // execute the callback function
-      callback();
+      ();callback();
     });
   }
 
@@ -177,9 +174,9 @@ class ResqueManager {
     // normal worker emitters
     self.multiWorker.on('start', workerId => self.api.log('worker: started', self.workerLogging.start, { workerId: workerId }));
     self.multiWorker.on('end', workerId => self.api.log('worker: ended', self.workerLogging.end, { workerId: workerId }));
-    self.multiWorker.on('cleaning_worker', (workerId, worker, pid) => self.api.log(`worker: cleaning old worker ${worker}, (${pid})`, self.workerLogging.cleaning_worker));
+    self.multiWorker.on('cleaning_worker', (workerId, worker, pid) => self.api.log(`worker: cleaning old worker ${worker}, (${pid})`, self.workerLogging.cleaning_worker)
     // for debug: self.multiWorker.on('poll', (queue) => self.api.log(`worker: polling ${queue}`, self.workerLogging.poll))
-    self.multiWorker.on('job', (workerId, queue, job) => self.api.log(`worker: working job ${queue}`, self.workerLogging.job, {
+    );self.multiWorker.on('job', (workerId, queue, job) => self.api.log(`worker: working job ${queue}`, self.workerLogging.job, {
       workerId: workerId,
       job: { class: job.class, queue: job.queue }
     }));
@@ -196,13 +193,13 @@ class ResqueManager {
     self.multiWorker.on('pause', workerId => self.api.log('worker: paused', self.workerLogging.pause, { workerId: workerId }));
 
     self.multiWorker.on('failure', (workerId, queue, job, failure) => self.api.exceptionHandlers.task(failure, queue, job));
-    self.multiWorker.on('error', (workerId, queue, job, error) => self.api.exceptionHandlers.task(error, queue, job));
+    self.multiWorker.on('error', (workerId, queue, job, error) => self.api.exceptionHandlers.task(error, queue, job)
 
     // multiWorker emitters
-    self.multiWorker.on('internalError', error => self.api.log(error, self.workerLogging.internalError));
+    );self.multiWorker.on('internalError', error => self.api.log(error, self.workerLogging.internalError)
     // for debug: self.multiWorker.on('multiWorkerAction', (verb, delay) => self.api.log(`*** checked for worker status: ${verb} (event loop delay: ${delay}ms)`, self.workerLogging.multiWorkerAction))
 
-    if (self.api.config.tasks.minTaskProcessors > 0) {
+    );if (self.api.config.tasks.minTaskProcessors > 0) {
       self.multiWorker.start(() => {
         if (typeof callback === 'function') {
           callback();
@@ -243,7 +240,6 @@ exports.default = class {
     this.startPriority = 200;
     this.stopPriority = 100;
   }
-
   /**
    * Satellite load priority.
    *
@@ -315,5 +311,4 @@ exports.default = class {
       });
     });
   }
-
 };

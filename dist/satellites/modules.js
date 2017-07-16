@@ -31,7 +31,6 @@ class Modules {
    * @type {Map}
    */
 
-
   /**
    * API reference object.
    *
@@ -106,10 +105,10 @@ class Modules {
     // this config is required. If doesn't exists or is an empty array
     // an exception should be raised.
     if (modules === undefined || modules.length === 0) {
-      next(new Error('At least one module needs to be active.'));
+      next(new Error('At least one module needs to be active.')
 
       // engine don't finish the starting wet, soo we need to finish the process
-      process.exit(1);
+      );process.exit(1);
     }
 
     // load all modules declared in the manifest file
@@ -119,13 +118,13 @@ class Modules {
 
       // get module manifest file content
       try {
-        const manifest = require(`${path}/manifest.json`);
+        const manifest = require(`${path}/manifest.json`
 
         // save the module config on the engine instance
-        self.activeModules.set(manifest.id, manifest);
+        );self.activeModules.set(manifest.id, manifest
 
         // save the module full path
-        self.modulesPaths.set(manifest.id, path);
+        );self.modulesPaths.set(manifest.id, path);
       } catch (e) {
         next(new Error(`There is an invalid module active, named "${moduleName}", fix this to start Stellar normally.`));
         break;
@@ -178,26 +177,25 @@ class Modules {
         // merge the two hashes
         npmDependencies = this.api.utils.hashMerge(npmDependencies, manifest.npmDependencies);
       }
-    });
+    }
 
     // compile project information
-    let projectJson = {
+    );let projectJson = {
       private: true,
       name: 'stellar-dependencies',
       version: '1.0.0',
       description: 'This is automatically generated don\'t edit',
       dependencies: npmDependencies
-    };
 
-    // generate project.json file
-    const packageJsonPath = `${self.api.scope.rootPath}/package.json`;
+      // generate project.json file
+    };const packageJsonPath = `${self.api.scope.rootPath}/package.json`;
     this.api.utils.removePath(packageJsonPath);
     _fs2.default.writeFileSync(packageJsonPath, JSON.stringify(projectJson, null, 2), 'utf8');
 
-    self.api.log('updating NPM packages', 'info');
+    self.api.log('updating NPM packages', 'info'
 
     // check the command to be executed
-    const npmCommand = scope.args.update ? `npm update` : `npm install`;
+    );const npmCommand = scope.args.update ? 'npm update' : 'npm install';
 
     // run npm command
     (0, _child_process.exec)(npmCommand, error => {
@@ -208,13 +206,12 @@ class Modules {
       }
 
       // load a success message
-      self.api.log('NPM dependencies updated!', 'info');
+      self.api.log('NPM dependencies updated!', 'info'
 
       // finish the loading process
-      next();
+      );next();
     });
   }
-
 }
 
 /**
@@ -225,7 +222,6 @@ exports.default = class {
   constructor() {
     this.loadPriority = 1;
   }
-
   /**
    * Initializer load priority.
    *
@@ -244,10 +240,9 @@ exports.default = class {
     api.modules = new Modules(api);
 
     // load modules into memory
-    api.modules.loadModules(next);
+    api.modules.loadModules(next
 
     // process NPM dependencies
-    api.modules.processNpmDependencies(next);
+    );api.modules.processNpmDependencies(next);
   }
-
 };

@@ -29,7 +29,14 @@ class RoutesManager {
    */
   constructor(api) {
     this.api = null;
-    this.routes = { 'get': [], 'post': [], 'put': [], 'patch': [], 'delete': [] };
+    this.routes = { 'get': [], 'post': [], 'put': [], 'patch': [], 'delete': []
+
+      /**
+       * Available verbs.
+       *
+       * @type {string[]}
+       */
+    };
     this.verbs = ['get', 'post', 'put', 'patch', 'delete'];
 
     let self = this;
@@ -45,14 +52,6 @@ class RoutesManager {
    * @param pathParts     URI parts.
    */
 
-
-  /**
-   * Available verbs.
-   *
-   * @type {string[]}
-   */
-
-
   /**
    * API reference.
    *
@@ -64,10 +63,10 @@ class RoutesManager {
     // check if the connection contains an action and that action are defined on the current context
     if (connection.params.action === undefined || self.api.actions.actions[connection.params.action] === undefined) {
       // get HTTP request method
-      let method = connection.rawConnection.method.toLowerCase();
+      let method = connection.rawConnection.method.toLowerCase
 
       // if its a 'head' request change it to a 'get'
-      if (method === 'head' && !self.routes.head) {
+      ();if (method === 'head' && !self.routes.head) {
         method = 'get';
       }
 
@@ -216,10 +215,10 @@ class RoutesManager {
     }
 
     // remove duplicated entries on postVariables
-    self.api.params.postVariables = this.api.utils.arrayUniqueify(self.api.params.postVariables);
+    self.api.params.postVariables = this.api.utils.arrayUniqueify(self.api.params.postVariables
 
     // log the number of loaded routes
-    self.api.log(`${counter} routes loaded`, 'debug');
+    );self.api.log(`${counter} routes loaded`, 'debug');
 
     if (self.api.config.servers.web && self.api.config.servers.web.simpleRouting === true) {
       let simplePaths = [];
@@ -227,10 +226,10 @@ class RoutesManager {
       // iterate all registered actions
       for (let action in self.api.actions.actions) {
         // push the action name to the simples paths
-        simplePaths.push(`/${action}`);
+        simplePaths.push(`/${action}`
 
         // iterate all verbs
-        self.verbs.forEach(verb => {
+        );self.verbs.forEach(verb => {
           self.registerRoute(verb, `/${action}`, action);
         });
       }
@@ -257,17 +256,17 @@ class RoutesManager {
         let path = `${modulePath}/routes.json`;
 
         // check if the module have a 'routes.js' file
-        _fs2.default.accessSync(path, _fs2.default.F_OK);
+        _fs2.default.accessSync(path, _fs2.default.F_OK
 
         // load the routes on the engine
-        self.loadRoutes(require(path));
+        );self.loadRoutes(require(path));
       } catch (e) {
         // do nothing
       }
-    });
+    }
 
     // check if we have some routes on the config object
-    if (self.api.config.routes) {
+    );if (self.api.config.routes) {
       self.loadRoutes(self.api.config.routes);
     }
   }
@@ -280,7 +279,6 @@ exports.default = class {
   constructor() {
     this.loadPriority = 500;
   }
-
   /**
    * Initializer load priority.
    *
@@ -301,10 +299,9 @@ exports.default = class {
     api.routes = new RoutesManager(api);
 
     // load routes from the config file
-    api.routes.loadModulesRoutes();
+    api.routes.loadModulesRoutes
 
     // finish the initializer loading
-    next();
+    ();next();
   }
-
 };
