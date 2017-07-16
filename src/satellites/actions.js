@@ -552,7 +552,11 @@ export default class {
 
       // if the module `mod.js` file exists, load it
       if (api.utils.fileExists(modPath)) {
+        // load the modifier
         api.actions.loadModifier(require(modPath)(api).actions)
+
+        // when the modifier file changes we must reload the entire server
+        api.configs.watchFileAndAct(modPath, () => api.commands.restart.call(api._self))
       }
     })
 
