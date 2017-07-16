@@ -230,7 +230,7 @@ class EventsManager {
 
       // get all listeners files
       this.api.utils.recursiveDirectoryGlob(listenersFolderPath, 'js')
-      .forEach(listenerPath => { this._loadFile(listenerPath) })
+        .forEach(listenerPath => { this._loadFile(listenerPath) })
     })
 
     // end listeners loading

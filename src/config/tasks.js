@@ -19,7 +19,7 @@ export default {
       // ---------------------------------------------------------------------
       workerLogging: {
         failure: 'error', // task failure
-        success: 'info',  // task success
+        success: 'info', // task success
         start: 'info',
         end: 'info',
         cleaning_worker: 'info',
