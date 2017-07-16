@@ -13,7 +13,7 @@ Object.defineProperty(exports, "__esModule", {
  * By default we use a memory based adapter to make the startup really simple.
  */
 exports.default = {
-  models: api => {
+  models(api) {
     return {
       '_toExpand': false,
 

@@ -11,7 +11,6 @@ var _os2 = _interopRequireDefault(_os);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 class ExceptionsManager {
-
   /**
    * API reference.
    *
@@ -25,57 +24,57 @@ class ExceptionsManager {
 
     // load default console handler
     this.reporters.push((err, type, name, objects, severity) => {
+      let output = '';
       let lines = [];
       let extraMessages = [];
 
       if (type === 'loader') {
-        extraMessages.push(`! Failed to load ${objects.fullFilePath}`);
+        extraMessages.push(`Failed to load ${objects.fullFilePath}\n`);
       } else if (type === 'action') {
-        extraMessages.push(`! uncaught error from action: ${name}`);
+        extraMessages.push(`Uncaught error from action: ${name}\n`);
 
-        extraMessages.push('! connection details:');
-        var relevantDetails = ['action', 'remoteIP', 'type', 'params', 'room'];
-        for (let i in relevantDetails) {
-          if (objects.connection[relevantDetails[i]] !== null && objects.connection[relevantDetails[i]] !== undefined && typeof objects.connection[relevantDetails[i]] !== 'function') {
-            extraMessages.push('!     ' + relevantDetails[i] + ': ' + JSON.stringify(objects.connection[relevantDetails[i]]));
+        extraMessages.push('Connection details:');
+        const relevantDetails = ['action', 'remoteIP', 'type', 'params', 'room'];
+        for (let detailName of relevantDetails) {
+          if (objects.connection[detailName] !== null && objects.connection[detailName] !== undefined && typeof objects.connection[detailName] !== 'function') {
+            extraMessages.push(`    ${detailName}: ${JSON.stringify(objects.connection[detailName])}`);
           }
         }
+
+        // push an empty element to create a empty line
+        extraMessages.push('');
       } else if (type === 'task') {
-        extraMessages.push(`! uncaught error from task: ${name} on queue ${objects.queue} (worker #${objects.workerId})`);
+        extraMessages.push(`Uncaught error from task: ${name} on queue ${objects.queue} (worker #${objects.workerId})\n`);
         try {
-          extraMessages.push('!     arguments: ' + JSON.stringify(objects.task.args));
+          extraMessages.push('    arguments: ' + JSON.stringify(objects.task.args));
         } catch (e) {}
       } else {
-        extraMessages.push(`! Error: ${err.message}`);
-        extraMessages.push(`!     Type: ${type}`);
-        extraMessages.push(`!     Name: ${name}`);
-        extraMessages.push('!     Data: ' + JSON.stringify(objects));
+        extraMessages.push(`Error: ${err.message}\n`);
+        extraMessages.push(`    Type: ${type}`);
+        extraMessages.push(`    Name: ${name}`);
+        extraMessages.push(`    Data: ${JSON.stringify(objects)}`);
       }
 
-      // print out the extra messages with the right severity
-      for (let m in extraMessages) {
-        api.log(extraMessages[m], severity);
-      }
+      // reduce the extra messages into a single string
+      output += extraMessages.reduce((prev, item) => prev + `${item} \n`, ''
 
+      // FIXME I think that this can be removed, but for now we keep it where in case to be needed
       // if there is one of the known core exceptions we need to add information
       // manually to inform the correct error information
-      if (err.name) {
-        lines.push(`${err.name}: ${err.message}`);
-      }
+      // if (err.name) { lines.push(`${err.name}: ${err.message}`) }
 
       // add the stack trace
-      try {
+      );try {
         lines = lines.concat(err.stack.split(_os2.default.EOL));
       } catch (e) {
         lines = lines.concat(new Error(err).stack.split(_os2.default.EOL));
       }
 
-      for (let l in lines) {
-        let line = lines[l];
-        api.log('! ' + line, severity);
-      }
+      // reduce the lines array into a single string
+      output += lines.reduce((prev, item) => prev + `${item}\n`, ''
 
-      api.log('*', severity);
+      // print out the output message
+      );api.log(output, severity);
     });
   }
 
@@ -135,10 +134,10 @@ class ExceptionsManager {
     }
 
     // report the error
-    self.report(err, 'action', simpleName, { connection: data.connection }, 'error');
+    self.report(err, 'action', simpleName, { connection: data.connection }, 'error'
 
     // remove already processed responses
-    data.response = {};
+    );data.response = {};
 
     if (typeof next === 'function') {
       next();
@@ -179,7 +178,6 @@ exports.default = class {
   constructor() {
     this.loadPriority = 130;
   }
-
   /**
    * Satellite load priority.
    *
@@ -200,5 +198,4 @@ exports.default = class {
     // finish the satellite load
     next();
   }
-
 };

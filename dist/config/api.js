@@ -7,8 +7,7 @@ Object.defineProperty(exports, "__esModule", {
  * General configs.
  */
 exports.default = {
-
-  general: api => {
+  general(api) {
     return {
       // ---------------------------------------------------------------------
       // API version
@@ -149,7 +148,15 @@ exports.default = {
       // ---------------------------------------------------------------------
       // Number of round to use on the salt generation
       // ---------------------------------------------------------------------
-      saltRounds: 10
+      saltRounds: 10,
+
+      // ---------------------------------------------------------------------
+      // Time that an action have to send a response to the client.
+      //
+      // NOTE: The values is specified into milliseconds.
+      // DEFAULT: 30 seconds
+      // ---------------------------------------------------------------------
+      actionTimeout: 30000
     };
   }
 
@@ -162,14 +169,22 @@ exports.default = {
  */
 
 const test = exports.test = {
-  general: api => {
+  general(api) {
     return {
+      // set the server identifier during testing
       id: 'test-server',
-      developmentMode: true,
+      serverToken: `server-Token-${process.pid}`,
+
+      // disable dev mode to speed up the tests
+      developmentMode: false,
+
+      // Ensure the creation of the `defaultRoom` and `otherRoom` rooms
       startingChatRooms: {
         defaultRoom: {},
         otherRoom: {}
       },
+
+      // we don't need to generate documentation during testing
       generateDocumentation: false
     };
   }
@@ -181,7 +196,7 @@ const test = exports.test = {
  * @type {{}}
  */
 const production = exports.production = {
-  general: api => {
+  general(api) {
     return {
       developmentMode: false
     };

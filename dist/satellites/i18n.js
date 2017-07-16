@@ -18,7 +18,6 @@ class I18n {
    * @param api   API reference.
    */
 
-
   /**
    * Stellar api object.
    */
@@ -48,10 +47,10 @@ class I18n {
     // create locale folder (remove first if exists)
     let localePath = self.api.config.general.paths.temp + '/locale';
     this.api.utils.removeDirectory(localePath);
-    this.api.utils.mkdir(localePath);
+    this.api.utils.mkdir(localePath
 
     // iterate all modules
-    for (let module in self.api.modules.activeModules.keys()) {
+    );for (let module in self.api.modules.activeModules.keys()) {
       let localePath = `${self.api.scope.rootPath}/modules/${module}/locale`;
 
       // check if the folder exists
@@ -67,10 +66,10 @@ class I18n {
     options.directory = localePath;
 
     // configure application
-    self.i18n.configure(options);
+    self.i18n.configure(options
 
     // setting the current locale globally
-    self.i18n.setLocale(self.api.config.i18n.defaultLocale);
+    );self.i18n.setLocale(self.api.config.i18n.defaultLocale);
   }
 
   /**
@@ -91,21 +90,21 @@ class I18n {
     let self = this;
 
     // split the command by '.'
-    let cmdParts = self.api.config.i18n.determineConnectionLocale.split('.');
+    let cmdParts = self.api.config.i18n.determineConnectionLocale.split('.'
 
     // get the first array position
-    let cmd = cmdParts.shift();
+    );let cmd = cmdParts.shift
 
     // this only works with the api object
-    if (cmd !== 'api') {
+    ();if (cmd !== 'api') {
       throw new Error('cannot operate on a method outside of the api object');
     }
 
     // execute method
-    let locale = eval(`self.api.${cmdParts.join('.')}(connection)`);
+    let locale = eval(`self.api.${cmdParts.join('.')}(connection)`
 
     // set locale
-    self.i18n.setLocale(connection, locale);
+    );self.i18n.setLocale(connection, locale);
   }
 
   /**
@@ -129,7 +128,6 @@ class I18n {
 
     return self.i18n.__.apply(options, message);
   }
-
 }
 
 /**
@@ -137,11 +135,12 @@ class I18n {
  *
  * This initializer adds support to i18n localization.
  */
+/* eslint no-eval: 0 */
+
 exports.default = class {
   constructor() {
     this.loadPriority = 10;
   }
-
   /**
    * Load priority.
    *
@@ -160,10 +159,9 @@ exports.default = class {
     api.i18n = new I18n(api);
 
     // configure i18n
-    api.i18n.configure();
+    api.i18n.configure
 
     // call callback
-    next();
+    ();next();
   }
-
 };

@@ -28,7 +28,6 @@ class GenericServer extends _events.EventEmitter {
    * @param attributes
    */
 
-
   /**
    * API object reference.
    */
@@ -78,10 +77,9 @@ class GenericServer extends _events.EventEmitter {
       remotePort: data.remotePort,
       remoteIP: data.remoteAddress,
       rawConnection: data.rawConnection
-    };
 
-    // if the server canChat enable the flag on the connection
-    if (self.attributes.canChat === true) {
+      // if the server canChat enable the flag on the connection
+    };if (self.attributes.canChat === true) {
       details.canChat = true;
     }
 
@@ -108,10 +106,10 @@ class GenericServer extends _events.EventEmitter {
     };
 
     // emit the new connection object
-    self.emit('connection', connection);
+    self.emit('connection', connection
 
     // check if the lod for this type of connection is active
-    if (self.attributes.logConnections === true) {
+    );if (self.attributes.logConnections === true) {
       self.log('new connection', 'info', { to: connection.remoteIP });
     }
 
@@ -140,7 +138,8 @@ class GenericServer extends _events.EventEmitter {
     let self = this;
 
     // create a new action processor instance for this request
-    let actionProcessor = new this.api.actionProcessor(self.api, connection, data => {
+    const ActionProcessor = this.api.actionProcessor;
+    let actionProcessor = new ActionProcessor(self.api, connection, data => {
       self.emit('actionComplete', data);
     });
 
@@ -154,10 +153,8 @@ class GenericServer extends _events.EventEmitter {
    * @param connection Connection object.
    */
   processFile(connection) {
-    let self = this;
-
-    self.api.staticFile.get(connection, (connection, error, fileStream, mime, length, lastModified) => {
-      self.sendFile(connection, error, fileStream, mime, length, lastModified);
+    this.api.staticFile.get(connection, (connection, error, fileStream, mime, length, lastModified) => {
+      this.sendFile(connection, error, fileStream, mime, length, lastModified);
     });
   }
 
@@ -226,6 +223,5 @@ class GenericServer extends _events.EventEmitter {
   goodbye(connection, reason) {
     methodNotDefined();
   }
-
 }
 exports.default = GenericServer;

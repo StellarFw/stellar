@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.Utils = undefined;
+exports.Utils = exports.ExtendableError = undefined;
 
 var _os = require('os');
 
@@ -19,6 +19,19 @@ var _path2 = _interopRequireDefault(_path);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+class ExtendableError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = this.constructor.name;
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, this.constructor);
+    } else {
+      this.stack = new Error(message).stack;
+    }
+  }
+}
+
+exports.ExtendableError = ExtendableError;
 class Utils {
 
   constructor(api = null) {
@@ -27,17 +40,28 @@ class Utils {
   }
 
   /**
-   * Read all files from the given directory.
+   * A Promise abstraction for the setTimeout function.
    *
-   * @param dir         Folder path to search.
-   * @returns {Array}   Array with the files paths.
+   * @param t             Time in millisecond.
+   * @returns {Promise}
    */
-
 
   /**
    * Reference for the API object.
    *
    * @type {}
+   */
+  delay(t) {
+    return new Promise(resolve => {
+      setTimeout(resolve, t);
+    });
+  }
+
+  /**
+   * Read all files from the given directory.
+   *
+   * @param dir         Folder path to search.
+   * @returns {Array}   Array with the files paths.
    */
   getFiles(dir) {
     var results = [];
@@ -287,10 +311,10 @@ class Utils {
       } else {
         this.removeDirectory(filePath);
       }
-    });
+    }
 
     // remove current directory
-    _fs2.default.rmdirSync(path);
+    );_fs2.default.rmdirSync(path);
   }
 
   /**
@@ -409,10 +433,10 @@ class Utils {
     // if we have brackets parse them and find a port
     if (address.indexOf('[') > -1 && address.indexOf(']') > -1) {
       // execute the regular expression
-      let res = regexp.exec(address);
+      let res = regexp.exec(address
 
       // if null this isn't a valid IPv6 address
-      if (res === null) {
+      );if (res === null) {
         throw new Error('failed to parse address');
       }
 
@@ -512,6 +536,17 @@ class Utils {
   isNonEmptyString(value) {
     return typeof value === 'string' && value.length > 0;
   }
+
+  // ----------------------------------------------------------------- [Strings]
+
+  /**
+   * Convert snake case string to camel case.
+   *
+   * @param {string} s String to be converted.
+   */
+  snakeToCamel(s) {
+    return s.replace(/(\_\w)/g, m => m[1].toUpperCase());
+  }
 }
 
 exports.Utils = Utils;
@@ -519,7 +554,6 @@ exports.default = class {
   constructor() {
     this.loadPriority = 0;
   }
-
   /**
    * Satellite load priority.
    *
@@ -531,5 +565,4 @@ exports.default = class {
     api.utils = new Utils(api);
     next();
   }
-
 };

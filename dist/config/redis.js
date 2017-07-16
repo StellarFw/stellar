@@ -17,50 +17,47 @@ let password = process.env.REDIS_PASS || null;
  * buildNew     - is to use the `new` keyword on the the constructor?
  */
 exports.default = {
-  redis: api => {
-
+  redis(api) {
     if (process.env.FAKEREDIS === 'false' || process.env.REDIS_HOST !== undefined) {
-
       return {
         '_toExpand': false,
 
         client: {
           constructor: require('ioredis'),
-          args: [{ port: port, host: host, password: password, db: db }],
+          args: { port, host, password, db },
           buildNew: true
         },
         subscriber: {
           constructor: require('ioredis'),
-          args: [{ port: port, host: host, password: password, db: db }],
+          args: { port, host, password, db },
           buildNew: true
         },
         tasks: {
           constructor: require('ioredis'),
-          args: [{ port: port, host: host, password: password, db: db }],
+          args: { port, host, password, db },
           buildNew: true
-        }
-      };
-    } else {
-
-      return {
-        '_toExpand': false,
-
-        client: {
-          constructor: require('fakeredis').createClient,
-          args: [port, host, { fast: true }],
-          buildNew: false
-        },
-        subscriber: {
-          constructor: require('fakeredis').createClient,
-          args: [port, host, { fast: true }],
-          buildNew: false
-        },
-        tasks: {
-          constructor: require('fakeredis').createClient,
-          args: [port, host, { fast: true }],
-          buildNew: false
         }
       };
     }
+
+    return {
+      '_toExpand': false,
+
+      client: {
+        constructor: require('then-fakeredis').createClient,
+        args: { port, host, fast: true },
+        buildNew: false
+      },
+      subscriber: {
+        constructor: require('fakeredis').createClient,
+        args: { port, host, fast: true },
+        buildNew: false
+      },
+      tasks: {
+        constructor: require('fakeredis').createClient,
+        args: { port, host, fast: true },
+        buildNew: false
+      }
+    };
   }
 };

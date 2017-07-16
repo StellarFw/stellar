@@ -15,7 +15,6 @@ var _genericServer2 = _interopRequireDefault(_genericServer);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 class TestServer extends _genericServer2.default {
-
   constructor(api, type, options, attributes) {
     super(api, type, options, attributes);
 
@@ -73,7 +72,6 @@ class TestServer extends _genericServer2.default {
   }
 
   goodbye() {}
-
 }
 
 class Helpers {
@@ -87,7 +85,6 @@ class Helpers {
     this.api = null;
     this.api = api;
   }
-
   /**
    * API reference object.
    *
@@ -96,17 +93,16 @@ class Helpers {
 
 
   connection() {
-    let self = this;
     let id = _uuid2.default.v4();
 
-    self.api.servers.servers.testServer.buildConnection({
+    this.api.servers.servers.testServer.buildConnection({
       id: id,
       rawConnection: {},
       remoteAddress: 'testServer',
       remotePort: 0
     });
 
-    return self.api.connections.connections[id];
+    return this.api.connections.connections[id];
   }
 
   initialize(api, options, next) {
@@ -176,7 +172,6 @@ exports.default = class {
     this.loadPriority = 800;
     this.startPriority = 800;
   }
-
   /**
    * Satellite load priority.
    *
@@ -226,5 +221,4 @@ exports.default = class {
     // finish the satellite start
     next();
   }
-
 };

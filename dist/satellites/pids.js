@@ -22,7 +22,6 @@ class Pids {
    * @param api API reference.
    */
 
-
   /**
    * API reference.
    */
@@ -111,7 +110,6 @@ class Pids {
 
     return pidfile;
   }
-
 }
 
 exports.default = class {
@@ -119,7 +117,6 @@ exports.default = class {
     this.loadPriority = 110;
     this.startPriority = 1;
   }
-
   /**
    * Load priority.
    *
@@ -145,10 +142,10 @@ exports.default = class {
     api.pids = new Pids(api);
 
     // init pid manager
-    api.pids.init();
+    api.pids.init
 
     // finish the initializer load
-    next();
+    ();next();
   }
 
   /**
@@ -159,13 +156,12 @@ exports.default = class {
    */
   start(api, next) {
     // write pid file
-    api.pids.writePidFile();
+    api.pids.writePidFile
 
     // log the process pid
-    api.log(`pid: ${process.pid}`, 'notice');
+    ();api.log(`pid: ${process.pid}`, 'notice'
 
     // finish the initializer start
-    next();
+    );next();
   }
-
 };
