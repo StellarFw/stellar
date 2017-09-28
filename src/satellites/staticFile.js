@@ -102,7 +102,7 @@ class StaticFile {
         // if we can't read the file respond with an error
         self.sendFileNotFound(connection, self.api.config.errors.fileReadError(String(err)), callback)
       } else {
-        let mime = Mime.lookup(file)
+        let mime = Mime.getType(file)
         let length = stats.size
         let fileStream = fs.createReadStream(file)
         let start = new Date().getTime()

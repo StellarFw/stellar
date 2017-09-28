@@ -634,7 +634,7 @@ export default class Web extends GenericServer {
     }
 
     if (!data.response.error && data.action && data.params.apiVersion && this.api.actions.actions[ data.params.action ][ data.params.apiVersion ].matchExtensionMimeType === true && data.connection.extension) {
-      data.connection.rawConnection.responseHeaders.push([ 'Content-Type', Mime.lookup(data.connection.extension) ])
+      data.connection.rawConnection.responseHeaders.push([ 'Content-Type', Mime.getType(data.connection.extension) ])
     }
 
     // if its an error response we need to serialize the error object
