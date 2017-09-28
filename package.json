@@ -60,7 +60,7 @@
     "babel-plugin-transform-async-to-generator": "^6.22.0",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1",
-    "coveralls": "^2.11.9",
+    "coveralls": "^3.0.0",
     "eslint": "^4.2.0",
     "eslint-config-standard": "^10.2.1",
     "eslint-plugin-import": "^2.7.0",
