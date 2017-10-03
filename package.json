@@ -68,7 +68,7 @@
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-standard": "^3.0.1",
     "istanbul": "^0.4.3",
-    "mocha": "^3.4.1",
+    "mocha": "^4.0.0",
     "request": "^2.65.0",
     "should": "^13.0.0"
   },
