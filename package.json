@@ -52,7 +52,7 @@
     "winston-daily-rotate-file": "^1.4.6",
     "ws": "^3.0.0",
     "yargonaut": "^1.1.2",
-    "yargs": "^9.0.1"
+    "yargs": "^10.0.3"
   },
   "devDependencies": {
     "babel-cli": "^6.11.4",
