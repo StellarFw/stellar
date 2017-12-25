@@ -25,7 +25,6 @@
   },
   "dependencies": {
     "async": "^2.5.0",
-    "babel-polyfill": "^6.16.0",
     "bcrypt": "^1.0.2",
     "bluebird": "^3.5.0",
     "browser_fingerprint": "0.1.0",
@@ -50,27 +49,10 @@
     "waterline": "^0.11.6",
     "winston": "^2.1.1",
     "winston-daily-rotate-file": "^1.4.6",
-    "ws": "^3.0.0",
-    "yargonaut": "^1.1.2",
-    "yargs": "^9.0.1"
+    "ws": "^3.0.0"
   },
   "devDependencies": {
-    "babel-cli": "^6.11.4",
-    "babel-eslint": "^8.0.0",
-    "babel-plugin-transform-async-to-generator": "^6.22.0",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-plugin-transform-es2015-modules-commonjs": "^6.24.1",
-    "coveralls": "^2.11.9",
-    "eslint": "^4.2.0",
-    "eslint-config-standard": "^10.2.1",
-    "eslint-plugin-import": "^2.7.0",
-    "eslint-plugin-node": "^5.1.0",
-    "eslint-plugin-promise": "^3.5.0",
-    "eslint-plugin-standard": "^3.0.1",
-    "istanbul": "^0.4.3",
-    "mocha": "^3.4.1",
-    "request": "^2.65.0",
-    "should": "^13.0.0"
+    "request": "^2.65.0"
   },
   "repository": {
     "type": "git",
@@ -82,8 +64,8 @@
   },
   "homepage": "https://stellar-framework.com",
   "engines": {
-    "node": ">= 6.0.0",
-    "npm": ">= 3.0.0"
+    "node": ">= 8.9.0",
+    "npm": ">= 5.0.0"
   },
   "bin": {
     "stellar": "./bin/stellar"
