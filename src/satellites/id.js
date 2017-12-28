@@ -1,10 +1,10 @@
-import {argv} from 'yargs'
+import sywac from 'sywac'
 import cluster from 'cluster'
 
 /**
  * Setup the server ID.
  *
- * TODO: we can use the args from the engine to avoid using the yargs.
+ * TODO: we can use the args from the engine to avoid using sywac here.
  *
  * This ID, can be configured using:
  * - the 'api.config.general.id' configuration;
@@ -33,7 +33,8 @@ export default class {
    * @param api   API reference.
    * @param next  Callback.
    */
-  load (api, next) {
+  async load (api, next) {
+    const {argv} = await sywac.string('--title').parse()
     if (argv.title) {
       api.id = argv.title
     } else if (process.env.STELLAR_TITLE) {
