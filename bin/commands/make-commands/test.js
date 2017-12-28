@@ -2,8 +2,8 @@
 
 // ----------------------------------------------------------------------------- [Imports]
 
-let Command = require('../Command')
-let Utils = require('../utils')
+let Command = require('../../Command')
+let Utils = require('../../utils')
 
 // ----------------------------------------------------------------------------- [Command]
 
@@ -17,26 +17,16 @@ class MakeTest extends Command {
     super()
 
     // command
-    this.command = 'test <file_name>'
-    this.describe = 'Create a new test file'
-    this.builder = {
-      module: {
-        describe: 'Module where the file will be created',
-        type: 'string',
-        default: 'private'
-      },
-      force: {
-        describe: 'Overwrite existing files',
-        type: 'boolean',
-        default: false
-      }
-    }
+    this.group = 'Components:'
+    this.flags = 'test <file_name>'
+    this.desc = 'Create a new test file'
+    this.paramsDesc = 'The name of the test file to create'
   }
 
   /**
    * Execute the command.
    */
-  run () {
+  exec () {
     // check if the module was specified
     if (this.args.module.length === 0) {
       return this.printError('You need to specify the module where the task must be created')

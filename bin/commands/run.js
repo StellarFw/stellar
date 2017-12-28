@@ -16,47 +16,39 @@ class RunCommand extends Command {
     super(true)
 
     // define command information
-    this.command = 'run'
-    this.describe = 'Start a new Stellar instance'
-    this.builder = {
-      prod: {
-        describe: 'Enable production mode'
-      },
-      port: {
-        describe: 'Port where the server will listening',
-        default: 8080
-      },
-      clean: {
-        describe: 'Remove all temporary files and node modules'
-      },
-      update: {
-        describe: 'Update dependencies'
-      },
-
-      // cluster args
-
-      cluster: {
-        describe: 'Run Stellar as a cluster',
-        default: false,
-        type: 'boolean'
-      },
-      id: {
-        describe: 'Cluster identifier (for cluster)',
-        type: 'string',
-        default: 'stellar-custer'
-      },
-      silent: {
-        describe: 'No messages will be printed to the console (for cluster)',
-        type: 'boolean',
-        default: false
-      },
-      workers: {
-        describe: 'Number of workers (for cluster)'
-      },
-      workerPrefix: {
-        describe: `Worker's name prefix. If the value is equals to 'hostname'
-          the computer hostname will be used (for cluster)`
-      }
+    this.flags = 'run'
+    this.desc = 'Start a new Stellar instance'
+    this.setup = sywac => {
+      sywac
+        .boolean('--prod', { desc: 'Enable production mode' })
+        .number('--port <port>', {
+          desc: 'Port where the server will listening',
+          defaultValue: 8080
+        })
+        .boolean('--clean', { desc: 'Remove all temporary files and node modules' })
+        .boolean('--update', { desc: 'Update dependencies' })
+        .boolean('--cluster', {
+          group: 'Cluster Options:',
+          desc: 'Run Stellar as a cluster'
+        })
+        .string('--id <cluster-id>', {
+          group: 'Cluster Options:',
+          desc: 'Cluster identifier',
+          defaultValue: 'stellar-cluster'
+        })
+        .boolean('--silent', {
+          group: 'Cluster Options:',
+          desc: 'No messages will be printed to the console'
+        })
+        .number('--workers <number>', {
+          group: 'Cluster Options:',
+          desc: 'Number of workers'
+        })
+        .string('--workerPrefix <prefix>', {
+          group: 'Cluster Options:',
+          desc: `Worker's name prefix. If the value is equals to 'hostname' the computer hostname will be used`
+        })
+        .outputSettings({ maxWidth: 79 })
     }
 
     // set some command vars
@@ -68,7 +60,7 @@ class RunCommand extends Command {
   /**
    * Execute the command.
    */
-  run () {
+  exec () {
     // whether the `--cluster` options is defined we stop this command and load
     // the startCluster
     if (this.args.cluster === true) {
