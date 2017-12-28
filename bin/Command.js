@@ -79,7 +79,7 @@ module.exports = class {
   }
 
   /**
-   * Catch the yargs command call.
+   * Catch the sywac command call.
    */
   run (args) {
     // store the args
