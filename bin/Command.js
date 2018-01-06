@@ -18,7 +18,7 @@ module.exports = class {
    * Creates a new command instance.
    *
    * @type {boolean} initialize When true Stellar will be initialized on the
-   * handler method execution.
+   * run method execution.
    */
   constructor (initialize = false) {
     // define console colors
@@ -38,8 +38,8 @@ module.exports = class {
     this.api = null
     this.engine = null
 
-    // FIX `this` binding in the `handler` method
-    this.handler = this.handler.bind(this)
+    // FIX `this` binding in the `run` method
+    this.run = this.run.bind(this)
   }
 
   /**
@@ -79,9 +79,9 @@ module.exports = class {
   }
 
   /**
-   * Catch the yargs command call.
+   * Catch the sywac command call.
    */
-  handler (args) {
+  run (args) {
     // store the args
     this.args = args
 
@@ -107,12 +107,12 @@ module.exports = class {
     // check if is to initialize the Engine
     if (this.isToInitialize) {
       return this._initializeStellar()
-        .then(_ => { this.run() })
+        .then(_ => { this.exec() })
         .catch(error => { this.printError(error) })
     }
 
     // run the command
-    this.run()
+    this.exec()
   }
 
   /**
