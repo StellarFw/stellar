@@ -14,14 +14,14 @@ class dockerItCommand extends Command {
     super(false)
 
     // command
-    this.command = 'dockerIt'
-    this.describe = 'Create a new dockerfile for the stellar project'
+    this.flags = 'dockerIt'
+    this.desc = 'Create a new dockerfile for the stellar project'
   }
 
   /**
    * Execute the command.
    */
-  run () {
+  exec () {
     // see if a dockerfile already exists
     if (Utils.exists(process.cwd() + '/dockerfile')) {
       this.printError('A dockerfile already exists')

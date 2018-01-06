@@ -14,11 +14,11 @@ class ConsoleCommand extends Command {
     super(true)
 
     // define the command
-    this.command = 'console'
-    this.describe = 'Create a REPL connection with a Stellar instance'
+    this.flags = 'console'
+    this.desc = 'Create a REPL connection with a Stellar instance'
   }
 
-  run () {
+  exec () {
     // disable all the servers
     for (const index in this.api.config.servers) {
       this.api.config.servers[index].enabled = false

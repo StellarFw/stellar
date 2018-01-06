@@ -452,7 +452,7 @@ class RunClusterCommand extends Command {
     super()
   }
 
-  run () {
+  exec () {
     // create the options object to pass to the cluster manager
     let options = {
       execPath: path.normalize(__dirname + '/../stellar'),
