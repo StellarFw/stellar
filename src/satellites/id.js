@@ -1,4 +1,3 @@
-import sywac from 'sywac'
 import cluster from 'cluster'
 
 /**
@@ -34,7 +33,8 @@ export default class {
    * @param next  Callback.
    */
   async load (api, next) {
-    const {argv} = await sywac.string('--title').parse()
+    const argv = api.scope.args
+
     if (argv.title) {
       api.id = argv.title
     } else if (process.env.STELLAR_TITLE) {
