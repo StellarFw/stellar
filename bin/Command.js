@@ -1,19 +1,15 @@
 'use strict'
 
-// ----------------------------------------------------------------------------- [Imports]
-
 const Engine = require('../dist/engine').default
 const path = require('path')
 const pkg = require('../package.json')
 const spawn = require('child_process').spawn
 
-// ----------------------------------------------------------------------------- [Module]
 /**
  * All command extends this class in order to initialize Stellar and
  * provide a standard way of creating commands.
  */
 module.exports = class {
-
   /**
    * Creates a new command instance.
    *
@@ -56,26 +52,27 @@ module.exports = class {
   /**
    * Initialize a Stellar instance when requested.
    */
-  _initializeStellar () {
-    return new Promise((resolve, reject) => {
-      // build the scope
-      const scope = this._buildScope()
+  async _initializeStellar () {
+    // build the scope
+    const scope = this._buildScope()
 
-      // create a new engine instance and save it
-      this.engine = new Engine(scope)
+    // create a new engine instance and save it
+    this.engine = new Engine(scope)
 
-      // initialize the engine
-      this.engine.initialize((error, api) => {
-        // if an error occurs reject the promise and return
-        if (error) { return reject(error) }
+    // initialize the engine
+    await this.engine.initialize()
 
-        // otherwise, store the API reference
-        this.api = api
+    console.log('API:', this.engine.api)
+    // this.engine.initialize((error, api) => {
+    //   // if an error occurs reject the promise and return
+    //   if (error) { return reject(error) }
 
-        // resolve the promise
-        resolve(this.api)
-      })
-    })
+    //   // otherwise, store the API reference
+    //   this.api = api
+
+    //   // resolve the promise
+    //   resolve(this.api)
+    // })
   }
 
   /**

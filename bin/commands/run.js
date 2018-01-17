@@ -1,21 +1,13 @@
 'use strict'
 
-// ----------------------------------------------------------------------------- [Imports]
-
-let os = require('os')
-let cluster = require('cluster')
-
+const os = require('os')
+const cluster = require('cluster')
 const Command = require('../Command.js')
 
-// ----------------------------------------------------------------------------- [Command]
-
 class RunCommand extends Command {
-
   constructor () {
-    // require the start of the engine
     super(true)
 
-    // define command information
     this.flags = 'run'
     this.desc = 'Start a new Stellar instance'
     this.setup = sywac => {
@@ -51,15 +43,11 @@ class RunCommand extends Command {
         .outputSettings({ maxWidth: 79 })
     }
 
-    // set some command vars
     this.state = 'stopped'
     this.shutdownTimeout = 1000 * 30
     this.checkForInternalStopTimer = null
   }
 
-  /**
-   * Execute the command.
-   */
   exec () {
     // whether the `--cluster` options is defined we stop this command and load
     // the startCluster
@@ -135,7 +123,6 @@ class RunCommand extends Command {
     process.on('SIGTERM', () => this.stopProcess())
     process.on('SIGUSR2', () => this.restartServer())
 
-    // start the server!
     this.startServer()
   }
 
@@ -147,26 +134,24 @@ class RunCommand extends Command {
    * @param callback Callback function.
    */
   startServer (callback) {
-    // update the server state
     this._updateServerState('starting')
 
-    // start the engine
-    this.engine.start((error, _) => {
-      if (error) {
-        this.api.log(error)
-        process.exit(1)
-        return
-      }
+    // this.engine.start((error, _) => {
+    //   if (error) {
+    //     this.api.log(error)
+    //     process.exit(1)
+    //     return
+    //   }
 
-      // update the server state
-      this._updateServerState('started')
+    //   // update the server state
+    //   this._updateServerState('started')
 
-      // start check for the engine internal state
-      this._checkForInternalStop()
+    //   // start check for the engine internal state
+    //   this._checkForInternalStop()
 
-      // execute the callback function
-      if (typeof callback === 'function') { callback(null, this.api) }
-    })
+    //   // execute the callback function
+    //   if (typeof callback === 'function') { callback(null, this.api) }
+    // })
   }
 
   /**
@@ -210,8 +195,6 @@ class RunCommand extends Command {
     })
   }
 
-  // --------------------------------------------------------------------------- [Process]
-
   /**
    * Stop the process.
    */
@@ -222,8 +205,6 @@ class RunCommand extends Command {
     // stop the server
     this.stopServer(() => process.nextTick(() => process.exit()))
   }
-
-  // --------------------------------------------------------------------------- [Helpers]
 
   /**
    * Update the server state and notify the master if the current process is a
