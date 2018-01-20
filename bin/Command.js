@@ -53,26 +53,14 @@ module.exports = class {
    * Initialize a Stellar instance when requested.
    */
   async _initializeStellar () {
-    // build the scope
-    const scope = this._buildScope()
+    // create a new engine instance and initialize it
+    const scope = this._buildScope();
+    this.engine = new Engine(scope);
+    await this.engine.initialize();
 
-    // create a new engine instance and save it
-    this.engine = new Engine(scope)
+    this.api = this.engine.api;
 
-    // initialize the engine
-    await this.engine.initialize()
-
-    console.log('API:', this.engine.api)
-    // this.engine.initialize((error, api) => {
-    //   // if an error occurs reject the promise and return
-    //   if (error) { return reject(error) }
-
-    //   // otherwise, store the API reference
-    //   this.api = api
-
-    //   // resolve the promise
-    //   resolve(this.api)
-    // })
+    return this.api
   }
 
   /**

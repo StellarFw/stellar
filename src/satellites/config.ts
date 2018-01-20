@@ -185,9 +185,18 @@ class ConfigManager {
 
 export default class ConfigSatellite extends Satellite {
   public loadPriority: number = 0;
+  protected _name: string = 'Config';
 
   public async load(): Promise<void> {
     this.api.config = new ConfigManager(this.api);
     this.api.config.execute();
+  }
+
+  public async start(): Promise<void> {
+    this.api.log(`Environment: ${this.api.env}`, LogLevel.Notice);
+  }
+
+  public async stop(): Promise<void> {
+    this.api.config.unwatchAllFiles();
   }
 }

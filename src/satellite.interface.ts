@@ -4,22 +4,22 @@
  */
 export interface SatelliteInterface {
   /**
-   * Priority for defines when the Satellite must be 
+   * Priority for defines when the Satellite must be
    * loaded.
    */
-  readonly loadPriority: Number
+  readonly loadPriority: number;
 
   /**
-   * Priority that defines when the Satellite must be 
+   * Priority that defines when the Satellite must be
    * started.
    */
-  readonly startPriority: Number
+  readonly startPriority: number;
 
   /**
    * Priority that defines when the Satellite must be
    * stopped.
    */
-  readonly stopPriority: Number
+  readonly stopPriority: number;
 
   /**
    * Satellite loading function.
@@ -33,22 +33,22 @@ export interface SatelliteInterface {
 
   /**
    * Satellite start function.
-   * 
+   *
    * This function is responsible to start any type of work
    * make by this Satellite. For example, this can be the
    * start of a Server listening.
-   * 
+   *
    * @returns Returns a `Promise`.
    */
-  start?(): Promise<void>
+  start?(): Promise<void>;
 
   /**
    * Satellite stop function.
-   * 
+   *
    * This function is responsible to stop any type of work
    * that has been started by the Satellite.
-   * 
+   *
    * @returns Returns a `Promise`.
    */
-  stop?(): Promise<void>
+  stop?(): Promise<void>;
 }

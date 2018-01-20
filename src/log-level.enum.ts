@@ -2,9 +2,10 @@
  * Enumeration with the available log levels.
  */
 export enum LogLevel {
-  Debug,
-  Info,
-  Warning,
-  Error,
-  Emergency,
+  Debug = 'debug',
+  Info = 'info',
+  Notice = 'notice',
+  Warning = 'warning',
+  Error = 'error',
+  Emergency = 'emergency',
 }

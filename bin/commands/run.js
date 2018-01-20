@@ -133,8 +133,19 @@ class RunCommand extends Command {
    *
    * @param callback Callback function.
    */
-  startServer (callback) {
+  async startServer (callback) {
     this._updateServerState('starting')
+
+    try {
+      await this.engine.start()
+
+      this._updateServerState('started')
+    } catch (error) {
+      // TODO: I thinks this isn't a good idea since the engine can be
+      // in an invalid state.
+      this.api.log(error);
+      return process.exit(1)
+    }
 
     // this.engine.start((error, _) => {
     //   if (error) {

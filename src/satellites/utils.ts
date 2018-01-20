@@ -291,6 +291,7 @@ class Utils {
 
 export default class UtilsSatellite extends Satellite {
   public loadPriority: number = 0;
+  protected _name: string = 'Utils';
 
   public async load(): Promise<void> {
     this.api.utils = new Utils(this.api);
