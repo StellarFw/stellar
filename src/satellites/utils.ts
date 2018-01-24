@@ -3,6 +3,7 @@ import { setTimeout } from 'timers';
 import { readdirSync, statSync, Stats, existsSync, readlinkSync, unlinkSync, rmdirSync, mkdirSync, createReadStream, createWriteStream, accessSync, unlink } from 'fs';
 import { normalize, dirname } from 'path';
 import { F_OK } from 'constants';
+import { networkInterfaces } from 'os';
 
 class Utils {
   private api: any = null;
@@ -286,6 +287,24 @@ class Utils {
     }
 
     return c;
+  }
+
+  /**
+   * Get this server external interface.
+   */
+  public getExternalIPAddress(): string|boolean {
+    const ifaces = networkInterfaces();
+    let ip: boolean|string = false;
+
+    Object.keys(ifaces).forEach(dev => {
+      ifaces[dev].forEach(details => {
+        if (details.family === 'IPv4' && details.address !== '127.0.0.1') {
+          ip = details.address;
+        }
+      });
+    });
+
+    return ip;
   }
 }
 

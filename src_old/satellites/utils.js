@@ -25,53 +25,6 @@ export class Utils {
   constructor (api = null) { this.api = api }
 
   /**
-   * Merge two hashes recursively.
-   *
-   * @param a
-   * @param b
-   * @param arg
-   * @returns {{}}
-   */
-  hashMerge (a, b, arg) {
-    let c = {}
-    let i, response
-
-    for (i in a) {
-      if (this.isPlainObject(a[ i ]) && Object.keys(a[ i ]).length > 0) {
-        c[ i ] = this.hashMerge(c[ i ], a[ i ], arg)
-      } else {
-        if (typeof a[ i ] === 'function') {
-          response = a[ i ](arg)
-          if (this.isPlainObject(response)) {
-            c[ i ] = this.hashMerge(c[ i ], response, arg)
-          } else {
-            c[ i ] = response
-          }
-        } else {
-          c[ i ] = a[ i ]
-        }
-      }
-    }
-    for (i in b) {
-      if (this.isPlainObject(b[ i ]) && Object.keys(b[ i ]).length > 0) {
-        c[ i ] = this.hashMerge(c[ i ], b[ i ], arg)
-      } else {
-        if (typeof b[ i ] === 'function') {
-          response = b[ i ](arg)
-          if (this.isPlainObject(response)) {
-            c[ i ] = this.hashMerge(c[ i ], response, arg)
-          } else {
-            c[ i ] = response
-          }
-        } else {
-          c[ i ] = b[ i ]
-        }
-      }
-    }
-    return c
-  }
-
-  /**
    * Cookie parse from headers of http(s) requests.
    *
    * @param req
@@ -147,26 +100,6 @@ export class Utils {
 
   isError (e) {
     return this.isObject(e) && (this.objectToString(e) === '[object Error]' || e instanceof Error)
-  }
-
-  /**
-   * Get this servers external interface.
-   *
-   * @returns {String} Server external IP or false if not founded.
-   */
-  getExternalIPAddress () {
-    let ifaces = os.networkInterfaces()
-    let ip = false
-
-    for (let dev in ifaces) {
-      ifaces[ dev ].forEach((details) => {
-        if (details.family === 'IPv4' && details.address !== '127.0.0.1') {
-          ip = details.address
-        }
-      })
-    }
-
-    return ip
   }
 
   /**

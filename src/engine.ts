@@ -72,14 +72,22 @@ export default class Engine {
     }
   }
 
-  private fatalError(errors: Array<Error> | Error, type: string) {
+  /**
+   * Print fatal error on the console and finishes the process.
+   *
+   * @param errors String or array with the fatal error(s).
+   * @param type Error type.
+   */
+  private async fatalError(errors: Array<Error> | Error, type: string) {
     if (!errors) { throw new Error('There must be passed at lest one Error'); }
     if (!Array.isArray(errors)) { errors = [errors]; }
 
     this.log(`Error with satellite step: ${type}`, LogLevel.Emergency);
-    errors.forEach(error => this.api(error, LogLevel.Emergency));
+    errors.forEach(error => this.api.log(error, LogLevel.Emergency));
 
-    // TODO: stop process execution
+    // stop process execution
+    await this.stop();
+    process.exit(1);
   }
 
   /**
