@@ -45,6 +45,11 @@ export default class Engine {
       ...this.api,
       log: this.log,
       scope,
+      commands: {
+        start: this.start.bind(this),
+        stop: this.stop.bind(this),
+        restart: this.restart.bind(this),
+      },
     };
 
     this.api.scope = {
