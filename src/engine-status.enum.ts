@@ -1,7 +1,7 @@
 export enum EngineStatus {
-  Stopped,
-  Stage0,
-  Stage1,
-  Running,
-  Stopping,
+  Stopped = 'stopped',
+  Stage0 = 'init_stage0',
+  Stage1 = 'init_stage1',
+  Running = 'running',
+  Stopping = 'stopping',
 }

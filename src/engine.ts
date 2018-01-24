@@ -6,7 +6,7 @@ import { LogLevel } from './log-level.enum';
 
 /**
  * Main entry point for the Stellar code.
- * 
+ *
  * This makes the system bootstrap, loading and executing all satellites.
  * Each satellite load new features to the Engine instance and could perform
  * a set of instructions to accomplish a certain goal.
@@ -24,6 +24,8 @@ export default class Engine {
   private loadSatellites = null;
   private startSatellites = null;
   private stopSatellites = null;
+
+  private startCount: number = 0;
 
   /**
    * API object.
@@ -94,13 +96,20 @@ export default class Engine {
 
       this.satellites[satelliteName] = satelliteInstance;
 
-      this.satellitesLoadOrder[satelliteInstance.loadPriority] = this.satellitesLoadOrder[satelliteInstance.loadPriority] || [];
-      this.satellitesStartOrder[satelliteInstance.startPriority] = this.satellitesStartOrder[satelliteInstance.loadPriority] || [];
-      this.satellitesStopOrder[satelliteInstance.stopPriority] = this.satellitesStopOrder[satelliteInstance.loadPriority] || [];
+      if (typeof satelliteInstance.load === 'function') {
+        this.satellitesLoadOrder[satelliteInstance.loadPriority] = this.satellitesLoadOrder[satelliteInstance.loadPriority] || [];
+        this.satellitesLoadOrder[satelliteInstance.loadPriority].push(satelliteInstance);
+      }
 
-      this.satellitesLoadOrder[satelliteInstance.loadPriority].push(satelliteInstance);
-      this.satellitesStartOrder[satelliteInstance.startPriority].push(satelliteInstance);
-      this.satellitesStopOrder[satelliteInstance.stopPriority].push(satelliteInstance);
+      if (typeof satelliteInstance.start === 'function') {
+        this.satellitesStartOrder[satelliteInstance.startPriority] = this.satellitesStartOrder[satelliteInstance.loadPriority] || [];
+        this.satellitesStartOrder[satelliteInstance.startPriority].push(satelliteInstance);
+      }
+
+      if (typeof satelliteInstance.stop === 'function') {
+        this.satellitesStopOrder[satelliteInstance.stopPriority] = this.satellitesStopOrder[satelliteInstance.loadPriority] || [];
+        this.satellitesStopOrder[satelliteInstance.stopPriority].push(satelliteInstance);
+      }
     }
   }
 
@@ -153,17 +162,36 @@ export default class Engine {
 
     try {
       for (const satelliteInstance of this.loadSatellites) {
-        if (typeof satelliteInstance.load !== 'function') {
-          continue;
-        }
-
         this.api.log(`> load: ${satelliteInstance.name}`, LogLevel.Debug);
         await satelliteInstance.load();
-        this.api.log(`> loaded: ${satelliteInstance.name}`, LogLevel.Debug);
+        this.api.log(`\tloaded: ${satelliteInstance.name}`, LogLevel.Debug);
       }
     } catch (e) {
       this.fatalError(e, 'stage1');
     }
+  }
+
+  private async stage2(): Promise<void> {
+    try {
+      for (const satelliteInstance of this.startSatellites) {
+        this.api.log(`> start: ${satelliteInstance.name}`, LogLevel.Debug);
+        await satelliteInstance.start();
+        this.api.log(`\tstarted: ${satelliteInstance.name}`, LogLevel.Debug);
+      }
+    } catch (error) {
+      this.fatalError(error, 'stage2');
+    }
+
+    this.api.status = EngineStatus.Running;
+    this.api.bootTime = new Date().getTime();
+
+    if (this.startCount === 0) {
+      this.api.log(`** Server Started @ ${new Date()} **`, LogLevel.Alert);
+    } else {
+      this.api.log(`** Server Restarted @ ${new Date()} **`, LogLevel.Alert);
+    }
+
+    this.startCount++;
   }
 
   /**
@@ -174,6 +202,10 @@ export default class Engine {
    */
   public async initialize(): Promise<Engine> {
     const satellitesToLoad: SatelliteInterface[] = [];
+
+    if (this.api.status !== EngineStatus.Stopped) {
+      throw new Error('Invalid Engine state, it must be stopped first.');
+    }
 
     this.satellites = new Map();
 
@@ -206,7 +238,15 @@ export default class Engine {
   }
 
   public async start(): Promise<Engine> {
-    throw new Error('Not implemented');
+    if (this.api.status !== EngineStatus.Stage0) {
+      throw new Error('Invalid Engine state');
+    }
+
+    this.startCount = 0;
+    await this.stage1();
+    await this.stage2();
+
+    return this;
   }
 
   public async restart(): Promise<Engine> {
@@ -214,6 +254,40 @@ export default class Engine {
   }
 
   public async stop(): Promise<Engine> {
-    throw new Error('Not implemented');
+    if (this.api.status === EngineStatus.Stopping) {
+      // double sigterm; ignore it
+      return this;
+    }
+
+    if (this.api.status === EngineStatus.Running) {
+      this.api.status = EngineStatus.Stopping;
+      this.api.log('Shutdown down open server and stopping task processing', LogLevel.Alert);
+
+      try {
+        for (const satelliteInstance of this.stopSatellites) {
+          this.api.log(`> stop: ${satelliteInstance.name}`, LogLevel.Debug);
+          await satelliteInstance.start();
+          this.api.log(`\tstopped: ${satelliteInstance.name}`, LogLevel.Debug);
+        }
+      } catch (error) {
+        this.fatalError(error, 'stop');
+      }
+
+      this.api.config.unwatchAllFiles();
+
+      // TODO: this.api.pids.clearPidFile();
+
+      this.api.log('Stellar has been stopped', LogLevel.Alert);
+      this.api.log('**', LogLevel.Debug);
+
+      this.api.status = EngineStatus.Stopped;
+
+      return this;
+    }
+
+    this.api.log('Cannot shutdown Stellar, not running', LogLevel.Error);
   }
 }
+
+// Inject some types globally
+(global as any).Satellite = Satellite;

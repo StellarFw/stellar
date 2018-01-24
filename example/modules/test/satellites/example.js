@@ -6,7 +6,7 @@
  * It's recommended use this class only to specify the Satellite function, other
  * logic must be written in another class.
  */
-exports.default = class {
+exports.default = class ExampleSatellite extends Satellite {
 
     /**
      * Satellite constructor.
@@ -14,23 +14,18 @@ exports.default = class {
      * The developer must define the priority order for the Satellite's stages
      * here.
      */
-    constructor () {
-      // define satellite load priority.
-      this.loadPriority = 10
+    constructor (api) {
+      super(api);
+
+      this.loadPriority = 10;
+      this._name = 'Example';
     }
 
     /**
      * Satellite loading function.
-     *
-     * @param  {{}}}      api  API object reference.
-     * @param  {Function} next Callback function.
      */
-    load (api, next) {
-      // log an example message
-      api.log('This is awesome!', 'info')
-
-      // finish the satellite load
-      next()
+    async load () {
+      this.api.log('This is awesome!', 'info')
     }
 
 }

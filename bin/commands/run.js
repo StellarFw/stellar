@@ -138,8 +138,6 @@ class RunCommand extends Command {
 
     try {
       await this.engine.start()
-
-      this._updateServerState('started')
     } catch (error) {
       // TODO: I thinks this isn't a good idea since the engine can be
       // in an invalid state.
@@ -147,41 +145,19 @@ class RunCommand extends Command {
       return process.exit(1)
     }
 
-    // this.engine.start((error, _) => {
-    //   if (error) {
-    //     this.api.log(error)
-    //     process.exit(1)
-    //     return
-    //   }
+    this._updateServerState('started')
 
-    //   // update the server state
-    //   this._updateServerState('started')
-
-    //   // start check for the engine internal state
-    //   this._checkForInternalStop()
-
-    //   // execute the callback function
-    //   if (typeof callback === 'function') { callback(null, this.api) }
-    // })
+    // TODO: this probable can be converted into a some sort of an event
+    this._checkForInternalStop()
   }
 
   /**
    * Stop server.
-   *
-   * @param callback Callback function.
    */
-  stopServer (callback) {
-    // update the server state
+  async stopServer () {
     this._updateServerState('stopping')
-
-    // call the server stop function
-    this.engine.stop(_ => {
-      // update the server state
-      this._updateServerState('stopped')
-
-      // execute the callback function
-      if (typeof callback === 'function') { callback(null, this.api) }
-    })
+    await this.engine.stop()
+    this._updateServerState('stopped')
   }
 
   /**
@@ -209,12 +185,13 @@ class RunCommand extends Command {
   /**
    * Stop the process.
    */
-  stopProcess () {
+  async stopProcess () {
     // put a time limit to shutdown the server
     setTimeout(() => process.exit(1), this.shutdownTimeout)
 
     // stop the server
-    this.stopServer(() => process.nextTick(() => process.exit()))
+    await this.stopServer()
+    process.nextTick(() => process.exit())
   }
 
   /**
@@ -230,7 +207,6 @@ class RunCommand extends Command {
    * Check if the engine stops.
    */
   _checkForInternalStop () {
-    // clear timeout
     clearTimeout(this.checkForInternalStopTimer)
 
     // if the engine executing stops finish the process

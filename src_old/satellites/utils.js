@@ -25,78 +25,6 @@ export class Utils {
   constructor (api = null) { this.api = api }
 
   /**
-   * A Promise abstraction for the setTimeout function.
-   *
-   * @param t             Time in millisecond.
-   * @returns {Promise}
-   */
-  delay (t) {
-    return new Promise(resolve => { setTimeout(resolve, t) })
-  }
-
-  /**
-   * Read all files from the given directory.
-   *
-   * @param dir         Folder path to search.
-   * @returns {Array}   Array with the files paths.
-   */
-  getFiles (dir) {
-    var results = []
-
-    fs.readdirSync(dir).forEach(file => {
-      file = `${dir}/${file}`
-      var stat = fs.statSync(file)
-
-      if (stat && !stat.isDirectory()) {
-        results.push(file)
-      }
-    })
-
-    return results
-  }
-
-  /**
-   * Get all .js files in a directory.
-   *
-   * @param dir
-   * @param extension
-   * @returns {Array.<T>}
-   */
-  recursiveDirectoryGlob (dir, extension) {
-    var results = []
-
-    if (!extension) { extension = 'js' }
-
-    extension = extension.replace('.', '')
-    if (dir[ dir.length - 1 ] !== '/') { dir += '/' }
-
-    if (fs.existsSync(dir)) {
-      fs.readdirSync(dir).forEach(file => {
-        let fullFilePath = path.normalize(dir + file)
-        if (file[ 0 ] !== '.') { // ignore 'system' files
-          let stats = fs.statSync(fullFilePath)
-          let child
-
-          if (stats.isDirectory()) {
-            child = this.recursiveDirectoryGlob(fullFilePath, extension)
-            child.forEach(c => results.push(c))
-          } else if (stats.isSymbolicLink()) {
-            let realPath = fs.readlinkSync(fullFilePath)
-            child = this.recursiveDirectoryGlob(realPath)
-            child.forEach(c => results.push(c))
-          } else if (stats.isFile()) {
-            let fileParts = file.split('.')
-            let ext = fileParts[ (fileParts.length - 1) ]
-            if (ext === extension) { results.push(fullFilePath) }
-          }
-        }
-      })
-    }
-
-    return results.sort()
-  }
-
-  /**
    * Merge two hashes recursively.
    *
    * @param a
@@ -141,40 +69,6 @@ export class Utils {
       }
     }
     return c
-  }
-
-  /**
-   * Check if the passed argument is a plain object.
-   *
-   * @param o
-   * @returns {boolean}
-   */
-  isPlainObject (o) {
-    let safeTypes = [ Boolean, Number, String, Function, Array, Date, RegExp, Buffer ]
-    let safeInstances = [ 'boolean', 'number', 'string', 'function' ]
-    let expandPreventMatchKey = '_toExpand' // set `_toExpand = false` within an object if you don't want to expand it
-    let i
-
-    if (!o) {
-      return false
-    }
-    if ((o instanceof Object) === false) {
-      return false
-    }
-    for (i in safeTypes) {
-      if (o instanceof safeTypes[ i ]) {
-        return false
-      }
-    }
-    for (i in safeInstances) {
-      if (typeof o === safeInstances[ i ]) {
-        return false
-      }
-    }
-    if (o[ expandPreventMatchKey ] === false) {
-      return false
-    }
-    return (o.toString() === '[object Object]')
   }
 
   /**
@@ -256,91 +150,6 @@ export class Utils {
   }
 
   /**
-   * Remove a directory.
-   *
-   * @param path   Directory path.
-   */
-  removeDirectory (path) {
-    let filesList
-
-    // get directory files
-    try { filesList = fs.readdirSync(path) } catch (e) { return }
-
-    // iterate all folders and files on the directory
-    filesList.forEach(file => {
-      // get full file path
-      let filePath = `${path}/${file}`
-
-      // check if it's a file
-      if (fs.statSync(filePath).isFile()) {
-        fs.unlinkSync(filePath)
-      } else {
-        this.removeDirectory(filePath)
-      }
-    })
-
-    // remove current directory
-    fs.rmdirSync(path)
-  }
-
-  /**
-   * Check if the directory exists.
-   *
-   * @param dir           Directory path.
-   * @returns {boolean}   True if exists, false if not or the given path isn't a directory.
-   */
-  directoryExists (dir) {
-    try {
-      fs.statSync(dir).isDirectory()
-    } catch (er) {
-      return false
-    }
-
-    return true
-  }
-
-  /**
-   * Check if a file exists.
-   *
-   * @param path          Path to check.
-   * @returns {boolean}   True if the file exists, false otherwise.
-   */
-  fileExists (path) {
-    try {
-      fs.statSync(path).isFile()
-    } catch (error) {
-      return false
-    }
-
-    return true
-  }
-
-  /**
-   * Create a new directory.
-   *
-   * @param path Path there the directory must be created.
-   */
-  createFolder (path) {
-    try {
-      fs.mkdirSync(path)
-    } catch (e) {
-      if (e.code !== 'EEXIST') { throw e }
-    }
-  }
-
-  /**
-   * Copy a file.
-   *
-   * This only work with files.
-   *
-   * @param source        Source path.
-   * @param destination   Destination path.
-   */
-  copyFile (source, destination) {
-    fs.createReadStream(source).pipe(fs.createWriteStream(destination))
-  }
-
-  /**
    * Get this servers external interface.
    *
    * @returns {String} Server external IP or false if not founded.
@@ -405,55 +214,6 @@ export class Utils {
     }
 
     return { host: host, port: parseInt(port, 10) }
-  }
-
-  /**
-   * Check if a file/folder exists.
-   *
-   * @param path
-   * @returns {boolean}
-   */
-  exists (path) {
-    try {
-      fs.accessSync(path, fs.F_OK)
-      return true
-    } catch (e) {}
-
-    return false
-  }
-
-  /**
-   * Remove the object pointed by the path (file/directory).
-   *
-   * This function checks if the path exists before try remove him.
-   *
-   * @param path  Path to be removed.
-   */
-  removePath (path) {
-    // if the path don't exists return
-    if (!this.exists(path)) { return }
-
-    // if the path is a file remote it and return
-    if (fs.statSync(path).isFile()) { return fs.unlinkSync(path) }
-
-    // remove all the directory content
-    this.removeDirectory(path)
-  }
-
-  /**
-   * Create a new folder.
-   *
-   * @param String dir  Path for the directory to be created.
-   */
-  mkdir (dir, mode) {
-    try {
-      fs.mkdirSync(dir, mode)
-    } catch (e) {
-      if (e.code === 'ENOENT') {
-        this.mkdir(path.dirname(dir), mode)
-        this.mkdir(dir, mode)
-      }
-    }
   }
 
   /**

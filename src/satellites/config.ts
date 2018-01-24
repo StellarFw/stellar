@@ -2,7 +2,7 @@ import { Satellite } from "../satellite";
 import { EngineStatus } from "../engine-status.enum";
 import { LogLevel } from "../log-level.enum";
 import { normalize } from "path";
-import { existsSync, watchFile } from "fs";
+import { existsSync, watchFile, unwatchFile } from "fs";
 
 class ConfigManager {
   private api: any = null;
@@ -180,6 +180,14 @@ class ConfigManager {
     this.api.log(`\r\n\r\n*** rebooting due to config change (${file}) ***\r\n\r\n`, LogLevel.Info);
     delete require.cache[require.resolve(file)];
     this.api.commands.restart();
+  }
+
+  /**
+   * Unwatch all files.
+   */
+  public unwatchAllFiles(): void {
+    this.watchedFiles.forEach(file => unwatchFile(file));
+    this.watchedFiles = [];
   }
 }
 
