@@ -162,24 +162,11 @@ class RunCommand extends Command {
 
   /**
    * Restart the server.
-   *
-   * @param callback Callback function.
    */
-  restartServer (callback) {
-    // update the server state
+  async restartServer () {
     this._updateServerState('restarting')
-
-    // restart the server
-    this.engine.restart((error, _) => {
-      // if an error occurs throw it
-      if (error) { throw error }
-
-      // update the server state
-      this._updateServerState('started')
-
-      // execute the callback function
-      if (typeof callback === 'function') { callback(null, this.api) }
-    })
+    await this.engine.restart()
+    this._updateServerState('started')
   }
 
   /**

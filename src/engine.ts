@@ -249,10 +249,29 @@ export default class Engine {
     return this;
   }
 
+  /**
+   * Restarts the engine.
+   *
+   * This execute the stop action and executed the stage2 again.
+   */
   public async restart(): Promise<Engine> {
-    throw new Error('Not implemented');
+    if (this.api.status === EngineStatus.Running) {
+      await this.stop();
+    }
+
+    await this.stage2();
+
+    this.api.log('** Stellar Restarted **', LogLevel.Info);
+
+    return this;
   }
 
+  /**
+   * Stop the engine.
+   *
+   * Tries to shutdown the engine in a non violent way. This starts
+   * executes all the stop methods provided by the loaded Satellites.
+   */
   public async stop(): Promise<Engine> {
     if (this.api.status === EngineStatus.Stopping) {
       // double sigterm; ignore it
@@ -286,6 +305,8 @@ export default class Engine {
     }
 
     this.api.log('Cannot shutdown Stellar, not running', LogLevel.Error);
+
+    return this;
   }
 }
 
