@@ -49,12 +49,13 @@
     "uglify-es": "^3.3.8",
     "uuid": "3.0.1",
     "waterline": "^0.11.12",
-    "winston": "^2.4.0",
-    "winston-daily-rotate-file": "^1.7.2",
+    "winston": "2.4.0",
+    "winston-daily-rotate-file": "1.7.2",
     "ws": "^3.3.3"
   },
   "devDependencies": {
     "@types/node": "^8.5.9",
+    "@types/winston": "^2.3.7",
     "request": "^2.83.0",
     "typescript": "^2.6.2"
   },
