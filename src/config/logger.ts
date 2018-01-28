@@ -14,7 +14,7 @@ export default {
       logger.transports.push(() => {
         return new BeautifulLogger(api, {
           colorize: true,
-          level: 'info',
+          level: 'debug',
           timestamp: true,
         });
       });
