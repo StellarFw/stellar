@@ -83,7 +83,7 @@ export default class Engine {
     if (!Array.isArray(errors)) { errors = [errors]; }
 
     this.log(`Error with satellite step: ${type}`, LogLevel.Emergency);
-    errors.forEach(error => this.api.log(error, LogLevel.Emergency));
+    errors.forEach(error => console.error(error));
 
     // stop process execution
     await this.stop();
