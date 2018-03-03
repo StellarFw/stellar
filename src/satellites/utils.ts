@@ -175,7 +175,7 @@ class Utils {
    *
    * @param path Path to check if exists.
    */
-  public exists(path: string) {
+  public exists(path: string): boolean {
     try {
       accessSync(path, F_OK);
     } catch (_) {
@@ -190,7 +190,7 @@ class Utils {
    *
    * @param o Object to be tested.
    */
-  public isPlainObject(o: any = false) {
+  public isPlainObject(o: any = false): boolean {
     const safeTypes = [
       Boolean,
       Number,
