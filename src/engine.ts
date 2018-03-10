@@ -115,12 +115,12 @@ export default class Engine {
       }
 
       if (typeof satelliteInstance.start === 'function') {
-        this.satellitesStartOrder[satelliteInstance.startPriority] = this.satellitesStartOrder[satelliteInstance.loadPriority] || [];
+        this.satellitesStartOrder[satelliteInstance.startPriority] = this.satellitesStartOrder[satelliteInstance.startPriority] || [];
         this.satellitesStartOrder[satelliteInstance.startPriority].push(satelliteInstance);
       }
 
       if (typeof satelliteInstance.stop === 'function') {
-        this.satellitesStopOrder[satelliteInstance.stopPriority] = this.satellitesStopOrder[satelliteInstance.loadPriority] || [];
+        this.satellitesStopOrder[satelliteInstance.stopPriority] = this.satellitesStopOrder[satelliteInstance.stopPriority] || [];
         this.satellitesStopOrder[satelliteInstance.stopPriority].push(satelliteInstance);
       }
     }
