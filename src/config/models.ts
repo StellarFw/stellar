@@ -1,37 +1,39 @@
 /**
- * Configurations for the models.
+ * Configurations for the Model system.
  *
  * This configuration follows the Waterline pattern, you can see more about
  * this at:
- * https://github.com/balderdashy/waterline-docs/blob/master/introduction/getting-started.md
+ * https://sailsjs.com/documentation/concepts/models-and-orm/model-settings
  *
- * By default we use a memory based adapter to make the startup really simple.
+ * By default we use a memory based adapter to make the startup process
+ * really simple.
  */
 export default {
-  models (api) {
+  models(api) {
     return {
-      '_toExpand': false,
+      _toExpand: false,
 
       // -----------------------------------------------------------------------
-      // Hash with model system adapters
+      // Dictionary with model system adapters
       // -----------------------------------------------------------------------
       adapters: {
-        'memory': 'sails-memory'
+        memory: 'sails-disk',
       },
 
       // -----------------------------------------------------------------------
-      // Hash with the active connections
+      // Dictionary with the active datastores
       // -----------------------------------------------------------------------
-      connections: {
+      datastores: {
         default: {
-          adapter: 'memory'
-        }
+          adapter: 'memory',
+          inMemoryOnly: true,
+        },
       },
 
       // -----------------------------------------------------------------------
-      // Default connection
+      // Default datastore
       // -----------------------------------------------------------------------
-      defaultConnection: 'default',
+      defaultDatastore: 'default',
 
       // -----------------------------------------------------------------------
       // Use schemas
@@ -42,7 +44,7 @@ export default {
       // You can turn this off when use are using schema-less adapters like the
       // MongoDB or Redis, if you want.
       // -----------------------------------------------------------------------
-      schema: true
-    }
-  }
-}
+      schema: true,
+    };
+  },
+};

@@ -1,6 +1,20 @@
 'use strict'
 
 exports.default = {
-  title: String,
-  content: String
-}
+  primaryKey: 'id',
+
+  attributes: {
+    id: {
+      type: 'number',
+      autoMigrations: {
+        autoIncrement: true,
+      },
+    },
+    title: {
+      type: 'string',
+    },
+    content: {
+      type: 'string',
+    },
+  },
+};

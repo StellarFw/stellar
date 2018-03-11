@@ -149,27 +149,7 @@ export class Utils {
     return { host: host, port: parseInt(port, 10) }
   }
 
-  /**
-   * Custom require function to load from the core scope and then from the
-   * project scope.
-   *
-   * @note: this is a ugly hack but it's working!
-   */
-  require (path) {
-    // try load module from the core
-    try {
-      return require(path)
-    } catch (e) {
-      if (this.api == null) { throw e }
-
-      // if fails try load from the project folder
-      try {
-        return require(`${this.api.scope.rootPath}/node_modules/${path}`)
-      } catch (e) {
-        throw e
-      }
-    }
-  }
+  
 
   // ------------------------------------------------------------- [Type Checks]
 

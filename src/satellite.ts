@@ -12,7 +12,7 @@ export abstract class Satellite implements SatelliteInterface {
     this.api = api;
   }
 
-  public get(): string {
+  public get name(): string {
     return this._name;
   }
 

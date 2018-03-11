@@ -11,7 +11,7 @@ import { LogLevel } from '../log-level.enum';
  * listeners must be stored in <moduleName>/listeners.
  */
 export default class EventsSatellite extends Satellite {
-  public name: string = 'events';
+  protected _name: string = 'events';
   public loadPriority: number = 300;
 
   /**

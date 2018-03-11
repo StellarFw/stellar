@@ -5,7 +5,7 @@ import { execSync } from 'child_process';
 import ModuleInterface from '../module.interface';
 
 export default class ModulesSatellite extends Satellite {
-  public name: string = 'modules';
+  protected _name: string = 'modules';
   public loadPriority: number = 1;
 
   /**

@@ -306,6 +306,30 @@ class Utils {
 
     return ip;
   }
+
+  /**
+   * Custom require function to load from the core scope and then from the
+   * project scope.
+   *
+   * @note: this is a ugly hack but it works!
+   */
+  public require(path: string): any {
+    // Try load the module from the core.
+    try {
+      return require(path);
+    } catch (e) {
+      if (this.api == null) {
+        throw e;
+      }
+
+      // If it fails, try load from the project folder.
+      try {
+        return require(`${this.api.scope.rootPath}/node_modules/${path}`);
+      } catch (e) {
+        throw e;
+      }
+    }
+  }
 }
 
 export default class UtilsSatellite extends Satellite {
