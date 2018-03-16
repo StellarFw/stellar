@@ -330,6 +330,16 @@ class Utils {
       }
     }
   }
+
+  /**
+   * Get an object property that resides on the given path.
+   *
+   * @param object Object.
+   * @param path Path to a property that is part of the API object.
+   */
+  public stringToHash(object: any, path: string): any {
+    return path.split('.').reduce((obj, i) => obj[i], object);
+  }
 }
 
 export default class UtilsSatellite extends Satellite {

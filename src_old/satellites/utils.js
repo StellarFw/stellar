@@ -114,13 +114,6 @@ export class Utils {
     }, {}))
   }
 
-  stringToHash (api, path, object) {
-    if (!object) { object = api }
-    function _index (obj, i) { return obj[ i ] }
-
-    return path.split('.').reduce(_index, object)
-  }
-
   /**
    * Parse an IPv6 address.
    *

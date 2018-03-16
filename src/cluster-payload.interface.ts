@@ -17,17 +17,22 @@ export default interface ClusterPayload {
   /**
    * Unique request identifier.
    */
-  requestId: number;
+  requestId: string;
 
-  connectionId: string;
+  connectionId?: string;
 
   /**
    * Method to be executed by the cluster member.
    */
-  methods: string;
+  method?: string;
 
   /**
    * Arguments to be passed into the method.
    */
-  args: Array<any>;
+  args?: string|number|Array<any>;
+
+  /**
+   * Optionally a response can be sent with the payload.
+   */
+  response?: any;
 }

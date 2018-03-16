@@ -315,7 +315,7 @@ export default class Connection {
         return this.api.chatRoom.broadcast(this, room, words.join(' '));
       } else if (verb === 'event') {
         // get the vent information
-        const { room, event, data } = words.shift();
+        const { room, event, data } = words.shift() as any;
 
         // execute the event on the event system
         this.api.events.fire(`event.${event}`, { room, data });
