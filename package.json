@@ -42,7 +42,7 @@
     "primus": "^7.1.1",
     "qs": "^6.5.1",
     "sails-disk": "1.0.0-12",
-    "source-map-support": "^0.4.18",
+    "source-map-support": "^0.5.4",
     "st-formidable": "^1.0.18",
     "sywac": "^1.2.0",
     "then-fakeredis": "^2.0.1",

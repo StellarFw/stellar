@@ -1,3 +1,5 @@
+import 'source-map-support/register';
+
 import { resolve, normalize, basename } from 'path';
 import { SatelliteInterface } from './satellite.interface';
 import { Satellite } from './satellite';
