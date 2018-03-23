@@ -2,12 +2,18 @@
     "enable": true,
     "defaultSeverity": "error",
     "extends": [
-        "tslint:recommended"
+        "tslint:recommended",
+        "tslint-config-prettier",
+        "tslint-plugin-prettier"
     ],
     "jsRules": {
         "no-unused-expression": true
     },
     "rules": {
+        "prettier": [true, {
+            "singleQuote": true,
+            "trailingComma": "es5"
+        }],
         "no-console": false,
         "eofline": false,
         "quotemark": [
