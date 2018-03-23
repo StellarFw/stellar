@@ -1,6 +1,19 @@
 import { Satellite } from '../satellite';
 import { setTimeout } from 'timers';
-import { readdirSync, statSync, Stats, existsSync, readlinkSync, unlinkSync, rmdirSync, mkdirSync, createReadStream, createWriteStream, accessSync, unlink } from 'fs';
+import {
+  readdirSync,
+  statSync,
+  Stats,
+  existsSync,
+  readlinkSync,
+  unlinkSync,
+  rmdirSync,
+  mkdirSync,
+  createReadStream,
+  createWriteStream,
+  accessSync,
+  unlink,
+} from 'fs';
 import { normalize, dirname } from 'path';
 import { F_OK } from 'constants';
 import { networkInterfaces } from 'os';
@@ -19,11 +32,13 @@ class Utils {
    * period of time to execute something, and there is no other work to
    * preform until that time doesn't pass.
    *
-   * @param time Period of time to wait for until the Promise isn't 
+   * @param time Period of time to wait for until the Promise isn't
    * resolved.
    */
   public delay(time: number): Promise<void> {
-    return new Promise(resolve => { setTimeout(resolve, time); });
+    return new Promise(resolve => {
+      setTimeout(resolve, time);
+    });
   }
 
   /**
@@ -54,19 +69,28 @@ class Utils {
    * @param extension File extension filter. By default the filter is
    * 'js.
    */
-  public recursiveDirSearch(dir: string, extension: string = 'js'): Array<string> {
+  public recursiveDirSearch(
+    dir: string,
+    extension: string = 'js'
+  ): Array<string> {
     const results = [];
 
     extension = extension.replace('.', '');
-    if (dir[dir.length - 1] !== '/') { dir += '/'; }
+    if (dir[dir.length - 1] !== '/') {
+      dir += '/';
+    }
 
-    if (!existsSync(dir)) { return results; }
+    if (!existsSync(dir)) {
+      return results;
+    }
 
     readdirSync(dir).forEach(file => {
       const fullFilePath = normalize(dir + file);
 
       // ignore hidden files
-      if (file[0] === '.') { return; }
+      if (file[0] === '.') {
+        return;
+      }
 
       const stats = statSync(fullFilePath);
 
@@ -80,7 +104,9 @@ class Utils {
       } else if (stats.isFile()) {
         const fileParts = file.split('.');
         const ext = fileParts[fileParts.length - 1];
-        if (ext === extension) { results.push(fullFilePath); }
+        if (ext === extension) {
+          results.push(fullFilePath);
+        }
       }
     });
 
@@ -162,7 +188,7 @@ class Utils {
 
   /**
    * Copy a file.
-   * 
+   *
    * @param source Source path.
    * @param destination Destination path.
    */
@@ -201,25 +227,28 @@ class Utils {
       RegExp,
       Buffer,
     ];
-    const safeInstances = [
-      'boolean',
-      'number',
-      'string',
-      'function',
-    ];
+    const safeInstances = ['boolean', 'number', 'string', 'function'];
     const expandPreventMatchKey = '_toExpand';
 
-    if ((o instanceof Object) === false) { return false; }
+    if (o instanceof Object === false) {
+      return false;
+    }
 
     for (const type of safeTypes) {
-      if (o instanceof type) { return false; }
+      if (o instanceof type) {
+        return false;
+      }
     }
 
     for (const inst of safeInstances) {
-      if (typeof o === inst) { return false; }
+      if (typeof o === inst) {
+        return false;
+      }
     }
 
-    if (o[expandPreventMatchKey] === false) { return false; }
+    if (o[expandPreventMatchKey] === false) {
+      return false;
+    }
 
     return o.toString() === '[object Object]';
   }
@@ -230,7 +259,9 @@ class Utils {
    * @param path Path to be removed.
    */
   public removePath(path: string) {
-    if (!this.exists(path)) { return; }
+    if (!this.exists(path)) {
+      return;
+    }
 
     if (this.fileExists(path)) {
       return unlinkSync(path);
@@ -292,9 +323,9 @@ class Utils {
   /**
    * Get this server external interface.
    */
-  public getExternalIPAddress(): string|boolean {
+  public getExternalIPAddress(): string | boolean {
     const ifaces = networkInterfaces();
-    let ip: boolean|string = false;
+    let ip: boolean | string = false;
 
     Object.keys(ifaces).forEach(dev => {
       ifaces[dev].forEach(details => {
