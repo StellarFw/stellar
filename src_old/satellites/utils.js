@@ -76,20 +76,6 @@ export class Utils {
     }
   }
 
-  /**
-   * Unique-ify an array.
-   *
-   * @param array Array to be uniquefied.
-   * @returns {Array} New array.
-   */
-  arrayUniqueify (array) {
-    array.filter((value, index, self) => {
-      return self.indexOf(value) === index
-    })
-
-    return array
-  }
-
   isObject (arg) {
     return typeof arg === 'object' && arg !== null
   }

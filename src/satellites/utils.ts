@@ -380,6 +380,20 @@ class Utils {
   public isNonEmptyString(value) {
     return typeof value === 'string' && value.length > 0;
   }
+
+  /**
+   * Unique-ify an array.
+   *
+   * @param array Array to be uniquefied.
+   * @returns {Array} New array.
+   */
+  public arrayUniqueify(array) {
+    array.filter((value, index, self) => {
+      return self.indexOf(value) === index;
+    });
+
+    return array;
+  }
 }
 
 export default class UtilsSatellite extends Satellite {
