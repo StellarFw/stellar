@@ -23,13 +23,13 @@ export interface SatelliteInterface {
 
   /**
    * Satellite loading function.
-   * 
+   *
    * This functions is responsible to load new logic into
    * the Engine instance.
-   * 
+   *
    * @returns Returns a `Promise`.
    */
-  load(): Promise<void>
+  load(): Promise<void>;
 
   /**
    * Satellite start function.

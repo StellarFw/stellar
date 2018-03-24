@@ -36,7 +36,9 @@ export default class ModulesSatellite extends Satellite {
   private loadModules(): void {
     const modules = this.api.configs.modules as Array<string>;
 
-    if (this.api.utils.dirExists(`${this.api.scope.rootPath}/modules/private`)) {
+    if (
+      this.api.utils.dirExists(`${this.api.scope.rootPath}/modules/private`)
+    ) {
       modules.push('private');
     }
 
@@ -52,7 +54,9 @@ export default class ModulesSatellite extends Satellite {
         this.activeModules.set(manifest.id, manifest);
         this.modulesPaths.set(manifest.id, path);
       } catch (e) {
-        throw new Error(`There is an invalid module active, named "${moduleName}", fiz this to start Stellar normally.`);
+        throw new Error(
+          `There is an invalid module active, named "${moduleName}", fiz this to start Stellar normally.`
+        );
       }
     }
   }
@@ -81,14 +85,17 @@ export default class ModulesSatellite extends Satellite {
         'node_modules',
       ];
 
-      tempFilesLocations
-        .forEach(e => this.api.utils.removePath(`${scope.rootPath}/${e}`));
+      tempFilesLocations.forEach(e =>
+        this.api.utils.removePath(`${scope.rootPath}/${e}`)
+      );
     }
 
     // If the `package.json` file already exists and Stellar isn't starting with the
     // `update` flag, return now.
-    if (this.api.utils.fileExists(`${scope.rootPath}/package.json`) &&
-      !scope.args.update) {
+    if (
+      this.api.utils.fileExists(`${scope.rootPath}/package.json`) &&
+      !scope.args.update
+    ) {
       return;
     }
 
@@ -99,7 +106,10 @@ export default class ModulesSatellite extends Satellite {
         return;
       }
 
-      npmDependencies = this.api.utils.hashMerge(npmDependencies, manifest.npmDependencies);
+      npmDependencies = this.api.utils.hashMerge(
+        npmDependencies,
+        manifest.npmDependencies
+      );
     });
 
     const projectJson = {
@@ -112,13 +122,15 @@ export default class ModulesSatellite extends Satellite {
 
     const packageJsonPath = `${this.api.scope.rootPath}/package.json`;
     this.api.utils.removePath(packageJsonPath);
-    writeFileSync(packageJsonPath, JSON.stringify(projectJson, null, 2), 'utf8');
+    writeFileSync(
+      packageJsonPath,
+      JSON.stringify(projectJson, null, 2),
+      'utf8'
+    );
 
     this.api.log('Updating NPM packages', LogLevel.Info);
 
-    const npmCommand = scope.args.update
-      ? 'npm update'
-      : 'npm install';
+    const npmCommand = scope.args.update ? 'npm update' : 'npm install';
 
     try {
       execSync(npmCommand);
@@ -135,7 +147,10 @@ export default class ModulesSatellite extends Satellite {
    * @param moduleName Module name.
    * @param value Array of actions name to be stores.
    */
-  public regModuleActive(moduleName: string, value: string|Array<string>): void {
+  public regModuleAction(
+    moduleName: string,
+    value: string | Array<string>
+  ): void {
     if (!this.moduleActions.has(moduleName)) {
       this.moduleActions.set(moduleName, []);
     }

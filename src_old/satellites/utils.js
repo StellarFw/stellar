@@ -142,19 +142,6 @@ export class Utils {
     return { host: host, port: parseInt(port, 10) }
   }
 
-  
-
-  // ------------------------------------------------------------- [Type Checks]
-
-  /**
-   * Checks if the given var is an non empty string.
-   *
-   * @param {string} value Value to be validated.
-   */
-  isNonEmptyString (value) {
-    return (typeof value === 'string' && value.length > 0)
-  }
-
   // ----------------------------------------------------------------- [Strings]
 
   /**

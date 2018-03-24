@@ -371,6 +371,15 @@ class Utils {
   public stringToHash(object: any, path: string): any {
     return path.split('.').reduce((obj, i) => obj[i], object);
   }
+
+  /**
+   * Checks if the given var is an non empty string.
+   *
+   * @param {string} value Value to be validated.
+   */
+  public isNonEmptyString(value) {
+    return typeof value === 'string' && value.length > 0;
+  }
 }
 
 export default class UtilsSatellite extends Satellite {

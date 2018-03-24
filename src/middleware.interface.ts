@@ -11,6 +11,11 @@ export default interface MiddlewareInterface {
    */
   priority?: number;
 
+  /**
+   * When set to `true` this will be applied to all actions.
+   */
+  global?: boolean;
+
   create?: MiddlewareHandler;
   preProcessor?: MiddlewareHandler;
   postProcessor?: MiddlewareHandler;
@@ -19,4 +24,4 @@ export default interface MiddlewareInterface {
   onSayReceive?: MiddlewareHandler;
   leave?: MiddlewareHandler;
   destroy?: MiddlewareHandler;
-}
+};
