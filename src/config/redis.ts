@@ -45,12 +45,12 @@ export default {
         buildNew: false,
       },
       subscriber: {
-        constructor: require('fakeredis').createClient,
+        constructor: require('then-fakeredis').createClient,
         args: { port, host, fast: true },
         buildNew: false,
       },
       tasks: {
-        constructor: require('fakeredis').createClient,
+        constructor: require('then-fakeredis').createClient,
         args: { port, host, fast: true },
         buildNew: false,
       },
