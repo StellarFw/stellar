@@ -128,7 +128,7 @@ async@^1.4.0, async@~1.5.2:
   version "1.5.2"
   resolved "https://registry.yarnpkg.com/async/-/async-1.5.2.tgz#ec6a61ae56480c0c3cb241c95618e20892f9672a"
 
-async@^2.0.1, async@^2.6.0:
+async@^2.6.0:
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/async/-/async-2.6.0.tgz#61a29abb6fcc026fea77e56d1c6ec53a795951f4"
   dependencies:
@@ -548,7 +548,7 @@ eyes@0.1.x:
   version "0.1.8"
   resolved "https://registry.yarnpkg.com/eyes/-/eyes-0.1.8.tgz#62cf120234c683785d902348a800ef3e0cc20bc0"
 
-fakeredis@^2.0.0:
+fakeredis@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/fakeredis/-/fakeredis-2.0.0.tgz#752fb832819ace31be88668cf1358d6f1438afc0"
   dependencies:
@@ -798,7 +798,7 @@ ini@~1.3.0:
   version "1.3.5"
   resolved "https://registry.yarnpkg.com/ini/-/ini-1.3.5.tgz#eee25f56db1c9ec6085e0c22778083f596abf927"
 
-ioredis@^3.0.0, ioredis@^3.2.2:
+ioredis@^3.2.2:
   version "3.2.2"
   resolved "https://registry.yarnpkg.com/ioredis/-/ioredis-3.2.2.tgz#b7d5ff3afd77bb9718bb2821329b894b9a44c00b"
   dependencies:
@@ -1204,12 +1204,11 @@ node-pre-gyp@0.6.36:
     tar "^2.2.1"
     tar-pack "^3.4.0"
 
-node-resque@^4.0.9:
-  version "4.0.9"
-  resolved "https://registry.yarnpkg.com/node-resque/-/node-resque-4.0.9.tgz#bbfe53ebc83c027ea221fc73f5a2a4743fc84d7b"
+node-resque@5.2.0:
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/node-resque/-/node-resque-5.2.0.tgz#432c1ba60c702230b5ad47455f150a0dc4ce2686"
   dependencies:
-    async "^2.0.1"
-    ioredis "^3.0.0"
+    ioredis "^3.2.2"
 
 nopt@^4.0.1:
   version "4.0.1"
@@ -1363,7 +1362,7 @@ readable-stream@^2.0.6, readable-stream@^2.1.4:
     string_decoder "~1.0.3"
     util-deprecate "~1.0.1"
 
-redis-commands@^1.1.0, redis-commands@^1.2.0:
+redis-commands@1.3.5, redis-commands@^1.1.0, redis-commands@^1.2.0:
   version "1.3.5"
   resolved "https://registry.yarnpkg.com/redis-commands/-/redis-commands-1.3.5.tgz#4495889414f1e886261180b1442e7295602d83a2"
 
