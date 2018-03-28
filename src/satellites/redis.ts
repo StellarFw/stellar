@@ -4,11 +4,12 @@ import { Satellite } from '../satellite';
 import ClusterPayload from '../cluster-payload.interface';
 import { LogLevel } from '../log-level.enum';
 
-// export type RedisCallback = (error, message) => 
+// export type RedisCallback = (error, message) =>
 
 export default class RedisSatellite extends Satellite {
   protected _name: string = 'redis';
   public loadPriority: number = 200;
+  public startPriority: number = 101;
   public stopPriority: number = 99999;
 
   /**
@@ -40,17 +41,16 @@ export default class RedisSatellite extends Satellite {
 
   private init() {
     // subscription handlers
-    this.subscriptionHandlers.do = message => {
-      if (!message.connectionId || (this.api.connections.connections.get(message.connectionId))) {
+    this.subscriptionHandlers.do = async message => {
+      if (
+        !message.connectionId ||
+        this.api.connections.connections.get(message.connectionId)
+      ) {
         const cmdParts = message.method.split('.');
-        const method = this.api.utils.stringToHash(this.api, cmdParts.join('.'));
-
-        const callback = () => {
-          const responseArgs = Array.apply(null, arguments).sort();
-          process.nextTick(() => {
-            this.respondCluster(message.requestId, responseArgs);
-          });
-        };
+        const method = this.api.utils.stringToHash(
+          this.api,
+          cmdParts.join('.'),
+        );
 
         let args = message.args;
         if (args === null) {
@@ -58,20 +58,22 @@ export default class RedisSatellite extends Satellite {
         }
 
         if (!Array.isArray(args)) {
-          args = [ args ];
+          args = [args];
         }
 
-        args.push(callback);
         if (method) {
-          method.apply(null, args);
+          const response = method.apply(null, args);
+          await this.respondCluster(message.requestId, response);
         } else {
-          this.api.log(`RP method '${cmdParts.join('.')}' not found`, LogLevel.Warning);
+          this.api.log(
+            `RP method '${cmdParts.join('.')}' not found`,
+            LogLevel.Warning,
+          );
         }
       }
     };
 
     this.subscriptionHandlers.doResponse = (message: ClusterPayload) => {
-      console.log('AQUI');
       if (!this.clusterCallbacks[message.requestId]) {
         return;
       }
@@ -89,10 +91,12 @@ export default class RedisSatellite extends Satellite {
 
     queuesToCreate.forEach(r => {
       const newPromise = new Promise(resolve => {
-        if (this.api.configs.redis[ r ].buildNew !== true) {
-          this.clients[r] = this.api.configs.redis[r].constructor(this.api.configs.redis[r].args);
+        if (this.api.configs.redis[r].buildNew !== true) {
+          this.clients[r] = this.api.configs.redis[r].constructor(
+            this.api.configs.redis[r].args,
+          );
 
-          this.clients[ r ].on('error', error => {
+          this.clients[r].on('error', error => {
             this.api.log(`Redis connection ${r} error`, LogLevel.Error, error);
           });
           this.api.log(`Redis connection ${r} connected`, LogLevel.Info);
@@ -102,12 +106,12 @@ export default class RedisSatellite extends Satellite {
 
         const args = this.api.configs.redis[r].args;
 
-        this.clients[r] = new (this.api.configs.redis[ r ].constructor)(args);
+        this.clients[r] = new this.api.configs.redis[r].constructor(args);
         this.clients[r].on('error', error => {
           this.api.log(`Redis connection ${r} error`, LogLevel.Error, error);
         });
 
-        this.clients[ r ].on('connect', () => {
+        this.clients[r].on('connect', () => {
           this.api.log(`Redis connection ${r} connected`, LogLevel.Info);
           resolve();
         });
@@ -129,10 +133,12 @@ export default class RedisSatellite extends Satellite {
             message = {};
           }
 
-          if (messageChannel === this.api.configs.general.channel &&
-            message.serverToken === this.api.configs.general.serverToken) {
-            if (this.subscriptionHandlers[ message.messageType ]) {
-              this.subscriptionHandlers[ message.messageType ](message);
+          if (
+            messageChannel === this.api.configs.general.channel &&
+            message.serverToken === this.api.configs.general.serverToken
+          ) {
+            if (this.subscriptionHandlers[message.messageType]) {
+              this.subscriptionHandlers[message.messageType](message);
             }
           }
         });
@@ -151,9 +157,15 @@ export default class RedisSatellite extends Satellite {
    *
    * @param method Method to be executed on the cluster.
    * @param args Arguments to be passed into de called method.
-   * @param connectionId Identifier of the connection that have started the this operation.
+   * @param connectionId (optional) Identifier of the connection that have started the this operation.
+   * @param waitingForResponse (optional) Should wait a response from a remote server in the cluster?
    */
-  public doCluster(method: string, args: string|number|Array<any>, connectionId: string = null) {
+  public async doCluster(
+    method: string,
+    args: string | number | Array<any>,
+    connectionId: string = null,
+    waitForResponse: boolean = false,
+  ) {
     const requestId = uuid.v4();
     const payload: ClusterPayload = {
       messageType: 'do',
@@ -165,29 +177,27 @@ export default class RedisSatellite extends Satellite {
       args,
     };
 
-    // When there isn't specified a connection ID, just publish the
-    // payload without returning a promise
-    if (!connectionId) {
-      this.publish(payload);
-      return Promise.resolve();
+    await this.publish(payload);
+
+    // TODO: improve the following code
+    if (waitForResponse === true) {
+      new Promise((resolve, reject) => {
+        this.clusterCallbacks[requestId] = resolve;
+
+        this.clusterCallbackTimeouts[requestId] = setTimeout(
+          () => {
+            if (typeof this.clusterCallbacks[requestId] === 'function') {
+              reject(new Error('RPC Timeout'));
+            }
+
+            delete this.clusterCallbacks[requestId];
+            delete this.clusterCallbackTimeouts[requestId];
+          },
+          this.api.configs.general.rpcTimeout,
+          requestId,
+        );
+      });
     }
-
-    const newPromise = new Promise((resolve, reject) => {
-      this.clusterCallbacks[requestId] = resolve;
-
-      this.clusterCallbackTimeouts[requestId] = setTimeout((requestId) => {
-        if (typeof this.clusterCallbacks[requestId] === 'function') {
-          reject(new Error('RPC Timeout'));
-        }
-
-        delete this.clusterCallbacks[requestId];
-        delete this.clusterCallbackTimeouts[requestId];
-      }, this.api.configs.general.rpcTimeout, requestId);
-    });
-
-    this.publish(payload);
-
-    return newPromise;
   }
 
   /**
@@ -197,7 +207,7 @@ export default class RedisSatellite extends Satellite {
    */
   public publish(payload: ClusterPayload) {
     const channel = this.api.configs.general.channel;
-    this.clients.client.publish(channel, JSON.stringify(payload));
+    return this.clients.client.publish(channel, JSON.stringify(payload));
   }
 
   /**
@@ -206,7 +216,7 @@ export default class RedisSatellite extends Satellite {
    * @param requestId Response identifier.
    * @param response Response data.
    */
-  public respondCluster(requestId: string, response: any ) {
+  public async respondCluster(requestId: string, response: any) {
     const payload: ClusterPayload = {
       messageType: 'doResponse',
       serverId: this.api.id,
@@ -215,7 +225,7 @@ export default class RedisSatellite extends Satellite {
       response,
     };
 
-    this.publish(payload);
+    await this.publish(payload);
   }
 
   public async load(): Promise<void> {
@@ -223,7 +233,13 @@ export default class RedisSatellite extends Satellite {
 
     this.init();
     await this.initializeClients();
-    this.doCluster('log', `Stellar member ${this.api.id} has joined the cluster`);
+  }
+
+  public async start(): Promise<void> {
+    await this.doCluster(
+      'log',
+      `Stellar member ${this.api.id} has joined the cluster`,
+    );
   }
 
   public async stop(): Promise<void> {
