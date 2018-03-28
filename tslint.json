@@ -12,7 +12,7 @@
     "rules": {
         "prettier": [true, {
             "singleQuote": true,
-            "trailingComma": "es5"
+            "trailingComma": "all"
         }],
         "no-console": false,
         "eofline": false,
@@ -45,10 +45,14 @@
         "max-classes-per-file": [
             false
         ],
+        "ban-types": false,
         "variable-name": [
             false
         ],
         "one-line": [
+            false
+        ],
+        "one-variable-per-declaration": [
             false
         ]
     },
