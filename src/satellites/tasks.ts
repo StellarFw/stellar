@@ -484,7 +484,7 @@ export default class TasksSatellite extends Satellite {
   }
 
   /**
-   * Return details about the whole task system, including failures, 
+   * Return details about the whole task system, including failures,
    * queues, and workers.
    */
   public async details(): Promise<{}> {
