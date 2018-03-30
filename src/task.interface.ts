@@ -1,0 +1,47 @@
+/**
+ * Task handler type.
+ */
+export type TaskHandler = (params) => Promise<void>;
+
+export interface TaskInterface {
+  /**
+   * Name of the task, which must be unique.
+   */
+  name: string;
+
+  /**
+   * Must contain a short description of the purpose of the task.
+   */
+  description: string;
+
+  /**
+   * Queue which will run the task, by default this property is set to
+   * default. This value can be replaced when using the
+   * api.tasks.enqueue methods.
+   */
+  queue: string;
+
+  /**
+   * If the value is greater than zero, the task will be considered a
+   * periodic task and will run once every interval specified by the
+   * number of milliseconds defined in this property.
+   */
+  frequency: number;
+
+  /**
+   * In this property you can define an array of resque plugins;
+   * these plugins modify how tasks are inserted in the queue.
+   * You can read more about this in the node-resque docs.
+   */
+  plugins: Array<any>;
+
+  /**
+   * This is an object with options for plugins.
+   */
+  pluginOptions: any;
+
+  /**
+   * Task function, that contains the task logic.
+   */
+  run: TaskHandler;
+}

@@ -71,7 +71,7 @@ class Utils {
    */
   public recursiveDirSearch(
     dir: string,
-    extension: string = 'js'
+    extension: string = 'js',
   ): Array<string> {
     const results = [];
 

@@ -1,8 +1,8 @@
-import { Satellite } from "../satellite";
-import { EngineStatus } from "../engine-status.enum";
-import { LogLevel } from "../log-level.enum";
-import { normalize } from "path";
-import { existsSync, watchFile, unwatchFile } from "fs";
+import { Satellite } from '../satellite';
+import { EngineStatus } from '../engine-status.enum';
+import { LogLevel } from '../log-level.enum';
+import { normalize } from 'path';
+import { existsSync, watchFile, unwatchFile } from 'fs';
 
 class ConfigManager {
   private api: any = null;
@@ -64,12 +64,20 @@ class ConfigManager {
     try {
       this.api.configs = require(`${rootPath}/manifest.json`);
     } catch (e) {
-      this.api.log(`Project 'manifest.json' file does not exists.`, LogLevel.Emergency);
+      this.api.log(
+        `Project 'manifest.json' file does not exists.`,
+        LogLevel.Emergency,
+      );
       process.exit(1);
     }
 
     this.loadConfigDirectory(`${__dirname}/../config`, false);
-    this.api.configs.modules.forEach(module => this.loadConfigDirectory(`${rootPath}/modules/${module}/config`, isToWatch));
+    this.api.configs.modules.forEach(module =>
+      this.loadConfigDirectory(
+        `${rootPath}/modules/${module}/config`,
+        isToWatch,
+      ),
+    );
     this.loadConfigDirectory(`${rootPath}/config`, isToWatch);
   }
 
@@ -80,7 +88,9 @@ class ConfigManager {
    * @param watch When `true` the engine reloads after a file change.
    */
   private loadConfigDirectory(configPath: string, watch: boolean = false) {
-    const configFiles: Array<string> = this.api.utils.recursiveDirSearch(configPath);
+    const configFiles: Array<string> = this.api.utils.recursiveDirSearch(
+      configPath,
+    );
     let loadErrors = {};
     let loadRetries = 0;
 
@@ -119,7 +129,11 @@ class ConfigManager {
         loadErrors[file] = error.toString();
 
         if (++loadRetries === limit - index) {
-          throw new Error(`Unable to load configuration, errors: ${JSON.stringify(loadErrors)}`);
+          throw new Error(
+            `Unable to load configuration, errors: ${JSON.stringify(
+              loadErrors,
+            )}`,
+          );
         }
 
         // adjust configuration files list: remove and push failed
@@ -134,6 +148,8 @@ class ConfigManager {
    * Start watching for changes on a file and set a function to be executed
    * on the file change.
    *
+   * TODO: move this into the API namespace.
+   *
    * @param file File path.
    * @param callback Callback function to be executed when the file changes.
    */
@@ -144,7 +160,10 @@ class ConfigManager {
       throw new Error(`${file} does not exist, and cannot be watched.`);
     }
 
-    if (this.api.configs.general.developmentMode !== true || this.watchedFiles.includes(file)) {
+    if (
+      this.api.configs.general.developmentMode !== true ||
+      this.watchedFiles.includes(file)
+    ) {
       return;
     }
 
@@ -153,7 +172,10 @@ class ConfigManager {
     // Ask the file system to start watching for changes in the file
     // with an interval of 1 second
     watchFile(file, { interval: 1000 }, (curr, prev) => {
-      if (curr.mtime <= prev.mtime || this.api.configs.general.developmentMode !== true) {
+      if (
+        curr.mtime <= prev.mtime ||
+        this.api.configs.general.developmentMode !== true
+      ) {
         return;
       }
 
@@ -177,13 +199,18 @@ class ConfigManager {
    * @param file Path for the file that as changed.
    */
   private rebootCallback(file: string) {
-    this.api.log(`\r\n\r\n*** rebooting due to config change (${file}) ***\r\n\r\n`, LogLevel.Info);
+    this.api.log(
+      `\r\n\r\n*** rebooting due to config change (${file}) ***\r\n\r\n`,
+      LogLevel.Info,
+    );
     delete require.cache[require.resolve(file)];
     this.api.commands.restart();
   }
 
   /**
    * Unwatch all files.
+   *
+   * TODO: Move this into de API namespace.
    */
   public unwatchAllFiles(): void {
     this.watchedFiles.forEach(file => unwatchFile(file));
