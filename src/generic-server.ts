@@ -17,6 +17,11 @@ const methodNotDefined = () => {
  */
 export abstract class GenericServer extends EventEmitter {
   /**
+   * Human server's name.
+   */
+  protected static serverName: string = null;
+
+  /**
    * Reference for the API object.
    */
   private api: any = null;
