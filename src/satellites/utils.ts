@@ -73,7 +73,7 @@ class Utils {
     dir: string,
     extension: string = 'js',
   ): Array<string> {
-    const results = [];
+    let results = [];
 
     extension = extension.replace('.', '');
     if (dir[dir.length - 1] !== '/') {
@@ -96,11 +96,11 @@ class Utils {
 
       if (stats.isDirectory()) {
         const child = this.recursiveDirSearch(fullFilePath, extension);
-        results.concat(child);
+        results = results.concat(child);
       } else if (stats.isSymbolicLink()) {
         const realPath = readlinkSync(fullFilePath);
         const child = this.recursiveDirSearch(fullFilePath, extension);
-        results.concat(child);
+        results = results.concat(child);
       } else if (stats.isFile()) {
         const fileParts = file.split('.');
         const ext = fileParts[fileParts.length - 1];
