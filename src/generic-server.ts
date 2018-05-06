@@ -191,7 +191,7 @@ export abstract class GenericServer extends EventEmitter {
     // bidirectional connection can have a welcome message
     if (this.attributes.sendWelcomeMessage === true) {
       connection.sendMessage({
-        welcome: this.api.config.general.welcomeMessage,
+        welcome: this.api.configs.general.welcomeMessage,
         context: 'api',
       });
     }
@@ -200,7 +200,7 @@ export abstract class GenericServer extends EventEmitter {
       setTimeout(() => {
         try {
           connection.sendMessage({
-            welcome: this.api.config.general.welcomeMessage,
+            welcome: this.api.configs.general.welcomeMessage,
             context: 'api',
           });
         } catch (e) {

@@ -185,7 +185,7 @@ export default class Connection {
     return this.api.i18n.localize(message, this);
   }
 
-  public destroy(callback) {
+  public destroy() {
     this.destroyed = true;
 
     // execute the destroy middleware
@@ -219,11 +219,6 @@ export default class Connection {
 
     // remove this connection from the connections array
     delete this.api.connections.connections[this.id];
-
-    // execute the callback function
-    if (typeof callback === 'function') {
-      callback();
-    }
   }
 
   /**

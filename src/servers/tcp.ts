@@ -131,12 +131,12 @@ export default class TCPServer extends GenericServer {
 
   private parseLine(connection, line) {
     // check the message length if the maxDataLength is active
-    if (this.api.config.servers.tcp.maxDataLength > 0) {
+    if (this.api.configs.servers.tcp.maxDataLength > 0) {
       const bufferLen = Buffer.byteLength(line, 'utf8');
 
-      if (bufferLen > this.api.config.servers.tcp.maxDataLength) {
-        const error = this.api.config.errors.dataLengthTooLarge(
-          this.api.config.servers.tcp.maxDataLength,
+      if (bufferLen > this.api.configs.servers.tcp.maxDataLength) {
+        const error = this.api.configs.errors.dataLengthTooLarge(
+          this.api.configs.servers.tcp.maxDataLength,
           bufferLen,
         );
         this.log(error, LogLevel.Error);
@@ -165,7 +165,7 @@ export default class TCPServer extends GenericServer {
         .replace(/\r/g, '\n');
 
       // get delimiter
-      const delimiter = String(this.api.config.servers.tcp.delimiter);
+      const delimiter = String(this.api.configs.servers.tcp.delimiter);
 
       let index = connection.rawConnection.socketDataString.indexOf(delimiter);
 
@@ -253,8 +253,7 @@ export default class TCPServer extends GenericServer {
       // Finish all pending connections
       this.connections().forEach(connection => {
         if (connection.pendingActions === 0) {
-          // TODO: implement this
-          // connection.destroy();
+          connection.destroy();
           return;
         }
 
@@ -262,8 +261,7 @@ export default class TCPServer extends GenericServer {
 
         if (!connection.rawConnection.shutDownTimer) {
           connection.rawConnection.shutDownTimer = setTimeout(() => {
-            // TODO: implement this
-            // connection.destroy();
+            connection.destroy();
           }, this.attributes.pendingShutdownWaitLimit);
         }
       });
@@ -313,7 +311,7 @@ export default class TCPServer extends GenericServer {
     messageCount: number = 0,
   ) {
     if (message.error) {
-      message.error = this.api.config.errors.serializers.servers.tcp(
+      message.error = this.api.configs.errors.serializers.servers.tcp(
         message.error,
       );
     }
