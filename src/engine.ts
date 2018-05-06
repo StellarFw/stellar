@@ -62,7 +62,9 @@ export default class Engine {
 
   private log(msg: any, level: LogLevel = LogLevel.Info) {
     // when it's running on a test environment the logs are disabled
-    if (process.env.NODE_ENV === 'test') { return; }
+    if (process.env.NODE_ENV === 'test') {
+      return;
+    }
 
     switch (level) {
       case LogLevel.Emergency || LogLevel.Error:
@@ -81,8 +83,12 @@ export default class Engine {
    * @param type Error type.
    */
   private async fatalError(errors: Array<Error> | Error, type: string) {
-    if (!errors) { throw new Error('There must be passed at lest one Error'); }
-    if (!Array.isArray(errors)) { errors = [errors]; }
+    if (!errors) {
+      throw new Error('There must be passed at lest one Error');
+    }
+    if (!Array.isArray(errors)) {
+      errors = [errors];
+    }
 
     this.log(`Error with satellite step: ${type}`, LogLevel.Emergency);
     errors.forEach(error => console.error(error));
@@ -104,26 +110,39 @@ export default class Engine {
       const extension = file.split('.').pop();
 
       // only load files with the `js` extension
-      if (extension !== 'js') { continue; }
+      if (extension !== 'js') {
+        continue;
+      }
 
       const SatelliteClass = require(file).default;
-      const satelliteInstance: SatelliteInterface = new SatelliteClass(this.api);
+      const satelliteInstance: SatelliteInterface = new SatelliteClass(
+        this.api,
+      );
 
       this.satellites[satelliteName] = satelliteInstance;
 
       if (typeof satelliteInstance.load === 'function') {
-        this.satellitesLoadOrder[satelliteInstance.loadPriority] = this.satellitesLoadOrder[satelliteInstance.loadPriority] || [];
-        this.satellitesLoadOrder[satelliteInstance.loadPriority].push(satelliteInstance);
+        this.satellitesLoadOrder[satelliteInstance.loadPriority] =
+          this.satellitesLoadOrder[satelliteInstance.loadPriority] || [];
+        this.satellitesLoadOrder[satelliteInstance.loadPriority].push(
+          satelliteInstance,
+        );
       }
 
       if (typeof satelliteInstance.start === 'function') {
-        this.satellitesStartOrder[satelliteInstance.startPriority] = this.satellitesStartOrder[satelliteInstance.startPriority] || [];
-        this.satellitesStartOrder[satelliteInstance.startPriority].push(satelliteInstance);
+        this.satellitesStartOrder[satelliteInstance.startPriority] =
+          this.satellitesStartOrder[satelliteInstance.startPriority] || [];
+        this.satellitesStartOrder[satelliteInstance.startPriority].push(
+          satelliteInstance,
+        );
       }
 
       if (typeof satelliteInstance.stop === 'function') {
-        this.satellitesStopOrder[satelliteInstance.stopPriority] = this.satellitesStopOrder[satelliteInstance.stopPriority] || [];
-        this.satellitesStopOrder[satelliteInstance.stopPriority].push(satelliteInstance);
+        this.satellitesStopOrder[satelliteInstance.stopPriority] =
+          this.satellitesStopOrder[satelliteInstance.stopPriority] || [];
+        this.satellitesStopOrder[satelliteInstance.stopPriority].push(
+          satelliteInstance,
+        );
       }
     }
   }
@@ -160,20 +179,32 @@ export default class Engine {
     this.satellitesStopOrder = new Map();
 
     // load the core satellites
-    this.loadArrayOfSatellites(this.api.utils.getFiles(`${__dirname}/satellites`));
+    this.loadArrayOfSatellites(
+      this.api.utils.getFiles(`${__dirname}/satellites`),
+    );
 
     // load module satellites
     this.api.configs.modules.forEach(moduleName => {
-      const moduleSatellitesPath = `${this.api.scope.rootPath}/modules/${moduleName}/satellites`;
+      const moduleSatellitesPath = `${
+        this.api.scope.rootPath
+      }/modules/${moduleName}/satellites`;
       if (this.api.utils.dirExists(moduleSatellitesPath)) {
-        this.loadArrayOfSatellites(this.api.utils.getFiles(moduleSatellitesPath));
+        this.loadArrayOfSatellites(
+          this.api.utils.getFiles(moduleSatellitesPath),
+        );
       }
     });
 
     // organize final array to match the satellites priorities
-    this.loadSatellites = this.flattenOrderedSatellites(this.satellitesLoadOrder);
-    this.startSatellites = this.flattenOrderedSatellites(this.satellitesStartOrder);
-    this.stopSatellites = this.flattenOrderedSatellites(this.satellitesStopOrder);
+    this.loadSatellites = this.flattenOrderedSatellites(
+      this.satellitesLoadOrder,
+    );
+    this.startSatellites = this.flattenOrderedSatellites(
+      this.satellitesStartOrder,
+    );
+    this.stopSatellites = this.flattenOrderedSatellites(
+      this.satellitesStopOrder,
+    );
 
     try {
       for (const satelliteInstance of this.loadSatellites) {
@@ -239,7 +270,7 @@ export default class Engine {
       const fileName = file.replace(/^.*[\\\/]/, '');
       const satellite = fileName.split('.')[0];
 
-      const currentSatellite = new (require(file).default)(this.api);
+      const currentSatellite = new (require(file)).default(this.api);
       this.satellites[satellite] = currentSatellite;
 
       try {
@@ -295,7 +326,10 @@ export default class Engine {
 
     if (this.api.status === EngineStatus.Running) {
       this.api.status = EngineStatus.Stopping;
-      this.api.log('Shutdown down open server and stopping task processing', LogLevel.Alert);
+      this.api.log(
+        'Shutdown down open server and stopping task processing',
+        LogLevel.Alert,
+      );
 
       try {
         for (const satelliteInstance of this.stopSatellites) {
