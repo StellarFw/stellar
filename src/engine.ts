@@ -334,7 +334,7 @@ export default class Engine {
       try {
         for (const satelliteInstance of this.stopSatellites) {
           this.api.log(`> stop: ${satelliteInstance.name}`, LogLevel.Debug);
-          await satelliteInstance.start();
+          await satelliteInstance.stop();
           this.api.log(`\tstopped: ${satelliteInstance.name}`, LogLevel.Debug);
         }
       } catch (error) {
