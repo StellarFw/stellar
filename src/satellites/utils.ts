@@ -394,6 +394,31 @@ class Utils {
 
     return array;
   }
+
+  /**
+   * Execute the given command.
+   *
+   * @param command Command to be executed
+   * @param args Command arguments
+   * @param context Method context
+   */
+  public executeCommand(command: string, args: Array<any>, context: any) {
+    const hasContext = !!context;
+    const commandParts = command.split('.');
+    let method = this.api;
+
+    // Get the method reference
+    commandParts.forEach(identifier => {
+      if (!hasContext) {
+        context = method;
+      }
+
+      method = method[identifier];
+    });
+
+    // Execute the method
+    return method.apply(context, args);
+  }
 }
 
 export default class UtilsSatellite extends Satellite {

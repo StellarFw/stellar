@@ -35,4 +35,16 @@ export default interface ConnectionDetails {
    * Flag to know if the connection supports chat.
    */
   canChat: boolean;
+
+  /**
+   * Number of sent messages by this connection.
+   */
+  messageCount: number;
+
+  respondingTo?: any;
+
+  /**
+   * Number of pending actions that are waiting by a response.
+   */
+  pendingActions?: number;
 };

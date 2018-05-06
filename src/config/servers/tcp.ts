@@ -1,6 +1,6 @@
 export default {
   servers: {
-    tcp (api) {
+    TCP(api) {
       return {
         // ---------------------------------------------------------------------
         // Enable server?
@@ -52,20 +52,20 @@ export default {
         // ---------------------------------------------------------------------
         // What message to send down to a client who request a `quit`
         // ---------------------------------------------------------------------
-        goodbyeMessage: 'Bye!'
-      }
-    }
-  }
-}
+        goodbyeMessage: 'Bye!',
+      };
+    },
+  },
+};
 
 export const test = {
   servers: {
-    tcp (api) {
+    tcp(api) {
       return {
         enabled: true,
         port: 5001,
-        secure: false
-      }
-    }
-  }
-}
+        secure: false,
+      };
+    },
+  },
+};

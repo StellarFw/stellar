@@ -1,4 +1,4 @@
-import UUID from 'uuid';
+import * as UUID from 'uuid';
 
 /**
  * This class represents an active connection.
@@ -100,12 +100,15 @@ export default class Connection {
     this.setup(data);
 
     // Save this connection on the connection manager
-    this.api.connections.connections[ this.id ] = this;
+    this.api.connections.connections[this.id] = this;
 
     // execute the middleware
     this.api.connections.globalMiddleware.forEach(middlewareName => {
-      if (typeof this.api.connections.middleware[ middlewareName ].create === 'function') {
-        this.api.connections.middleware[ middlewareName ].create(this);
+      if (
+        typeof this.api.connections.middleware[middlewareName].create ===
+        'function'
+      ) {
+        this.api.connections.middleware[middlewareName].create(this);
       }
     });
   }
@@ -127,7 +130,7 @@ export default class Connection {
 
     const requiredFields = ['type', 'rawConnection'];
     requiredFields.forEach(req => {
-      if (data[ req ] === null || data[ req ] === undefined) {
+      if (data[req] === null || data[req] === undefined) {
         throw new Error(`${req} is required to create a new connection object`);
       }
 
@@ -136,11 +139,13 @@ export default class Connection {
 
     const enforcedConnectionProperties = ['remotePort', 'remoteIP'];
     enforcedConnectionProperties.forEach(req => {
-      if (data[ req ] === null || data[ req ] === undefined) {
-        if (this.api.config.general.enforceConnectionProperties === true) {
-          throw new Error(`${req} is required to create a new connection object`);
+      if (data[req] === null || data[req] === undefined) {
+        if (this.api.configs.general.enforceConnectionProperties === true) {
+          throw new Error(
+            `${req} is required to create a new connection object`,
+          );
         } else {
-          data[ req ] = 0; // TODO: could be a random uuid as well?
+          data[req] = 0; // TODO: could be a random uuid as well?
         }
       }
       this[req] = data[req];
@@ -155,7 +160,9 @@ export default class Connection {
    * @param message Message to be sent to the connection.
    */
   public sendMessage(message: string) {
-    throw new Error(`I should be replaced with a connection-specific method [${message}]`);
+    throw new Error(
+      `I should be replaced with a connection-specific method [${message}]`,
+    );
   }
 
   /**
@@ -164,7 +171,9 @@ export default class Connection {
    * @param path Path to the file that must be sent.
    */
   public sendFile(path: string) {
-    throw new Error(`I should be replaced with a connection-specific method [${path}]`);
+    throw new Error(
+      `I should be replaced with a connection-specific method [${path}]`,
+    );
   }
 
   /**
@@ -172,7 +181,7 @@ export default class Connection {
    *
    * @param message   Message to be localized.
    */
-  private localize(message: string) {
+  public localize(message: string) {
     return this.api.i18n.localize(message, this);
   }
 
@@ -181,8 +190,11 @@ export default class Connection {
 
     // execute the destroy middleware
     this.api.connections.globalMiddleware.forEach(middlewareName => {
-      if (typeof this.api.connections.middleware[ middlewareName ].destroy === 'function') {
-        this.api.connections.middleware[ middlewareName ].destroy(this);
+      if (
+        typeof this.api.connections.middleware[middlewareName].destroy ===
+        'function'
+      ) {
+        this.api.connections.middleware[middlewareName].destroy(this);
       }
     });
 
@@ -233,7 +245,10 @@ export default class Connection {
    * @param verb      Verb to be executed.
    * @param words     Words are optional.
    */
-  public async verbs(verb: string, words: string|Array<string> = []): Promise<any> {
+  public async verbs(
+    verb: string,
+    words: string | Array<string> = [],
+  ): Promise<any> {
     const server = this.api.servers.servers[this.type];
 
     let key;
@@ -248,7 +263,8 @@ export default class Connection {
     if (server && allowedVerbs.indexOf(verb) >= 0) {
       server.log('verb', 'debug', {
         verb,
-        to: this.remoteIP, params: JSON.stringify(words),
+        to: this.remoteIP,
+        params: JSON.stringify(words),
       });
 
       if (verb === 'quit' || verb === 'exit') {
@@ -257,10 +273,10 @@ export default class Connection {
         key = words[0];
         value = words[1];
 
-        if (words[ 0 ] && (words[ 0 ].indexOf('=') >= 0)) {
-          const parts = words[ 0 ].split('=');
-          key = parts[ 0 ];
-          value = parts[ 1 ];
+        if (words[0] && words[0].indexOf('=') >= 0) {
+          const parts = words[0].split('=');
+          key = parts[0];
+          value = parts[1];
         }
 
         this.params[key] = value;
@@ -284,7 +300,7 @@ export default class Connection {
         room = words[0];
         return this.api.chatRoom.join(this.id, room);
       } else if (verb === 'roomLeave') {
-        room = words[ 0 ];
+        room = words[0];
         return this.api.chatRoom.leave(this.id, room);
       } else if (verb === 'roomView') {
         // get requested room name
@@ -322,12 +338,12 @@ export default class Connection {
         this.api.events.fire(`event.${room}.${event}`, { room, data });
 
         // broadcast the event to the room
-        return this.api.chatRoom.broadcast(this, room, { event, data })
+        return this.api.chatRoom.broadcast(this, room, { event, data });
       } else {
-        throw new Error(this.api.config.errors.verbNotFound(this, verb));
+        throw new Error(this.api.configs.errors.verbNotFound(this, verb));
       }
     } else {
-      throw new Error(this.api.config.errors.verbNotAllowed(this, verb));
+      throw new Error(this.api.configs.errors.verbNotAllowed(this, verb));
     }
   }
 }

@@ -30,6 +30,7 @@ export default class ServersSatellite extends Satellite {
       if (options && options.enable === true) {
         const server: GenericServer = new ServerClass(this.api, options);
         this.api.log(`Initialized server: ${ServerClass.name}`, LogLevel.Debug);
+        this.servers.set(ServerClass.serverName, server);
       }
     }
   }
@@ -48,13 +49,13 @@ export default class ServersSatellite extends Satellite {
       let message = `Starting server: ${serverName}`;
 
       // append the bind IP to log message
-      if (this.api.config.servers[serverName].bindIP) {
-        message += ` @ ${this.api.config.servers[serverName].bindIP}`;
+      if (this.api.configs.servers[serverName].bindIP) {
+        message += ` @ ${this.api.configs.servers[serverName].bindIP}`;
       }
 
       // append the port to log message
-      if (this.api.config.servers[serverName].port) {
-        message += ` @ ${this.api.config.servers[serverName].port}`;
+      if (this.api.configs.servers[serverName].port) {
+        message += ` @ ${this.api.configs.servers[serverName].port}`;
       }
 
       this.api.log(message, LogLevel.Notice);

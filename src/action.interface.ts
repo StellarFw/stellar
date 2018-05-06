@@ -41,6 +41,11 @@ export default interface ActionInterface {
   group?: string;
 
   /**
+   * Array of middleware to be applied to the action.
+   */
+  middleware?: Array<string>;
+
+  /**
    * Contains an example of an action response.
    *
    * This example will be used in automatic documentation.

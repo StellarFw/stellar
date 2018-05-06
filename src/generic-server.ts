@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import ConnectionDetails from './connection-details';
 import { Stream } from 'stream';
 import { LogLevel } from './log-level.enum';
+import Connection from './connection';
 
 /**
  * This function is called when the method is not implemented.
@@ -24,7 +25,7 @@ export abstract class GenericServer extends EventEmitter {
   /**
    * Reference for the API object.
    */
-  private api: any = null;
+  protected api: any = null;
 
   /**
    * Server type.
@@ -34,7 +35,7 @@ export abstract class GenericServer extends EventEmitter {
   /**
    * Server options.
    */
-  public options: {} = {};
+  public options: any = {};
 
   /**
    * Connection attributes.
@@ -47,15 +48,13 @@ export abstract class GenericServer extends EventEmitter {
    * @param api Stellar's API reference
    * @param name Server's name
    * @param options Server's options
-   * @param attributes Server's attributes
    */
-  constructor(api, name, options, attributes) {
+  constructor(api, name, options) {
     super();
 
     this.api = api;
     this.type = name;
     this.options = options;
-    this.attributes = attributes;
 
     // Attributes can be overwritten by the options
     for (const key of Object.keys(this.options)) {
@@ -72,7 +71,7 @@ export abstract class GenericServer extends EventEmitter {
    *
    * @returns {Array}
    */
-  public connections(): Array<ConnectionDetails> {
+  public connections(): Array<Connection> {
     const _connections = [];
 
     for (const key of Object.keys(this.api.connections.connections)) {
@@ -92,7 +91,7 @@ export abstract class GenericServer extends EventEmitter {
    * @param severity  Severity level.
    * @param data      Additional data to be printed out.
    */
-  protected log(message: string, severity: LogLevel, data: any) {
+  protected log(message: string, severity: LogLevel, data: any = null) {
     this.api.log(`[Server: ${this.type}] ${message}`, severity, data);
   }
 
@@ -154,6 +153,7 @@ export abstract class GenericServer extends EventEmitter {
       rawConnection: data.rawConnection,
       canChat: false,
       fingerprint: null,
+      messageCount: 0,
     };
 
     // if the server canChat enable the flag on the connection
@@ -166,11 +166,8 @@ export abstract class GenericServer extends EventEmitter {
       details.fingerprint = data.fingerprint;
     }
 
-    // get connection class
-    const ConnectionClass = this.api.connection;
-
     // create a new connection instance
-    const connection = new ConnectionClass(this.api, details);
+    const connection = new Connection(this.api, details);
 
     // define sendMessage method
     connection.sendMessage = message => {
@@ -188,7 +185,7 @@ export abstract class GenericServer extends EventEmitter {
 
     // check if the lod for this type of connection is active
     if (this.attributes.logConnections === true) {
-      this.log('new connection', 'info', { to: connection.remoteIP });
+      this.log('new connection', LogLevel.Info, { to: connection.remoteIP });
     }
 
     // bidirectional connection can have a welcome message
@@ -233,7 +230,11 @@ export abstract class GenericServer extends EventEmitter {
    * @param connection  Connection object.
    * @param message     Message be sent back to the client.
    */
-  public sendMessage(connection: ConnectionDetails, message: string) {
+  public sendMessage(
+    connection: ConnectionDetails,
+    message: string,
+    messageCount: number = null,
+  ) {
     methodNotDefined();
   }
 

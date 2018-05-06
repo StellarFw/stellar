@@ -1,10 +1,10 @@
 export default {
-  i18n (api) {
+  i18n(api) {
     return {
       // ---------------------------------------------------------------------
       // Active locales
       // ---------------------------------------------------------------------
-      locales: [ 'en' ],
+      locales: ['en'],
 
       // ---------------------------------------------------------------------
       // Fallbacks
@@ -28,7 +28,7 @@ export default {
       //
       // By default, every request will be in the 'en' locale
       // ---------------------------------------------------------------------
-      determineConnectionLocale: 'api.i18n.determineConnectionLocale'
-    }
-  }
-}
+      determineConnectionLocale: 'api.i18n.determineConnectionLocale',
+    };
+  },
+};
