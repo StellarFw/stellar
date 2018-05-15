@@ -1,6 +1,6 @@
 export default {
   servers: {
-    websocket (api) {
+    websocket(api) {
       return {
         // ---------------------------------------------------------------------
         // Enable the server?
@@ -35,7 +35,7 @@ export default {
           // API base endpoint on your server
           apiPath: '/api',
           // Default room for the chat system
-          defaultRoom: 'defaultRoom'
+          defaultRoom: 'defaultRoom',
         },
 
         // ---------------------------------------------------------------------
@@ -43,9 +43,9 @@ export default {
         // ---------------------------------------------------------------------
         server: {
           // this disable Primus warning on cluster environments
-          iknowclusterwillbreakconnections: true
-        }
-      }
-    }
-  }
-}
+          iknowclusterwillbreakconnections: true,
+        },
+      };
+    },
+  },
+};

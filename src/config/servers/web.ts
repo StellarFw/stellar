@@ -1,8 +1,8 @@
-import os from 'os'
+import { tmpdir } from 'os';
 
 export default {
   servers: {
-    web (api) {
+    web(api) {
       return {
         // ---------------------------------------------------------------------
         // Enable server?
@@ -49,8 +49,9 @@ export default {
         httpHeaders: {
           'X-Powered-By': api.config.general.serverName,
           'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS, TRACE',
-          'Access-Control-Allow-Headers': 'Content-Type'
+          'Access-Control-Allow-Methods':
+            'HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS, TRACE',
+          'Access-Control-Allow-Headers': 'Content-Type',
         },
 
         // ---------------------------------------------------------------------
@@ -112,17 +113,17 @@ export default {
           onlyStaticElements: false,
           settings: {
             path: '/',
-            expires: 3600000
-          }
+            expires: 3600000,
+          },
         },
 
         // ---------------------------------------------------------------------
         // Options to be applied to incoming file uploads.
         // ---------------------------------------------------------------------
         formOptions: {
-          uploadDir: os.tmpdir(),
+          uploadDir: tmpdir(),
           keepExtensions: false,
-          maxFieldsSize: 1024 * 1024 * 100
+          maxFieldsSize: 1024 * 1024 * 100,
         },
 
         // ---------------------------------------------------------------------
@@ -137,7 +138,7 @@ export default {
         // ---------------------------------------------------------------------
         metadataOptions: {
           serverInformation: true,
-          requesterInformation: true
+          requesterInformation: true,
         },
 
         // ---------------------------------------------------------------------
@@ -172,8 +173,8 @@ export default {
         // When true, an ETAG Header will be provided with each requested static
         // file for caching reasons.
         // ---------------------------------------------------------------------
-        enableEtag: true
-      }
-    }
-  }
-}
+        enableEtag: true,
+      };
+    },
+  },
+};

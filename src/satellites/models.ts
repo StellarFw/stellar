@@ -39,7 +39,7 @@ export default class ModelsSatellite extends Satellite {
    * @param name Modal name.
    * @param model Modal instance.
    */
-  public async add(name: string, model: ModelInterface|any): Promise<void> {
+  public async add(name: string, model: ModelInterface | any): Promise<void> {
     // The model definition can be a function, whether it happens we need pass
     // the api reference.
     if (typeof model === 'function') {
@@ -48,7 +48,9 @@ export default class ModelsSatellite extends Satellite {
 
     // Execute the `add` event to allow other modules modify this model before it
     // gets compiled.
-    const response = await this.api.events.fire(`core.models.add.${name}`, { model });
+    const response = await this.api.events.fire(`core.models.add.${name}`, {
+      model,
+    });
 
     // When there is no identity property defined we use the file basename.
     if (!response.model.identity) {
@@ -93,8 +95,11 @@ export default class ModelsSatellite extends Satellite {
     }
 
     this.api.config.watchFileAndAct(path, () => {
-      this.api.log(`\r\n\r\n*** rebooting due to model change (${path}) ***\r\n\r\n`, LogLevel.Info);
-      delete require.cache[ require.resolve(path) ];
+      this.api.log(
+        `\r\n\r\n*** rebooting due to model change (${path}) ***\r\n\r\n`,
+        LogLevel.Info,
+      );
+      delete require.cache[require.resolve(path)];
       this.api.commands.restart();
     });
   }
@@ -105,7 +110,10 @@ export default class ModelsSatellite extends Satellite {
    * @param modelName Model basename.
    * @param modelOrig Original model object.
    */
-  private async preProcessModelData(modelName: string, modelOrig: ModelInterface|ModelGenerator): Promise<ModelInterface> {
+  private async preProcessModelData(
+    modelName: string,
+    modelOrig: ModelInterface | ModelGenerator,
+  ): Promise<ModelInterface> {
     // The model definition can be a function, whether it happens we need pass
     // the api reference.
     if (typeof modelOrig === 'function') {
@@ -114,9 +122,12 @@ export default class ModelsSatellite extends Satellite {
 
     // Execute the `add` event to allow other modules modify this model before it
     // gets compiled.
-    const { model } = await this.api.events.fire(`core.models.add.${modelName}`, {
-      model: modelOrig,
-    });
+    const { model } = await this.api.events.fire(
+      `core.models.add.${modelName}`,
+      {
+        model: modelOrig,
+      },
+    );
 
     // When there is no identity property defined we use the file basename.
     if (!model.identity) {
@@ -140,7 +151,9 @@ export default class ModelsSatellite extends Satellite {
    *
    * @param models Array of models to be loaded.
    */
-  private async processModelsFiles(models: Array<string>): Promise<Array<ModelInterface>> {
+  private async processModelsFiles(
+    models: Array<string>,
+  ): Promise<Array<ModelInterface>> {
     const result = [];
 
     for (const modelFile of models) {
@@ -148,12 +161,19 @@ export default class ModelsSatellite extends Satellite {
       this.watchForChanges(modelFile);
 
       try {
-        const model = await this.preProcessModelData(modelBasename, require(modelFile).default);
+        const model = await this.preProcessModelData(
+          modelBasename,
+          require(modelFile).default,
+        );
         result.push(model);
 
         this.api.log(`Model loaded: ${modelBasename}`, LogLevel.Debug);
       } catch (error) {
-        this.api.log(`Model error (${modelBasename}): ${error.message}`, LogLevel.Error, error);
+        this.api.log(
+          `Model error (${modelBasename}): ${error.message}`,
+          LogLevel.Error,
+          error,
+        );
       }
     }
 
@@ -167,7 +187,9 @@ export default class ModelsSatellite extends Satellite {
     let allModels = [];
 
     for (const [_, modulePath] of this.api.modules.modulesPaths) {
-      const modelsFiles = this.api.utils.recursiveDirSearch(`${modulePath}/models`);
+      const modelsFiles = this.api.utils.recursiveDirSearch(
+        `${modulePath}/models`,
+      );
       const moduleModels = await this.processModelsFiles(modelsFiles);
       allModels = allModels.concat(moduleModels);
     }
@@ -198,10 +220,12 @@ export default class ModelsSatellite extends Satellite {
       }
 
       // Replace the static value with the module instance
-      this.api.configs.models.adapters[ key ] = this.api.utils.require(moduleName);
+      this.api.configs.models.adapters[key] = this.api.utils.require(
+        moduleName,
+      );
 
       // Force all adapters to use the key specific by the user.
-      this.api.configs.models.adapters[ key ].identity = key;
+      this.api.configs.models.adapters[key].identity = key;
     }
 
     return this.api.configs.models.adapters;
