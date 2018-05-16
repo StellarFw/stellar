@@ -47,4 +47,24 @@ export default interface ConnectionDetails {
    * Number of pending actions that are waiting by a response.
    */
   pendingActions?: number;
+
+  /**
+   * Dictionary with the request parameters.
+   */
+  params?: { [key: string]: any };
+
+  /**
+   * Used file extension when doing file requests.
+   */
+  extension?: string;
+
+  /**
+   * Error that occurs during the request processing.
+   */
+  error?: Error;
+
+  /**
+   * Destroy method.
+   */
+  destroy?: () => void;
 };

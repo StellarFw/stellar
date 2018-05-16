@@ -1,8 +1,8 @@
 import { EventEmitter } from 'events';
 import ConnectionDetails from './connection-details';
-import { Stream } from 'stream';
 import { LogLevel } from './log-level.enum';
 import Connection from './connection';
+import { ReadStream } from 'fs';
 
 /**
  * This function is called when the method is not implemented.
@@ -114,7 +114,7 @@ export abstract class GenericServer extends EventEmitter {
   public async sendFile(
     connection: ConnectionDetails,
     error: Error = null,
-    stream: Stream,
+    stream: ReadStream,
     mime: string,
     length: number,
     lastModified: Date,

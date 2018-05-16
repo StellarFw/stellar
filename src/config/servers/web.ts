@@ -47,7 +47,7 @@ export default {
         // By default this tells CORS to allow request from any origin.
         // ---------------------------------------------------------------------
         httpHeaders: {
-          'X-Powered-By': api.config.general.serverName,
+          'X-Powered-By': api.configs.general.serverName,
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods':
             'HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS, TRACE',

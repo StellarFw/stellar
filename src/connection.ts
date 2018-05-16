@@ -159,7 +159,7 @@ export default class Connection {
    *
    * @param message Message to be sent to the connection.
    */
-  public sendMessage(message: string) {
+  public sendMessage(message: any) {
     throw new Error(
       `I should be replaced with a connection-specific method [${message}]`,
     );
