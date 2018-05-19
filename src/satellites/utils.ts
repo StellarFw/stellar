@@ -419,6 +419,62 @@ class Utils {
     // Execute the method
     return method.apply(context, args);
   }
+
+  /**
+   * Cookie parse from headers of http(s) requests.
+   *
+   * @param req
+   * @returns {{}}
+   */
+  public parseCookies(req) {
+    const cookies = {};
+    if (req.headers.cookie) {
+      req.headers.cookie.split(';').forEach(cookie => {
+        const parts = cookie.split('=');
+        cookies[parts[0].trim()] = (parts[1] || '').trim();
+      });
+    }
+    return cookies;
+  }
+
+  /**
+   * Collapse this object to an array.
+   *
+   * @param obj
+   * @returns {*}
+   */
+  public collapseObjectToArray(obj: any): Array<any> | boolean {
+    try {
+      const keys = Object.keys(obj);
+      if (keys.length < 1) {
+        return false;
+      }
+      if (keys[0] !== '0') {
+        return false;
+      }
+      if (keys[keys.length - 1] !== String(keys.length - 1)) {
+        return false;
+      }
+
+      const arr = [];
+      for (const i in keys) {
+        if (!keys.hasOwnProperty(i)) {
+          continue;
+        }
+
+        const key = keys[i];
+        if (String(parseInt(key, 10)) !== key) {
+          return false;
+        } else {
+          arr.push(obj[key]);
+        }
+      }
+
+      return arr;
+    } catch (e) {
+      return false;
+    }
+  }
 }
 
 export default class UtilsSatellite extends Satellite {

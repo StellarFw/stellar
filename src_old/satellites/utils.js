@@ -24,58 +24,6 @@ export class Utils {
 
   constructor (api = null) { this.api = api }
 
-  /**
-   * Cookie parse from headers of http(s) requests.
-   *
-   * @param req
-   * @returns {{}}
-   */
-  parseCookies (req) {
-    let cookies = {}
-    if (req.headers.cookie) {
-      req.headers.cookie.split(';').forEach(function (cookie) {
-        let parts = cookie.split('=')
-        cookies[ parts[ 0 ].trim() ] = (parts[ 1 ] || '').trim()
-      })
-    }
-    return cookies
-  }
-
-  /**
-   * Collapse this object to an array.
-   *
-   * @param obj
-   * @returns {*}
-   */
-  collapseObjectToArray (obj) {
-    try {
-      let keys = Object.keys(obj)
-      if (keys.length < 1) {
-        return false
-      }
-      if (keys[ 0 ] !== '0') {
-        return false
-      }
-      if (keys[ (keys.length - 1) ] !== String(keys.length - 1)) {
-        return false
-      }
-
-      let arr = []
-      for (let i in keys) {
-        let key = keys[ i ]
-        if (String(parseInt(key)) !== key) {
-          return false
-        } else {
-          arr.push(obj[ key ])
-        }
-      }
-
-      return arr
-    } catch (e) {
-      return false
-    }
-  }
-
   isObject (arg) {
     return typeof arg === 'object' && arg !== null
   }

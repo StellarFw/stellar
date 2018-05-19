@@ -218,9 +218,9 @@ brace-expansion@^1.1.7:
     balanced-match "^1.0.0"
     concat-map "0.0.1"
 
-browser_fingerprint@0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/browser_fingerprint/-/browser_fingerprint-0.1.0.tgz#967a77fa18059e1ce28694816fe3664883c4d069"
+browser_fingerprint@1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/browser_fingerprint/-/browser_fingerprint-1.0.3.tgz#16c52cbfeb0dffe9d937e965bbee3e87015ae657"
 
 browserify-transform-machinepack@~1.0.3:
   version "1.0.3"
