@@ -17,7 +17,7 @@ export type ExceptionHandler = (
   type: ExceptionType,
   name: string,
   objects: any,
-  severity: LogLevel
+  severity: LogLevel,
 ) => void;
 
 export default class ExceptionsSatellite extends Satellite {
@@ -39,7 +39,7 @@ export default class ExceptionsSatellite extends Satellite {
     type: ExceptionType = ExceptionType.OTHER,
     name: string = '',
     objects: any = [],
-    severity: LogLevel = LogLevel.Error
+    severity: LogLevel = LogLevel.Error,
   ): void {
     let output = '';
     let lines = [];
@@ -64,8 +64,8 @@ export default class ExceptionsSatellite extends Satellite {
         ) {
           extraMessages.push(
             `    ${detailName}: ${JSON.stringify(
-              objects.connection[detailName]
-            )}`
+              objects.connection[detailName],
+            )}`,
           );
         }
       }
@@ -74,11 +74,11 @@ export default class ExceptionsSatellite extends Satellite {
       extraMessages.push(
         `Uncaught error from task: ${name} on queue ${objects.queue} (worker #${
           objects.workerId
-        })\n`
+        })\n`,
       );
       try {
         extraMessages.push(
-          '    arguments: ' + JSON.stringify(objects.task.args)
+          '    arguments: ' + JSON.stringify(objects.task.args),
         );
       } catch (e) {}
     } else {
@@ -115,7 +115,7 @@ export default class ExceptionsSatellite extends Satellite {
     type: ExceptionType,
     name: string,
     objects: any,
-    severity = LogLevel.Error
+    severity = LogLevel.Error,
   ) {
     this.reporters.forEach(reporter => {
       reporter.call(this, err, type, name, objects, severity);
@@ -135,7 +135,7 @@ export default class ExceptionsSatellite extends Satellite {
       ExceptionType.LOADER,
       name,
       { fullFilePath },
-      LogLevel.Alert
+      LogLevel.Alert,
     );
   }
 
@@ -162,7 +162,7 @@ export default class ExceptionsSatellite extends Satellite {
       ExceptionType.ACTION,
       simpleName,
       { connection: data.connection },
-      LogLevel.Error
+      LogLevel.Error,
     );
     data.response = {};
   }
@@ -194,7 +194,7 @@ export default class ExceptionsSatellite extends Satellite {
         queue,
         workerId,
       },
-      this.api.configs.tasks.workerLogging.failure
+      this.api.configs.tasks.workerLogging.failure,
     );
   }
 }

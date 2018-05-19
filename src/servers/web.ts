@@ -7,12 +7,12 @@ import {
 import { unlink, chmodSync, stat, ReadStream } from 'fs';
 import { LogLevel } from '../log-level.enum';
 import { normalize, sep } from 'path';
-import BrowserFingerprint from 'browser_fingerprint';
+import * as BrowserFingerprint from 'browser_fingerprint';
 import ConnectionDetails from '../connection-details';
 import formidable from 'st-formidable';
 import Mime from 'mime';
-import qs from 'qs';
-import uuid from 'uuid';
+import * as qs from 'qs';
+import * as uuid from 'uuid';
 import etag from 'etag';
 import * as zlib from 'zlib';
 import { Stream } from 'stream';
@@ -40,6 +40,11 @@ export default class WebServer extends GenericServer {
   private server: HTTPServer | SecureServer;
 
   /**
+   * BrowserFingerprint instance.
+   */
+  private fingerprinter: BrowserFingerprint;
+
+  /**
    * Create a new Web server instance.
    *
    * @param api Stellar API instance
@@ -61,9 +66,13 @@ export default class WebServer extends GenericServer {
       !['api', 'file'].includes(this.api.configs.servers.web.rootEndpointType)
     ) {
       throw new Error(
-        `api.config.servers.web.rootEndpointType can only be 'api' or 'file'.`,
+        `api.configs.servers.web.rootEndpointType can only be 'api' or 'file'.`,
       );
     }
+
+    this.fingerprinter = new BrowserFingerprint(
+      this.api.configs.servers.web.fingerprintOptions,
+    );
 
     this.initializeEvents();
   }
@@ -112,7 +121,7 @@ export default class WebServer extends GenericServer {
       });
     } else {
       this.server = createSecureServer(
-        this.api.config.servers.web.serverOptions,
+        this.api.configs.servers.web.serverOptions,
         (req, res) => {
           this.handleRequest(req, res);
         },
@@ -124,7 +133,7 @@ export default class WebServer extends GenericServer {
     this.server.on('error', e => {
       bootAttempts++;
 
-      if (bootAttempts < this.api.config.servers.web.bootAttempts) {
+      if (bootAttempts < this.api.configs.servers.web.bootAttempts) {
         this.log(
           `cannot boot web server; trying again [${String(e)}]`,
           LogLevel.Error,
@@ -238,14 +247,14 @@ export default class WebServer extends GenericServer {
         connection.rawConnection.responseHeaders.push([
           'Cache-Control',
           `max-age=${
-            this.api.config.servers.web.flatFileCacheDuration
+            this.api.configs.servers.web.flatFileCacheDuration
           }, must-revalidate, public`,
         ]);
       }
     }
 
     // add a header to the response with the last modified timestamp
-    if (fileStream && !this.api.config.servers.web.enableEtag) {
+    if (fileStream && !this.api.configs.servers.web.enableEtag) {
       if (lastModified) {
         connection.rawConnection.responseHeaders.push([
           'Last-Modified',
@@ -314,7 +323,7 @@ export default class WebServer extends GenericServer {
 
     // check if is to use ETag
     if (
-      this.api.config.servers.web.enableEtag &&
+      this.api.configs.servers.web.enableEtag &&
       fileStream &&
       fileStream.path
     ) {
@@ -447,108 +456,97 @@ export default class WebServer extends GenericServer {
    * @private
    */
   private handleRequest(req, res) {
-    BrowserFingerprint.fingerprint(
-      req,
-      this.api.config.servers.web.fingerprintOptions,
-      (error, fingerprint, elementHash, cookieHash) => {
-        if (error) {
-          throw error;
+    const { fingerprint, headerHash } = this.fingerprinter.fingerprint(req);
+
+    const responseHeaders = [];
+    const cookies = this.api.utils.parseCookies(req);
+    const responseHttpCode = 200;
+    const method = req.method.toUpperCase();
+    const parsedURL = parse(req.url, true);
+    let i;
+
+    // push all cookies from the request to the response
+    for (const i in headerHash) {
+      if (!headerHash.hasOwnProperty(i)) {
+        continue;
+      }
+
+      responseHeaders.push([i, headerHash[i]]);
+    }
+
+    // set content type to JSON
+    responseHeaders.push(['Content-Type', 'application/json; charset=utf-8']);
+
+    // push all the default headers to the response object
+    for (i in this.api.configs.servers.web.httpHeaders) {
+      if (!this.api.configs.servers.web.httpHeaders.hasOwnProperty(i)) {
+        continue;
+      }
+
+      responseHeaders.push([i, this.api.configs.servers.web.httpHeaders[i]]);
+    }
+
+    // get the client IP
+    let remoteIP = req.connection.remoteAddress;
+
+    // get the client port
+    let remotePort = req.connection.remotePort;
+
+    // helpers for unix socket bindings with no forward
+    if (!remoteIP && !remotePort) {
+      remoteIP = '0.0.0.0';
+      remotePort = '0';
+    }
+
+    if (req.headers['x-forwarded-for']) {
+      let parts;
+      let forwardedIp = req.headers['x-forwarded-for'].split(',')[0];
+      if (
+        forwardedIp.indexOf('.') >= 0 ||
+        (forwardedIp.indexOf('.') < 0 && forwardedIp.indexOf(':') < 0)
+      ) {
+        // IPv4
+        forwardedIp = forwardedIp.replace('::ffff:', ''); // remove any IPv6 information, ie: '::ffff:127.0.0.1'
+        parts = forwardedIp.split(':');
+        if (parts[0]) {
+          remoteIP = parts[0];
         }
-
-        const responseHeaders = [];
-        const cookies = this.api.utils.parseCookies(req);
-        const responseHttpCode = 200;
-        const method = req.method.toUpperCase();
-        const parsedURL = parse(req.url, true);
-        let i;
-
-        // push all cookies from the request to the response
-        for (i in cookieHash) {
-          if (!cookieHash.hasOwnProperty(i)) {
-            continue;
-          }
-
-          responseHeaders.push([i, cookieHash[i]]);
+        if (parts[1]) {
+          remotePort = parts[1];
         }
-
-        // set content type to JSON
-        responseHeaders.push([
-          'Content-Type',
-          'application/json; charset=utf-8',
-        ]);
-
-        // push all the default headers to the response object
-        for (i in this.api.config.servers.web.httpHeaders) {
-          if (!this.api.config.servers.web.httpHeaders.hasOwnProperty(i)) {
-            continue;
-          }
-
-          responseHeaders.push([i, this.api.config.servers.web.httpHeaders[i]]);
+      } else {
+        // IPv6
+        parts = this.api.utils.parseIPv6URI(forwardedIp);
+        if (parts.host) {
+          remoteIP = parts.host;
         }
-
-        // get the client IP
-        let remoteIP = req.connection.remoteAddress;
-
-        // get the client port
-        let remotePort = req.connection.remotePort;
-
-        // helpers for unix socket bindings with no forward
-        if (!remoteIP && !remotePort) {
-          remoteIP = '0.0.0.0';
-          remotePort = '0';
+        if (parts.port) {
+          remotePort = parts.port;
         }
+      }
 
-        if (req.headers['x-forwarded-for']) {
-          let parts;
-          let forwardedIp = req.headers['x-forwarded-for'].split(',')[0];
-          if (
-            forwardedIp.indexOf('.') >= 0 ||
-            (forwardedIp.indexOf('.') < 0 && forwardedIp.indexOf(':') < 0)
-          ) {
-            // IPv4
-            forwardedIp = forwardedIp.replace('::ffff:', ''); // remove any IPv6 information, ie: '::ffff:127.0.0.1'
-            parts = forwardedIp.split(':');
-            if (parts[0]) {
-              remoteIP = parts[0];
-            }
-            if (parts[1]) {
-              remotePort = parts[1];
-            }
-          } else {
-            // IPv6
-            parts = this.api.utils.parseIPv6URI(forwardedIp);
-            if (parts.host) {
-              remoteIP = parts.host;
-            }
-            if (parts.port) {
-              remotePort = parts.port;
-            }
-          }
+      if (req.headers['x-forwarded-port']) {
+        remotePort = req.headers['x-forwarded-port'];
+      }
+    }
 
-          if (req.headers['x-forwarded-port']) {
-            remotePort = req.headers['x-forwarded-port'];
-          }
-        }
-
-        this.buildConnection({
-          // will emit 'connection'
-          rawConnection: {
-            req,
-            res,
-            params: {},
-            method,
-            cookies,
-            responseHeaders,
-            responseHttpCode,
-            parsedURL,
-          },
-          id: `${fingerprint}-${uuid.v4()}`,
-          fingerprint,
-          remoteAddress: remoteIP,
-          remotePort,
-        });
+    this.buildConnection({
+      // will emit 'connection'
+      rawConnection: {
+        req,
+        res,
+        params: {},
+        method,
+        cookies,
+        responseHeaders,
+        responseHttpCode,
+        parsedURL,
       },
-    );
+      id: `${fingerprint}-${uuid.v4()}`,
+      fingerprint,
+      remoteAddress: remoteIP,
+      remotePort,
+    });
   }
 
   /**

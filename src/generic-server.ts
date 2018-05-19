@@ -101,13 +101,11 @@ export abstract class GenericServer extends EventEmitter {
    * @param connection Connection object.
    */
   public processAction(connection) {
-    // create a new action processor instance for this request
-    const ActionProcessor = this.api.actionProcessor;
+    const ActionProcessor = this.api.ActionProcessor;
     const actionProcessor = new ActionProcessor(this.api, connection, data => {
       this.emit('actionComplete', data);
     });
 
-    // process the request
     actionProcessor.processAction();
   }
 

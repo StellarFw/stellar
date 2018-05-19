@@ -2,6 +2,10 @@ import { Satellite } from '../satellite';
 import Connection from '../connection';
 import ActionInterface from '../action.interface';
 import { LogLevel } from '../log-level.enum';
+import { EngineStatus } from '../engine-status.enum';
+import { timingSafeEqual } from 'crypto';
+
+type ActionProcessorCallback = (data: any) => void;
 
 enum ActionStatus {
   SERVER_ERROR = 'server_error',
@@ -80,16 +84,34 @@ class ActionProcessor {
   private duration: number = null;
 
   /**
+   * Timeout identifier.
+   */
+  private timeoutTimer: NodeJS.Timer;
+
+  /**
+   * To ensure that the action won't respond twice when an timeout error
+   * is thrown.
+   */
+  private errorRendered: boolean = false;
+
+  private callback: ActionProcessorCallback = null;
+
+  /**
    * Create a new action processor instance.
    *
    * @param api API reference.
    * @param connection Connection object.
    */
-  constructor(api: {}, connection: Connection) {
+  constructor(
+    api: {},
+    connection: Connection,
+    callback?: ActionProcessorCallback,
+  ) {
     this.api = api;
     this.connection = connection;
     this.messageCount = connection.messageCount;
     this.params = connection.params;
+    this.callback = callback;
   }
 
   /**
@@ -122,7 +144,7 @@ class ActionProcessor {
    *
    * @param status Action status or an error.
    */
-  public completeAction(status: ActionStatus | Error) {
+  public completeAction(status?: ActionStatus | Error) {
     let error = null;
 
     if (status instanceof Error) {
@@ -169,6 +191,10 @@ class ActionProcessor {
 
     this.incrementPendingActions(-1);
     this.duration = new Date().getTime() - this.actionStartTime;
+
+    if (this.callback) {
+      this.callback(this);
+    }
 
     this.working = false;
     this.logAction(error);
@@ -265,6 +291,53 @@ class ActionProcessor {
   }
 
   /**
+   * Process the action.
+   */
+  public processAction(): void {
+    // Initialize processing environment
+    this.actionStartTime = new Date().getTime();
+    this.working = true;
+    this.incrementTotalActions();
+    this.incrementPendingActions();
+    this.action = this.params.action;
+
+    if (this.api.actions.versions[this.action]) {
+      if (!this.params.apiVersion) {
+        this.params.apiVersion = this.api.actions.versions[this.action][
+          this.api.actions.versions[this.action].length - 1
+        ];
+      }
+
+      this.actionTemplate = this.api.actions.actions[this.action][
+        this.params.apiVersion
+      ];
+    }
+
+    if (this.api.status !== EngineStatus.Running) {
+      this.completeAction(ActionStatus.SERVER_SHUTTING_DOWN);
+    } else if (
+      this.getPendingActionCount() >
+      this.api.configs.general.simultaneousActions
+    ) {
+      this.completeAction(ActionStatus.TOO_MANY_REQUESTS);
+    } else if (!this.action || !this.actionTemplate) {
+      this.completeAction(ActionStatus.UNKNOWN_ACTION);
+    } else if (
+      this.actionTemplate.blockedConnectionTypes &&
+      this.actionTemplate.blockedConnectionTypes.includes(this.connection.type)
+    ) {
+      this.completeAction(ActionStatus.UNSUPPORTED_SERVER_TYPE);
+    } else {
+      try {
+        this.runAction();
+      } catch (error) {
+        this.api.exceptionHandlers.action(error, this);
+        this.completeAction(ActionStatus.SERVER_ERROR);
+      }
+    }
+  }
+
+  /**
    * Validate call params with the action requirements.
    */
   private validateParams() {
@@ -333,7 +406,33 @@ class ActionProcessor {
     }
   }
 
+  private actionTimeout(): void {
+    this.completeAction(ActionStatus.RESPONSE_TIMEOUT);
+    this.errorRendered = true;
+  }
+
+  /**
+   * Operations to be performed after the action execution
+   */
+  private async postProcessAction(): Promise<void> {
+    const processorNames = this.api.actions.globalMiddleware.slice(0);
+
+    if (this.actionTemplate.middleware) {
+      this.actionTemplate.middleware.forEach(m => {
+        processorNames.push(m);
+      });
+    }
+
+    for (const name of processorNames) {
+      await this.api.actions.middleware[name].postProcessor(this);
+    }
+  }
+
+  /**
+   * Run action.
+   */
   public async runAction(): Promise<void> {
+    console.log('>>>>>>> AQUI');
     try {
       await this.preProcessAction();
     } catch (error) {
@@ -352,7 +451,42 @@ class ActionProcessor {
 
     // Ignore when the action is marked to don't be processed
     if (this.toProcess !== true) {
+      this.completeAction(ActionStatus.OTHER);
       return;
+    }
+
+    // Create a time that will be used to timeout the action if needed,
+    // When the timeout is reached an error is thrown and sent to the
+    // client.
+    this.timeoutTimer = setTimeout(
+      this.actionTimeout.bind(this),
+      this.api.configs.general.actionTimeout,
+    );
+
+    console.log('>>> AQUI', this.actionTemplate);
+
+    let response = null;
+    try {
+      response = await this.actionTemplate.run(this.api, this);
+    } catch (error) {
+      clearTimeout(this.timeoutTimer);
+      this.completeAction(error);
+      return;
+    }
+
+    // Clear the timeout timer
+    clearTimeout(this.timeoutTimer);
+
+    // When the error rendered flag is set we don't send a response
+    if (this.errorRendered) {
+      return;
+    }
+
+    try {
+      await this.postProcessAction();
+      this.completeAction();
+    } catch (error) {
+      this.completeAction(error);
     }
   }
 }

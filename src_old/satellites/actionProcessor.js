@@ -85,64 +85,6 @@ class ActionProcessor {
   }
 
   /**
-   * Operations to be performed after the action execution.
-   *
-   * @param callback
-   */
-  postProcessAction (callback) {
-    let self = this
-    let processors = []
-    let processorNames = self.api.actions.globalMiddleware.slice(0)
-
-    if (self.actionTemplate.middleware) { self.actionTemplate.middleware.forEach(m => { processorNames.push(m) }) }
-
-    processorNames.forEach(name => {
-      if (typeof self.api.actions.middleware[ name ].postProcessor === 'function') {
-        processors.push(next => { self.api.actions.middleware[ name ].postProcessor(self, next) })
-      }
-    })
-
-    async.series(processors, callback)
-  }
-
-  /**
-   * Process the action.
-   */
-  processAction () {
-    let self = this
-
-    // initialize the processing environment
-    self.actionStartTime = new Date().getTime()
-    self.working = true
-    self.incrementTotalActions()
-    self.incrementPendingActions()
-    self.action = self.params.action
-
-    if (self.api.actions.versions[ self.action ]) {
-      if (!self.params.apiVersion) {
-        self.params.apiVersion = self.api.actions.versions[ self.action ][ self.api.actions.versions[ self.action ].length - 1 ]
-      }
-      self.actionTemplate = self.api.actions.actions[ self.action ][ self.params.apiVersion ]
-    }
-
-    if (self.api.status !== 'running') {
-      self.completeAction('server_shutting_down')
-    } else if (self.getPendingActionCount(self.connection) > self.api.config.general.simultaneousActions) {
-      self.completeAction('too_many_requests')
-    } else if (!self.action || !self.actionTemplate) {
-      self.completeAction('unknown_action')
-    } else if (self.actionTemplate.blockedConnectionTypes && self.actionTemplate.blockedConnectionTypes.indexOf(self.connection.type) >= 0) {
-      self.completeAction('unsupported_server_type')
-    } else {
-      try {
-        self.runAction()
-      } catch (err) {
-        self.api.exceptionHandlers.action(err, self, () => self.completeAction('server_error'))
-      }
-    }
-  }
-
-  /**
    * Run an action.
    */
   runAction () {

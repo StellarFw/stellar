@@ -330,7 +330,7 @@ export default class RoutesSatellite extends Satellite {
   }
 
   public async load(): Promise<void> {
-    this.api.router = this;
+    this.api.routes = this;
 
     this.loadModulesRoutes();
   }

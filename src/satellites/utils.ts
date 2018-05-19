@@ -475,6 +475,36 @@ class Utils {
       return false;
     }
   }
+
+  /**
+   * Check if the given var is an object.
+   *
+   * @param arg Var to test.
+   */
+  public isObject(arg: any): boolean {
+    return typeof arg === 'object' && arg !== null;
+  }
+
+  /**
+   * Convert an object to string.
+   *
+   * @param o Object to be converted.
+   */
+  public objectToString(o: object): string {
+    return Object.prototype.toString.call(o);
+  }
+
+  /**
+   * Check if the given argument is an Error.
+   *
+   * @param e Possible error object.
+   */
+  public isError(e: any) {
+    return (
+      this.isObject(e) &&
+      (this.objectToString(e) === '[object Error]' || e instanceof Error)
+    );
+  }
 }
 
 export default class UtilsSatellite extends Satellite {
