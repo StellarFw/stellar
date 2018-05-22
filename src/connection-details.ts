@@ -44,6 +44,11 @@ export default interface ConnectionDetails {
   respondingTo?: any;
 
   /**
+   * Response object to sent to the client.
+   */
+  response?: any;
+
+  /**
    * Number of pending actions that are waiting by a response.
    */
   pendingActions?: number;
@@ -67,4 +72,9 @@ export default interface ConnectionDetails {
    * Destroy method.
    */
   destroy?: () => void;
+
+  /**
+   * Execute a verb for this connection.
+   */
+  verbs?: (verb: string, words: Array<string>) => Promise<any>;
 };

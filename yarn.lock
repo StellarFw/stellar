@@ -1180,6 +1180,10 @@ nan@2.6.2:
   version "2.6.2"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.6.2.tgz#e4ff34e6c95fdfb5aecc08de6596f43605a7db45"
 
+nanoid@~1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-1.0.2.tgz#15d2b5e76b6dbfb15cac1000cb457d4bfc845bdb"
+
 nedb@1.8.0:
   version "1.8.0"
   resolved "https://registry.yarnpkg.com/nedb/-/nedb-1.8.0.tgz#0e3502cd82c004d5355a43c9e55577bd7bd91d88"
@@ -1314,9 +1318,9 @@ prettier@^1.11.1:
   version "1.11.1"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-1.11.1.tgz#61e43fc4cd44e68f2b0dfc2c38cd4bb0fccdcc75"
 
-primus@^7.1.1:
-  version "7.1.1"
-  resolved "https://registry.yarnpkg.com/primus/-/primus-7.1.1.tgz#c2f4efa6e49b2bccbcb996af43b614d6ce43692d"
+primus@7.2.0:
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/primus/-/primus-7.2.0.tgz#83259c0e183eb883dd215207af966cdec2fd410e"
   dependencies:
     access-control "~1.0.0"
     asyncemit "~3.0.1"
@@ -1325,9 +1329,9 @@ primus@^7.1.1:
     eventemitter3 "~3.0.0"
     forwarded-for "~1.0.1"
     fusing "~1.0.0"
+    nanoid "~1.0.2"
     setheader "~0.0.4"
     ultron "~1.1.0"
-    yeast "~0.1.2"
 
 process-nextick-args@~2.0.0:
   version "2.0.0"
@@ -1337,7 +1341,11 @@ punycode@^1.4.1:
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-1.4.1.tgz#c0d5a63b2718800ad8e1eb0fa5269c84dd41845e"
 
-qs@^6.5.1, qs@~6.5.1:
+qs@6.5.2:
+  version "6.5.2"
+  resolved "https://registry.yarnpkg.com/qs/-/qs-6.5.2.tgz#cb3ae806e8740444584ef154ce8ee98d403f3e36"
+
+qs@~6.5.1:
   version "6.5.1"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.5.1.tgz#349cdf6eef89ec45c12d7d5eb3fc0c870343a6d8"
 
@@ -1874,7 +1882,3 @@ yargs@~3.10.0:
     cliui "^2.1.0"
     decamelize "^1.0.0"
     window-size "0.1.0"
-
-yeast@~0.1.2:
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/yeast/-/yeast-0.1.2.tgz#008e06d8094320c372dbc2f8ed76a0ca6c8ac419"

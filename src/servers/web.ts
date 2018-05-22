@@ -37,7 +37,7 @@ export default class WebServer extends GenericServer {
   /**
    * HTTP server.
    */
-  private server: HTTPServer | SecureServer;
+  public server: HTTPServer | SecureServer;
 
   /**
    * BrowserFingerprint instance.
