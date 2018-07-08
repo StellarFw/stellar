@@ -13,7 +13,7 @@ import formidable from 'st-formidable';
 import Mime from 'mime';
 import * as qs from 'qs';
 import * as uuid from 'uuid';
-import etag from 'etag';
+import * as etag from 'etag';
 import * as zlib from 'zlib';
 import { Stream } from 'stream';
 import { parse } from 'url';
