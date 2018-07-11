@@ -34,9 +34,6 @@ export enum ClientState {
   Timeout = 'timeout',
 }
 
-// Save the original emit method to use as local event emitter.
-const _emit = Primus.emit;
-
 export class BuildEvent {
   /**
    * Client instance.
@@ -141,7 +138,7 @@ export class BuildEvent {
   }
 }
 
-export default class Stellar extends Primus {
+export default class Stellar extends Primus.EventEmitter {
   /**
    * Client identifier.
    */
@@ -185,7 +182,7 @@ export default class Stellar extends Primus {
   /**
    * Dictionary of callbacks.
    */
-  private callbacks: any;
+  private callbacks: any = [];
 
   private fingerprint: string;
 
@@ -194,8 +191,19 @@ export default class Stellar extends Primus {
    */
   private pendingRequestsQueue: Array<Function>;
 
-  constructor(options: any, client: any) {
+  /**
+   * Create a new Stellar client instance.
+   *
+   * @param options Option to be passed to the new Stellar
+   *  client instance.
+   * @param client Optional client that can be given to be
+   *  used as a connection with the server.
+   */
+  constructor(options: any, client: any = null) {
     super();
+
+    // Save the original emit method to use as local event emitter.
+    this._emit = super.emit;
 
     // Fill options with the default ones and after it
     // merge with the ones passed by parameter to allow
@@ -225,12 +233,12 @@ export default class Stellar extends Primus {
     return '%%DEFAULTS%%';
   }
 
-  private setEventHandler() {
+  private setEventHandler(): Promise<ConnectionDetailsInterface> {
     const promise = new Promise((resolve, reject) => {
       this.client.on('open', async () => {
         const details = await this.configure();
 
-        if (this.state === ClientState.Connected) {
+        if (this.state !== ClientState.Connected) {
           this.state = ClientState.Connected;
           resolve(details);
         }
@@ -260,10 +268,12 @@ export default class Stellar extends Primus {
       this._emit('timeout');
     });
 
-    return promise;
+    this.client.on('data', this._handleMessage.bind(this));
+
+    return promise as Promise<ConnectionDetailsInterface>;
   }
 
-  public connect() {
+  public connect(): Promise<ConnectionDetailsInterface> {
     this.messageCount = 0;
 
     if (this.client && !this.useExternalClient) {
@@ -293,6 +303,37 @@ export default class Stellar extends Primus {
     });
   }
 
+  private _handleMessage(message: any): void {
+    this._emit('message', message);
+
+    if (message.context === 'response') {
+      if (typeof this.callbacks[message.messageCount] === 'function') {
+        this.callbacks[message.messageCount](message);
+      }
+
+      delete this.callbacks[message.messageCount];
+    } else if (message.context === 'user') {
+      this._emit('say', message);
+
+      if (message.message.event) {
+        const packet = message.message;
+
+        // emit event into global scope
+        this._emit(packet.event, packet.data, message);
+
+        // emit an event specific for the given room
+        this._emit(`[${message.room}].${packet.event}`, packet.data, message);
+      }
+    } else if (message.context === 'alert') {
+      this._emit('alert', message);
+    } else if (message.welcome && message.context === 'api') {
+      this.welcomeMessage = message.welcome;
+      this._emit('welcome', message);
+    } else if (message.context === 'api') {
+      this._emit('api', message);
+    }
+  }
+
   public async configure(): Promise<ConnectionDetailsInterface> {
     if (this.options.rooms) {
       this.options.rooms.forEach(room => this.send({ event: 'roomAdd', room }));
@@ -306,10 +347,6 @@ export default class Stellar extends Primus {
     this.rooms = details.data.rooms;
 
     return details.data;
-  }
-
-  private _emit(event: string, data: any = null) {
-    return _emit.call(this, event, data);
   }
 
   /**

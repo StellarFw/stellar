@@ -7,11 +7,34 @@
   <title>Example App</title>
 </head>
 <body>
+  <div id="output"></div>
+
   <script src="//localhost:8080/stellar-client"></script>
 
   <script>
-    const client = new StellarClient();
-    console.log('>>>', client);
+    const outputElement = document.querySelector("#output");
+    const printOut = (title, content) => {
+      const contentStringified = JSON.stringify(content);
+      const newEntryHtml = `
+        <p>
+          <b>${title}</b>
+          <br>
+          ${contentStringified}
+        </p>
+      `;
+      outputElement.innerHTML += newEntryHtml;
+    };
+
+    const client = new Stellar({
+      url: 'http://localhost:8080'
+    });
+    window.client = client;
+
+    (async () => {
+      await client.connect();
+
+      printOut('detailsView', await client.detailsView());
+    })();
   </script>
 </body>
 </html>

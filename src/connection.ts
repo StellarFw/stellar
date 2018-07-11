@@ -244,7 +244,7 @@ export default class Connection {
     verb: string,
     words: string | Array<string> = [],
   ): Promise<any> {
-    const server = this.api.servers.servers[this.type];
+    const server = this.api.servers.servers.get(this.type);
 
     let key;
     let value;

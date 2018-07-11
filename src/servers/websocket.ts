@@ -71,8 +71,8 @@ export default class WebSocketServer extends GenericServer {
     connection: ConnectionDetails,
     data: any,
   ): Promise<void> {
-    const verb = data.verb;
-    delete data.verb;
+    const verb = data.event;
+    delete data.event;
 
     connection.messageCount += 1;
     connection.params = {};
@@ -106,7 +106,7 @@ export default class WebSocketServer extends GenericServer {
 
         // TODO: maybe convert this to a more ES7 way of doing things
         for (const index in data) {
-          if (!data.hasOwnProperty(index)) {
+          if (data.hasOwnProperty(index)) {
             words.push(data[index]);
           }
         }
@@ -136,8 +136,8 @@ export default class WebSocketServer extends GenericServer {
 
     this.buildConnection({
       rawConnection,
-      removeAddress: rawConnection.address.ip,
-      removePort: rawConnection.address.port,
+      remoteAddress: rawConnection.address.ip,
+      remotePort: rawConnection.address.port,
       fingerprint,
     });
   }
@@ -334,7 +334,7 @@ export default class WebSocketServer extends GenericServer {
       ;;;\r\n
       (function (exports){ \r\n
         ${clientSource} \r\n
-        exports.StellarClient = StellarClient;\r\n
+        exports.Stellar = Stellar;\r\n
       })(typeof exports === 'undefined' ? window : exports);
     `;
 
