@@ -7,7 +7,7 @@
   <title>Example App</title>
 </head>
 <body>
-  <div id="output"></div>
+  <code id="output"></code>
 
   <script src="//localhost:8080/stellar-client"></script>
 
@@ -17,7 +17,7 @@
       const contentStringified = JSON.stringify(content);
       const newEntryHtml = `
         <p>
-          <b>${title}</b>
+          <strong>${title}</strong>
           <br>
           ${contentStringified}
         </p>
@@ -34,6 +34,7 @@
       await client.connect();
 
       printOut('detailsView', await client.detailsView());
+      printOut('action', await client.action('formattedSum'));
     })();
   </script>
 </body>

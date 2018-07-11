@@ -24,6 +24,8 @@ export interface ConnectionDetailsResponse {
   data: ConnectionDetailsInterface;
 }
 
+export type Interceptor = (params: any, next: Function) => void;
+
 /**
  * Possible states for the client.
  */
@@ -190,6 +192,18 @@ export default class Stellar extends Primus.EventEmitter {
    * Pending requests queue.
    */
   private pendingRequestsQueue: Array<Function>;
+
+  /**
+   * Array of interceptors.
+   *
+   * This is used to process before and after an action call.
+   */
+  private interceptors: Array<Interceptor> = [];
+
+  /**
+   * Number of pending requests.
+   */
+  private pendingRequestsCounter: number = 0;
 
   /**
    * Create a new Stellar client instance.
@@ -477,5 +491,97 @@ export default class Stellar extends Primus.EventEmitter {
     this.state = ClientState.Disconnect;
     this.client.end();
     this._emit('disconnected');
+  }
+
+  private async _actionWeb(): Promise<any> {
+    console.log('>>> AQUI1');
+  }
+  private async _actionWebSocket(): Promise<any> {
+    console.log('>>> AQUI2');
+  }
+
+  public action(action: string, params: any = {}): Promise<any> {
+    return new Promise((resolve, reject) => {
+      // contains the reference for the current handler
+      let handler = null;
+
+      // array with the request interceptor. We need to make a copy to keep the
+      // original array intact
+      const reqHandlers = this.interceptors.slice(0);
+
+      // array with the response handlers. this is local to avoid repetition
+      const resHandlers = [];
+
+      // sets the parameter action, in case of the action call be done over HTTP.
+      params.action = action;
+
+      const next = (response: any = null, error: Error = null) => {
+        if (error !== undefined && error !== null) {
+          resHandlers.forEach(h => h.call(this, error));
+          return reject(error);
+        }
+
+        if (isFunction(response)) {
+          resHandlers.unshift(response);
+        } else if (isObject(response)) {
+          resHandlers.forEach(h => h.call(this, response));
+          return resolve(response);
+        }
+
+        exec();
+      };
+
+      const exec = () => {
+        // if there is no more request handlers to process we must perform the
+        // request
+        if (reqHandlers.length === 0) {
+          let method = null;
+
+          // If the client is connected the call should be done by WebSocket
+          // otherwise we use HTTP
+          if (this.state !== ClientState.Connected) {
+            method = this._actionWeb;
+          } else {
+            method = this._actionWebSocket;
+          }
+
+          this.pendingRequestsCounter += 1;
+
+          const processRequest = async () => {
+            try {
+              const response = await method.call(this, params);
+              next(response);
+            } catch (error) {
+              next(null, error);
+            }
+
+            this.pendingRequestsCounter -= 1;
+            this.processNextPendingRequest();
+          };
+
+          // if the number of pending request is bigger than the server
+          // limit, the request must be placed on the a queue to be
+          // processed later.
+          if (this.pendingRequestsCounter >= this.options.simultaneousActions) {
+            return this.pendingRequestsQueue.push(processRequest);
+          }
+
+          return processRequest();
+        }
+
+        handler = reqHandlers.pop();
+        if (isFunction(handler)) {
+          handler.call(this, params, next, reject);
+        } else {
+          warn(
+            `Invalid interceptor of type ${typeof handler}, must be a function`,
+          );
+          next();
+        }
+      };
+
+      // Start processing the interceptors
+      exec();
+    });
   }
 }
