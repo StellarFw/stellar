@@ -124,7 +124,7 @@ export default class StaticFileServer extends Satellite {
   private logRequest(
     file: string,
     connection: ConnectionDetails,
-    length?: string,
+    length?: number,
     duration?: number,
     success: boolean = true,
   ) {
