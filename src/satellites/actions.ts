@@ -2,6 +2,7 @@ import { Satellite } from '../satellite';
 import ActionInterface from '../action.interface';
 import { LogLevel } from '../log-level.enum';
 import MiddlewareInterface from '../middleware.interface';
+import Connection from '../connection';
 
 export interface VersionActionMap {
   [key: number]: ActionInterface;
@@ -73,42 +74,29 @@ export default class ActionsSatellite extends Satellite {
    * @return Promise
    */
   public call(actionName: string, params: any = {}) {
-    // get connection class
-    const ConnectionClass = this.api.connection;
-
-    // create a new connection object
-    const connection = new ConnectionClass(this.api, {
+    const connection = new Connection(this.api, {
       type: 'internal',
       remotePort: 0,
       remoteIP: 0,
       rawConnection: {},
     });
 
-    // set connection params
     connection.params = params;
-
-    // set action who must be called
     connection.params.action = actionName;
 
-    // get action processor class
-    const ActionProcessor = this.api.actionProcessor;
-
-    // return a promise
+    const ActionProcessor = this.api.ActionProcessor;
     return new Promise((resolve, reject) => {
-      // create a new ActionProcessor instance
       const actionProcessor = new ActionProcessor(
         this.api,
         connection,
         data => {
-          // destroy the connection and resolve of reject the promise
-          connection.destroy(() => {
-            if (data.response.error !== undefined) {
-              return reject(data.response.error);
-            }
+          connection.destroy();
+          if (data.response.error !== undefined) {
+            return reject(data.response.error);
+          }
 
-            resolve(data.response);
-          });
-        }
+          resolve(data.response);
+        },
       );
 
       // process the action
@@ -262,7 +250,7 @@ export default class ActionsSatellite extends Satellite {
 
     // watch for changes on the middleware file
     this.api.configs.watchFileAndAct(path, () =>
-      this.loadMiddlewareFromFile(path, true)
+      this.loadMiddlewareFromFile(path, true),
     );
 
     try {
@@ -307,7 +295,7 @@ export default class ActionsSatellite extends Satellite {
       if (Array.isArray(group.modules)) {
         group.modules.forEach(modulesName => {
           actions = actions.concat(
-            this.api.modules.moduleActions.get(modulesName) || []
+            this.api.modules.moduleActions.get(modulesName) || [],
           );
         });
       }
@@ -350,7 +338,7 @@ export default class ActionsSatellite extends Satellite {
 
     // apply the changes of all founded groups
     groupNames.forEach(groupName =>
-      this.applyGroupModToAction(groupName, action)
+      this.applyGroupModToAction(groupName, action),
     );
   }
 
@@ -456,7 +444,7 @@ export default class ActionsSatellite extends Satellite {
       this.api.utils
         .recursiveDirSearch(`${modulePath}/actions`)
         .forEach(actionFile =>
-          this.api.actions.loadFile(actionFile, moduleName)
+          this.api.actions.loadFile(actionFile, moduleName),
         );
     });
   }
@@ -502,7 +490,7 @@ export default class ActionsSatellite extends Satellite {
       this.api.connections.allowedVerbs.indexOf(action.name) >= 0
     ) {
       fail(
-        `${action.run} is a reserved verb for connections. Choose a new name`
+        `${action.run} is a reserved verb for connections. Choose a new name`,
       );
       return false;
     } else {
@@ -559,7 +547,7 @@ export default class ActionsSatellite extends Satellite {
 
         // when the modifier file changes we must reload the entire server
         this.api.config.watchFileAndAct(modPath, () =>
-          this.api.commands.restart()
+          this.api.commands.restart(),
         );
       }
     });

@@ -191,7 +191,7 @@ export default class Stellar extends Primus.EventEmitter {
   /**
    * Pending requests queue.
    */
-  private pendingRequestsQueue: Array<Function>;
+  private pendingRequestsQueue: Array<Function> = [];
 
   /**
    * Array of interceptors.
@@ -496,8 +496,20 @@ export default class Stellar extends Primus.EventEmitter {
   private async _actionWeb(): Promise<any> {
     console.log('>>> AQUI1');
   }
-  private async _actionWebSocket(): Promise<any> {
-    console.log('>>> AQUI2');
+
+  /**
+   * Send an action call request by WebSocket.
+   *
+   * @param params Call parameters.
+   */
+  private async _actionWebSocket(params: any): Promise<any> {
+    const response = await this.send({ event: 'action', params });
+
+    if (response.error !== undefined) {
+      throw response;
+    }
+
+    return response;
   }
 
   public action(action: string, params: any = {}): Promise<any> {

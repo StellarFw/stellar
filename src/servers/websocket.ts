@@ -81,7 +81,7 @@ export default class WebSocketServer extends GenericServer {
       case 'action':
         connection.params = {
           ...connection.params,
-          ...data.param,
+          ...data.params,
         };
 
         connection.error = null;

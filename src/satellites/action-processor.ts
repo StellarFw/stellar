@@ -432,7 +432,6 @@ class ActionProcessor {
    * Run action.
    */
   public async runAction(): Promise<void> {
-    console.log('>>>>>>> AQUI');
     try {
       await this.preProcessAction();
     } catch (error) {
@@ -462,8 +461,6 @@ class ActionProcessor {
       this.actionTimeout.bind(this),
       this.api.configs.general.actionTimeout,
     );
-
-    console.log('>>> AQUI', this.actionTemplate);
 
     let response = null;
     try {
