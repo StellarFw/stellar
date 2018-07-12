@@ -31,10 +31,18 @@
     window.client = client;
 
     (async () => {
+      printOut('action', await client.action('formattedSum', {
+        a: 50,
+        b: 60
+      }));
+
       await client.connect();
 
       printOut('detailsView', await client.detailsView());
-      printOut('action', await client.action('formattedSum'));
+      printOut('action', await client.action('formattedSum', {
+        a: 5,
+        b: 10
+      }));
     })();
   </script>
 </body>

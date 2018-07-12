@@ -9,7 +9,7 @@ import { LogLevel } from '../log-level.enum';
 import { normalize, sep } from 'path';
 import * as BrowserFingerprint from 'browser_fingerprint';
 import ConnectionDetails from '../connection-details';
-import formidable from 'st-formidable';
+import * as formidable from 'st-formidable';
 import Mime from 'mime';
 import * as qs from 'qs';
 import * as uuid from 'uuid';

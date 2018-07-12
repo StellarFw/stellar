@@ -23,12 +23,8 @@ module.exports = [
     // make this action private (this only can be called internally)
     private: true,
 
-    run (api, action, next) {
-      // make the sum calculation
+    run (api, action) {
       action.response.result = action.params.a + action.params.b
-
-      // finish the action execution
-      next()
     }
   },
 

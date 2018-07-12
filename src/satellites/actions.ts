@@ -99,7 +99,6 @@ export default class ActionsSatellite extends Satellite {
         },
       );
 
-      // process the action
       actionProcessor.processAction();
     });
   }
