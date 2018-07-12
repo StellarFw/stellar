@@ -1,4 +1,7 @@
 declare const Primus;
+declare const Headers;
+declare const Request;
+declare function fetch(request: any): Promise<any>;
 
 import { callbackify } from 'util';
 import { timingSafeEqual } from 'crypto';
@@ -493,8 +496,45 @@ export default class Stellar extends Primus.EventEmitter {
     this._emit('disconnected');
   }
 
-  private async _actionWeb(): Promise<any> {
-    console.log('>>> AQUI1');
+  /**
+   * Call an action using a normal HTTP connection though Fetch API.
+   */
+  private async _actionWeb(params: any): Promise<any> {
+    const method = ((params.httpMethod || 'POST') as string).toUpperCase();
+    let url = `${this.options.url}${(this, this.options.apiPath)}?action=${
+      params.action
+    }`;
+
+    // When it's a GET request we must append the params to the URL address
+    if (method === 'GET') {
+      for (const param in params) {
+        if (['action', 'httpMethod'].includes(param)) {
+          continue;
+        }
+        url += `&${param}=${params[param]}`;
+      }
+    }
+
+    const options: any = {
+      method,
+      mode: 'cors',
+      headers: new Headers({
+        'Content-Type': 'application/json',
+      }),
+    };
+
+    if (method === 'POST') {
+      options.body = JSON.stringify(params);
+    }
+
+    const request = new Request(url, options);
+    const response = await fetch(request);
+    const responseInJson = response.json();
+    if (response.status !== 200) {
+      throw await responseInJson;
+    }
+
+    return responseInJson;
   }
 
   /**
@@ -512,6 +552,17 @@ export default class Stellar extends Primus.EventEmitter {
     return response;
   }
 
+  /**
+   * Call an action.
+   *
+   * If this client instance are connected though a WebSocket we use that
+   * connection to made the request, otherwise use a normal HTTP request,
+   * using the Fetch API. This makes possible call actions as soon as
+   * the lib is loaded.
+   *
+   * @param action Name of the action to be called.
+   * @param params Action parameters.
+   */
   public action(action: string, params: any = {}): Promise<any> {
     return new Promise((resolve, reject) => {
       // contains the reference for the current handler
