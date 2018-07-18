@@ -1,6 +1,6 @@
 import { Satellite } from '../satellite';
 
-const Messages = require('../../staticFiles/validator-messages.json');
+const Messages = require('../../static-files/validator-messages.json');
 
 /**
  * This class is used to describe an invalid argument exceptions.
