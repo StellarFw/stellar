@@ -6,8 +6,21 @@ import { LogLevel } from "../log-level.enum";
 export default class LoggerSatellite extends Satellite {
   public loadPriority: number = 120;
 
+  /**
+   * Create the folder to store the log files.
+   */
+  private createLogsFolder(): void {
+    const logsDir = this.api.configs.general.paths.log;
+
+    if (!this.api.utils.dirExists(logsDir)) {
+      this.api.utils.createDir(logsDir);
+    }
+  }
+
   public async load(): Promise<void> {
     const transports = [];
+
+    this.createLogsFolder();
 
     // load all transports
     this.api.configs.logger.transports.forEach(transport => {
