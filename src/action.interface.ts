@@ -1,4 +1,4 @@
-import { LogLevel } from './log-level.enum';
+import { LogLevel } from "./log-level.enum";
 
 export type ActionRunFunction = (api: any, action: any) => Promise<any>;
 

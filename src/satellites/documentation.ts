@@ -1,10 +1,10 @@
-import { Satellite } from '../satellite';
-import { readFileSync, writeFileSync } from 'fs';
-import * as Handlebars from 'handlebars';
-import ActionInterface from '../action.interface';
+import { Satellite } from "../satellite";
+import { readFileSync, writeFileSync } from "fs";
+import * as Handlebars from "handlebars";
+import ActionInterface from "../action.interface";
 
 export default class DocumentationSatellite extends Satellite {
-  protected _name: string = 'documentation';
+  protected _name: string = "documentation";
   public loadPriority: number = 710;
 
   /**
@@ -110,7 +110,7 @@ export default class DocumentationSatellite extends Satellite {
       writeFileSync(
         `${this.docsFolder}/action_${actionName}.html`,
         template(data),
-        'utf8',
+        "utf8",
       );
     }
 
@@ -130,8 +130,8 @@ export default class DocumentationSatellite extends Satellite {
       const task = this.api.tasks.tasks[key];
       tasks.push({
         name: task.name,
-        description: task.description || 'N/A',
-        frequency: task.frequency || '-',
+        description: task.description || "N/A",
+        frequency: task.frequency || "-",
       });
     });
 
@@ -158,7 +158,7 @@ export default class DocumentationSatellite extends Satellite {
 
     const template = Handlebars.compile(templateFile);
 
-    writeFileSync(`${this.docsFolder}/index.html`, template(data), 'utf8');
+    writeFileSync(`${this.docsFolder}/index.html`, template(data), "utf8");
   }
 
   /**
@@ -209,26 +209,26 @@ export default class DocumentationSatellite extends Satellite {
         const input = action.inputs[inputName];
 
         newInput.name = inputName;
-        newInput.description = input.description || 'N/A';
-        newInput.default = input.default || 'N/A';
+        newInput.description = input.description || "N/A";
+        newInput.default = input.default || "N/A";
 
         newInput.validators = [];
 
         if (!(input.required === undefined || input.required === false)) {
-          newInput.validators.push({ type: 'required', value: 'required' });
+          newInput.validators.push({ type: "required", value: "required" });
         }
 
         // Validators
-        if (typeof input.validator === 'function') {
-          newInput.validators.push({ type: 'function', value: 'function' });
+        if (typeof input.validator === "function") {
+          newInput.validators.push({ type: "function", value: "function" });
         } else if (input.validator instanceof RegExp) {
           newInput.validators.push({
-            type: 'regex',
+            type: "regex",
             value: String(input.validator),
           });
-        } else if (typeof input.validator === 'string') {
+        } else if (typeof input.validator === "string") {
           // the validator string can have many validators separated by '|', we need to split them
-          const validators = input.validator.split('|');
+          const validators = input.validator.split("|");
 
           for (const index in validators) {
             if (!validators.hasOwnProperty(index)) {
@@ -236,7 +236,7 @@ export default class DocumentationSatellite extends Satellite {
             }
 
             newInput.validators.push({
-              type: 'validator',
+              type: "validator",
               value: validators[index],
             });
           }

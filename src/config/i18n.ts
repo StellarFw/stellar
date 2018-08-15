@@ -4,7 +4,7 @@ export default {
       // ---------------------------------------------------------------------
       // Active locales
       // ---------------------------------------------------------------------
-      locales: ['en'],
+      locales: ["en"],
 
       // ---------------------------------------------------------------------
       // Fallbacks
@@ -21,14 +21,14 @@ export default {
       // ---------------------------------------------------------------------
       // Configure logging and error messages in the log(s)
       // ---------------------------------------------------------------------
-      defaultLocale: 'en',
+      defaultLocale: "en",
 
       // ---------------------------------------------------------------------
       // Method used to determine the connection's locale.
       //
       // By default, every request will be in the 'en' locale
       // ---------------------------------------------------------------------
-      determineConnectionLocale: 'api.i18n.determineConnectionLocale',
+      determineConnectionLocale: "api.i18n.determineConnectionLocale",
     };
   },
 };

@@ -28,7 +28,7 @@ export default {
           },
           helper: error => {
             if (api.utils.isError(error)) {
-              return 'Error: ' + String(error.message);
+              return "Error: " + String(error.message);
             }
 
             return error;
@@ -41,8 +41,8 @@ export default {
       // ---------------------------------------------------------------------
       serverErrorMessage() {
         return {
-          code: '001',
-          message: 'The server experienced an internal error',
+          code: "001",
+          message: "The server experienced an internal error",
         };
       },
 
@@ -51,7 +51,7 @@ export default {
       // ---------------------------------------------------------------------
       privateActionCalled(actionName) {
         return {
-          code: '002',
+          code: "002",
           message: `The action '${actionName}' is private`,
         };
       },
@@ -72,7 +72,7 @@ export default {
       // ---------------------------------------------------------------------
       paramInvalidType(paramName, expected) {
         return {
-          code: '003',
+          code: "003",
           message: `Param '${paramName}' has an invalid type, expected ${expected}`,
         };
       },
@@ -82,7 +82,7 @@ export default {
       // ---------------------------------------------------------------------
       unknownAction(action) {
         return {
-          code: '004',
+          code: "004",
           message: `Unknown action (${action}) or invalid apiVersion`,
         };
       },
@@ -92,7 +92,7 @@ export default {
       // ---------------------------------------------------------------------
       unsupportedServerType(type) {
         return {
-          code: '005',
+          code: "005",
           message: `This action does not support the ${type} connection type`,
         };
       },
@@ -102,8 +102,8 @@ export default {
       // ---------------------------------------------------------------------
       serverShuttingDown() {
         return {
-          code: '006',
-          message: 'The server is shutting down',
+          code: "006",
+          message: "The server is shutting down",
         };
       },
 
@@ -115,8 +115,8 @@ export default {
       // ---------------------------------------------------------------------
       tooManyPendingActions() {
         return {
-          code: '007',
-          message: 'You have too many pending requests',
+          code: "007",
+          message: "You have too many pending requests",
         };
       },
 
@@ -128,7 +128,7 @@ export default {
       // ---------------------------------------------------------------------
       dataLengthTooLarge(maxLength, receivedLength) {
         return {
-          code: '008',
+          code: "008",
           message: api.i18n.localize(
             `Data length is too big (${maxLength} received/${receivedLength} max)`,
           ),
@@ -140,8 +140,8 @@ export default {
       // ---------------------------------------------------------------------
       doubleCallbackError() {
         return {
-          code: '009',
-          message: 'Double callback prevented within action',
+          code: "009",
+          message: "Double callback prevented within action",
         };
       },
 
@@ -150,8 +150,8 @@ export default {
       // ---------------------------------------------------------------------
       fileNotFound() {
         return {
-          code: '010',
-          message: 'The requested file not exists',
+          code: "010",
+          message: "The requested file not exists",
         };
       },
 
@@ -160,7 +160,7 @@ export default {
       // ---------------------------------------------------------------------
       fileReadError(connection, error) {
         return {
-          code: '011',
+          code: "011",
           message: connection.localize(`Error reading file: ${String(error)}`),
         };
       },
@@ -170,8 +170,8 @@ export default {
       // ---------------------------------------------------------------------
       fileNotProvided() {
         return {
-          code: '012',
-          message: 'File is a required param to send a file',
+          code: "012",
+          message: "File is a required param to send a file",
         };
       },
 
@@ -184,7 +184,7 @@ export default {
       // ---------------------------------------------------------------------
       verbNotFound(connection, verb) {
         return {
-          code: '013',
+          code: "013",
           message: connection.localize(`The verb non't exists (${verb})`),
         };
       },
@@ -194,7 +194,7 @@ export default {
       // ---------------------------------------------------------------------
       verbNotAllowed(connection, verb) {
         return {
-          code: '014',
+          code: "014",
           message: connection.localize(
             `Verb not found or not allowed (${verb})`,
           ),
@@ -207,8 +207,8 @@ export default {
       // ---------------------------------------------------------------------
       connectionRoomAndMessage(connection) {
         return {
-          code: '015',
-          message: connection.localize('Both room and message are required'),
+          code: "015",
+          message: connection.localize("Both room and message are required"),
         };
       },
 
@@ -217,7 +217,7 @@ export default {
       // ---------------------------------------------------------------------
       connectionNotInRoom(connection, room) {
         return {
-          code: '016',
+          code: "016",
           message: connection.localize(
             `Connection (${connection.id}) not in room (${room})`,
           ),
@@ -230,7 +230,7 @@ export default {
       // ---------------------------------------------------------------------
       connectionAlreadyInRoom(connection, room) {
         return {
-          code: '017',
+          code: "017",
           message: connection.localize(
             `Connection (${connection.id}) already in room (${room})`,
           ),
@@ -242,8 +242,8 @@ export default {
       // ---------------------------------------------------------------------
       connectionRoomHasBeenDeleted(room) {
         return {
-          name: 'ConnectionRoomHasBeenDeleted Error',
-          code: '018',
+          name: "ConnectionRoomHasBeenDeleted Error",
+          code: "018",
           message: `Room (${room}) has been deleted`,
         };
       },
@@ -253,8 +253,8 @@ export default {
       // ---------------------------------------------------------------------
       connectionRoomNotExist(room) {
         return {
-          name: 'ConnectionRoomNotExist Error',
-          code: '019',
+          name: "ConnectionRoomNotExist Error",
+          code: "019",
           message: `Room (${room}) does not exists`,
         };
       },
@@ -265,8 +265,8 @@ export default {
       // ---------------------------------------------------------------------
       connectionRoomExists(room) {
         return {
-          name: 'ConnectionRoomExists Error',
-          code: '020',
+          name: "ConnectionRoomExists Error",
+          code: "020",
           message: `Room (${room}) already exists`,
         };
       },
@@ -277,8 +277,8 @@ export default {
       // ---------------------------------------------------------------------
       connectionRoomRequired(room) {
         return {
-          code: '021',
-          message: 'A room is required',
+          code: "021",
+          message: "A room is required",
         };
       },
 
@@ -289,7 +289,7 @@ export default {
       // ---------------------------------------------------------------------
       responseTimeout(action) {
         return {
-          code: '022',
+          code: "022",
           message: `Response timeout for action '${action}'`,
         };
       },

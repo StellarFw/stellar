@@ -1,11 +1,11 @@
-import { basename } from 'path';
-import { promisify } from 'util';
+import { basename } from "path";
+import { promisify } from "util";
 
-import * as Waterline from 'waterline';
+import * as Waterline from "waterline";
 
-import { Satellite } from '../satellite';
-import { LogLevel } from '../log-level.enum';
-import ModelInterface from '../model.interface';
+import { Satellite } from "../satellite";
+import { LogLevel } from "../log-level.enum";
+import ModelInterface from "../model.interface";
 
 /**
  * Custom type for generator models.
@@ -13,7 +13,7 @@ import ModelInterface from '../model.interface';
 type ModelGenerator = (api: any) => ModelInterface;
 
 export default class ModelsSatellite extends Satellite {
-  protected _name: string = 'models';
+  protected _name: string = "models";
   public loadPriority: number = 100;
   public startPriority: number = 100;
   public stopPriority: number = 400;
@@ -42,7 +42,7 @@ export default class ModelsSatellite extends Satellite {
   public async add(name: string, model: ModelInterface | any): Promise<void> {
     // The model definition can be a function, whether it happens we need pass
     // the api reference.
-    if (typeof model === 'function') {
+    if (typeof model === "function") {
       model = model(this.api) as ModelInterface;
     }
 
@@ -116,7 +116,7 @@ export default class ModelsSatellite extends Satellite {
   ): Promise<ModelInterface> {
     // The model definition can be a function, whether it happens we need pass
     // the api reference.
-    if (typeof modelOrig === 'function') {
+    if (typeof modelOrig === "function") {
       modelOrig = modelOrig(this.api) as ModelInterface;
     }
 
@@ -157,7 +157,7 @@ export default class ModelsSatellite extends Satellite {
     const result = [];
 
     for (const modelFile of models) {
-      const modelBasename = basename(modelFile, '.js');
+      const modelBasename = basename(modelFile, ".js");
       this.watchForChanges(modelFile);
 
       try {
@@ -215,7 +215,7 @@ export default class ModelsSatellite extends Satellite {
 
       // When the server is restarting this already was replaced with the
       // module, so we ignore it.
-      if (typeof moduleName !== 'string') {
+      if (typeof moduleName !== "string") {
         continue;
       }
 

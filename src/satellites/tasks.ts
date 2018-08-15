@@ -1,6 +1,6 @@
-import { Satellite } from '../satellite';
-import { LogLevel } from '../log-level.enum';
-import { TaskInterface } from '../task.interface';
+import { Satellite } from "../satellite";
+import { LogLevel } from "../log-level.enum";
+import { TaskInterface } from "../task.interface";
 
 export interface InternalJob {
   plugins: Array<any>;
@@ -9,7 +9,7 @@ export interface InternalJob {
 }
 
 export default class TasksSatellite extends Satellite {
-  protected _name: string = 'tasks';
+  protected _name: string = "tasks";
   public loadPriority: number = 699;
   public startPriority: number = 900;
 
@@ -29,14 +29,14 @@ export default class TasksSatellite extends Satellite {
     const pluginOptions = task.pluginOptions || [];
 
     if (task.frequency > 0) {
-      if (plugins.indexOf('jobLock') < 0) {
-        plugins.push('jobLock');
+      if (plugins.indexOf("jobLock") < 0) {
+        plugins.push("jobLock");
       }
-      if (plugins.indexOf('queueLock') < 0) {
-        plugins.push('queueLock');
+      if (plugins.indexOf("queueLock") < 0) {
+        plugins.push("queueLock");
       }
-      if (plugins.indexOf('delayQueueLock') < 0) {
-        plugins.push('delayQueueLock');
+      if (plugins.indexOf("delayQueueLock") < 0) {
+        plugins.push("delayQueueLock");
       }
     }
 
@@ -75,22 +75,22 @@ export default class TasksSatellite extends Satellite {
     // function to be executed in case of the task validation fails
     const fail = msg => this.api.log(`${msg}; exiting`, LogLevel.Emergency);
 
-    if (typeof task.name !== 'string' || task.name.length < 1) {
+    if (typeof task.name !== "string" || task.name.length < 1) {
       fail(`a task is missing 'task.name'`);
       return false;
     } else if (
-      typeof task.description !== 'string' ||
+      typeof task.description !== "string" ||
       task.description.length < 1
     ) {
       fail(`Task ${task.name} is missing 'task.description'`);
       return false;
-    } else if (typeof task.frequency !== 'number') {
+    } else if (typeof task.frequency !== "number") {
       fail(`Task ${task.name} has no frequency`);
       return false;
-    } else if (typeof task.queue !== 'string') {
+    } else if (typeof task.queue !== "string") {
       fail(`Task ${task.name} has no queue`);
       return false;
-    } else if (typeof task.run !== 'function') {
+    } else if (typeof task.run !== "function") {
       fail(`Task ${task.name} has no run method`);
       return false;
     }
@@ -107,7 +107,7 @@ export default class TasksSatellite extends Satellite {
   private loadFile(path: string, reload: boolean = false): void {
     const loadMessage = loadedTasksName => {
       const level = reload ? LogLevel.Info : LogLevel.Debug;
-      const reloadWord = reload ? '(re)' : '';
+      const reloadWord = reload ? "(re)" : "";
       this.api.log(
         `task ${reloadWord}loaded: ${loadedTasksName}, ${path}`,
         level,

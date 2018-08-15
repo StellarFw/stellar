@@ -1,6 +1,6 @@
-import * as i18n from 'i18n';
+import * as i18n from "i18n";
 
-import { Satellite } from '../satellite';
+import { Satellite } from "../satellite";
 
 export default class I18nSatellite extends Satellite {
   public loadPriority: number = 10;
@@ -11,7 +11,7 @@ export default class I18nSatellite extends Satellite {
     // TODO: copy all modules locale folder to a temp folder '/tmp/locale'
 
     // create locale folder (remove first if exists)
-    const localePath = this.api.configs.general.paths.temp + '/locale';
+    const localePath = this.api.configs.general.paths.temp + "/locale";
     this.api.utils.removeDir(localePath);
     this.api.utils.createDir(localePath);
 
@@ -49,18 +49,18 @@ export default class I18nSatellite extends Satellite {
    */
   private invokeConnectionLocale(connection) {
     // split the command by '.'
-    const cmdParts = this.api.configs.i18n.determineConnectionLocale.split('.');
+    const cmdParts = this.api.configs.i18n.determineConnectionLocale.split(".");
 
     // get the first array position
     const cmd = cmdParts.shift();
 
     // this only works with the api object
-    if (cmd !== 'api') {
-      throw new Error('cannot operate on a method outside of the api object');
+    if (cmd !== "api") {
+      throw new Error("cannot operate on a method outside of the api object");
     }
 
     // execute method
-    const locale = this.api.utils.executeCommand(cmdParts.join('.'), [
+    const locale = this.api.utils.executeCommand(cmdParts.join("."), [
       connection,
     ]);
 

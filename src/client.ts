@@ -3,13 +3,13 @@ declare const Headers;
 declare const Request;
 declare function fetch(request: any): Promise<any>;
 
-import { callbackify } from 'util';
-import { timingSafeEqual } from 'crypto';
+import { callbackify } from "util";
+import { timingSafeEqual } from "crypto";
 
 const warn = msg => console.warn(`[Stellar warn]: ${msg}`);
 const error = msg => console.error(`[Stellar error]: ${msg}`);
-const isFunction = val => typeof val === 'function';
-const isObject = obj => obj !== null && typeof obj === 'object';
+const isFunction = val => typeof val === "function";
+const isObject = obj => obj !== null && typeof obj === "object";
 
 export interface ConnectionDetailsInterface {
   id: string;
@@ -33,10 +33,10 @@ export type Interceptor = (params: any, next: Function) => void;
  * Possible states for the client.
  */
 export enum ClientState {
-  Disconnect = 'disconnected',
-  Connected = 'connected',
-  Reconnecting = 'reconnecting',
-  Timeout = 'timeout',
+  Disconnect = "disconnected",
+  Connected = "connected",
+  Reconnecting = "reconnecting",
+  Timeout = "timeout",
 }
 
 export class BuildEvent {
@@ -98,7 +98,7 @@ export class BuildEvent {
     this.rooms.forEach(room => {
       work.push(
         this.client.send({
-          event: 'event',
+          event: "event",
           param: {
             room,
             event,
@@ -236,7 +236,7 @@ export default class Stellar extends Primus.EventEmitter {
     }
 
     // Print out an error when Promises aren't supported
-    if (Promise === undefined || typeof Promise !== 'function') {
+    if (Promise === undefined || typeof Promise !== "function") {
       error(
         `Th browser doesn't support Promises! You must load a polyfill before load Stellar client lib.`,
       );
@@ -247,12 +247,12 @@ export default class Stellar extends Primus.EventEmitter {
    * Default options.
    */
   private defaults(): any {
-    return '%%DEFAULTS%%';
+    return "%%DEFAULTS%%";
   }
 
   private setEventHandler(): Promise<ConnectionDetailsInterface> {
     const promise = new Promise((resolve, reject) => {
-      this.client.on('open', async () => {
+      this.client.on("open", async () => {
         const details = await this.configure();
 
         if (this.state !== ClientState.Connected) {
@@ -260,32 +260,32 @@ export default class Stellar extends Primus.EventEmitter {
           resolve(details);
         }
 
-        this._emit('connected');
+        this._emit("connected");
       });
 
-      this.client.on('error', err => {
+      this.client.on("error", err => {
         reject(err);
-        this._emit('error', err);
+        this._emit("error", err);
       });
     });
 
-    this.client.on('reconnect', () => {
+    this.client.on("reconnect", () => {
       this.messageCount = 0;
-      this._emit('reconnect');
+      this._emit("reconnect");
     });
 
-    this.client.on('reconnecting', () => {
-      this._emit('reconnecting');
+    this.client.on("reconnecting", () => {
+      this._emit("reconnecting");
       this.state = ClientState.Reconnecting;
-      this._emit('disconnected');
+      this._emit("disconnected");
     });
 
-    this.client.on('timeout', () => {
+    this.client.on("timeout", () => {
       this.state = ClientState.Timeout;
-      this._emit('timeout');
+      this._emit("timeout");
     });
 
-    this.client.on('data', this._handleMessage.bind(this));
+    this.client.on("data", this._handleMessage.bind(this));
 
     return promise as Promise<ConnectionDetailsInterface>;
   }
@@ -321,16 +321,16 @@ export default class Stellar extends Primus.EventEmitter {
   }
 
   private _handleMessage(message: any): void {
-    this._emit('message', message);
+    this._emit("message", message);
 
-    if (message.context === 'response') {
-      if (typeof this.callbacks[message.messageCount] === 'function') {
+    if (message.context === "response") {
+      if (typeof this.callbacks[message.messageCount] === "function") {
         this.callbacks[message.messageCount](message);
       }
 
       delete this.callbacks[message.messageCount];
-    } else if (message.context === 'user') {
-      this._emit('say', message);
+    } else if (message.context === "user") {
+      this._emit("say", message);
 
       if (message.message.event) {
         const packet = message.message;
@@ -341,19 +341,19 @@ export default class Stellar extends Primus.EventEmitter {
         // emit an event specific for the given room
         this._emit(`[${message.room}].${packet.event}`, packet.data, message);
       }
-    } else if (message.context === 'alert') {
-      this._emit('alert', message);
-    } else if (message.welcome && message.context === 'api') {
+    } else if (message.context === "alert") {
+      this._emit("alert", message);
+    } else if (message.welcome && message.context === "api") {
       this.welcomeMessage = message.welcome;
-      this._emit('welcome', message);
-    } else if (message.context === 'api') {
-      this._emit('api', message);
+      this._emit("welcome", message);
+    } else if (message.context === "api") {
+      this._emit("api", message);
     }
   }
 
   public async configure(): Promise<ConnectionDetailsInterface> {
     if (this.options.rooms) {
-      this.options.rooms.forEach(room => this.send({ event: 'roomAdd', room }));
+      this.options.rooms.forEach(room => this.send({ event: "roomAdd", room }));
     }
 
     const details = await this.detailsView();
@@ -374,14 +374,14 @@ export default class Stellar extends Primus.EventEmitter {
    */
   public emit(event: string, data: any = null): Promise<void> {
     const room = this.options.defaultRoom;
-    return this.send({ event: 'event', params: { event, room, data } });
+    return this.send({ event: "event", params: { event, room, data } });
   }
 
   /**
    * Request the details view.
    */
   public detailsView(): Promise<ConnectionDetailsResponse> {
-    return this.send({ event: 'detailsView' }) as Promise<
+    return this.send({ event: "detailsView" }) as Promise<
       ConnectionDetailsResponse
     >;
   }
@@ -439,7 +439,7 @@ export default class Stellar extends Primus.EventEmitter {
       room = this.options.defaultRoom;
     }
 
-    return this.to(room).emit('message', message);
+    return this.to(room).emit("message", message);
   }
 
   /**
@@ -448,7 +448,7 @@ export default class Stellar extends Primus.EventEmitter {
    * @param file File to be requested.
    */
   public file(file: string): Promise<any> {
-    return this.send({ event: 'file', file });
+    return this.send({ event: "file", file });
   }
 
   /**
@@ -457,7 +457,7 @@ export default class Stellar extends Primus.EventEmitter {
    * @param room Room name.
    */
   public roomView(room: string) {
-    return this.send({ event: 'roomView', room });
+    return this.send({ event: "roomView", room });
   }
 
   /**
@@ -466,7 +466,7 @@ export default class Stellar extends Primus.EventEmitter {
    * @param room Room name.
    */
   public async join(room: string): Promise<ConnectionDetailsInterface> {
-    await this.send({ event: 'roomJoin', room });
+    await this.send({ event: "roomJoin", room });
     return this.configure();
   }
 
@@ -482,7 +482,7 @@ export default class Stellar extends Primus.EventEmitter {
       this.rooms.splice(index, 1);
     }
 
-    await this.send({ event: 'roomLeave', room });
+    await this.send({ event: "roomLeave", room });
 
     return this.configure();
   }
@@ -493,22 +493,22 @@ export default class Stellar extends Primus.EventEmitter {
   public disconnect() {
     this.state = ClientState.Disconnect;
     this.client.end();
-    this._emit('disconnected');
+    this._emit("disconnected");
   }
 
   /**
    * Call an action using a normal HTTP connection though Fetch API.
    */
   private async _actionWeb(params: any): Promise<any> {
-    const method = ((params.httpMethod || 'POST') as string).toUpperCase();
+    const method = ((params.httpMethod || "POST") as string).toUpperCase();
     let url = `${this.options.url}${(this, this.options.apiPath)}?action=${
       params.action
     }`;
 
     // When it's a GET request we must append the params to the URL address
-    if (method === 'GET') {
+    if (method === "GET") {
       for (const param in params) {
-        if (['action', 'httpMethod'].includes(param)) {
+        if (["action", "httpMethod"].includes(param)) {
           continue;
         }
         url += `&${param}=${params[param]}`;
@@ -517,13 +517,13 @@ export default class Stellar extends Primus.EventEmitter {
 
     const options: any = {
       method,
-      mode: 'cors',
+      mode: "cors",
       headers: new Headers({
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       }),
     };
 
-    if (method === 'POST') {
+    if (method === "POST") {
       options.body = JSON.stringify(params);
     }
 
@@ -543,7 +543,7 @@ export default class Stellar extends Primus.EventEmitter {
    * @param params Call parameters.
    */
   private async _actionWebSocket(params: any): Promise<any> {
-    const response = await this.send({ event: 'action', params });
+    const response = await this.send({ event: "action", params });
 
     if (response.error !== undefined) {
       throw response;

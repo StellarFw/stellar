@@ -23,4 +23,4 @@ export default interface ModuleInterface {
    * Module's NPM dependencies.
    */
   npmDependencies?: any;
-}
+};

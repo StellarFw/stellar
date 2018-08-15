@@ -10,4 +10,4 @@ export default interface EventInterface {
   event: string;
   priority?: number;
   run: EventHandler;
-}
+};

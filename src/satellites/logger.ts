@@ -1,7 +1,7 @@
-import * as winston from 'winston';
+import * as winston from "winston";
 
-import { Satellite } from '../satellite';
-import { LogLevel } from '../log-level.enum';
+import { Satellite } from "../satellite";
+import { LogLevel } from "../log-level.enum";
 
 export default class LoggerSatellite extends Satellite {
   public loadPriority: number = 120;
@@ -11,7 +11,7 @@ export default class LoggerSatellite extends Satellite {
 
     // load all transports
     this.api.configs.logger.transports.forEach(transport => {
-      if (typeof transport === 'function') {
+      if (typeof transport === "function") {
         transports.push(transport(this.api, winston));
       } else {
         transports.push(transport);
@@ -19,7 +19,7 @@ export default class LoggerSatellite extends Satellite {
     });
 
     // create the logger instance
-    this.api.logger = new (winston.Logger)({ transports });
+    this.api.logger = new winston.Logger({ transports });
 
     // define the log level
     if (this.api.configs.logger.levels) {
@@ -42,7 +42,11 @@ export default class LoggerSatellite extends Satellite {
     };
 
     const logLevels = Object.keys(this.api.logger.levels);
-    this.api.log('** starting Stellar **', LogLevel.Notice);
-    this.api.log('Logger loaded. Possible levels included:', LogLevel.Debug, logLevels);
+    this.api.log("** starting Stellar **", LogLevel.Notice);
+    this.api.log(
+      "Logger loaded. Possible levels included:",
+      LogLevel.Debug,
+      logLevels,
+    );
   }
 }

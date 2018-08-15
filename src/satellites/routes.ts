@@ -1,9 +1,9 @@
-import { Satellite } from '../satellite';
-import { accessSync } from 'fs';
-import { F_OK } from 'constants';
-import { RouteInterface } from '../route.interface';
-import { LogLevel } from '../log-level.enum';
-import ConnectionDetails from '../connection-details';
+import { Satellite } from "../satellite";
+import { accessSync } from "fs";
+import { F_OK } from "constants";
+import { RouteInterface } from "../route.interface";
+import { LogLevel } from "../log-level.enum";
+import ConnectionDetails from "../connection-details";
 
 interface RouterDictionary {
   GET: Array<RouteInterface>;
@@ -18,17 +18,17 @@ interface RouterDictionary {
  * Available verbs.
  */
 enum Verbs {
-  GET = 'GET',
-  POST = 'POST',
-  PUT = 'PUT',
-  PATCH = 'PATCH',
-  DELETE = 'DELETE',
-  HEAD = 'HEAD',
-  ALL = 'ALL',
+  GET = "GET",
+  POST = "POST",
+  PUT = "PUT",
+  PATCH = "PATCH",
+  DELETE = "DELETE",
+  HEAD = "HEAD",
+  ALL = "ALL",
 }
 
 export default class RoutesSatellite extends Satellite {
-  public _name: string = 'Routes';
+  public _name: string = "Routes";
   public loadPriority: number = 500;
 
   /**
@@ -82,15 +82,15 @@ export default class RoutesSatellite extends Satellite {
     matchTrailingPathParts: boolean = false,
   ) {
     const response = { match: false, params: {} };
-    const matchParts = match.split('/');
-    let regexp = '';
-    let variable = '';
+    const matchParts = match.split("/");
+    let regexp = "";
+    let variable = "";
 
-    if (matchParts[0] === '') {
+    if (matchParts[0] === "") {
       matchParts.splice(0, 1);
     }
 
-    if (matchParts[matchParts.length - 1] === '') {
+    if (matchParts[matchParts.length - 1] === "") {
       matchParts.pop();
     }
 
@@ -126,16 +126,16 @@ export default class RoutesSatellite extends Satellite {
 
       if (!pathPart) {
         return response;
-      } else if (matchPart[0] === ':' && matchPart.indexOf('(') < 0) {
-        variable = matchPart.replace(':', '');
+      } else if (matchPart[0] === ":" && matchPart.indexOf("(") < 0) {
+        variable = matchPart.replace(":", "");
         response.params[variable] = pathPart;
-      } else if (matchPart[0] === ':' && matchPart.indexOf('(') >= 0) {
-        variable = matchPart.replace(':', '').split('(')[0];
+      } else if (matchPart[0] === ":" && matchPart.indexOf("(") >= 0) {
+        variable = matchPart.replace(":", "").split("(")[0];
         regexp = matchPart.substring(
-          matchPart.indexOf('(') + 1,
+          matchPart.indexOf("(") + 1,
           matchPart.length - 1,
         );
-        const matches = pathPart.match(new RegExp(regexp, 'g'));
+        const matches = pathPart.match(new RegExp(regexp, "g"));
         if (matches) {
           response.params[variable] = pathPart;
         } else {
@@ -202,9 +202,9 @@ export default class RoutesSatellite extends Satellite {
             }
 
             try {
-              const decodedName = decodeURIComponent(param.replace(/\+/g, ' '));
+              const decodedName = decodeURIComponent(param.replace(/\+/g, " "));
               const decodedValue = decodeURIComponent(
-                match.params[param].replace(/\+g/, ' '),
+                match.params[param].replace(/\+g/, " "),
               );
               connection.params[decodedName] = decodedValue;
             } catch (e) {
@@ -300,7 +300,7 @@ export default class RoutesSatellite extends Satellite {
         `${simplePaths.length} simple routes loaded from action names`,
         LogLevel.Debug,
       );
-      this.api.log('routes: ', LogLevel.Debug, this.routes);
+      this.api.log("routes: ", LogLevel.Debug, this.routes);
     }
   }
 

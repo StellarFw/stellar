@@ -24,4 +24,4 @@ export default interface ModelInterface {
    * Dictionary with all model attributes.
    */
   attributes: any;
-}
+};

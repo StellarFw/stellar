@@ -1,8 +1,8 @@
-import { Satellite } from '../satellite';
-import ActionInterface from '../action.interface';
-import { LogLevel } from '../log-level.enum';
-import MiddlewareInterface from '../middleware.interface';
-import Connection from '../connection';
+import { Satellite } from "../satellite";
+import ActionInterface from "../action.interface";
+import { LogLevel } from "../log-level.enum";
+import MiddlewareInterface from "../middleware.interface";
+import Connection from "../connection";
 
 export interface VersionActionMap {
   [key: number]: ActionInterface;
@@ -14,20 +14,20 @@ export interface VersionActionMap {
  *
  * @type {Array}
  */
-const PROTECTED_KEYS = ['name', 'run'];
+const PROTECTED_KEYS = ["name", "run"];
 
 /**
  * System action to show the server status.
  */
 class StatusAction implements ActionInterface {
-  public name = 'status';
-  public description = 'Is a system action to show the server status';
+  public name = "status";
+  public description = "Is a system action to show the server status";
 
   public async run(api, action) {}
 }
 
 export default class ActionsSatellite extends Satellite {
-  protected _name: string = 'actions';
+  protected _name: string = "actions";
   public loadPriority: number = 410;
 
   /**
@@ -75,7 +75,7 @@ export default class ActionsSatellite extends Satellite {
    */
   public call(actionName: string, params: any = {}) {
     const connection = new Connection(this.api, {
-      type: 'internal',
+      type: "internal",
       remotePort: 0,
       remoteIP: 0,
       rawConnection: {},
@@ -111,7 +111,7 @@ export default class ActionsSatellite extends Satellite {
       return;
     }
 
-    this.versions.set('status', [1]);
+    this.versions.set("status", [1]);
     this.actions.status = {
       1: StatusAction,
     };
@@ -235,7 +235,7 @@ export default class ActionsSatellite extends Satellite {
      * @param middleware  Middleware object
      */
     const loadMessage = (middleware: MiddlewareInterface) => {
-      const level = reload ? 'info' : 'debug';
+      const level = reload ? "info" : "debug";
       let msg = null;
 
       if (reload) {
@@ -363,7 +363,7 @@ export default class ActionsSatellite extends Satellite {
 
       // check if the key start with a '+'. If yes, that means that is to
       // append an item to an array, or create it if not exists
-      if (key.charAt(0) === '+') {
+      if (key.charAt(0) === "+") {
         // create a sub-string without the plus sign
         key = key.substring(1, key.length);
 
@@ -371,7 +371,7 @@ export default class ActionsSatellite extends Satellite {
         action[key] = (action[key] || []).concat(value);
 
         continue;
-      } else if (key.charAt(0) === '-') {
+      } else if (key.charAt(0) === "-") {
         // create a sub-string without the plus sign
         key = key.substring(1, key.length);
 
@@ -384,7 +384,7 @@ export default class ActionsSatellite extends Satellite {
       }
 
       // if the value is a function we need process it
-      if (typeof value === 'function') {
+      if (typeof value === "function") {
         value = value(action, action[key]);
       }
 
@@ -472,16 +472,16 @@ export default class ActionsSatellite extends Satellite {
     }
 
     // the name, description, run properties are required
-    if (typeof action.name !== 'string' || action.name.length < 1) {
+    if (typeof action.name !== "string" || action.name.length < 1) {
       fail(`an action is missing 'action.name'`);
       return false;
     } else if (
-      typeof action.description !== 'string' ||
+      typeof action.description !== "string" ||
       action.description.length < 1
     ) {
       fail(`Action ${action.name} is missing 'action.description'`);
       return false;
-    } else if (typeof action.run !== 'function') {
+    } else if (typeof action.run !== "function") {
       fail(`Action ${action.run} has no run method`);
       return false;
     } else if (
@@ -505,7 +505,7 @@ export default class ActionsSatellite extends Satellite {
   public addMiddleware(data: MiddlewareInterface) {
     // middleware require a name
     if (!data.name) {
-      throw new Error('middleware.name is required');
+      throw new Error("middleware.name is required");
     }
 
     // if there is no defined priority use the default

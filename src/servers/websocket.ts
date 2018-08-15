@@ -1,16 +1,16 @@
-import { GenericServer } from '../generic-server';
-import { LogLevel } from '../log-level.enum';
-import { normalize, sep } from 'path';
-import { ReadStream, writeFileSync, writeFile, readFileSync } from 'fs';
-import * as BrowserFingerprint from 'browser_fingerprint';
-import * as Primus from 'primus';
-import * as UglifyJS from 'uglify-es';
-import ConnectionDetails from '../connection-details';
-import WebServer from './web';
-import { inspect } from 'util';
+import { GenericServer } from "../generic-server";
+import { LogLevel } from "../log-level.enum";
+import { normalize, sep } from "path";
+import { ReadStream, writeFileSync, writeFile, readFileSync } from "fs";
+import * as BrowserFingerprint from "browser_fingerprint";
+import * as Primus from "primus";
+import * as UglifyJS from "uglify-es";
+import ConnectionDetails from "../connection-details";
+import WebServer from "./web";
+import { inspect } from "util";
 
 export default class WebSocketServer extends GenericServer {
-  protected static serverName: string = 'websocket';
+  protected static serverName: string = "websocket";
 
   /**
    * Primus server instance.
@@ -20,26 +20,26 @@ export default class WebSocketServer extends GenericServer {
   private fingerprinter: any = null;
 
   constructor(api, options) {
-    super(api, 'websocket', options);
+    super(api, "websocket", options);
     this.attributes = {
       canChat: true,
       logConnections: true,
       logExists: true,
       sendWelcomeMessage: true,
       verbs: [
-        'quit',
-        'exit',
-        'roomJoin',
-        'roomLeave',
-        'roomView',
-        'detailsView',
-        'say',
-        'event',
+        "quit",
+        "exit",
+        "roomJoin",
+        "roomLeave",
+        "roomView",
+        "detailsView",
+        "say",
+        "event",
       ],
     };
 
-    this.on('connection', this.handleNewConnection.bind(this));
-    this.on('actionComplete', this.handleActionComplete.bind(this));
+    this.on("connection", this.handleNewConnection.bind(this));
+    this.on("actionComplete", this.handleActionComplete.bind(this));
 
     this.fingerprinter = new BrowserFingerprint(
       this.api.configs.servers.web.fingerprintOptions,
@@ -47,7 +47,7 @@ export default class WebSocketServer extends GenericServer {
   }
 
   private handleNewConnection(connection) {
-    connection.rawConnection.on('data', data => {
+    connection.rawConnection.on("data", data => {
       this.handleData(connection, data);
     });
   }
@@ -78,7 +78,7 @@ export default class WebSocketServer extends GenericServer {
     connection.params = {};
 
     switch (verb) {
-      case 'action':
+      case "action":
         connection.params = {
           ...connection.params,
           ...data.params,
@@ -88,7 +88,7 @@ export default class WebSocketServer extends GenericServer {
         connection.response = {};
         this.processAction(connection);
         break;
-      case 'file':
+      case "file":
         connection.params = {
           file: data.file,
         };
@@ -113,10 +113,10 @@ export default class WebSocketServer extends GenericServer {
 
         try {
           const response = await connection.verbs(verb, words);
-          message = { status: 'OK', context: 'response', data: response };
+          message = { status: "OK", context: "response", data: response };
         } catch (error) {
           // TODO: check if we need the data object
-          message = { status: error, context: 'response' };
+          message = { status: error, context: "response" };
         }
 
         this.sendMessage(connection, message);
@@ -165,7 +165,7 @@ export default class WebSocketServer extends GenericServer {
    * Start the server.
    */
   public async start(): Promise<void> {
-    const webServer: WebServer = this.api.servers.servers.get('web');
+    const webServer: WebServer = this.api.servers.servers.get("web");
 
     this.server = new Primus(
       webServer.server,
@@ -173,8 +173,8 @@ export default class WebSocketServer extends GenericServer {
     );
 
     // Define the necessary event handlers
-    this.server.on('connection', this.handleConnection.bind(this));
-    this.server.on('disconnection', this.handleDisconnection.bind(this));
+    this.server.on("connection", this.handleConnection.bind(this));
+    this.server.on("disconnection", this.handleDisconnection.bind(this));
 
     this.api.log(
       `WebSocket bound to ${webServer.options.bindIP}:${
@@ -220,14 +220,14 @@ export default class WebSocketServer extends GenericServer {
     }
 
     if (!message.context) {
-      message.context = 'response';
+      message.context = "response";
     }
 
     if (!messageCount) {
       messageCount = connection.messageCount;
     }
 
-    if (message.context === 'response' && !message.messageCount) {
+    if (message.context === "response" && !message.messageCount) {
       message.messageCount = messageCount;
     }
 
@@ -261,7 +261,7 @@ export default class WebSocketServer extends GenericServer {
     length: number,
     lastModified: Date,
   ): Promise<void> {
-    let content = '';
+    let content = "";
     const response = {
       error,
       content: null,
@@ -272,11 +272,11 @@ export default class WebSocketServer extends GenericServer {
 
     try {
       if (!error) {
-        fileStream.on('data', d => {
+        fileStream.on("data", d => {
           content += d;
         });
 
-        fileStream.on('end', () => {
+        fileStream.on("end", () => {
           response.content = content;
           this.server.sendMessage(
             connection,
@@ -288,7 +288,7 @@ export default class WebSocketServer extends GenericServer {
 
       this.server.sendMessage(connection, response, connection.messageCount);
     } catch (e) {
-      this.api.log(e, 'warning');
+      this.api.log(e, "warning");
       this.server.sendMessage(connection, response, connection.messageCount);
     }
   }
@@ -314,7 +314,7 @@ export default class WebSocketServer extends GenericServer {
     let defaultsString: string = inspect(defaults);
     defaultsString = defaultsString.replace(
       `'window.location.origin'`,
-      'window.location.origin',
+      "window.location.origin",
     );
     clientSource = clientSource.replace(`'%%DEFAULTS%%'`, defaultsString);
 
@@ -368,7 +368,7 @@ export default class WebSocketServer extends GenericServer {
         this.api.log(`wrote ${base}.min.js`, LogLevel.Debug);
       } catch (e) {
         this.api.log(
-          'Cannot write client-side JS for WebSocket server: ',
+          "Cannot write client-side JS for WebSocket server: ",
           LogLevel.Warning,
         );
         this.api.log(e, LogLevel.Warning);

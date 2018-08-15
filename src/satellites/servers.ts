@@ -1,13 +1,13 @@
-import { Satellite } from '../satellite';
-import { GenericServer } from '../generic-server';
-import { resolve } from 'path';
-import { LogLevel } from '../log-level.enum';
+import { Satellite } from "../satellite";
+import { GenericServer } from "../generic-server";
+import { resolve } from "path";
+import { LogLevel } from "../log-level.enum";
 
 export default class ServersSatellite extends Satellite {
   public loadPriority = 550;
   public startPriority = 900;
   public stopPriority = 100;
-  protected _name = 'Servers';
+  protected _name = "Servers";
 
   /**
    * Map with all running server instances

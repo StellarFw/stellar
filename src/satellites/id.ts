@@ -1,6 +1,6 @@
-import { Satellite } from '../satellite';
-import { isWorker } from 'cluster';
-import { LogLevel } from '../log-level.enum';
+import { Satellite } from "../satellite";
+import { isWorker } from "cluster";
+import { LogLevel } from "../log-level.enum";
 
 /**
  * Setup the server ID.
@@ -12,7 +12,7 @@ import { LogLevel } from '../log-level.enum';
  *  - or one can be generated automatically using the server's external IP.
  */
 export default class IDSatellite extends Satellite {
-  protected _name: string = 'ID';
+  protected _name: string = "ID";
 
   public loadPriority: number = 100;
   public startPriority: number = 2;
@@ -42,8 +42,10 @@ export default class IDSatellite extends Satellite {
       const externalIP = this.api.utils.getExternalIPAddress();
 
       if (externalIP === false) {
-        this.api.log(` * Error fetching this host external IP address; setting id base to 'stellar'`);
-        this.api.id = 'stellar';
+        this.api.log(
+          ` * Error fetching this host external IP address; setting id base to 'stellar'`,
+        );
+        this.api.id = "stellar";
         return;
       }
 

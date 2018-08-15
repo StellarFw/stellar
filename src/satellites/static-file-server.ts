@@ -1,11 +1,11 @@
-import { Satellite } from '../satellite';
-import { normalize, isAbsolute } from 'path';
-import ConnectionDetails from '../connection-details';
-import { LogLevel } from '../log-level.enum';
-import { promisify } from 'util';
-import { stat, createReadStream, readlink, ReadStream } from 'fs';
+import { Satellite } from "../satellite";
+import { normalize, isAbsolute } from "path";
+import ConnectionDetails from "../connection-details";
+import { LogLevel } from "../log-level.enum";
+import { promisify } from "util";
+import { stat, createReadStream, readlink, ReadStream } from "fs";
 
-import * as Mime from 'mime';
+import * as Mime from "mime";
 
 export interface FileResponse {
   connection: ConnectionDetails;
@@ -20,7 +20,7 @@ export interface FileResponse {
  * Satellite to manager static files.
  */
 export default class StaticFileServer extends Satellite {
-  protected _name: string = 'StaticFile';
+  protected _name: string = "StaticFile";
   public loadPriority: number = 510;
 
   /**
@@ -44,7 +44,7 @@ export default class StaticFileServer extends Satellite {
 
       const lastModified = stats.mtime;
 
-      fileStream.on('close', () => {
+      fileStream.on("close", () => {
         const duration = new Date().getTime() - start;
         this.logRequest(file, connection, length, duration, true);
       });
@@ -76,18 +76,18 @@ export default class StaticFileServer extends Satellite {
     errorMessage: string,
   ): FileResponse {
     connection.error = new Error(errorMessage);
-    this.logRequest('{404: not found}', connection, null, null, false);
+    this.logRequest("{404: not found}", connection, null, null, false);
 
     const originalError = this.api.configs.errors.fileNotFound();
     const error: string =
-      typeof originalError === 'string'
+      typeof originalError === "string"
         ? originalError
         : JSON.stringify(originalError);
 
     return {
       connection,
       error,
-      mime: 'text/html',
+      mime: "text/html",
       length: error.length,
     } as FileResponse;
   }
@@ -152,7 +152,7 @@ export default class StaticFileServer extends Satellite {
 
     if (!isAbsolute(connection.params.file)) {
       file = normalize(
-        this.searchPath(connection, counter) + '/' + connection.params.file,
+        this.searchPath(connection, counter) + "/" + connection.params.file,
       );
     }
 
@@ -200,6 +200,6 @@ export default class StaticFileServer extends Satellite {
       return file;
     }
 
-    throw new Error('File does not exists');
+    throw new Error("File does not exists");
   }
 }

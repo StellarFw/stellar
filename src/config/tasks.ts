@@ -1,4 +1,4 @@
-import { LogLevel } from '../log-level.enum';
+import { LogLevel } from "../log-level.enum";
 
 /**
  * Default task configs.
@@ -14,7 +14,7 @@ export default {
       // ---------------------------------------------------------------------
       // what queues should the taskProcessors work?
       // ---------------------------------------------------------------------
-      queues: ['*'],
+      queues: ["*"],
 
       // ---------------------------------------------------------------------
       // logging levels of tasks workers

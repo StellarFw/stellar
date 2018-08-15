@@ -1,12 +1,12 @@
-import { Satellite } from '../satellite';
-import { LogLevel } from '../log-level.enum';
-import { EOL } from 'os';
+import { Satellite } from "../satellite";
+import { LogLevel } from "../log-level.enum";
+import { EOL } from "os";
 
 export enum ExceptionType {
-  LOADER = 'satellite',
-  ACTION = 'action',
-  TASK = 'task',
-  OTHER = 'other',
+  LOADER = "satellite",
+  ACTION = "action",
+  TASK = "task",
+  OTHER = "other",
 }
 
 /**
@@ -21,7 +21,7 @@ export type ExceptionHandler = (
 ) => void;
 
 export default class ExceptionsSatellite extends Satellite {
-  protected _name: string = 'exceptions';
+  protected _name: string = "exceptions";
   public loadPriority: number = 130;
 
   /**
@@ -37,15 +37,15 @@ export default class ExceptionsSatellite extends Satellite {
   private defaultConsoleHandler(
     err: Error | string,
     type: ExceptionType = ExceptionType.OTHER,
-    name: string = '',
+    name: string = "",
     objects: any = [],
     severity: LogLevel = LogLevel.Error,
   ): void {
-    let output = '';
+    let output = "";
     let lines = [];
     const extraMessages = [];
 
-    if (typeof err === 'string') {
+    if (typeof err === "string") {
       err = new Error(err);
     }
 
@@ -53,14 +53,14 @@ export default class ExceptionsSatellite extends Satellite {
       extraMessages.push(`Failed to load ${objects.fullFilePath}\n`);
     } else if (type === ExceptionType.ACTION) {
       extraMessages.push(`Uncaught error from action: ${name}\n`);
-      extraMessages.push('Connection details:');
+      extraMessages.push("Connection details:");
 
-      const relevantDetails = ['action', 'remoteIP', 'type', 'params', 'room'];
+      const relevantDetails = ["action", "remoteIP", "type", "params", "room"];
       for (const detailName of relevantDetails) {
         if (
           objects.connection[detailName] !== null &&
           objects.connection[detailName] !== undefined &&
-          typeof objects.connection[detailName] !== 'function'
+          typeof objects.connection[detailName] !== "function"
         ) {
           extraMessages.push(
             `    ${detailName}: ${JSON.stringify(
@@ -69,7 +69,7 @@ export default class ExceptionsSatellite extends Satellite {
           );
         }
       }
-      extraMessages.push('');
+      extraMessages.push("");
     } else if (type === ExceptionType.TASK) {
       extraMessages.push(
         `Uncaught error from task: ${name} on queue ${objects.queue} (worker #${
@@ -78,7 +78,7 @@ export default class ExceptionsSatellite extends Satellite {
       );
       try {
         extraMessages.push(
-          '    arguments: ' + JSON.stringify(objects.task.args),
+          "    arguments: " + JSON.stringify(objects.task.args),
         );
       } catch (e) {}
     } else {
@@ -89,13 +89,13 @@ export default class ExceptionsSatellite extends Satellite {
     }
 
     // reduce the extra messages into a single string
-    output += extraMessages.reduce((prev, item) => prev + `${item} \n`, '');
+    output += extraMessages.reduce((prev, item) => prev + `${item} \n`, "");
 
     // add the stack trace
     lines = lines.concat(err.stack.split(EOL));
 
     // reduce the lines array into a single string
-    output += lines.reduce((prev, item) => prev + `${item}\n`, '');
+    output += lines.reduce((prev, item) => prev + `${item}\n`, "");
 
     // print out the output message
     this.api.log(output, severity);

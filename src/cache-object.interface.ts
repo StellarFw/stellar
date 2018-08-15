@@ -22,4 +22,4 @@ export default interface CacheObject {
    * Time in milliseconds in which the object was created.
    */
   createdAt: number;
-}
+};

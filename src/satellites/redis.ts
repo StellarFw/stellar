@@ -1,13 +1,13 @@
-import * as uuid from 'uuid';
+import * as uuid from "uuid";
 
-import { Satellite } from '../satellite';
-import ClusterPayload from '../cluster-payload.interface';
-import { LogLevel } from '../log-level.enum';
+import { Satellite } from "../satellite";
+import ClusterPayload from "../cluster-payload.interface";
+import { LogLevel } from "../log-level.enum";
 
 // export type RedisCallback = (error, message) =>
 
 export default class RedisSatellite extends Satellite {
-  protected _name: string = 'redis';
+  protected _name: string = "redis";
   public loadPriority: number = 200;
   public startPriority: number = 101;
   public stopPriority: number = 99999;
@@ -46,10 +46,10 @@ export default class RedisSatellite extends Satellite {
         !message.connectionId ||
         this.api.connections.connections.get(message.connectionId)
       ) {
-        const cmdParts = message.method.split('.');
+        const cmdParts = message.method.split(".");
         const method = this.api.utils.stringToHash(
           this.api,
-          cmdParts.join('.'),
+          cmdParts.join("."),
         );
 
         let args = message.args;
@@ -66,7 +66,7 @@ export default class RedisSatellite extends Satellite {
           await this.respondCluster(message.requestId, response);
         } else {
           this.api.log(
-            `RP method '${cmdParts.join('.')}' not found`,
+            `RP method '${cmdParts.join(".")}' not found`,
             LogLevel.Warning,
           );
         }
@@ -86,7 +86,7 @@ export default class RedisSatellite extends Satellite {
   }
 
   private initializeClients() {
-    const queuesToCreate = ['client', 'subscriber', 'tasks'];
+    const queuesToCreate = ["client", "subscriber", "tasks"];
     const jobs = [];
 
     queuesToCreate.forEach(r => {
@@ -96,7 +96,7 @@ export default class RedisSatellite extends Satellite {
             this.api.configs.redis[r].args,
           );
 
-          this.clients[r].on('error', error => {
+          this.clients[r].on("error", error => {
             this.api.log(`Redis connection ${r} error`, LogLevel.Error, error);
           });
           this.api.log(`Redis connection ${r} connected`, LogLevel.Info);
@@ -107,11 +107,11 @@ export default class RedisSatellite extends Satellite {
         const args = this.api.configs.redis[r].args;
 
         this.clients[r] = new this.api.configs.redis[r].constructor(args);
-        this.clients[r].on('error', error => {
+        this.clients[r].on("error", error => {
           this.api.log(`Redis connection ${r} error`, LogLevel.Error, error);
         });
 
-        this.clients[r].on('connect', () => {
+        this.clients[r].on("connect", () => {
           this.api.log(`Redis connection ${r} connected`, LogLevel.Info);
           resolve();
         });
@@ -126,7 +126,7 @@ export default class RedisSatellite extends Satellite {
         this.clients.subscriber.subscribe(this.api.configs.general.channel);
         this.status.subscribed = true;
 
-        this.clients.subscriber.on('message', (messageChannel, message) => {
+        this.clients.subscriber.on("message", (messageChannel, message) => {
           try {
             message = JSON.parse(message);
           } catch (e) {
@@ -168,7 +168,7 @@ export default class RedisSatellite extends Satellite {
   ) {
     const requestId = uuid.v4();
     const payload: ClusterPayload = {
-      messageType: 'do',
+      messageType: "do",
       serverId: this.api.id,
       serverToken: this.api.configs.general.serverToken,
       requestId,
@@ -186,8 +186,8 @@ export default class RedisSatellite extends Satellite {
 
         this.clusterCallbackTimeouts[requestId] = setTimeout(
           () => {
-            if (typeof this.clusterCallbacks[requestId] === 'function') {
-              reject(new Error('RPC Timeout'));
+            if (typeof this.clusterCallbacks[requestId] === "function") {
+              reject(new Error("RPC Timeout"));
             }
 
             delete this.clusterCallbacks[requestId];
@@ -218,7 +218,7 @@ export default class RedisSatellite extends Satellite {
    */
   public async respondCluster(requestId: string, response: any) {
     const payload: ClusterPayload = {
-      messageType: 'doResponse',
+      messageType: "doResponse",
       serverId: this.api.id,
       serverToken: this.api.configs.general.serverToken,
       requestId,
@@ -237,7 +237,7 @@ export default class RedisSatellite extends Satellite {
 
   public async start(): Promise<void> {
     await this.doCluster(
-      'log',
+      "log",
       `Stellar member ${this.api.id} has joined the cluster`,
     );
   }
@@ -254,18 +254,18 @@ export default class RedisSatellite extends Satellite {
       delete this.clusterCallbacks[key];
     }
 
-    this.doCluster('log', `Stellar member ${this.api.id} has left the cluster`);
+    this.doCluster("log", `Stellar member ${this.api.id} has left the cluster`);
 
     // TODO: stop subscriber
 
-    ['client', 'subscriber', 'tasks'].forEach(r => {
+    ["client", "subscriber", "tasks"].forEach(r => {
       const client = this.clients[r];
 
-      if (typeof client.quit === 'function') {
+      if (typeof client.quit === "function") {
         client.quit();
-      } else if (typeof client.end === 'function') {
+      } else if (typeof client.end === "function") {
         client.end();
-      } else if (typeof client.disconnect === 'function') {
+      } else if (typeof client.disconnect === "function") {
         client.disconnect();
       }
     });

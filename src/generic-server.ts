@@ -1,15 +1,15 @@
-import { EventEmitter } from 'events';
-import ConnectionDetails from './connection-details';
-import { LogLevel } from './log-level.enum';
-import Connection from './connection';
-import { ReadStream } from 'fs';
+import { EventEmitter } from "events";
+import ConnectionDetails from "./connection-details";
+import { LogLevel } from "./log-level.enum";
+import Connection from "./connection";
+import { ReadStream } from "fs";
 
 /**
  * This function is called when the method is not implemented.
  */
 const methodNotDefined = () => {
   throw new Error(
-    'The containing method should be defined for this server type',
+    "The containing method should be defined for this server type",
   );
 };
 
@@ -103,7 +103,7 @@ export abstract class GenericServer extends EventEmitter {
   public processAction(connection) {
     const ActionProcessor = this.api.ActionProcessor;
     const actionProcessor = new ActionProcessor(this.api, connection, data => {
-      this.emit('actionComplete', data);
+      this.emit("actionComplete", data);
     });
 
     actionProcessor.processAction();
@@ -117,7 +117,7 @@ export abstract class GenericServer extends EventEmitter {
     length: number,
     lastModified: Date,
   ): Promise<void> {
-    throw new Error('Not implemented!');
+    throw new Error("Not implemented!");
   }
 
   /**
@@ -179,27 +179,27 @@ export abstract class GenericServer extends EventEmitter {
     };
 
     // emit the new connection object
-    this.emit('connection', connection);
+    this.emit("connection", connection);
 
     // check if the lod for this type of connection is active
     if (this.attributes.logConnections === true) {
-      this.log('new connection', LogLevel.Info, { to: connection.remoteIP });
+      this.log("new connection", LogLevel.Info, { to: connection.remoteIP });
     }
 
     // bidirectional connection can have a welcome message
     if (this.attributes.sendWelcomeMessage === true) {
       connection.sendMessage({
         welcome: this.api.configs.general.welcomeMessage,
-        context: 'api',
+        context: "api",
       });
     }
 
-    if (typeof this.attributes.sendWelcomeMessage === 'number') {
+    if (typeof this.attributes.sendWelcomeMessage === "number") {
       setTimeout(() => {
         try {
           connection.sendMessage({
             welcome: this.api.configs.general.welcomeMessage,
-            context: 'api',
+            context: "api",
           });
         } catch (e) {
           this.api.log.error(e);

@@ -17,7 +17,7 @@ export default {
       // Dictionary with model system adapters
       // -----------------------------------------------------------------------
       adapters: {
-        memory: 'sails-disk',
+        memory: "sails-disk",
       },
 
       // -----------------------------------------------------------------------
@@ -25,7 +25,7 @@ export default {
       // -----------------------------------------------------------------------
       datastores: {
         default: {
-          adapter: 'memory',
+          adapter: "memory",
           inMemoryOnly: true,
         },
       },
@@ -33,7 +33,7 @@ export default {
       // -----------------------------------------------------------------------
       // Default datastore
       // -----------------------------------------------------------------------
-      defaultDatastore: 'default',
+      defaultDatastore: "default",
 
       // -----------------------------------------------------------------------
       // Use schemas

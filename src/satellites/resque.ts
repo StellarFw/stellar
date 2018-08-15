@@ -1,10 +1,10 @@
-import { Satellite } from '../satellite';
+import { Satellite } from "../satellite";
 
-import * as NodeResque from 'node-resque';
-import { LogLevel } from '../log-level.enum';
+import * as NodeResque from "node-resque";
+import { LogLevel } from "../log-level.enum";
 
 export default class ResqueSatellite extends Satellite {
-  protected _name: string = 'resque';
+  protected _name: string = "resque";
   public loadPriority = 600;
   public startPriority = 200;
   public stopPriority = 100;
@@ -42,8 +42,8 @@ export default class ResqueSatellite extends Satellite {
       this.api.tasks.jobs,
     );
 
-    this.queue.on('error', error =>
-      this.api.log(error, LogLevel.Error, '[api.resque.scheduler]'),
+    this.queue.on("error", error =>
+      this.api.log(error, LogLevel.Error, "[api.resque.scheduler]"),
     );
 
     await this.queue.connect();
@@ -69,55 +69,55 @@ export default class ResqueSatellite extends Satellite {
     );
 
     // normal worker emitters
-    this.multiWorker.on('start', workerId =>
-      this.api.log('worker: started', workerLogging.start, {
+    this.multiWorker.on("start", workerId =>
+      this.api.log("worker: started", workerLogging.start, {
         workerId,
       }),
     );
-    this.multiWorker.on('end', workerId =>
-      this.api.log('worker: ended', workerLogging.end, {
+    this.multiWorker.on("end", workerId =>
+      this.api.log("worker: ended", workerLogging.end, {
         workerId,
       }),
     );
-    this.multiWorker.on('cleaning_worker', (workerId, worker, pid) =>
+    this.multiWorker.on("cleaning_worker", (workerId, worker, pid) =>
       this.api.log(
         `worker: cleaning old worker ${worker}, (${pid})`,
         workerLogging.cleaning_worker,
       ),
     );
-    this.multiWorker.on('job', (workerId, queue, job) =>
+    this.multiWorker.on("job", (workerId, queue, job) =>
       this.api.log(`worker: working job ${queue}`, workerLogging.job, {
         workerId,
         job: { class: job.class, queue: job.queue },
       }),
     );
-    this.multiWorker.on('reEnqueue', (workerId, queue, job, plugin) =>
-      this.api.log('worker: reEnqueue job', workerLogging.reEnqueue, {
+    this.multiWorker.on("reEnqueue", (workerId, queue, job, plugin) =>
+      this.api.log("worker: reEnqueue job", workerLogging.reEnqueue, {
         workerId,
         plugin,
         job: { class: job.class, queue: job.queue },
       }),
     );
-    this.multiWorker.on('success', (workerId, queue, job, result) =>
+    this.multiWorker.on("success", (workerId, queue, job, result) =>
       this.api.log(`worker: job success ${queue}`, workerLogging.success, {
         workerId,
         job: { class: job.class, queue: job.queue },
         result,
       }),
     );
-    this.multiWorker.on('pause', workerId =>
-      this.api.log('worker: paused', workerLogging.pause, { workerId }),
+    this.multiWorker.on("pause", workerId =>
+      this.api.log("worker: paused", workerLogging.pause, { workerId }),
     );
 
-    this.multiWorker.on('failure', (workerId, queue, job, failure) =>
+    this.multiWorker.on("failure", (workerId, queue, job, failure) =>
       this.api.exceptionHandlers.task(failure, queue, job),
     );
-    this.multiWorker.on('error', (error, workerId, queue, job) => {
+    this.multiWorker.on("error", (error, workerId, queue, job) => {
       this.api.exceptionHandlers.task(error, queue, job);
     });
 
     // multiWorker emitters
-    this.multiWorker.on('internalError', error =>
+    this.multiWorker.on("internalError", error =>
       this.api.log(error, workerLogging.internalError),
     );
 
@@ -138,28 +138,28 @@ export default class ResqueSatellite extends Satellite {
       timeout: this.api.configs.tasks.timeout,
     });
 
-    this.scheduler.on('error', error =>
-      this.api.log(error, LogLevel.Error, '[api.resque.scheduler]'),
+    this.scheduler.on("error", error =>
+      this.api.log(error, LogLevel.Error, "[api.resque.scheduler]"),
     );
 
     await this.scheduler.connect();
 
-    this.scheduler.on('start', () =>
-      this.api.log('resque scheduler started', this.schedulerLogging.start),
+    this.scheduler.on("start", () =>
+      this.api.log("resque scheduler started", this.schedulerLogging.start),
     );
-    this.scheduler.on('end', () =>
-      this.api.log('resque scheduler ended', this.schedulerLogging.end),
+    this.scheduler.on("end", () =>
+      this.api.log("resque scheduler ended", this.schedulerLogging.end),
     );
-    this.scheduler.on('poll', () =>
-      this.api.log('resque scheduler polling', this.schedulerLogging.poll),
+    this.scheduler.on("poll", () =>
+      this.api.log("resque scheduler polling", this.schedulerLogging.poll),
     );
-    this.scheduler.on('working_timestamp', timestamp =>
+    this.scheduler.on("working_timestamp", timestamp =>
       this.api.log(
         `resque scheduler working timestamp ${timestamp}`,
         this.schedulerLogging.working_timestamp,
       ),
     );
-    this.scheduler.on('transferred_job', (timestamp, job) =>
+    this.scheduler.on("transferred_job", (timestamp, job) =>
       this.api.log(
         `resque scheduler enqueuing job ${timestamp}`,
         this.schedulerLogging.transferred_job,
@@ -190,7 +190,7 @@ export default class ResqueSatellite extends Satellite {
       await this.multiWorker.stop();
       this.multiWorker = null;
 
-      this.api.log('Task workers stopped');
+      this.api.log("Task workers stopped");
     }
   }
 

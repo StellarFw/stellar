@@ -1,8 +1,8 @@
-import { Satellite } from '../satellite';
-import { EngineStatus } from '../engine-status.enum';
-import { LogLevel } from '../log-level.enum';
-import { normalize } from 'path';
-import { existsSync, watchFile, unwatchFile } from 'fs';
+import { Satellite } from "../satellite";
+import { EngineStatus } from "../engine-status.enum";
+import { LogLevel } from "../log-level.enum";
+import { normalize } from "path";
+import { existsSync, watchFile, unwatchFile } from "fs";
 
 class ConfigManager {
   private api: any = null;
@@ -35,7 +35,7 @@ class ConfigManager {
     } else if (process.env.NODE_ENV) {
       this.api.env = process.env.NODE_ENV;
     } else {
-      this.api.env = 'development';
+      this.api.env = "development";
     }
   }
 
@@ -181,8 +181,8 @@ class ConfigManager {
 
       process.nextTick(() => {
         let cleanPath = file;
-        if (process.platform === 'win32') {
-          cleanPath = file.replace(/\//g, '\\');
+        if (process.platform === "win32") {
+          cleanPath = file.replace(/\//g, "\\");
         }
 
         // clean the imported files cache to force the file reload
@@ -220,7 +220,7 @@ class ConfigManager {
 
 export default class ConfigSatellite extends Satellite {
   public loadPriority: number = 0;
-  protected _name: string = 'Config';
+  protected _name: string = "Config";
 
   public async load(): Promise<void> {
     this.api.config = new ConfigManager(this.api);

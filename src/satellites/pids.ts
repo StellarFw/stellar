@@ -1,7 +1,7 @@
-import { Satellite } from '../satellite';
-import { LogLevel } from '../log-level.enum';
-import { isMaster } from 'cluster';
-import { mkdirSync, writeFileSync, unlinkSync } from 'fs';
+import { Satellite } from "../satellite";
+import { LogLevel } from "../log-level.enum";
+import { isMaster } from "cluster";
+import { mkdirSync, writeFileSync, unlinkSync } from "fs";
 
 class Pids {
   private api: any = null;
@@ -44,7 +44,7 @@ class Pids {
    * Write pid file.
    */
   public writePidFile(): void {
-    writeFileSync(`${this.path}/${this.title}`, this.pid.toString(), 'ascii');
+    writeFileSync(`${this.path}/${this.title}`, this.pid.toString(), "ascii");
   }
 
   /**
@@ -54,7 +54,7 @@ class Pids {
     try {
       unlinkSync(`${this.path}/${this.title}`);
     } catch (error) {
-      this.api.log('Unable to remove pid file', LogLevel.Error, error);
+      this.api.log("Unable to remove pid file", LogLevel.Error, error);
     }
   }
 
@@ -62,10 +62,11 @@ class Pids {
    * Get a sanitized pid name for this process.
    */
   private sanitizeId(): string {
-    return this.api.id.replace(/:/g, '-')
-      .replace(/\s/g, '-')
-      .replace(/\r/g, '')
-      .replace(/\n/g, '');
+    return this.api.id
+      .replace(/:/g, "-")
+      .replace(/\s/g, "-")
+      .replace(/\r/g, "")
+      .replace(/\n/g, "");
   }
 }
 

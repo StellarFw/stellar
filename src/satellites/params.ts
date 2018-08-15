@@ -1,17 +1,17 @@
-import { Satellite } from '../satellite';
+import { Satellite } from "../satellite";
 
 export default class ParamsSatellite extends Satellite {
-  protected _name: string = 'params';
+  protected _name: string = "params";
   public loadPriority: number = 420;
 
   /**
    * Special params.
    */
   private globalSafeParams: Array<string> = [
-    'file',
-    'apiVersion',
-    'callback',
-    'action',
+    "file",
+    "apiVersion",
+    "callback",
+    "action",
   ];
 
   /**

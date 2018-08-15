@@ -1,10 +1,10 @@
-import 'source-map-support/register';
+import "source-map-support/register";
 
-import { resolve, normalize, basename } from 'path';
-import { SatelliteInterface } from './satellite.interface';
-import { Satellite } from './satellite';
-import { EngineStatus } from './engine-status.enum';
-import { LogLevel } from './log-level.enum';
+import { resolve, normalize, basename } from "path";
+import { SatelliteInterface } from "./satellite.interface";
+import { Satellite } from "./satellite";
+import { EngineStatus } from "./engine-status.enum";
+import { LogLevel } from "./log-level.enum";
 
 /**
  * Main entry point for the Stellar code.
@@ -62,7 +62,7 @@ export default class Engine {
 
   private log(msg: any, level: LogLevel = LogLevel.Info) {
     // when it's running on a test environment the logs are disabled
-    if (process.env.NODE_ENV === 'test') {
+    if (process.env.NODE_ENV === "test") {
       return;
     }
 
@@ -84,7 +84,7 @@ export default class Engine {
    */
   private async fatalError(errors: Array<Error> | Error, type: string) {
     if (!errors) {
-      throw new Error('There must be passed at lest one Error');
+      throw new Error("There must be passed at lest one Error");
     }
     if (!Array.isArray(errors)) {
       errors = [errors];
@@ -106,11 +106,11 @@ export default class Engine {
   private loadArrayOfSatellites(satellitesFiles): void {
     for (const path of satellitesFiles) {
       const file = normalize(path);
-      const satelliteName = basename(file).split('.')[0];
-      const extension = file.split('.').pop();
+      const satelliteName = basename(file).split(".")[0];
+      const extension = file.split(".").pop();
 
       // only load files with the `js` extension
-      if (extension !== 'js') {
+      if (extension !== "js") {
         continue;
       }
 
@@ -121,7 +121,7 @@ export default class Engine {
 
       this.satellites[satelliteName] = satelliteInstance;
 
-      if (typeof satelliteInstance.load === 'function') {
+      if (typeof satelliteInstance.load === "function") {
         this.satellitesLoadOrder[satelliteInstance.loadPriority] =
           this.satellitesLoadOrder[satelliteInstance.loadPriority] || [];
         this.satellitesLoadOrder[satelliteInstance.loadPriority].push(
@@ -129,7 +129,7 @@ export default class Engine {
         );
       }
 
-      if (typeof satelliteInstance.start === 'function') {
+      if (typeof satelliteInstance.start === "function") {
         this.satellitesStartOrder[satelliteInstance.startPriority] =
           this.satellitesStartOrder[satelliteInstance.startPriority] || [];
         this.satellitesStartOrder[satelliteInstance.startPriority].push(
@@ -137,7 +137,7 @@ export default class Engine {
         );
       }
 
-      if (typeof satelliteInstance.stop === 'function') {
+      if (typeof satelliteInstance.stop === "function") {
         this.satellitesStopOrder[satelliteInstance.stopPriority] =
           this.satellitesStopOrder[satelliteInstance.stopPriority] || [];
         this.satellitesStopOrder[satelliteInstance.stopPriority].push(
@@ -213,7 +213,7 @@ export default class Engine {
         this.api.log(`\tloaded: ${satelliteInstance.name}`, LogLevel.Debug);
       }
     } catch (e) {
-      this.fatalError(e, 'stage1');
+      this.fatalError(e, "stage1");
     }
   }
 
@@ -225,7 +225,7 @@ export default class Engine {
         this.api.log(`\tstarted: ${satelliteInstance.name}`, LogLevel.Debug);
       }
     } catch (error) {
-      this.fatalError(error, 'stage2');
+      this.fatalError(error, "stage2");
     }
 
     this.api.status = EngineStatus.Running;
@@ -250,7 +250,7 @@ export default class Engine {
     const satellitesToLoad: SatelliteInterface[] = [];
 
     if (this.api.status !== EngineStatus.Stopped) {
-      throw new Error('Invalid Engine state, it must be stopped first.');
+      throw new Error("Invalid Engine state, it must be stopped first.");
     }
 
     this.satellites = new Map();
@@ -267,8 +267,8 @@ export default class Engine {
     ];
 
     for (const file of initialSatellites) {
-      const fileName = file.replace(/^.*[\\\/]/, '');
-      const satellite = fileName.split('.')[0];
+      const fileName = file.replace(/^.*[\\\/]/, "");
+      const satellite = fileName.split(".")[0];
 
       const currentSatellite = new (require(file)).default(this.api);
       this.satellites[satellite] = currentSatellite;
@@ -276,7 +276,7 @@ export default class Engine {
       try {
         await currentSatellite.load();
       } catch (error) {
-        this.fatalError(error, 'stage0');
+        this.fatalError(error, "stage0");
       }
     }
 
@@ -285,7 +285,7 @@ export default class Engine {
 
   public async start(): Promise<Engine> {
     if (this.api.status !== EngineStatus.Stage0) {
-      throw new Error('Invalid Engine state');
+      throw new Error("Invalid Engine state");
     }
 
     this.startCount = 0;
@@ -307,7 +307,7 @@ export default class Engine {
 
     await this.stage2();
 
-    this.api.log('** Stellar Restarted **', LogLevel.Info);
+    this.api.log("** Stellar Restarted **", LogLevel.Info);
 
     return this;
   }
@@ -327,7 +327,7 @@ export default class Engine {
     if (this.api.status === EngineStatus.Running) {
       this.api.status = EngineStatus.Stopping;
       this.api.log(
-        'Shutdown down open server and stopping task processing',
+        "Shutdown down open server and stopping task processing",
         LogLevel.Alert,
       );
 
@@ -338,22 +338,22 @@ export default class Engine {
           this.api.log(`\tstopped: ${satelliteInstance.name}`, LogLevel.Debug);
         }
       } catch (error) {
-        this.fatalError(error, 'stop');
+        this.fatalError(error, "stop");
       }
 
       this.api.config.unwatchAllFiles();
 
       // TODO: this.api.pids.clearPidFile();
 
-      this.api.log('Stellar has been stopped', LogLevel.Alert);
-      this.api.log('**', LogLevel.Debug);
+      this.api.log("Stellar has been stopped", LogLevel.Alert);
+      this.api.log("**", LogLevel.Debug);
 
       this.api.status = EngineStatus.Stopped;
 
       return this;
     }
 
-    this.api.log('Cannot shutdown Stellar, not running', LogLevel.Error);
+    this.api.log("Cannot shutdown Stellar, not running", LogLevel.Error);
 
     return this;
   }

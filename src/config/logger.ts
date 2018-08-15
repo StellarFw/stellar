@@ -1,7 +1,7 @@
-import * as DailyRotateFile from 'winston-daily-rotate-file';
-import BeautifulLogger from '../beautiful-logger';
-import { isMaster } from 'cluster';
-import { mkdirSync } from 'fs';
+import * as DailyRotateFile from "winston-daily-rotate-file";
+import BeautifulLogger from "../beautiful-logger";
+import { isMaster } from "cluster";
+import { mkdirSync } from "fs";
 
 export default {
   logger(api) {
@@ -14,7 +14,7 @@ export default {
       logger.transports.push(() => {
         return new BeautifulLogger(api, {
           colorize: true,
-          level: 'debug',
+          level: "debug",
           timestamp: true,
         });
       });
@@ -26,7 +26,7 @@ export default {
     try {
       mkdirSync(logDirectory);
     } catch (e) {
-      if (e.code !== 'EEXIST') {
+      if (e.code !== "EEXIST") {
         throw new Error(`Cannot create log directory @ ${logDirectory}`);
       }
     }
@@ -34,9 +34,9 @@ export default {
     logger.transports.push(() => {
       return new DailyRotateFile({
         filename: `${logDirectory}/${api.pids.title}.log`,
-        datePattern: 'yyyy-MM-dd.',
+        datePattern: "yyyy-MM-dd.",
         prepend: true,
-        level: 'info',
+        level: "info",
         timestamp: true,
       });
     });

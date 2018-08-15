@@ -1,4 +1,4 @@
-import * as UUID from 'uuid';
+import * as UUID from "uuid";
 
 /**
  * This class represents an active connection.
@@ -106,7 +106,7 @@ export default class Connection {
     this.api.connections.globalMiddleware.forEach(middlewareName => {
       if (
         typeof this.api.connections.middleware[middlewareName].create ===
-        'function'
+        "function"
       ) {
         this.api.connections.middleware[middlewareName].create(this);
       }
@@ -128,7 +128,7 @@ export default class Connection {
 
     this.connectedAt = new Date().getTime();
 
-    const requiredFields = ['type', 'rawConnection'];
+    const requiredFields = ["type", "rawConnection"];
     requiredFields.forEach(req => {
       if (data[req] === null || data[req] === undefined) {
         throw new Error(`${req} is required to create a new connection object`);
@@ -137,7 +137,7 @@ export default class Connection {
       this[req] = data[req];
     });
 
-    const enforcedConnectionProperties = ['remotePort', 'remoteIP'];
+    const enforcedConnectionProperties = ["remotePort", "remoteIP"];
     enforcedConnectionProperties.forEach(req => {
       if (data[req] === null || data[req] === undefined) {
         if (this.api.configs.general.enforceConnectionProperties === true) {
@@ -192,7 +192,7 @@ export default class Connection {
     this.api.connections.globalMiddleware.forEach(middlewareName => {
       if (
         typeof this.api.connections.middleware[middlewareName].destroy ===
-        'function'
+        "function"
       ) {
         this.api.connections.middleware[middlewareName].destroy(this);
       }
@@ -207,12 +207,12 @@ export default class Connection {
     const server = this.api.servers.servers[this.type];
     if (server) {
       if (server.attributes.logExits === true) {
-        server.log('connection closed', 'info', {
+        server.log("connection closed", "info", {
           to: this.remoteIP,
         });
       }
 
-      if (typeof server.goodbye === 'function') {
+      if (typeof server.goodbye === "function") {
         server.goodbye(this);
       }
     }
@@ -256,48 +256,48 @@ export default class Connection {
     }
 
     if (server && allowedVerbs.indexOf(verb) >= 0) {
-      server.log('verb', 'debug', {
+      server.log("verb", "debug", {
         verb,
         to: this.remoteIP,
         params: JSON.stringify(words),
       });
 
-      if (verb === 'quit' || verb === 'exit') {
+      if (verb === "quit" || verb === "exit") {
         server.goodbye(this);
-      } else if (verb === 'paramAdd') {
+      } else if (verb === "paramAdd") {
         key = words[0];
         value = words[1];
 
-        if (words[0] && words[0].indexOf('=') >= 0) {
-          const parts = words[0].split('=');
+        if (words[0] && words[0].indexOf("=") >= 0) {
+          const parts = words[0].split("=");
           key = parts[0];
           value = parts[1];
         }
 
         this.params[key] = value;
         return null;
-      } else if (verb === 'paramDelete') {
+      } else if (verb === "paramDelete") {
         key = words[0];
         delete this.params[key];
 
         return null;
-      } else if (verb === 'paramView') {
+      } else if (verb === "paramView") {
         key = words[0];
 
         return this.params[key];
-      } else if (verb === 'paramsView') {
+      } else if (verb === "paramsView") {
         return this.params;
-      } else if (verb === 'paramsDelete') {
+      } else if (verb === "paramsDelete") {
         this.params = {};
 
         return null;
-      } else if (verb === 'roomJoin') {
+      } else if (verb === "roomJoin") {
         room = words[0];
         return this.api.chatRoom.join(this.id, room);
-      } else if (verb === 'roomLeave') {
+      } else if (verb === "roomLeave") {
         room = words[0];
         return this.api.chatRoom.leave(this.id, room);
-      } else if (verb === 'roomView') {
+      } else if (verb === "roomView") {
         // get requested room name
         room = words[0];
 
@@ -306,7 +306,7 @@ export default class Connection {
         } else {
           throw new Error(`Not member of room "${room}"`);
         }
-      } else if (verb === 'detailsView') {
+      } else if (verb === "detailsView") {
         return {
           id: this.id,
           fingerprint: this.fingerprint,
@@ -318,13 +318,13 @@ export default class Connection {
           totalActions: this.totalActions,
           pendingActions: this.pendingActions,
         };
-      } else if (verb === 'say') {
+      } else if (verb === "say") {
         // get the room name
         room = words.shift();
 
         // broadcast the message on the requested room
-        return this.api.chatRoom.broadcast(this, room, words.join(' '));
-      } else if (verb === 'event') {
+        return this.api.chatRoom.broadcast(this, room, words.join(" "));
+      } else if (verb === "event") {
         // get the vent information
         const { room, event, data } = words.shift() as any;
 

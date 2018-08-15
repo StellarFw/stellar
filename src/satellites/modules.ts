@@ -1,11 +1,11 @@
-import { Satellite } from '../satellite';
-import { writeFileSync } from 'fs';
-import { LogLevel } from '../log-level.enum';
-import { execSync } from 'child_process';
-import ModuleInterface from '../module.interface';
+import { Satellite } from "../satellite";
+import { writeFileSync } from "fs";
+import { LogLevel } from "../log-level.enum";
+import { execSync } from "child_process";
+import ModuleInterface from "../module.interface";
 
 export default class ModulesSatellite extends Satellite {
-  protected _name: string = 'modules';
+  protected _name: string = "modules";
   public loadPriority: number = 1;
 
   /**
@@ -39,11 +39,11 @@ export default class ModulesSatellite extends Satellite {
     if (
       this.api.utils.dirExists(`${this.api.scope.rootPath}/modules/private`)
     ) {
-      modules.push('private');
+      modules.push("private");
     }
 
     if (modules.length === 0) {
-      throw new Error('At least one module needs to be active.');
+      throw new Error("At least one module needs to be active.");
     }
 
     for (const moduleName of modules) {
@@ -55,7 +55,7 @@ export default class ModulesSatellite extends Satellite {
         this.modulesPaths.set(manifest.id, path);
       } catch (e) {
         throw new Error(
-          `There is an invalid module active, named "${moduleName}", fiz this to start Stellar normally.`
+          `There is an invalid module active, named "${moduleName}", fiz this to start Stellar normally.`,
         );
       }
     }
@@ -69,7 +69,7 @@ export default class ModulesSatellite extends Satellite {
    */
   private processNpmDependencies(): void {
     // Don't use NPM on test environment, otherwise the tests will fail.
-    if (this.api.env === 'test') {
+    if (this.api.env === "test") {
       return;
     }
 
@@ -79,14 +79,14 @@ export default class ModulesSatellite extends Satellite {
     // temporary files and process every thing again.
     if (scope.args.clean) {
       const tempFilesLocations = [
-        'temp',
-        'package.json',
-        'package.json.lock',
-        'node_modules',
+        "temp",
+        "package.json",
+        "package.json.lock",
+        "node_modules",
       ];
 
       tempFilesLocations.forEach(e =>
-        this.api.utils.removePath(`${scope.rootPath}/${e}`)
+        this.api.utils.removePath(`${scope.rootPath}/${e}`),
       );
     }
 
@@ -108,14 +108,14 @@ export default class ModulesSatellite extends Satellite {
 
       npmDependencies = this.api.utils.hashMerge(
         npmDependencies,
-        manifest.npmDependencies
+        manifest.npmDependencies,
       );
     });
 
     const projectJson = {
       private: true,
-      name: 'stellar-dependencies',
-      version: '1.0.0',
+      name: "stellar-dependencies",
+      version: "1.0.0",
       description: `This was automatically generated don't edit manually.`,
       dependencies: npmDependencies,
     };
@@ -125,20 +125,20 @@ export default class ModulesSatellite extends Satellite {
     writeFileSync(
       packageJsonPath,
       JSON.stringify(projectJson, null, 2),
-      'utf8'
+      "utf8",
     );
 
-    this.api.log('Updating NPM packages', LogLevel.Info);
+    this.api.log("Updating NPM packages", LogLevel.Info);
 
-    const npmCommand = scope.args.update ? 'npm update' : 'npm install';
+    const npmCommand = scope.args.update ? "npm update" : "npm install";
 
     try {
       execSync(npmCommand);
     } catch (error) {
-      throw new Error('An error occurred during the NPM install command.');
+      throw new Error("An error occurred during the NPM install command.");
     }
 
-    this.api.log('NPM dependencies updated!', LogLevel.Info);
+    this.api.log("NPM dependencies updated!", LogLevel.Info);
   }
 
   /**
@@ -149,7 +149,7 @@ export default class ModulesSatellite extends Satellite {
    */
   public regModuleAction(
     moduleName: string,
-    value: string | Array<string>
+    value: string | Array<string>,
   ): void {
     if (!this.moduleActions.has(moduleName)) {
       this.moduleActions.set(moduleName, []);
@@ -162,7 +162,7 @@ export default class ModulesSatellite extends Satellite {
     } else if (this.api.utils.isNonEmptyString(value)) {
       arrayOfActions.push(value);
     } else {
-      throw new Error('Value got an invalid state.');
+      throw new Error("Value got an invalid state.");
     }
   }
 

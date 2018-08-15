@@ -1,4 +1,4 @@
-import { SatelliteInterface } from './satellite.interface';
+import { SatelliteInterface } from "./satellite.interface";
 
 export abstract class Satellite implements SatelliteInterface {
   public loadPriority: number = 100;
@@ -17,6 +17,6 @@ export abstract class Satellite implements SatelliteInterface {
   }
 
   public load(): Promise<void> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
 }

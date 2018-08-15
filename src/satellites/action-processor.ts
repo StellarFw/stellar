@@ -1,21 +1,21 @@
-import { Satellite } from '../satellite';
-import Connection from '../connection';
-import ActionInterface from '../action.interface';
-import { LogLevel } from '../log-level.enum';
-import { EngineStatus } from '../engine-status.enum';
-import { timingSafeEqual } from 'crypto';
+import { Satellite } from "../satellite";
+import Connection from "../connection";
+import ActionInterface from "../action.interface";
+import { LogLevel } from "../log-level.enum";
+import { EngineStatus } from "../engine-status.enum";
+import { timingSafeEqual } from "crypto";
 
 type ActionProcessorCallback = (data: any) => void;
 
 enum ActionStatus {
-  SERVER_ERROR = 'server_error',
-  SERVER_SHUTTING_DOWN = 'server_shutting_down',
-  TOO_MANY_REQUESTS = 'too_many_requests',
-  UNKNOWN_ACTION = 'unknown_action',
-  UNSUPPORTED_SERVER_TYPE = 'unsupported_server_type',
-  VALIDATOR_ERRORS = 'validator_errors',
-  RESPONSE_TIMEOUT = 'response_timeout',
-  OTHER = 'other',
+  SERVER_ERROR = "server_error",
+  SERVER_SHUTTING_DOWN = "server_shutting_down",
+  TOO_MANY_REQUESTS = "too_many_requests",
+  UNKNOWN_ACTION = "unknown_action",
+  UNSUPPORTED_SERVER_TYPE = "unsupported_server_type",
+  VALIDATOR_ERRORS = "validator_errors",
+  RESPONSE_TIMEOUT = "response_timeout",
+  OTHER = "other",
 }
 
 class ActionProcessor {
@@ -177,12 +177,12 @@ class ActionProcessor {
       }
     }
 
-    if (error && typeof error === 'string') {
+    if (error && typeof error === "string") {
       error = new Error(error);
     }
 
     if (error && !this.response.error) {
-      if (typeof this.response === 'string' || Array.isArray(this.response)) {
+      if (typeof this.response === "string" || Array.isArray(this.response)) {
         this.response = error.toString();
       } else {
         this.response.error = error;
@@ -219,8 +219,8 @@ class ActionProcessor {
         this.api.configs.general.filteredParams &&
         this.api.configs.general.filteredParams.indexOf(i) >= 0
       ) {
-        filteredParams[i] = '[FILTERED]';
-      } else if (typeof this.params[i] === 'string') {
+        filteredParams[i] = "[FILTERED]";
+      } else if (typeof this.params[i] === "string") {
         filteredParams[i] = this.params[i].substring(
           0,
           this.api.configs.logger.maxLogStringLength,
@@ -258,7 +258,7 @@ class ActionProcessor {
     // if the action is private this can only be executed internally
     if (
       this.actionTemplate.private === true &&
-      this.connection.type !== 'internal'
+      this.connection.type !== "internal"
     ) {
       throw new Error(
         this.api.config.errors.privateActionCalled(this.actionTemplate.name),
@@ -283,7 +283,7 @@ class ActionProcessor {
       const name = processorsNames[key];
 
       if (
-        typeof this.api.actions.middleware[name].preProcessor === 'function'
+        typeof this.api.actions.middleware[name].preProcessor === "function"
       ) {
         await this.api.actions.middleware[name].preProcessor(this);
       }
@@ -352,7 +352,7 @@ class ActionProcessor {
 
       // Default
       if (this.params[key] === undefined && props.default !== undefined) {
-        if (typeof props.default === 'function') {
+        if (typeof props.default === "function") {
           this.params[key] = props.default(this);
         } else {
           this.params[key] = props.default;
@@ -361,17 +361,17 @@ class ActionProcessor {
 
       // Format the input to the requested type
       if (props.format && this.params[key]) {
-        if (typeof props.format === 'function') {
+        if (typeof props.format === "function") {
           this.params[key] = props.format.call(
             this.api,
             this.params[key],
             this,
           );
-        } else if (props.format === 'integer') {
+        } else if (props.format === "integer") {
           this.params[key] = Number.parseInt(this.params[key]);
-        } else if (props.format === 'float') {
+        } else if (props.format === "float") {
           this.params[key] = Number.parseFloat(this.params[key]);
-        } else if (props.format === 'string') {
+        } else if (props.format === "string") {
           this.params[key] = String(this.params[key]);
         }
 
@@ -388,8 +388,8 @@ class ActionProcessor {
       if (props.required === true) {
         // FIXME: this will throw an error when the validator is a function
         props.validator = !props.validator
-          ? 'required'
-          : 'required|' + props.validator;
+          ? "required"
+          : "required|" + props.validator;
       }
 
       // add the field to the validation hash
@@ -489,7 +489,7 @@ class ActionProcessor {
 }
 
 export default class ActionProcessorSatellite extends Satellite {
-  protected _name = 'ActionProcessor';
+  protected _name = "ActionProcessor";
   public loadPriority = 430;
 
   public async load(): Promise<void> {

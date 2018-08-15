@@ -11,14 +11,13 @@
     },
     "rules": {
         "prettier": [true, {
-            "singleQuote": true,
             "trailingComma": "all"
         }],
         "no-console": false,
         "eofline": false,
         "quotemark": [
             true,
-            "single"
+            "double"
         ],
         "indent": false,
         "ordered-imports": [

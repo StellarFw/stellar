@@ -1,9 +1,9 @@
-import { Satellite } from '../satellite';
-import MiddlewareInterface from '../middleware.interface';
-import Connection from '../connection';
+import { Satellite } from "../satellite";
+import MiddlewareInterface from "../middleware.interface";
+import Connection from "../connection";
 
 export default class ConnectionSatellite extends Satellite {
-  protected _name: string = 'connection';
+  protected _name: string = "connection";
   public loadPriority: number = 400;
 
   /**
@@ -20,19 +20,19 @@ export default class ConnectionSatellite extends Satellite {
    * Array with the allowed verbs.
    */
   private allowedVerbs: Array<string> = [
-    'quit',
-    'exit',
-    'paramAdd',
-    'paramDelete',
-    'paramView',
-    'paramsView',
-    'paramsDelete',
-    'roomJoin',
-    'roomLeave',
-    'roomView',
-    'detailsView',
-    'say',
-    'event',
+    "quit",
+    "exit",
+    "paramAdd",
+    "paramDelete",
+    "paramView",
+    "paramsView",
+    "paramsDelete",
+    "roomJoin",
+    "roomLeave",
+    "roomView",
+    "detailsView",
+    "say",
+    "event",
   ];
 
   /**
@@ -52,7 +52,7 @@ export default class ConnectionSatellite extends Satellite {
   public addMiddleware(data) {
     // Middleware require a name
     if (!data.name) {
-      throw new Error('middleware.name is required');
+      throw new Error("middleware.name is required");
     }
 
     // if there is no defined priority use the default
@@ -80,7 +80,7 @@ export default class ConnectionSatellite extends Satellite {
 
   public apply(connectionId, method = null, args = null) {
     return this.api.redis._doCluster(
-      'connections.applyCatch',
+      "connections.applyCatch",
       [connectionId, method, args],
       connectionId,
     );
@@ -90,7 +90,7 @@ export default class ConnectionSatellite extends Satellite {
     const connection = this.connections.get(connectionId);
 
     if (method && args) {
-      if (method === 'sendMessage' || method === 'sendFile') {
+      if (method === "sendMessage" || method === "sendFile") {
         connection[method](args);
       } else {
         connection[method].apply(connection, args);

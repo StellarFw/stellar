@@ -1,7 +1,7 @@
-import { Satellite } from '../satellite';
-import _ from 'lodash';
-import EventInterface, { EventHandler } from '../event.interface';
-import { LogLevel } from '../log-level.enum';
+import { Satellite } from "../satellite";
+import _ from "lodash";
+import EventInterface, { EventHandler } from "../event.interface";
+import { LogLevel } from "../log-level.enum";
 
 /**
  * Satellite to manage the Stellar's event system.
@@ -11,7 +11,7 @@ import { LogLevel } from '../log-level.enum';
  * listeners must be stored in <moduleName>/listeners.
  */
 export default class EventsSatellite extends Satellite {
-  protected _name: string = 'events';
+  protected _name: string = "events";
   public loadPriority: number = 300;
 
   /**
@@ -39,12 +39,18 @@ export default class EventsSatellite extends Satellite {
    */
   private listenerObj(listenerObj: EventInterface) {
     if (listenerObj.event === undefined) {
-      this.api.log('Invalid listener - missing event name', LogLevel.Warning);
+      this.api.log("Invalid listener - missing event name", LogLevel.Warning);
       return false;
     }
 
-    if (listenerObj.run === undefined || typeof listenerObj.run !== 'function') {
-      this.api.log('Invalid listener - missing run property or not a function', LogLevel.Warning);
+    if (
+      listenerObj.run === undefined ||
+      typeof listenerObj.run !== "function"
+    ) {
+      this.api.log(
+        "Invalid listener - missing run property or not a function",
+        LogLevel.Warning,
+      );
       return false;
     }
 
@@ -55,9 +61,10 @@ export default class EventsSatellite extends Satellite {
     // The event property can be an array, when the listener supports multiple
     // events, so we need to iterate it. When the event property is an string we
     // must convert it to an array in order to simplify the implementation.
-    const events = (typeof listenerObj.event === 'string')
-      ? [listenerObj.event]
-      : listenerObj.event;
+    const events =
+      typeof listenerObj.event === "string"
+        ? [listenerObj.event]
+        : listenerObj.event;
 
     for (const event of events) {
       if (!this.events.has(event)) {
@@ -118,19 +125,18 @@ export default class EventsSatellite extends Satellite {
    */
   private watchForChanges(path: string) {
     this.api.config.watchFileAndAct(path, () => {
-      this.fileListeners
-        .get(path)
-        .forEach(listener => {
-          const events = (typeof listener.event === 'string')
+      this.fileListeners.get(path).forEach(listener => {
+        const events =
+          typeof listener.event === "string"
             ? [listener.event]
             : listener.event;
 
-          for (const event of events) {
-            const listeners = this.events.get(event);
-            const index = listeners.indexOf(listener);
-            listeners.splice(index, 1);
-          }
-        });
+        for (const event of events) {
+          const listeners = this.events.get(event);
+          const index = listeners.indexOf(listener);
+          listeners.splice(index, 1);
+        }
+      });
 
       this.loadFile(path, true);
     });
@@ -191,7 +197,7 @@ export default class EventsSatellite extends Satellite {
       }
 
       this.api.utils
-        .recursiveDirSearch(listenersFolderPath, 'js')
+        .recursiveDirSearch(listenersFolderPath, "js")
         .forEach(listenerPath => this.loadFile(listenerPath));
     });
   }

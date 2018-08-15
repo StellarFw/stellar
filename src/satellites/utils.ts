@@ -1,5 +1,5 @@
-import { Satellite } from '../satellite';
-import { setTimeout } from 'timers';
+import { Satellite } from "../satellite";
+import { setTimeout } from "timers";
 import {
   readdirSync,
   statSync,
@@ -13,10 +13,10 @@ import {
   createWriteStream,
   accessSync,
   unlink,
-} from 'fs';
-import { normalize, dirname } from 'path';
-import { F_OK } from 'constants';
-import { networkInterfaces } from 'os';
+} from "fs";
+import { normalize, dirname } from "path";
+import { F_OK } from "constants";
+import { networkInterfaces } from "os";
 
 class Utils {
   private api: any = null;
@@ -71,13 +71,13 @@ class Utils {
    */
   public recursiveDirSearch(
     dir: string,
-    extension: string = 'js',
+    extension: string = "js",
   ): Array<string> {
     let results = [];
 
-    extension = extension.replace('.', '');
-    if (dir[dir.length - 1] !== '/') {
-      dir += '/';
+    extension = extension.replace(".", "");
+    if (dir[dir.length - 1] !== "/") {
+      dir += "/";
     }
 
     if (!existsSync(dir)) {
@@ -88,7 +88,7 @@ class Utils {
       const fullFilePath = normalize(dir + file);
 
       // ignore hidden files
-      if (file[0] === '.') {
+      if (file[0] === ".") {
         return;
       }
 
@@ -102,7 +102,7 @@ class Utils {
         const child = this.recursiveDirSearch(fullFilePath, extension);
         results = results.concat(child);
       } else if (stats.isFile()) {
-        const fileParts = file.split('.');
+        const fileParts = file.split(".");
         const ext = fileParts[fileParts.length - 1];
         if (ext === extension) {
           results.push(fullFilePath);
@@ -122,7 +122,7 @@ class Utils {
     try {
       mkdirSync(path, mode);
     } catch (e) {
-      if (e.code === 'ENOENT') {
+      if (e.code === "ENOENT") {
         this.createDir(dirname(path), mode);
         this.createDir(path, mode);
       }
@@ -227,8 +227,8 @@ class Utils {
       RegExp,
       Buffer,
     ];
-    const safeInstances = ['boolean', 'number', 'string', 'function'];
-    const expandPreventMatchKey = '_toExpand';
+    const safeInstances = ["boolean", "number", "string", "function"];
+    const expandPreventMatchKey = "_toExpand";
 
     if (o instanceof Object === false) {
       return false;
@@ -250,7 +250,7 @@ class Utils {
       return false;
     }
 
-    return o.toString() === '[object Object]';
+    return o.toString() === "[object Object]";
   }
 
   /**
@@ -285,7 +285,7 @@ class Utils {
       if (this.isPlainObject(a[i]) && Object.keys(a[i]).length > 0) {
         c[i] = this.hashMerge(c[i], a[i], args);
       } else {
-        if (typeof a[i] === 'function') {
+        if (typeof a[i] === "function") {
           response = a[i](args);
 
           if (this.isPlainObject(response)) {
@@ -303,7 +303,7 @@ class Utils {
       if (this.isPlainObject(b[i]) && Object.keys(b[i]).length > 0) {
         c[i] = this.hashMerge(c[i], b[i], args);
       } else {
-        if (typeof b[i] === 'function') {
+        if (typeof b[i] === "function") {
           response = b[i](args);
 
           if (this.isPlainObject(response)) {
@@ -329,7 +329,7 @@ class Utils {
 
     Object.keys(ifaces).forEach(dev => {
       ifaces[dev].forEach(details => {
-        if (details.family === 'IPv4' && details.address !== '127.0.0.1') {
+        if (details.family === "IPv4" && details.address !== "127.0.0.1") {
           ip = details.address;
         }
       });
@@ -369,7 +369,7 @@ class Utils {
    * @param path Path to a property that is part of the API object.
    */
   public stringToHash(object: any, path: string): any {
-    return path.split('.').reduce((obj, i) => obj[i], object);
+    return path.split(".").reduce((obj, i) => obj[i], object);
   }
 
   /**
@@ -378,7 +378,7 @@ class Utils {
    * @param {string} value Value to be validated.
    */
   public isNonEmptyString(value) {
-    return typeof value === 'string' && value.length > 0;
+    return typeof value === "string" && value.length > 0;
   }
 
   /**
@@ -404,7 +404,7 @@ class Utils {
    */
   public executeCommand(command: string, args: Array<any>, context: any) {
     const hasContext = !!context;
-    const commandParts = command.split('.');
+    const commandParts = command.split(".");
     let method = this.api;
 
     // Get the method reference
@@ -429,9 +429,9 @@ class Utils {
   public parseCookies(req) {
     const cookies = {};
     if (req.headers.cookie) {
-      req.headers.cookie.split(';').forEach(cookie => {
-        const parts = cookie.split('=');
-        cookies[parts[0].trim()] = (parts[1] || '').trim();
+      req.headers.cookie.split(";").forEach(cookie => {
+        const parts = cookie.split("=");
+        cookies[parts[0].trim()] = (parts[1] || "").trim();
       });
     }
     return cookies;
@@ -449,7 +449,7 @@ class Utils {
       if (keys.length < 1) {
         return false;
       }
-      if (keys[0] !== '0') {
+      if (keys[0] !== "0") {
         return false;
       }
       if (keys[keys.length - 1] !== String(keys.length - 1)) {
@@ -482,7 +482,7 @@ class Utils {
    * @param arg Var to test.
    */
   public isObject(arg: any): boolean {
-    return typeof arg === 'object' && arg !== null;
+    return typeof arg === "object" && arg !== null;
   }
 
   /**
@@ -502,14 +502,14 @@ class Utils {
   public isError(e: any) {
     return (
       this.isObject(e) &&
-      (this.objectToString(e) === '[object Error]' || e instanceof Error)
+      (this.objectToString(e) === "[object Error]" || e instanceof Error)
     );
   }
 }
 
 export default class UtilsSatellite extends Satellite {
   public loadPriority: number = 0;
-  protected _name: string = 'Utils';
+  protected _name: string = "Utils";
 
   public async load(): Promise<void> {
     this.api.utils = new Utils(this.api);

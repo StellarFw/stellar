@@ -1,6 +1,6 @@
-import { Satellite } from '../satellite';
-import CacheObject from '../cache-object.interface';
-import { LogLevel } from '../log-level.enum';
+import { Satellite } from "../satellite";
+import CacheObject from "../cache-object.interface";
+import { LogLevel } from "../log-level.enum";
 
 /**
  * Satellite to manage the cache.
@@ -9,7 +9,7 @@ import { LogLevel } from '../log-level.enum';
  * a cache system.
  */
 export default class CacheSatellite extends Satellite {
-  protected _name: string = 'cache';
+  protected _name: string = "cache";
   public loadPriority: number = 300;
 
   /**
@@ -111,11 +111,16 @@ export default class CacheSatellite extends Satellite {
 
     // if the object is locked we throw an exception
     const lockOk = await this.checkLock(key, null);
-    if (lockOk !== true) { throw new Error('Object locked') }
+    if (lockOk !== true) {
+      throw new Error("Object locked");
+    }
 
     // save the new key and value
     const keyToSave = this.redisPrefix + key;
-    await this.api.redis.clients.client.set(keyToSave, JSON.stringify(cacheObj));
+    await this.api.redis.clients.client.set(
+      keyToSave,
+      JSON.stringify(cacheObj),
+    );
 
     // if the new cache entry has been saved define the expire date if needed
     if (expireTimeSeconds) {
@@ -143,15 +148,17 @@ export default class CacheSatellite extends Satellite {
 
     try {
       cacheObj = JSON.parse(cacheObj);
-    } catch (e) {
-    }
+    } catch (e) {}
 
     // check if the object exist
     if (!cacheObj) {
-      throw new Error('Object not found');
+      throw new Error("Object not found");
     }
 
-    if (cacheObj.expireTimestamp >= new Date().getTime() || cacheObj.expireTimestamp === null) {
+    if (
+      cacheObj.expireTimestamp >= new Date().getTime() ||
+      cacheObj.expireTimestamp === null
+    ) {
       const lastReadAt = cacheObj.readAt;
       let expireTimeSeconds;
 
@@ -161,10 +168,13 @@ export default class CacheSatellite extends Satellite {
       if (cacheObj.expireTimestamp) {
         // define the new expire time if requested
         if (options.expireTimeMS) {
-          cacheObj.expireTimestamp = new Date().getTime() + options.expireTimeMS;
+          cacheObj.expireTimestamp =
+            new Date().getTime() + options.expireTimeMS;
           expireTimeSeconds = Math.ceil(options.expireTimeMS / 1000);
         } else {
-          expireTimeSeconds = Math.floor((cacheObj.expireTimestamp - new Date().getTime()) / 1000);
+          expireTimeSeconds = Math.floor(
+            (cacheObj.expireTimestamp - new Date().getTime()) / 1000,
+          );
         }
       }
 
@@ -173,16 +183,16 @@ export default class CacheSatellite extends Satellite {
       try {
         lockOk = await this.checkLock(key, options.retry);
       } catch (e) {
-        throw new Error('Object locked');
+        throw new Error("Object locked");
       }
 
       if (lockOk !== true) {
-        throw new Error('Object locked');
+        throw new Error("Object locked");
       }
 
       await this.client.set(this.redisPrefix + key, JSON.stringify(cacheObj));
 
-      if (typeof expireTimeSeconds === 'number') {
+      if (typeof expireTimeSeconds === "number") {
         await this.client.expire(this.redisPrefix + key, expireTimeSeconds);
       }
 
@@ -196,7 +206,7 @@ export default class CacheSatellite extends Satellite {
       } as CacheObject;
     }
 
-    throw new Error('Object expired');
+    throw new Error("Object expired");
   }
 
   /**
@@ -210,11 +220,11 @@ export default class CacheSatellite extends Satellite {
     try {
       lockOk = await this.checkLock(key, null);
     } catch (e) {
-      throw new Error('Object locked');
+      throw new Error("Object locked");
     }
 
     if (lockOk !== true) {
-      throw new Error('Object locked');
+      throw new Error("Object locked");
     }
 
     let count = null;
@@ -234,7 +244,11 @@ export default class CacheSatellite extends Satellite {
    * @param retry If defined keep retrying until the lock is free to be re-obtained.
    * @param startTime This should not be used by the user.
    */
-  public async checkLock(key: string, retry: boolean|number = null, startTime: number = new Date().getTime()) {
+  public async checkLock(
+    key: string,
+    retry: boolean | number = null,
+    startTime: number = new Date().getTime(),
+  ) {
     const lockedBy = await this.client.get(this.lockPrefix + key);
 
     // If the lock name is equals to this instance lock name, the resource
@@ -267,7 +281,10 @@ export default class CacheSatellite extends Satellite {
    * @param key           Key to lock.
    * @param expireTimeMS  Expire time (optional)
    */
-  public async lock(key: string, expireTimeMS: number = null): Promise<boolean> {
+  public async lock(
+    key: string,
+    expireTimeMS: number = null,
+  ): Promise<boolean> {
     if (expireTimeMS === null) {
       expireTimeMS = this.lockDuration;
     }
@@ -321,7 +338,7 @@ export default class CacheSatellite extends Satellite {
    * @param item      Item to cache.
    */
   public push(key: string, item: any): Promise<void> {
-    const object = JSON.stringify({data: item});
+    const object = JSON.stringify({ data: item });
     return this.api.client.rpush(this.redisPrefix + key, object);
   }
 

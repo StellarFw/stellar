@@ -29,10 +29,10 @@ export default interface ClusterPayload {
   /**
    * Arguments to be passed into the method.
    */
-  args?: string|number|Array<any>;
+  args?: string | number | Array<any>;
 
   /**
    * Optionally a response can be sent with the payload.
    */
   response?: any;
-}
+};

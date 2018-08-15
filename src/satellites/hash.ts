@@ -1,6 +1,6 @@
-import bcrypt from 'bcrypt';
+import bcrypt from "bcrypt";
 
-import { Satellite } from '../satellite';
+import { Satellite } from "../satellite";
 
 /**
  * This class is a wrapper for bcrypt library.
@@ -20,7 +20,9 @@ class HashManager {
    *
    * @param rounds Number of rounds.
    */
-  public generateSalt(rounds: number = this.api.config.general.saltRounds): Promise<string> {
+  public generateSalt(
+    rounds: number = this.api.config.general.saltRounds,
+  ): Promise<string> {
     return bcrypt.genSalt(rounds);
   }
 
@@ -52,11 +54,14 @@ class HashManager {
    * @param configs User defined configurations.
    */
   private getConfigs(configs: object = {}): object {
-    return this.api.utils.hashMerge({
-      salt: this.api.config.general.salt,
-      saltRounds: this.api.config.general.saltRounds,
-      saltLength: this.api.config.general.saltLength,
-    }, configs);
+    return this.api.utils.hashMerge(
+      {
+        salt: this.api.config.general.salt,
+        saltRounds: this.api.config.general.saltRounds,
+        saltLength: this.api.config.general.saltLength,
+      },
+      configs,
+    );
   }
 }
 

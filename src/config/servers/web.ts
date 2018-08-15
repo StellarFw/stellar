@@ -1,4 +1,4 @@
-import { tmpdir } from 'os';
+import { tmpdir } from "os";
 
 export default {
   servers: {
@@ -31,7 +31,7 @@ export default {
         // If this property are defined to '0.0.0.0' we listen for all on the
         // IPv4 and IPv6.
         // ---------------------------------------------------------------------
-        bindIP: '0.0.0.0',
+        bindIP: "0.0.0.0",
 
         // ---------------------------------------------------------------------
         // Port ot Socket Path.
@@ -47,11 +47,11 @@ export default {
         // By default this tells CORS to allow request from any origin.
         // ---------------------------------------------------------------------
         httpHeaders: {
-          'X-Powered-By': api.configs.general.serverName,
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods':
-            'HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS, TRACE',
-          'Access-Control-Allow-Headers': 'Content-Type',
+          "X-Powered-By": api.configs.general.serverName,
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods":
+            "HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS, TRACE",
+          "Access-Control-Allow-Headers": "Content-Type",
         },
 
         // ---------------------------------------------------------------------
@@ -60,7 +60,7 @@ export default {
         // Using a call format like REST is treated as an action call too.
         // IE: /api?action=generateNumber == /api/generateNumber
         // ---------------------------------------------------------------------
-        urlPathForActions: 'api',
+        urlPathForActions: "api",
 
         // ---------------------------------------------------------------------
         // Route that static files will be served from.
@@ -68,14 +68,14 @@ export default {
         // path relative to project root to server static content from, set to
         // `null` to disable the file server entirely.
         // ---------------------------------------------------------------------
-        urlPathForFiles: 'public',
+        urlPathForFiles: "public",
 
         // ---------------------------------------------------------------------
         // When visiting the root URL, should visitors see 'api' or 'file'?
         //
         // Visitors can always visit /api and /public as normal.
         // ---------------------------------------------------------------------
-        rootEndpointType: 'file',
+        rootEndpointType: "file",
 
         // ---------------------------------------------------------------------
         // Simple routing also adds an 'all' route which matches /api/:action
@@ -108,11 +108,11 @@ export default {
         // (browser-fingerprint)
         // ---------------------------------------------------------------------
         fingerprintOptions: {
-          cookieKey: 'sessionID',
+          cookieKey: "sessionID",
           toSetCookie: true,
           onlyStaticElements: false,
           settings: {
-            path: '/',
+            path: "/",
             expires: 3600000,
           },
         },

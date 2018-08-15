@@ -1,14 +1,14 @@
-import { GenericServer } from '../generic-server';
-import { LogLevel } from '../log-level.enum';
-import ConnectionDetails from '../connection-details';
-import { EROFS } from 'constants';
-import { Stream } from 'stream';
-import { Server, Socket, createServer } from 'net';
-import { createServer as createSecureServer } from 'tls';
-import Connection from '../connection';
+import { GenericServer } from "../generic-server";
+import { LogLevel } from "../log-level.enum";
+import ConnectionDetails from "../connection-details";
+import { EROFS } from "constants";
+import { Stream } from "stream";
+import { Server, Socket, createServer } from "net";
+import { createServer as createSecureServer } from "tls";
+import Connection from "../connection";
 
 export default class TCPServer extends GenericServer {
-  protected static serverName: string = 'TCP';
+  protected static serverName: string = "TCP";
 
   /**
    * TCP server object.
@@ -16,7 +16,7 @@ export default class TCPServer extends GenericServer {
   private server: Server = null;
 
   constructor(api, options) {
-    super(api, 'tcp', options);
+    super(api, "tcp", options);
     this.attributes = {
       canChat: true,
       logConnections: true,
@@ -24,19 +24,19 @@ export default class TCPServer extends GenericServer {
       pendingShutdownWaitLimit: 5000,
       sendWelcomeMessage: true,
       verbs: [
-        'quit',
-        'exit',
-        'paramAdd',
-        'paramDelete',
-        'paramView',
-        'paramsView',
-        'paramsDelete',
-        'roomJoin',
-        'roomLeave',
-        'roomView',
-        'detailsView',
-        'say',
-        'event',
+        "quit",
+        "exit",
+        "paramAdd",
+        "paramDelete",
+        "paramView",
+        "paramsView",
+        "paramsDelete",
+        "roomJoin",
+        "roomLeave",
+        "roomView",
+        "detailsView",
+        "say",
+        "event",
       ],
     };
     this.defineEvents();
@@ -49,11 +49,11 @@ export default class TCPServer extends GenericServer {
    */
   private checkBreakChars(chunk: any) {
     let found = false;
-    const hexChunk = chunk.toString('hex', 0, chunk.length);
+    const hexChunk = chunk.toString("hex", 0, chunk.length);
 
-    if (hexChunk === 'fff4fffd06') {
+    if (hexChunk === "fff4fffd06") {
       found = true; // CTRL + C
-    } else if (hexChunk === '04') {
+    } else if (hexChunk === "04") {
       found = true; // CTRL + D
     }
 
@@ -67,12 +67,12 @@ export default class TCPServer extends GenericServer {
    * @param line Request line to be parsed.
    */
   private parseRequest(connection, line) {
-    const words = line.split(' ');
+    const words = line.split(" ");
 
     // get the request verb
     const verb = words.shift();
 
-    if (verb === 'file') {
+    if (verb === "file") {
       if (words.length > 0) {
         connection.params.file = words[0];
       }
@@ -84,14 +84,14 @@ export default class TCPServer extends GenericServer {
       // send an success response message, when there is no errors
       if (!error) {
         this.sendMessage(connection, {
-          status: 'OK',
-          context: 'response',
+          status: "OK",
+          context: "response",
           data,
         });
         return;
       }
 
-      if (error.code && error.code.match('014')) {
+      if (error.code && error.code.match("014")) {
         // Error: Verb not found or not allowed
         // check for and attempt to check single-use params
         try {
@@ -123,7 +123,7 @@ export default class TCPServer extends GenericServer {
       // send an error message
       this.sendMessage(connection, {
         status: error,
-        context: 'response',
+        context: "response",
         data,
       });
     });
@@ -132,7 +132,7 @@ export default class TCPServer extends GenericServer {
   private parseLine(connection, line) {
     // check the message length if the maxDataLength is active
     if (this.api.configs.servers.tcp.maxDataLength > 0) {
-      const bufferLen = Buffer.byteLength(line, 'utf8');
+      const bufferLen = Buffer.byteLength(line, "utf8");
 
       if (bufferLen > this.api.configs.servers.tcp.maxDataLength) {
         const error = this.api.configs.errors.dataLengthTooLarge(
@@ -141,9 +141,9 @@ export default class TCPServer extends GenericServer {
         );
         this.log(error, LogLevel.Error);
         return this.sendMessage(connection, {
-          status: 'error',
+          status: "error",
           error,
-          context: 'response',
+          context: "response",
         });
       }
     }
@@ -161,8 +161,8 @@ export default class TCPServer extends GenericServer {
       connection.destroy();
     } else {
       connection.rawConnection.socketDataString += chunk
-        .toString('utf-8')
-        .replace(/\r/g, '\n');
+        .toString("utf-8")
+        .replace(/\r/g, "\n");
 
       // get delimiter
       const delimiter = String(this.api.configs.servers.tcp.delimiter);
@@ -204,11 +204,11 @@ export default class TCPServer extends GenericServer {
 
   private handleConnectionEvent(connection) {
     connection.params = {};
-    connection.rawConnection.on('data', data =>
+    connection.rawConnection.on("data", data =>
       this.handleData(connection, data),
     );
-    connection.rawConnection.on('end', () => this.handleEndEvent(connection));
-    connection.rawConnection.on('error', error =>
+    connection.rawConnection.on("end", () => this.handleEndEvent(connection));
+    connection.rawConnection.on("error", error =>
       this.handleEventError(connection, error),
     );
   }
@@ -221,7 +221,7 @@ export default class TCPServer extends GenericServer {
   private handleActionCompleteEvent(data: any) {
     // TODO: implement a specific type for action response objects
     if (data.toRender === true) {
-      data.response.context = 'response';
+      data.response.context = "response";
       this.sendMessage(data.connection, data.response, data.messageCount);
     }
   }
@@ -230,8 +230,8 @@ export default class TCPServer extends GenericServer {
    * Define global TCP events.
    */
   private defineEvents() {
-    this.on('connection', this.handleConnectionEvent.bind(this));
-    this.on('actionComplete', this.handleActionCompleteEvent.bind(this));
+    this.on("connection", this.handleConnectionEvent.bind(this));
+    this.on("actionComplete", this.handleActionCompleteEvent.bind(this));
   }
 
   /**
@@ -320,7 +320,7 @@ export default class TCPServer extends GenericServer {
     if (connection.respondingTo) {
       message.messageCount = messageCount;
       connection.respondingTo = null;
-    } else if (message.context === 'response') {
+    } else if (message.context === "response") {
       // if the messageCount isn't defined use the connection.messageCount
       if (messageCount) {
         message.messageCount = messageCount;
@@ -330,9 +330,9 @@ export default class TCPServer extends GenericServer {
     }
 
     try {
-      connection.rawConnection.write(JSON.stringify(message) + '\r\n');
+      connection.rawConnection.write(JSON.stringify(message) + "\r\n");
     } catch (e) {
-      this.api.log(`socket write error: ${e}`, 'error');
+      this.api.log(`socket write error: ${e}`, "error");
     }
   }
 
@@ -378,7 +378,7 @@ export default class TCPServer extends GenericServer {
       );
     }
 
-    this.server.on('error', error => {
+    this.server.on("error", error => {
       throw new Error(
         `Cannot start tcp server @ ${this.options.bindIP}:${
           this.options.port
@@ -408,8 +408,8 @@ export default class TCPServer extends GenericServer {
           status: connection.localize(
             this.api.configs.servers.tcp.goodbyeMessage,
           ),
-          context: 'api',
-        }) + '\r\n',
+          context: "api",
+        }) + "\r\n",
       );
     } catch (error) {}
   }
