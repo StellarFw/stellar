@@ -178,12 +178,10 @@ class Utils {
    */
   public fileExists(dir): boolean {
     try {
-      statSync(dir).isFile();
+      return statSync(dir).isFile();
     } catch (_) {
       return false;
     }
-
-    return true;
   }
 
   /**

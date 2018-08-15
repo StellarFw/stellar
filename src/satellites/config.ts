@@ -18,8 +18,8 @@ class ConfigManager {
 
   public async execute(): Promise<void> {
     this.setupEnvironment();
-    this.createTempFolder();
     this.loadConfigs();
+    this.createTempFolder();
   }
 
   /**
@@ -45,7 +45,7 @@ class ConfigManager {
    * This folder is used to store the log files.
    */
   private createTempFolder() {
-    const tempDirectory = `${this.api.scope.rootPath}/temp`;
+    const tempDirectory = this.api.configs.general.paths.temp;
 
     if (!this.api.utils.dirExists(tempDirectory)) {
       this.api.utils.createDir(tempDirectory);
