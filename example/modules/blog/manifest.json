@@ -1,8 +1,7 @@
 {
-    "id": "blog",
-    "name": "Blog Module",
-    "version": "1.0.0",
-    "description": "This is a test module.",
-
-    "author": "Gil Mendes <gil00mendes@gmail.com>"
+  "id": "blog",
+  "name": "Blog Module",
+  "version": "1.0.0",
+  "description": "This is a test module.",
+  "author": "Gil Mendes <gil00mendes@gmail.com>"
 }

@@ -20,7 +20,7 @@ export default interface ModuleInterface {
   version: number;
 
   /**
-   * Module's NPM dependencies.
+   * Module's Node dependencies.
    */
-  npmDependencies?: any;
+  nodeDependencies?: any;
 };

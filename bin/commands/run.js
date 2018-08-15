@@ -32,6 +32,9 @@ class RunCommand extends Command {
           group: 'Cluster Options:',
           desc: 'No messages will be printed to the console'
         })
+        .boolean('--yarn', {
+          desc: 'Use Yarn instead of NPM to manage Node dependencies'
+        })
         .number('--workers <number>', {
           group: 'Cluster Options:',
           desc: 'Number of workers'

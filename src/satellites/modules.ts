@@ -62,13 +62,14 @@ export default class ModulesSatellite extends Satellite {
   }
 
   /**
-   * Process all NPM dependencies.
+   * Process all Node dependencies.
    *
-   * The `npm install` command only is executed if the `package.json` file
+   * The `install` command only happens when the `package.json`
    * isn't present.
    */
-  private processNpmDependencies(): void {
-    // Don't use NPM on test environment, otherwise the tests will fail.
+  private processNodeDependencies(): void {
+    // Don't process dependencies on test environment,
+    // otherwise the tests will fail.
     if (this.api.env === "test") {
       return;
     }
@@ -81,7 +82,7 @@ export default class ModulesSatellite extends Satellite {
       const tempFilesLocations = [
         "temp",
         "package.json",
-        "package.json.lock",
+        "package-lock.json",
         "node_modules",
       ];
 
@@ -99,16 +100,16 @@ export default class ModulesSatellite extends Satellite {
       return;
     }
 
-    let npmDependencies = {};
+    let nodeDependencies = {};
 
     this.activeModules.forEach(manifest => {
-      if (manifest.npmDependencies === undefined) {
+      if (manifest.nodeDependencies === undefined) {
         return;
       }
 
-      npmDependencies = this.api.utils.hashMerge(
-        npmDependencies,
-        manifest.npmDependencies,
+      nodeDependencies = this.api.utils.hashMerge(
+        nodeDependencies,
+        manifest.nodeDependencies,
       );
     });
 
@@ -117,7 +118,7 @@ export default class ModulesSatellite extends Satellite {
       name: "stellar-dependencies",
       version: "1.0.0",
       description: `This was automatically generated don't edit manually.`,
-      dependencies: npmDependencies,
+      dependencies: nodeDependencies,
     };
 
     const packageJsonPath = `${this.api.scope.rootPath}/package.json`;
@@ -128,17 +129,25 @@ export default class ModulesSatellite extends Satellite {
       "utf8",
     );
 
-    this.api.log("Updating NPM packages", LogLevel.Info);
+    this.api.log("Updating Node dependencies", LogLevel.Info);
 
-    const npmCommand = scope.args.update ? "npm update" : "npm install";
+    // To install dependencies is possible to use NPM or Yarn.
+    // By default NPM is used. To use Yarn instead, the argument
+    // --yarn must be passed.
+    const pkgManager = scope.args.yarn ? "yarn" : "npm";
+    const commandToRun = scope.args.update
+      ? `${pkgManager} update`
+      : `${pkgManager} install`;
 
     try {
-      execSync(npmCommand);
+      execSync(commandToRun);
     } catch (error) {
-      throw new Error("An error occurred during the NPM install command.");
+      throw new Error(
+        "An error occurred during the Node dependencies install command.",
+      );
     }
 
-    this.api.log("NPM dependencies updated!", LogLevel.Info);
+    this.api.log("Node dependencies updated!", LogLevel.Info);
   }
 
   /**
@@ -170,6 +179,6 @@ export default class ModulesSatellite extends Satellite {
     this.api.modules = this;
 
     this.loadModules();
-    this.processNpmDependencies();
+    this.processNodeDependencies();
   }
 }
