@@ -4,6 +4,7 @@ import { Satellite } from "../satellite";
 import { LogLevel } from "../log-level.enum";
 
 export default class LoggerSatellite extends Satellite {
+  protected _name: string = "logger";
   public loadPriority: number = 120;
 
   /**
@@ -23,13 +24,15 @@ export default class LoggerSatellite extends Satellite {
     this.createLogsFolder();
 
     // load all transports
-    this.api.configs.logger.transports.forEach(transport => {
-      if (typeof transport === "function") {
-        transports.push(transport(this.api, winston));
-      } else {
-        transports.push(transport);
-      }
-    });
+    if (this.api.configs.logger.transports) {
+      this.api.configs.logger.transports.forEach(transport => {
+        if (typeof transport === "function") {
+          transports.push(transport(this.api, winston));
+        } else {
+          transports.push(transport);
+        }
+      });
+    }
 
     // create the logger instance
     this.api.logger = new winston.Logger({ transports });

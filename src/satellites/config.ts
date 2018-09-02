@@ -78,6 +78,7 @@ class ConfigManager {
         isToWatch,
       ),
     );
+
     this.loadConfigDirectory(`${rootPath}/config`, isToWatch);
   }
 
@@ -220,7 +221,7 @@ class ConfigManager {
 
 export default class ConfigSatellite extends Satellite {
   public loadPriority: number = 0;
-  protected _name: string = "Config";
+  protected _name: string = "config";
 
   public async load(): Promise<void> {
     this.api.config = new ConfigManager(this.api);

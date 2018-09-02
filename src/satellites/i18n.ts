@@ -3,6 +3,7 @@ import * as i18n from "i18n";
 import { Satellite } from "../satellite";
 
 export default class I18nSatellite extends Satellite {
+  protected _name: string = "i18n";
   public loadPriority: number = 10;
 
   private i18n: any = null;
