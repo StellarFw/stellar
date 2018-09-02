@@ -57,3 +57,26 @@ export default {
     };
   },
 };
+
+// export const test = {
+//   redis() {
+//     return {
+//       _toExpand: false,
+//       client: {
+//         constructor: require("ioredis"),
+//         args: { port, host, password, db },
+//         buildNew: true,
+//       },
+//       subscriber: {
+//         constructor: require("ioredis"),
+//         args: { port, host, password, db },
+//         buildNew: true,
+//       },
+//       tasks: {
+//         constructor: require("ioredis"),
+//         args: { port, host, password, db },
+//         buildNew: true,
+//       },
+//     };
+//   },
+// };

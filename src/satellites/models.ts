@@ -246,7 +246,7 @@ export default class ModelsSatellite extends Satellite {
   }
 
   public async stop(): Promise<void> {
-    const stop = promisify(Waterline.stop);
-    await stop(this.waterline);
+    const waterlineStop = promisify(Waterline.stop);
+    await waterlineStop(this.orm);
   }
 }

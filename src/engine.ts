@@ -95,7 +95,12 @@ export default class Engine {
 
     // stop process execution
     await this.stop();
-    process.exit(1);
+
+    // When running in test mode the process shouldn't be
+    // killed
+    if (process.env.NODE_ENV !== "test") {
+      process.exit(1);
+    }
   }
 
   /**
