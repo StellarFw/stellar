@@ -2,6 +2,14 @@ sudo: false
 
 language: node_js
 
+env:
+  - "FAKEREDIS=true CXX=g++-4.8"
+  - "FAKEREDIS=false CXX=g++-4.8"
+
+os:
+  - linux
+  # - osx
+
 addons:
   apt:
     sources:
@@ -11,28 +19,23 @@ addons:
     - g++-4.8
 
 node_js:
-# - "7"
-  - "8"
-
-env:
-  - "FAKEREDIS=true CXX=g++-4.8"
-  - "FAKEREDIS=false CXX=g++-4.8"
-
-os:
-  - linux
-  # - osx
-
-before_script:
-  - npm run build
-
-script: npm run-script test:travis
+  - "9"
+  - "10"
 
 services:
   - redis-server
   - mongodb
 
+before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
+  - yarn build
+
+script: yarn test
+
 after_script:
-  - npm run-script coverage
+  - ./cc-test-reporter after-build ./test/coverage/lcov.info --exit-code $TRAVIS_TEST_RESULT
 
 after_failure:
   - "cat /home/travis/build/StellarFw/stellar/npm-debug.log"

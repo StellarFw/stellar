@@ -19,9 +19,7 @@
     "dev": "rm -rf ./dist && tsc -w",
     "build": "rm -rf ./dist && tsc",
     "test": "npm run lint && NODE_ENV=test jest --config test/jest.conf.js",
-    "test:travis": "NODE_ENV=test ./node_modules/istanbul/lib/cli.js cover ./node_modules/.bin/_mocha",
     "test:unit:watch": "NODE_ENV=test jest --config test/jest.conf.js --watch",
-    "coverage": "cat ./test/coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "lint": "eslint src"
   },
   "dependencies": {
@@ -59,6 +57,7 @@
     "@types/jest": "23.3.1",
     "@types/node": "^8.5.9",
     "@types/winston": "^2.3.7",
+    "codacy-coverage": "3.0.0",
     "jest": "23.5.0",
     "prettier": "^1.11.1",
     "request": "^2.83.0",
