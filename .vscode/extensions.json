@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    // Inline codemetrics
+    "kisstkondoros.vscode-codemetrics",
+    // Show imported package dimension
+    "wix.vscode-import-cost",
+    // Improve comments readibility 
+    "aaron-bond.better-comments",
+    // Inline coverage info
+    "ryanluker.vscode-coverage-gutters",
+    // Improve GIT support
+    "eamodio.gitlens",
+  ]
+}
