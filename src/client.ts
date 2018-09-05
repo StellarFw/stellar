@@ -1,4 +1,3 @@
-declare const Primus;
 declare const Headers;
 declare const Request;
 declare function fetch(request: any): Promise<any>;
@@ -220,7 +219,7 @@ export default class Stellar extends Primus.EventEmitter {
     super();
 
     // Save the original emit method to use as local event emitter.
-    this._emit = super.emit;
+    (this as any)._emit = super.emit;
 
     // Fill options with the default ones and after it
     // merge with the ones passed by parameter to allow

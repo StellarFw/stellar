@@ -16,16 +16,17 @@
     "websocket"
   ],
   "scripts": {
-    "dev": "rm -rf ./dist && babel --watch --source-maps --out-dir ./dist/ ./src/",
-    "build": "rm -rf ./dist && babel --out-dir ./dist/ ./src/",
-    "test": "npm run lint && jest --config test/jest.conf.js",
+    "dev": "rm -rf ./dist && tsc -w",
+    "build": "rm -rf ./dist && tsc",
+    "test": "npm run lint && NODE_ENV=test jest --config test/jest.conf.js",
     "test:travis": "NODE_ENV=test ./node_modules/istanbul/lib/cli.js cover ./node_modules/.bin/_mocha",
-    "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
+    "test:unit:watch": "NODE_ENV=test jest --config test/jest.conf.js --watch",
+    "coverage": "cat ./test/coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "lint": "eslint src"
   },
   "dependencies": {
     "async": "^2.6.0",
-    "bcrypt": "1.0.3",
+    "bcrypt": "3.0.0",
     "bluebird": "^3.5.1",
     "browser_fingerprint": "1.0.3",
     "chalk": "^2.3.0",

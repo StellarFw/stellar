@@ -71,6 +71,7 @@ class Pids {
 }
 
 export default class PidsSatellite extends Satellite {
+  protected _name: string = "pids";
   public loadPriority: number = 110;
   public startPriority: number = 1;
 
