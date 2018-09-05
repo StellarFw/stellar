@@ -18,7 +18,7 @@
   "scripts": {
     "dev": "rm -rf ./dist && tsc -w",
     "build": "rm -rf ./dist && tsc",
-    "test": "npm run lint && NODE_ENV=test jest --config test/jest.conf.js",
+    "test": "NODE_ENV=test jest --config test/jest.conf.js",
     "test:unit:watch": "NODE_ENV=test jest --config test/jest.conf.js --watch",
     "lint": "eslint src"
   },
