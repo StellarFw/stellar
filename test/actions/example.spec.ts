@@ -1,15 +1,14 @@
+import { startEngine } from "../utils";
 import Engine from "../../dist/engine";
-import { buildEngineArgs } from "../utils";
 
 let engine: Engine = null;
 let api: any = null;
 
 describe("Actions", () => {
   beforeAll(async () => {
-    engine = new Engine(buildEngineArgs());
-    await engine.initialize();
-    await engine.start();
-    api = engine.api;
+    const result = await startEngine();
+    engine = result.engine;
+    api = result.api;
   });
 
   afterAll(async () => engine.stop());

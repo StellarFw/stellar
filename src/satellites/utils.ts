@@ -66,16 +66,22 @@ class Utils {
    * subdirectories.
    *
    * @param dir Root directory to be searched.
-   * @param extension File extension filter. By default the filter is
+   * @param extensions File extension filter. By default the filter is
    * 'js.
    */
   public recursiveDirSearch(
     dir: string,
-    extension: string = "js",
+    extensions: string | Array<String> = ["js"],
   ): Array<string> {
     let results = [];
 
-    extension = extension.replace(".", "");
+    const innerExtensions = Array.isArray(extensions)
+      ? extensions
+      : [extensions];
+
+    // Remove dots from the extensions
+    innerExtensions.forEach(ext => ext.replace(".", ""));
+
     if (dir[dir.length - 1] !== "/") {
       dir += "/";
     }
@@ -95,16 +101,16 @@ class Utils {
       const stats = statSync(fullFilePath);
 
       if (stats.isDirectory()) {
-        const child = this.recursiveDirSearch(fullFilePath, extension);
+        const child = this.recursiveDirSearch(fullFilePath, innerExtensions);
         results = results.concat(child);
       } else if (stats.isSymbolicLink()) {
         const realPath = readlinkSync(fullFilePath);
-        const child = this.recursiveDirSearch(fullFilePath, extension);
+        const child = this.recursiveDirSearch(fullFilePath, innerExtensions);
         results = results.concat(child);
       } else if (stats.isFile()) {
         const fileParts = file.split(".");
         const ext = fileParts[fileParts.length - 1];
-        if (ext === extension) {
+        if (innerExtensions.includes(ext)) {
           results.push(fullFilePath);
         }
       }

@@ -1,3 +1,4 @@
+import Engine from "../dist/engine";
 import { join } from "path";
 
 const pkg = require("../package.json");
@@ -8,4 +9,12 @@ export const buildEngineArgs = () => {
     stellarPackageJSON: pkg,
     args: {},
   };
+};
+
+export const startEngine = async () => {
+  const engine = new Engine(buildEngineArgs());
+  await engine.initialize();
+  await engine.start();
+
+  return { api: engine.api, engine };
 };

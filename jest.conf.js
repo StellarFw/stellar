@@ -1,6 +1,6 @@
 module.exports = {
-  testRegex: "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?|jsx?)$",
-  setupTestFrameworkScriptFile: './jest.setup.js',
+  testRegex: "test/.*\.spec\\.tsx?$",
+  setupTestFrameworkScriptFile: './test/jest.setup.js',
   moduleFileExtensions: [
     "ts",
     "js",
@@ -12,10 +12,15 @@ module.exports = {
     "dist",
     "example"
   ],
-  "transform": {
+  transform: {
     "^.+\\.ts$": "ts-jest"
   },
   collectCoverage: true,
   coverageReporters: ['lcov', 'text-summary'],
-  coverageDirectory: './coverage',
-}
+  coverageDirectory: '<rootDir>/test/coverage',
+  collectCoverageFrom: [
+    'src/**/*.ts',
+    '!src/**/*.d.ts',
+    '!**/node_modules/**',
+  ],
+};

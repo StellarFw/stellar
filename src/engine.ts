@@ -35,7 +35,7 @@ export default class Engine {
    * This object contains all the logic shared across all platform. It's here
    * Satellites will load logic and developers access the functions.
    */
-  private api: any = {
+  public api: any = {
     bootTime: null,
     status: EngineStatus.Stopped,
     log: null,
