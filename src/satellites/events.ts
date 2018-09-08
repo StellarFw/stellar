@@ -1,5 +1,5 @@
 import { Satellite } from "../satellite";
-import _ from "lodash";
+import * as _ from "lodash";
 import EventInterface, { EventHandler } from "../event.interface";
 import { LogLevel } from "../log-level.enum";
 
@@ -110,8 +110,12 @@ export default class EventsSatellite extends Satellite {
     const responseData = _.cloneDeep(data);
     const listeners = this.events.get(eventName);
 
+    const context = {
+      api: this.api,
+    };
+
     for (const listener of listeners) {
-      await listener.run.call(this.api, responseData);
+      await listener.run.call(context, responseData);
     }
 
     return responseData;

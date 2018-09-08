@@ -7,11 +7,7 @@ exports.default = {
   ],
   description: `This event is used to test the multiple event support`,
 
-  run (api, params, next) {
-    // add a '_mod' string at the end of the value
+  async run (params) {
     params.value += '_mod'
-
-    // finish the event execution
-    next()
   }
 }

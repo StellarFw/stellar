@@ -5,11 +5,7 @@
  */
 exports.example = {
   event: 'example',
-  run (api, params, next) {
-    // change the param value to 'thisIsATest'
+  async run (params) {
     params.value = 'thisIsATest'
-
-    // finish event execution
-    next()
   }
 }
