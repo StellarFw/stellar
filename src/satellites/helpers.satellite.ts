@@ -4,7 +4,7 @@ import { GenericServer } from "../generic-server";
 import * as UUID from "uuid";
 import { LogLevel } from "../log-level.enum";
 
-class TestServer extends GenericServer {
+export class TestServer extends GenericServer {
   constructor(api, type, options) {
     super(api, type, options);
     this.attributes = {

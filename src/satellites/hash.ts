@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import * as bcrypt from "bcrypt";
 
 import { Satellite } from "../satellite";
 
@@ -8,12 +8,9 @@ import { Satellite } from "../satellite";
  * This allow users hash data and compare plain data with a hash
  * in order to validate it.
  */
-class HashManager {
-  private api: any = null;
-
-  constructor(api) {
-    this.api = api;
-  }
+export default class HashManager extends Satellite {
+  public _name = "Hash";
+  public loadPriority = 400;
 
   /**
    * Generate a new bcrypt salt.
@@ -21,7 +18,7 @@ class HashManager {
    * @param rounds Number of rounds.
    */
   public generateSalt(
-    rounds: number = this.api.config.general.saltRounds,
+    rounds: number = this.api.configs.general.saltRounds,
   ): Promise<string> {
     return bcrypt.genSalt(rounds);
   }
@@ -56,19 +53,15 @@ class HashManager {
   private getConfigs(configs: object = {}): object {
     return this.api.utils.hashMerge(
       {
-        salt: this.api.config.general.salt,
-        saltRounds: this.api.config.general.saltRounds,
-        saltLength: this.api.config.general.saltLength,
+        salt: this.api.configs.general.salt,
+        saltRounds: this.api.configs.general.saltRounds,
+        saltLength: this.api.configs.general.saltLength,
       },
       configs,
     );
   }
-}
-
-export default class HashSatellite extends Satellite {
-  public loadPriority: number = 400;
 
   public async load(): Promise<void> {
-    this.api = new HashManager(this.api);
+    this.api.hash = new HashManager(this.api);
   }
 }

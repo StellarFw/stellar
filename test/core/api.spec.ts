@@ -6,9 +6,8 @@ let api: any = null;
 
 describe("Actions", () => {
   beforeAll(async () => {
-    const result = await startEngine();
-    engine = result.engine;
-    api = result.api;
+    engine = await startEngine();
+    api = engine.api;
   });
 
   afterAll(async () => engine.stop());

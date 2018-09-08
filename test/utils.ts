@@ -16,5 +16,5 @@ export const startEngine = async () => {
   await engine.initialize();
   await engine.start();
 
-  return { api: engine.api, engine };
+  return engine;
 };
