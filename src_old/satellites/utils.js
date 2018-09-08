@@ -75,17 +75,6 @@ export class Utils {
 
     return { host: host, port: parseInt(port, 10) }
   }
-
-  // ----------------------------------------------------------------- [Strings]
-
-  /**
-   * Convert snake case string to camel case.
-   *
-   * @param {string} s String to be converted.
-   */
-  snakeToCamel (s) {
-    return s.replace(/(\_\w)/g, m => m[ 1 ].toUpperCase())
-  }
 }
 
 export default class {

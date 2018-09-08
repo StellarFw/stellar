@@ -144,37 +144,31 @@ class ActionProcessor {
    *
    * @param status Action status or an error.
    */
-  public completeAction(status?: ActionStatus | Error) {
-    let error = null;
-
-    if (status instanceof Error) {
-      error = status;
-    } else {
-      switch (status) {
-        case ActionStatus.SERVER_ERROR:
-          error = this.api.configs.errors.serverErrorMessage;
-          break;
-        case ActionStatus.SERVER_SHUTTING_DOWN:
-          error = this.api.configs.errors.serverShuttingDown;
-          break;
-        case ActionStatus.TOO_MANY_REQUESTS:
-          error = this.api.configs.errors.tooManyPendingActions();
-          break;
-        case ActionStatus.UNKNOWN_ACTION:
-          error = this.api.configs.errors.unknownAction(this.action);
-          break;
-        case ActionStatus.UNSUPPORTED_SERVER_TYPE:
-          error = this.api.configs.errors.unsupportedServerType(
-            this.connection.type,
-          );
-          break;
-        case ActionStatus.VALIDATOR_ERRORS:
-          error = this.api.configs.errors.invalidParams(this.validatorErrors);
-          break;
-        case ActionStatus.RESPONSE_TIMEOUT:
-          error = this.api.configs.errors.responseTimeout(this.action);
-          break;
-      }
+  public completeAction(status?: ActionStatus, error: Error = null) {
+    switch (status) {
+      case ActionStatus.SERVER_ERROR:
+        error = this.api.configs.errors.serverErrorMessage;
+        break;
+      case ActionStatus.SERVER_SHUTTING_DOWN:
+        error = this.api.configs.errors.serverShuttingDown;
+        break;
+      case ActionStatus.TOO_MANY_REQUESTS:
+        error = this.api.configs.errors.tooManyPendingActions();
+        break;
+      case ActionStatus.UNKNOWN_ACTION:
+        error = this.api.configs.errors.unknownAction(this.action);
+        break;
+      case ActionStatus.UNSUPPORTED_SERVER_TYPE:
+        error = this.api.configs.errors.unsupportedServerType(
+          this.connection.type,
+        );
+        break;
+      case ActionStatus.VALIDATOR_ERRORS:
+        error = this.api.configs.errors.invalidParams(this.validatorErrors);
+        break;
+      case ActionStatus.RESPONSE_TIMEOUT:
+        error = this.api.configs.errors.responseTimeout(this.action);
+        break;
     }
 
     if (error && typeof error === "string") {
@@ -435,7 +429,7 @@ class ActionProcessor {
     try {
       await this.preProcessAction();
     } catch (error) {
-      this.completeAction(error);
+      this.completeAction(null, error);
       return;
     }
 
@@ -467,7 +461,7 @@ class ActionProcessor {
       response = await this.actionTemplate.run(this.api, this);
     } catch (error) {
       clearTimeout(this.timeoutTimer);
-      this.completeAction(error);
+      this.completeAction(null, error);
       return;
     }
 
@@ -483,7 +477,7 @@ class ActionProcessor {
       await this.postProcessAction();
       this.completeAction();
     } catch (error) {
-      this.completeAction(error);
+      this.completeAction(null, error);
     }
   }
 }

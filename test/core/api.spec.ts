@@ -43,7 +43,7 @@ describe("Actions", () => {
           name: "versionedAction",
           description: "A test action",
           version: 3,
-          async run(_, action) {
+          async run() {
             const complexError = {
               reason: { msg: "description" },
             };
@@ -75,6 +75,116 @@ describe("Actions", () => {
       });
 
       expect(response.requesterInformation.receivedParams.apiVersion).toBe(2);
+    });
+
+    test("will default clients to the latest version of the action", async () => {
+      const response = await api.helpers.runAction("versionedAction");
+      expect(response.requesterInformation.receivedParams.apiVersion).toBe(3);
+    });
+
+    test("will fail on a missing version", async () => {
+      const response = await api.helpers.runAction("versionedAction", {
+        apiVersion: 16,
+      });
+      expect(response.error.code).toBe("004");
+    });
+
+    test("can return complex error responses", async () => {
+      const response = await api.helpers.runAction("versionedAction", {
+        apiVersion: 3,
+      });
+      expect(response.error.reason.msg).toBe("description");
+    });
+  });
+
+  describe("Action Params", () => {
+    beforeAll(() => {
+      api.actions.versions.testAction = [1];
+      api.actions.actions.testAction = {
+        "1": {
+          name: "testAction",
+          description: "this action has some required params",
+          version: 1,
+          inputs: {
+            requiredParam: { required: true },
+            optionalParam: { required: false },
+            fancyParam: {
+              required: false,
+              default: "test123",
+              validator(s) {
+                if (s === "test123") {
+                  return true;
+                }
+                return `fancyParam should be 'test123'. so says ${this.id}`;
+              },
+            },
+          },
+
+          run(_, connection) {
+            connection.response.params = connection.params;
+          },
+        },
+      };
+    });
+
+    afterAll(() => {
+      delete api.actions.versions.testAction;
+      delete api.actions.actions.testAction;
+    });
+
+    test("correct params that are false or [] should be allowed", async () => {
+      let response = await api.helpers.runAction("testAction", {
+        requiredParam: false,
+      });
+      expect(response.params.requiredParam).toBeFalsy();
+
+      response = await api.helpers.runAction("testAction", {
+        requiredParam: [],
+      });
+      expect(response.params.requiredParam).toEqual([]);
+    });
+
+    test("Will fail for missing or empty params", async () => {
+      let response = await api.helpers.runAction("testAction", {
+        requiredParam: "",
+      });
+      expect(response.error).toBeUndefined();
+
+      response = await api.helpers.runAction("testAction", {});
+      expect(response.error.requiredParam).toBe(
+        "The requiredParam field is required.",
+      );
+    });
+
+    test("correct params respect config options", async () => {
+      api.configs.general.missingParamChecks = [undefined];
+
+      let response = await api.helpers.runAction("testAction", {
+        requiredParam: "",
+      });
+      expect(response.params.requiredParam).toBe("");
+
+      response = await api.helpers.runAction("testAction", {
+        requiredParam: null,
+      });
+      expect(response.params.requiredParam).toBeNull();
+    });
+
+    test("will set a default when params are not provided", async () => {
+      const response = await api.helpers.runAction("testAction", {
+        requiredParam: true,
+      });
+      expect(response.params.fancyParam).toBe("test123");
+    });
+
+    test("will use validator if provided", async () => {
+      const response = await api.helpers.runAction("testAction", {
+        requiredParam: true,
+        fancyParam: 123,
+      });
+      expect(response.error.fancyParam).toBe(
+        `fancyParam should be 'test123'. so says test-server`,
+      );
     });
   });
 });

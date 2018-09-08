@@ -36,8 +36,8 @@ export default class IDSatellite extends Satellite {
       this.api.id = args.title;
     } else if (process.env.STELLAR_TITLE) {
       this.api.id = process.env.STELLAR_TITLE;
-    } else if (this.api.config.general && this.api.config.general.id) {
-      this.api.id = this.api.config.general.id;
+    } else if (this.api.configs.general && this.api.configs.general.id) {
+      this.api.id = this.api.configs.general.id;
     } else {
       const externalIP = this.api.utils.getExternalIPAddress();
 

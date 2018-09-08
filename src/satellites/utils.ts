@@ -386,6 +386,15 @@ class Utils {
   }
 
   /**
+   * Convert snake case string to camel case.
+   *
+   * @param {string} s String to be converted.
+   */
+  public snakeToCamel(s) {
+    return s.replace(/(\_\w)/g, m => m[1].toUpperCase());
+  }
+
+  /**
    * Unique-ify an array.
    *
    * @param array Array to be uniquefied.
