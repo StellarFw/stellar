@@ -160,7 +160,7 @@ export default class ActionsSatellite extends Satellite {
       const collection = require(path);
 
       // iterate all collection definitions
-      for (const key in Object.keys(collection)) {
+      for (const key in collection) {
         if (!collection.hasOwnProperty(key)) {
           continue;
         }

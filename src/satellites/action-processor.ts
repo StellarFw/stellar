@@ -343,7 +343,7 @@ class ActionProcessor {
   private validateParams() {
     const toValidate = {};
 
-    for (const key in Object.keys(this.actionTemplate.inputs)) {
+    for (const key in this.actionTemplate.inputs) {
       if (!this.actionTemplate.inputs.hasOwnProperty(key)) {
         continue;
       }

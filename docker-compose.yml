@@ -9,3 +9,9 @@ services:
     volumes:
      - ./:/code
      - /code/node_modules
+  
+  redis:
+    image: redis:4
+    container_name: cache
+    ports:
+      - "6379:6379"
