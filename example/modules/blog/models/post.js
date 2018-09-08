@@ -15,6 +15,6 @@ exports.default = {
     },
     content: {
       type: 'string',
-    },
+    }
   },
 };

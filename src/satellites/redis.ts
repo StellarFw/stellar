@@ -258,16 +258,22 @@ export default class RedisSatellite extends Satellite {
 
     // TODO: stop subscriber
 
-    ["client", "subscriber", "tasks"].forEach(r => {
-      const client = this.clients[r];
+    const clientsIdentifier = ["client", "subscriber", "tasks"];
+
+    for (const key of clientsIdentifier) {
+      if (!clientsIdentifier.hasOwnProperty(key)) {
+        continue;
+      }
+
+      const client = this.clients[key];
 
       if (typeof client.quit === "function") {
-        client.quit();
+        await client.quit();
       } else if (typeof client.end === "function") {
-        client.end();
+        await client.end();
       } else if (typeof client.disconnect === "function") {
-        client.disconnect();
+        await client.disconnect();
       }
-    });
+    }
   }
 }
