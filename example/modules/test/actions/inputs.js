@@ -8,9 +8,8 @@ module.exports = [ {
     }
   },
 
-  run (api, action, next) {
+  run (api, action) {
     action.response.string = `Input > ${action.params.value}`
-    next()
   }
 }, {
   name: 'input-default',
@@ -22,9 +21,8 @@ module.exports = [ {
     }
   },
 
-  run (api, action, next) {
+  run (api, action) {
     action.response.string = `Input > ${action.params.value}`
-    next()
   }
 }, {
   name: 'input-default-function',
@@ -36,9 +34,8 @@ module.exports = [ {
     }
   },
 
-  run (api, action, next) {
+  run (api, action) {
     action.response.value = action.params.value
-    next()
   }
 }, {
   name: 'input-validator-regex',
@@ -50,9 +47,8 @@ module.exports = [ {
     }
   },
 
-  run (api, action, next) {
+  run (api, action) {
     action.response.string = `Input > ${action.params.value}`
-    next()
   }
 }, {
   name: 'input-validator-function',
@@ -64,9 +60,8 @@ module.exports = [ {
     }
   },
 
-  run (api, action, next) {
+  run (api, action) {
     action.response.string = `Input > ${action.params.value}`
-    next()
   }
 }, {
   name: 'input-validator-predef-alpha',
@@ -78,9 +73,8 @@ module.exports = [ {
     }
   },
 
-  run (api, action, next) {
+  run (api, action) {
     action.response.string = `Input > ${action.params.value}`
-    next()
   }
 }, {
   name: 'input-validator-predef-alpha-num',
@@ -92,9 +86,8 @@ module.exports = [ {
     }
   },
 
-  run (api, action, next) {
+  run (api, action) {
     action.response.string = `Input > ${action.params.value}`
-    next()
   }
 }, {
   name: 'input-validator-predef-test',
@@ -105,9 +98,8 @@ module.exports = [ {
     }
   },
 
-  run (api, action, next) {
+  run (api, action) {
     action.response.string = `Input > ${action.params.value}`
-    next()
   }
 }, {
   name: 'input-validator-invalid',
@@ -120,9 +112,8 @@ module.exports = [ {
     }
   },
 
-  run (api, action, next) {
+  run (api, action) {
     action.response.string = `Input > ${action.params.value}`
-    next()
   }
 }, {
   name: 'input-validator-multiple',
@@ -134,9 +125,8 @@ module.exports = [ {
     someField: { validator: 'required_if:phone,123' }
   },
 
-  run (api, action, next) {
+  run (api, action) {
     action.response.success = true
-    next()
   }
 }, {
   name: 'input-function-with-default',
@@ -157,8 +147,7 @@ module.exports = [ {
     }
   },
 
-  run (api, connection, next) {
+  run (api, connection) {
     connection.response.params = connection.params
-    next()
   }
 }]

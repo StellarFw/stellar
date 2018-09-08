@@ -6,8 +6,7 @@ exports.modModuleTest = {
     result: 'OK'
   },
 
-  run (api, action, next) {
+  async run (api, action) {
     action.response.result = action.actionTemplate.modProp
-    next()
   }
 }

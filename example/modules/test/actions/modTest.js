@@ -8,9 +8,8 @@ exports.modTest = {
     result: 'OK'
   },
 
-  run (api, action, next) {
+  async run (_, action) {
     action.response.result = action.actionTemplate.modProp
-    next()
   }
 }
 
@@ -26,9 +25,8 @@ exports.groupTest = {
     result: 'OK'
   },
 
-  run (api, action, next) {
+  async run (_, action) {
     action.response.result = action.actionTemplate.modProp
-    next()
   }
 }
 
@@ -46,9 +44,8 @@ exports.groupAddItems = {
     result: 'OK'
   },
 
-  run (api, action, next) {
+  async run (_, action) {
     action.response.result = action.actionTemplate.customProp
-    next()
   }
 }
 
@@ -66,8 +63,7 @@ exports.groupRmItems = {
     result: 'OK'
   },
 
-  run (api, action, next) {
+  async run (_, action) {
     action.response.result = action.actionTemplate.customProp2
-    next()
   }
 }
