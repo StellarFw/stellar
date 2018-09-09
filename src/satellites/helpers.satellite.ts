@@ -136,14 +136,14 @@ export default class HelpersSatellite extends Satellite {
    *
    * @param taskName  Task to be executed.
    * @param params    Task parameters.
-   * @param next      Callback function.
    */
-  public runTask(
-    taskName: string,
-    params: { [key: string]: string } = {},
-    next: any,
-  ) {
-    this.api.tasks.tasks[taskName].run(this.api, params, next);
+  public runTask(taskName: string, params: { [key: string]: string } = {}) {
+    const task = this.api.tasks.tasks[taskName];
+    const context = {
+      api: this.api,
+      task,
+    };
+    return task.run.call(context, params);
   }
 
   public async load() {

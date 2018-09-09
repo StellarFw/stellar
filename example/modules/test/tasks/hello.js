@@ -5,9 +5,8 @@ exports.sayHello = {
   queue: 'default',
   frequency: 1000,
 
-  run (api, params, next) {
-    api.log('hello', 'debug')
-
-    next()
+  async run () {
+    // TODO: use the common module to get the LogLevel enumeration
+    this.api.log('hello', 'debug')
   }
 }

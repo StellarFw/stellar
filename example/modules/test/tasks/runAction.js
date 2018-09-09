@@ -4,20 +4,15 @@ exports.sayHello = {
 
   queue: 'default',
 
-  run (api, params = {}, next) {
-    // execute the requested action
-    api.actions.call(params.action, params)
-    .then(response => {
-      // log the task call
-      api.log(`[ action @ task ]`, 'debug', { params: JSON.stringify(params) })
-
-      next(null, response)
-    })
-    .catch(error => {
-      // log the error
-      api.log(`task error: ${error}`, 'error', { params: JSON.stringify(params) })
-
-      next(error, null)
-    })
+  async run (params = {}) {
+    // TODO: use the common module to get the LogLevel enumeration
+    try {
+      const response = await this.api.actions.call(params.action, params)
+      this.api.log(`[ action @ task ]`, 'debug', { params: JSON.stringify(params) })
+      return response
+    } catch (error) {
+      this.api.log(`task error: ${error}`, 'error', { params: JSON.stringify(params) })
+      throw error
+    }
   }
 }

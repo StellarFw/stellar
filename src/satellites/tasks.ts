@@ -123,7 +123,7 @@ export default class TasksSatellite extends Satellite {
     try {
       const collection = require(path);
 
-      for (const i in Object.keys(collection)) {
+      for (const i in collection) {
         if (!collection.hasOwnProperty(i)) {
           continue;
         }
@@ -145,7 +145,7 @@ export default class TasksSatellite extends Satellite {
         loadMessage(task.name);
       }
     } catch (err) {
-      this.api.log(`[TaskSatellite::loadFile] ${err}`);
+      this.api.log(`[TaskSatellite::loadFile] ${err}`, LogLevel.Warning);
 
       this.api.exceptionHandlers.loader(path, err);
 
