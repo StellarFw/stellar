@@ -20,18 +20,18 @@ class ConsoleCommand extends Command {
 
   exec () {
     // disable all the servers
-    for (const index in this.api.config.servers) {
-      this.api.config.servers[index].enabled = false
+    for (const index in this.api.configs.servers) {
+      this.api.configs.servers[index].enabled = false
     }
 
     // disable development mode
-    this.api.config.general.developmentMode = false
+    this.api.configs.general.developmentMode = false
 
     // disable the task manager system
-    this.api.config.tasks.scheduler = false
-    this.api.config.tasks.queues = []
-    this.api.config.tasks.minTaskProcessors = 0
-    this.api.config.tasks.maxTaskProcessors = 0
+    this.api.configs.tasks.scheduler = false
+    this.api.configs.tasks.queues = []
+    this.api.configs.tasks.minTaskProcessors = 0
+    this.api.configs.tasks.maxTaskProcessors = 0
 
     // start the engine
     this.engine.start((error, api) => {
