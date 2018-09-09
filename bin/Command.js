@@ -1,6 +1,6 @@
 'use strict'
 
-const Engine = require('../dist/engine').default
+const Engine = require('../packages/core/lib/engine').default
 const path = require('path')
 const pkg = require('../package.json')
 const spawn = require('child_process').spawn
