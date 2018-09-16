@@ -1,4 +1,4 @@
-import Engine from "../dist/engine";
+import Engine from "../lib/engine";
 import { join } from "path";
 
 const pkg = require("../package.json");

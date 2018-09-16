@@ -1,5 +1,5 @@
 import { startEngine } from "../utils";
-import Engine from "../../dist/engine";
+import Engine from "../../lib/engine";
 
 let engine: Engine = null;
 let api: any = null;

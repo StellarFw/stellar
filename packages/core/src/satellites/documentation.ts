@@ -1,7 +1,7 @@
 import { Satellite } from "@stellarfw/common/satellite";
 import { readFileSync, writeFileSync } from "fs";
 import * as Handlebars from "handlebars";
-import ActionInterface from "@stellarfw/common/interfaces/action.interface";
+import { IAction } from "@stellarfw/common/interfaces/action.interface";
 
 export default class DocumentationSatellite extends Satellite {
   protected _name: string = "documentation";
@@ -184,7 +184,7 @@ export default class DocumentationSatellite extends Satellite {
    *
    * @param action Action to be prepared
    */
-  private prepareActionToPrint(action: ActionInterface): any {
+  private prepareActionToPrint(action: IAction): any {
     // create a new object with the data prepared to be printed
     const output: any = {};
 

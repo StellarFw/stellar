@@ -1,11 +1,12 @@
 import { Satellite } from "@stellarfw/common/satellite";
-import ActionInterface from "@stellarfw/common/interfaces/action.interface";
+import { IAction } from "@stellarfw/common/interfaces/action.interface";
+import { Action } from "@stellarfw/common/action";
 import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
 import MiddlewareInterface from "@stellarfw/common/interfaces/middleware.interface";
 import Connection from "@stellarfw/common/connection";
 
 export interface VersionActionMap {
-  [key: number]: ActionInterface;
+  [key: number]: IAction;
 }
 
 /**
@@ -19,7 +20,7 @@ const PROTECTED_KEYS = ["name", "run"];
 /**
  * System action to show the server status.
  */
-class StatusAction implements ActionInterface {
+class StatusAction implements IAction {
   public name = "status";
   public description = "Is a system action to show the server status";
 
@@ -52,7 +53,7 @@ export default class ActionsSatellite extends Satellite {
   /**
    * This map stores the actions associated with a group.
    */
-  public groupsActions: Map<string, Array<ActionInterface>> = new Map();
+  public groupsActions: Map<string, Array<IAction>> = new Map();
 
   /**
    * Hash map with middleware by actions.
@@ -125,7 +126,7 @@ export default class ActionsSatellite extends Satellite {
    * @param reload Set to `true` when it's a reload.
    */
   private loadFile(path: string, module: string, reload: boolean = false) {
-    const loadMessage = (actionObj: ActionInterface) => {
+    const loadMessage = (actionObj: IAction) => {
       const level: LogLevel = reload ? LogLevel.Info : LogLevel.Debug;
       let msg = null;
 
@@ -166,6 +167,14 @@ export default class ActionsSatellite extends Satellite {
         }
 
         action = collection[key];
+
+        // Ignore when the value isn't form function or object type
+        if (!(action instanceof Action) && typeof action !== "function") {
+          continue;
+        }
+
+        // Create a new action instance
+        action = new action();
 
         // if there is no version defined set it to 1.0
         if (action.version === null || action.version === undefined) {
@@ -453,7 +462,7 @@ export default class ActionsSatellite extends Satellite {
    *
    * @param action  Action object to be validated.
    */
-  private validateAction(action: ActionInterface) {
+  private validateAction(action: IAction) {
     const fail = msg => this.api.log(msg, LogLevel.Error);
 
     // initialize inputs property

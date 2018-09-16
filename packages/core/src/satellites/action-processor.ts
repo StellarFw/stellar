@@ -1,6 +1,6 @@
 import { Satellite } from "@stellarfw/common/satellite";
 import Connection from "@stellarfw/common/connection";
-import ActionInterface from "@stellarfw/common/interfaces/action.interface";
+import { IAction } from "@stellarfw/common/interfaces/action.interface";
 import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
 import { EngineStatus } from "@stellarfw/common/enums/engine-status.enum";
 
@@ -33,7 +33,7 @@ class ActionProcessor {
   /**
    * Action class.
    */
-  private actionTemplate: ActionInterface = null;
+  private actionTemplate: IAction = null;
 
   /**
    * Action status.
