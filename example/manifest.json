@@ -3,8 +3,6 @@
   "version": "1.0.0",
   "description": "Example project with some actions to use on unit testing.",
   "modules": [
-    "test",
-    "blog",
-    "test2"
+    "ts-module"
   ]
 }

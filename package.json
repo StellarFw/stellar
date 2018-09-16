@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "dev": "lerna run dev",
+    "dev": "lerna run dev --stream --parallel",
     "build": "lerna run build",
     "test": "lerna run test",
     "test:watch": "lerna run test:watch"

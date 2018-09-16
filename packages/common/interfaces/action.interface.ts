@@ -1,8 +1,15 @@
 import { LogLevel } from "../enums/log-level.enum";
 
+/**
+ * Type for the inputs property.
+ */
+export interface IActionInput {
+  [key: string]: any;
+}
+
 export type ActionRunFunction = (api: any, action: any) => Promise<any>;
 
-export default interface ActionInterface {
+export interface IAction {
   /**
    * A unique action identifier.
    *
@@ -31,7 +38,7 @@ export default interface ActionInterface {
    *
    * You can also apply restrictions to allowed inputted values.
    */
-  inputs?: { [key: string]: any };
+  inputs?: IActionInput;
 
   /**
    * Group which this action is part of.
@@ -71,7 +78,7 @@ export default interface ActionInterface {
   protected?: boolean;
 
   /**
-   * Prevent action to be called from outside would.
+   * Prevent action to be called from outside world.
    */
   private?: boolean;
 

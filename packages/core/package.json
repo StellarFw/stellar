@@ -55,6 +55,7 @@
     "st-formidable": "^1.0.18",
     "sywac": "^1.2.0",
     "then-fakeredis": "^2.0.1",
+    "typescript": "3.0.3",
     "uglify-es": "3.3.9",
     "uuid": "3.2.1",
     "waterline": "0.13.1",
