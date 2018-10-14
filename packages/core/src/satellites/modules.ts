@@ -1,8 +1,10 @@
-import { Satellite } from "@stellarfw/common/satellite";
-import { writeFileSync } from "fs";
 import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
-import { execSync } from "child_process";
 import ModuleInterface from "@stellarfw/common/interfaces/module.interface";
+import { Satellite } from "@stellarfw/common/satellite";
+import { execSync } from "child_process";
+import { readFileSync, writeFileSync } from "fs";
+import { join } from "path";
+import * as ts from "typescript";
 
 export default class ModulesSatellite extends Satellite {
   protected _name: string = "modules";
@@ -26,6 +28,74 @@ export default class ModulesSatellite extends Satellite {
    * Contains all the actions who are part of each module.
    */
   public moduleActions: Map<string, Array<string>> = new Map();
+
+  /**
+   * Dictionary with Typescript compiler base configurations.
+   */
+  private tsBaseConfigurations: ts.CompilerOptions = {};
+
+  /**
+   * Loads the base TypeScript configurations.
+   */
+  private loadBaseTsConfigs() {
+    const baseOptionsPath = join(__dirname, "../../../../tsconfig.base.json");
+
+    const buffer = readFileSync(baseOptionsPath, { encoding: "utf-8" });
+    const tsConfigBase = JSON.parse(buffer.toString());
+    this.tsBaseConfigurations = tsConfigBase.compilerOptions;
+  }
+
+  /**
+   * Build the TypeScript files of the given module.
+   *
+   * @param modulePath Module path that needs to be compiled.
+   */
+  private buildModule(modulePath: string): boolean {
+    const filesToCompile = this.api.utils.recursiveDirSearch(modulePath, [
+      "ts",
+    ]);
+
+    // TODO: maybe this can be moved into the loadBaseTsConfigs methods
+    const options: ts.CompilerOptions = {
+      ...this.tsBaseConfigurations,
+      rootDir: modulePath,
+      outDir: modulePath,
+    };
+
+    // Compile files
+    const program = ts.createProgram(filesToCompile, options);
+    const emitResult = program.emit();
+
+    // Show any error that occurred
+    const allDiagnostics = ts
+      .getPreEmitDiagnostics(program)
+      .concat(emitResult.diagnostics);
+
+    allDiagnostics.forEach(diagnostic => {
+      if (!diagnostic.file) {
+        return;
+      }
+
+      if (diagnostic.file.fileName.indexOf(modulePath) !== 0) {
+        return;
+      }
+
+      const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(
+        diagnostic.start!,
+      );
+      const message = ts.flattenDiagnosticMessageText(
+        diagnostic.messageText,
+        "\n",
+      );
+
+      console.log(
+        `${diagnostic.file.fileName} (${line + 1},${character +
+          1}): ${message}`,
+      );
+    });
+
+    return emitResult.emitSkipped;
+  }
 
   /**
    * Load all active modules into memory.
@@ -53,6 +123,15 @@ export default class ModulesSatellite extends Satellite {
         const manifest = require(`${path}/manifest.json`);
         this.activeModules.set(manifest.id, manifest);
         this.modulesPaths.set(manifest.id, path);
+
+        if (manifest.isTypescript === true) {
+          // Load TS base configurations if isn't already loaded
+          if (Object.keys(this.tsBaseConfigurations).length === 0) {
+            this.loadBaseTsConfigs();
+          }
+
+          this.buildModule(path);
+        }
       } catch (e) {
         throw new Error(
           `There is an invalid module active, named "${moduleName}", fiz this to start Stellar normally.`,
