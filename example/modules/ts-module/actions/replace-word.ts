@@ -1,11 +1,10 @@
 import { Action } from "@stellarfw/common/action";
-import { TActionInputs } from "@stellarfw/common/interfaces/action.interface";
+import { ActionMetadata } from "@stellarfw/common/decorators/action-metadata.decorator";
 
-export default class ReplaceWordsAction extends Action {
-  public name = "replaceWords";
-  public description = "This is a simple description";
-
-  public inputs: TActionInputs = {
+@ActionMetadata({
+  name: "replaceWords",
+  description: "This is a simple description",
+  inputs: {
     text: {
       type: "string",
       required: true,
@@ -13,9 +12,10 @@ export default class ReplaceWordsAction extends Action {
     words: {
       type: "object",
     },
-  };
-
+  },
+})
+export default class ReplaceWordsAction extends Action {
   public async run() {
-    console.log(">>> TEST");
+    console.log(`I'm here! 💪`);
   }
 }

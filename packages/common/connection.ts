@@ -3,7 +3,7 @@ import * as UUID from "uuid";
 /**
  * This class represents an active connection.
  */
-export default class Connection {
+export class Connection {
   /**
    * Api reference.
    */

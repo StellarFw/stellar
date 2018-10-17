@@ -3,6 +3,7 @@ import Connection from "@stellarfw/common/connection";
 import { IAction } from "@stellarfw/common/interfaces/action.interface";
 import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
 import { EngineStatus } from "@stellarfw/common/enums/engine-status.enum";
+import { Action } from "@stellarfw/common/action";
 
 type ActionProcessorCallback = (data: any) => void;
 
@@ -33,7 +34,7 @@ class ActionProcessor {
   /**
    * Action class.
    */
-  private actionTemplate: IAction = null;
+  private actionTemplate: Action = null;
 
   /**
    * Action status.
@@ -254,7 +255,7 @@ class ActionProcessor {
       this.connection.type !== "internal"
     ) {
       throw new Error(
-        this.api.config.errors.privateActionCalled(this.actionTemplate.name),
+        this.api.config.errors.privateActionCalled(this.actionTemplate.id),
       );
     }
 
@@ -301,9 +302,14 @@ class ActionProcessor {
         ];
       }
 
-      this.actionTemplate = this.api.actions.actions[this.action][
+      const originalInstance = this.api.actions.actions[this.action][
         this.params.apiVersion
       ];
+
+      this.actionTemplate = Object.assign(
+        Object.create(Object.getPrototypeOf(originalInstance)),
+        originalInstance,
+      );
     }
 
     if (this.api.status !== EngineStatus.Running) {

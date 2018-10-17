@@ -15,6 +15,7 @@
     "@commitlint/config-conventional": "7.1.2",
     "@types/jest": "23.3.1",
     "@types/node": "^8.5.9",
+    "@types/reflect-metadata": "0.1.0",
     "codacy-coverage": "3.0.0",
     "jest": "23.5.0",
     "lerna": "^3.3.0",
@@ -36,5 +37,8 @@
   },
   "gitHooks": {
     "commit-msg": "commitlint -E GIT_PARAMS"
+  },
+  "dependencies": {
+    "reflect-metadata": "0.1.12"
   }
 }

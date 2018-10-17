@@ -1,9 +1,13 @@
-import { Satellite } from "@stellarfw/common/satellite";
-import { IAction } from "@stellarfw/common/interfaces/action.interface";
-import { Action } from "@stellarfw/common/action";
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
-import MiddlewareInterface from "@stellarfw/common/interfaces/middleware.interface";
-import Connection from "@stellarfw/common/connection";
+import {
+  Satellite,
+  IActionMetadata,
+  Action,
+  LogLevel,
+  Connection,
+  MiddlewareInterface,
+  ActionMetadata,
+} from "@stellarfw/common";
+import { ACTION_METADATA } from "@stellarfw/common/constants";
 
 export interface VersionActionMap {
   [key: number]: IAction;
@@ -20,11 +24,12 @@ const PROTECTED_KEYS = ["name", "run"];
 /**
  * System action to show the server status.
  */
-class StatusAction implements IAction {
-  public name = "status";
-  public description = "Is a system action to show the server status";
-
-  public async run(api, action) {}
+@ActionMetadata({
+  name: "status",
+  description: "Is a system action to show the server status",
+})
+class StatusAction extends Action {
+  public async run() {}
 }
 
 export default class ActionsSatellite extends Satellite {
@@ -53,7 +58,7 @@ export default class ActionsSatellite extends Satellite {
   /**
    * This map stores the actions associated with a group.
    */
-  public groupsActions: Map<string, Array<IAction>> = new Map();
+  public groupsActions: Map<string, Array<Action>> = new Map();
 
   /**
    * Hash map with middleware by actions.
@@ -119,6 +124,107 @@ export default class ActionsSatellite extends Satellite {
   }
 
   /**
+   * Print out a message that informs the action (re)load.
+   *
+   * @param actionMetadata Metadata of the action that is being loaded.
+   * @param path Path to the action file.
+   * @param reload Informs if this is a reload.
+   */
+  private actionLoadMessage(
+    actionMetadata: IActionMetadata,
+    path: string,
+    reload: boolean = false,
+  ) {
+    const level: LogLevel = reload ? LogLevel.Info : LogLevel.Debug;
+    let msg = null;
+
+    if (reload) {
+      msg = `action (re)loaded: ${actionMetadata.name} @ v${
+        actionMetadata.version
+      }, ${path}`;
+    } else {
+      msg = `action loaded: ${actionMetadata.name} @ v${
+        actionMetadata.version
+      }, ${path}`;
+    }
+
+    this.api.log(msg, level);
+  }
+
+  /**
+   * Loads an action into memory.
+   *
+   * @param action Action to be loaded.
+   */
+  private loadAction(
+    action: Action,
+    path: string,
+    module: string,
+    reload: boolean = false,
+  ): void {
+    // Ignore when the given "action" isn't an function. That
+    // means the user isn't use an Class.
+    if (typeof action !== "function") {
+      return;
+    }
+
+    // To be a valid action must contain the Action metadata. In
+    // case of error we must print an error instead of an action
+    // we want continue loading the file to search for more
+    // actions.
+    if (!Reflect.hasMetadata(ACTION_METADATA, action)) {
+      this.api.log(`Invalid action on @ ${path}`, LogLevel.Error);
+      return;
+    }
+
+    const metadata: IActionMetadata = Reflect.getMetadata(
+      ACTION_METADATA,
+      action,
+    );
+
+    // If the action not exists create a new entry on the hash map
+    if (
+      this.actions[metadata.name] === null ||
+      this.actions[metadata.name] === undefined
+    ) {
+      this.actions[metadata.name] = {};
+    }
+
+    // Protected actions can't be override by other modules.
+    if (
+      !reload &&
+      this.actions[metadata.name][metadata.version] &&
+      this.actions[metadata.name][metadata.version].protected
+    ) {
+      return;
+    }
+
+    if (!reload) {
+      // associate the action to the module (this must only be made once)
+      this.api.modules.regModuleAction(module, metadata.name);
+    } else {
+      // Groups: apply the necessary actions modifications (this is only
+      // made on the reload because on the loading we don't have the
+      // necessary information for this)
+      this.applyModificationsToAction(action);
+    }
+
+    // Put the action on the correct version slot
+    this.actions[metadata.name][metadata.version] = action;
+    if (
+      this.versions[metadata.name] === null ||
+      this.versions[metadata.name] === undefined
+    ) {
+      this.versions[metadata.name] = [];
+    }
+    this.versions[metadata.name].push(metadata.version);
+    this.versions[metadata.name].sort();
+
+    this.validateAction(this.actions[metadata.name][metadata.version]);
+    this.actionLoadMessage(metadata, path);
+  }
+
+  /**
    * Load a new action file.
    *
    * @param path Action path
@@ -126,22 +232,7 @@ export default class ActionsSatellite extends Satellite {
    * @param reload Set to `true` when it's a reload.
    */
   private loadFile(path: string, module: string, reload: boolean = false) {
-    const loadMessage = (actionObj: IAction) => {
-      const level: LogLevel = reload ? LogLevel.Info : LogLevel.Debug;
-      let msg = null;
-
-      if (reload) {
-        msg = `action (re)loaded: ${actionObj.name} @ v${
-          actionObj.version
-        }, ${path}`;
-      } else {
-        msg = `action loaded: ${actionObj.name} @ v${
-          actionObj.version
-        }, ${path}`;
-      }
-
-      this.api.log(msg, level);
-    };
+    const loadMessage = (actionObj: IActionMetadata) => {};
 
     // watch for changes on the action file
     this.api.config.watchFileAndAct(path, () => {
@@ -166,70 +257,14 @@ export default class ActionsSatellite extends Satellite {
           continue;
         }
 
-        action = collection[key];
-
-        // Ignore when the value isn't form function or object type
-        if (!(action instanceof Action) && typeof action !== "function") {
-          continue;
-        }
-
-        // Create a new action instance
-        action = new action();
-
-        // if there is no version defined set it to 1.0
-        if (action.version === null || action.version === undefined) {
-          action.version = 1.0;
-        }
-
-        // if the action not exists create a new entry on the hash map
-        if (
-          this.actions[action.name] === null ||
-          this.actions[action.name] === undefined
-        ) {
-          this.actions[action.name] = {};
-        }
-
-        // if the action exists and are protected return now
-        if (
-          this.actions[action.name][action.version] !== undefined &&
-          this.actions[action.name][action.version].protected !== undefined &&
-          this.actions[action.name][action.version].protected === true
-        ) {
-          return;
-        }
-
-        if (!reload) {
-          // associate the action to the module (this must only be made once)
-          this.api.modules.regModuleAction(module, action.name);
-        } else {
-          // Groups: apply the necessary actions modifications (this is only
-          // made on the reload because on the loading we don't have the
-          // necessary information for this)
-          this.applyModificationsToAction(action);
-        }
-
-        // put the action on correct version slot
-        this.actions[action.name][action.version] = action;
-        if (
-          this.versions[action.name] === null ||
-          this.versions[action.name] === undefined
-        ) {
-          this.versions[action.name] = [];
-        }
-        this.versions[action.name].push(action.version);
-        this.versions[action.name].sort();
-
-        // validate the action data
-        this.validateAction(this.actions[action.name][action.version]);
-
-        // send a log message
-        loadMessage(action);
+        action = collection[key] as typeof Action;
+        this.loadAction(action, path, module);
       }
     } catch (err) {
       try {
         this.api.exceptionHandlers.loader(path, err);
         if (action) {
-          delete this.actions[action.name][action.version];
+          delete this.actions[action.id][action.version];
         }
       } catch (err2) {
         throw err;
@@ -336,13 +371,13 @@ export default class ActionsSatellite extends Satellite {
 
       // to prevent duplicated entries, it's necessary check if the array
       // already exists on the array
-      if (!arrayOfActions.includes(action.name)) {
-        arrayOfActions.push(action.name);
+      if (!arrayOfActions.includes(action.id)) {
+        arrayOfActions.push(action.id);
       }
     }
 
     // check the groups here the action is present and apply the modifications
-    const groupNames = this.checkWhatGroupsArePresent(action.name);
+    const groupNames = this.checkWhatGroupsArePresent(action.id);
 
     // apply the changes of all founded groups
     groupNames.forEach(groupName =>
@@ -481,21 +516,21 @@ export default class ActionsSatellite extends Satellite {
     }
 
     // the name, description, run properties are required
-    if (typeof action.name !== "string" || action.name.length < 1) {
-      fail(`an action is missing 'action.name'`);
+    if (typeof action.id !== "string" || action.id.length < 1) {
+      fail(`an action is missing 'action.id'`);
       return false;
     } else if (
       typeof action.description !== "string" ||
       action.description.length < 1
     ) {
-      fail(`Action ${action.name} is missing 'action.description'`);
+      fail(`Action ${action.id} is missing 'action.description'`);
       return false;
     } else if (typeof action.run !== "function") {
       fail(`Action ${action.run} has no run method`);
       return false;
     } else if (
       this.api.connections !== null &&
-      this.api.connections.allowedVerbs.indexOf(action.name) >= 0
+      this.api.connections.allowedVerbs.indexOf(action.id) >= 0
     ) {
       fail(
         `${action.run} is a reserved verb for connections. Choose a new name`,

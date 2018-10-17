@@ -684,6 +684,12 @@
   version "8.10.29"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-8.10.29.tgz#b3a13b58dd7b0682bf1b42022bef4a5a9718f687"
 
+"@types/reflect-metadata@0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@types/reflect-metadata/-/reflect-metadata-0.1.0.tgz#592805bdf6d63dd7229773218afeba37ac2eab16"
+  dependencies:
+    reflect-metadata "*"
+
 "@types/winston@2.3.7":
   version "2.3.7"
   resolved "https://registry.yarnpkg.com/@types/winston/-/winston-2.3.7.tgz#2ea18b2dc772d459b6af0f587447704df31afec2"
@@ -5236,6 +5242,10 @@ redis@2.6.0-0:
     double-ended-queue "^2.1.0-0"
     redis-commands "^1.1.0"
     redis-parser "^1.2.0"
+
+reflect-metadata@*, reflect-metadata@0.1.12:
+  version "0.1.12"
+  resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.1.12.tgz#311bf0c6b63cd782f228a81abe146a2bfa9c56f2"
 
 regenerator-runtime@^0.10.5:
   version "0.10.5"

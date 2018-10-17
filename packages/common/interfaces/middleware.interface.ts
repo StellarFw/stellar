@@ -1,6 +1,6 @@
 export type MiddlewareHandler = () => void;
 
-export default interface MiddlewareInterface {
+export interface MiddlewareInterface {
   /**
    * Name of the Middleware.
    */
@@ -24,4 +24,4 @@ export default interface MiddlewareInterface {
   onSayReceive?: MiddlewareHandler;
   leave?: MiddlewareHandler;
   destroy?: MiddlewareHandler;
-};
+}

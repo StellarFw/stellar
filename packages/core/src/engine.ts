@@ -1,4 +1,5 @@
 import "source-map-support/register";
+import "reflect-metadata";
 
 import { resolve, normalize, basename } from "path";
 import { SatelliteInterface } from "@stellarfw/common/interfaces/satellite.interface";

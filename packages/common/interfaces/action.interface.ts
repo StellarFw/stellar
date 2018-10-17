@@ -7,16 +7,16 @@ export interface IActionInput {
   [key: string]: any;
 }
 
-export type ActionRunFunction = (api: any, action: any) => Promise<any>;
+export type ActionRunFunction = () => Promise<any>;
 
-export interface IAction {
+export interface IActionMetadata {
   /**
    * A unique action identifier.
    *
    * It's recommended to use a namespace to eliminate the possibility
    * of collision, e.g. `auth.login`.
    */
-  name: string;
+  name?: string;
 
   /**
    * Describes the action.
@@ -89,9 +89,4 @@ export interface IAction {
    * not be generated for the action.
    */
   toDocument?: boolean;
-
-  /**
-   * Function witch implements the logic of the action.
-   */
-  run: ActionRunFunction;
 }

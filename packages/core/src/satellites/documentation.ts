@@ -2,6 +2,7 @@ import { Satellite } from "@stellarfw/common/satellite";
 import { readFileSync, writeFileSync } from "fs";
 import * as Handlebars from "handlebars";
 import { IAction } from "@stellarfw/common/interfaces/action.interface";
+import { Action } from "@stellarfw/common/action";
 
 export default class DocumentationSatellite extends Satellite {
   protected _name: string = "documentation";
@@ -189,7 +190,7 @@ export default class DocumentationSatellite extends Satellite {
     const output: any = {};
 
     // action name
-    output.name = action.name;
+    output.name = action.id;
 
     // action description
     output.description = action.description;
