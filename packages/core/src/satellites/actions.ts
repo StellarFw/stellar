@@ -232,8 +232,6 @@ export default class ActionsSatellite extends Satellite {
    * @param reload Set to `true` when it's a reload.
    */
   private loadFile(path: string, module: string, reload: boolean = false) {
-    const loadMessage = (actionObj: IActionMetadata) => {};
-
     // watch for changes on the action file
     this.api.config.watchFileAndAct(path, () => {
       // reload file
@@ -251,7 +249,6 @@ export default class ActionsSatellite extends Satellite {
     try {
       const collection = require(path);
 
-      // iterate all collection definitions
       for (const key in collection) {
         if (!collection.hasOwnProperty(key)) {
           continue;
@@ -497,36 +494,40 @@ export default class ActionsSatellite extends Satellite {
    *
    * @param action  Action object to be validated.
    */
-  private validateAction(action: IAction) {
+  private validateAction(action: Action) {
+    const actionMetadata: IActionMetadata = Reflect.getMetadata(
+      ACTION_METADATA,
+      action,
+    );
     const fail = msg => this.api.log(msg, LogLevel.Error);
 
     // initialize inputs property
-    if (action.inputs === undefined) {
-      action.inputs = {};
+    if (actionMetadata.inputs === undefined) {
+      actionMetadata.inputs = {};
     }
 
     // initialize private property
-    if (action.private === undefined) {
-      action.private = false;
+    if (actionMetadata.private === undefined) {
+      actionMetadata.private = false;
     }
 
     // initialize protected property
-    if (action.protected === undefined) {
-      action.protected = false;
+    if (actionMetadata.protected === undefined) {
+      actionMetadata.protected = false;
     }
 
     // the name, description, run properties are required
-    if (typeof action.id !== "string" || action.id.length < 1) {
+    if (
+      typeof actionMetadata.name !== "string" ||
+      actionMetadata.name.length < 1
+    ) {
       fail(`an action is missing 'action.id'`);
       return false;
     } else if (
-      typeof action.description !== "string" ||
-      action.description.length < 1
+      typeof actionMetadata.description !== "string" ||
+      actionMetadata.description.length < 1
     ) {
-      fail(`Action ${action.id} is missing 'action.description'`);
-      return false;
-    } else if (typeof action.run !== "function") {
-      fail(`Action ${action.run} has no run method`);
+      fail(`Action ${actionMetadata.name} is missing 'action.description'`);
       return false;
     } else if (
       this.api.connections !== null &&
@@ -536,9 +537,9 @@ export default class ActionsSatellite extends Satellite {
         `${action.run} is a reserved verb for connections. Choose a new name`,
       );
       return false;
-    } else {
-      return true;
     }
+
+    return true;
   }
 
   /**
