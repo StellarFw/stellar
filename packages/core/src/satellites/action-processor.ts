@@ -1,6 +1,9 @@
 import { Satellite } from "@stellarfw/common/satellite";
 import Connection from "@stellarfw/common/connection";
-import { IAction } from "@stellarfw/common/interfaces/action.interface";
+import {
+  IAction,
+  IActionMetadata,
+} from "@stellarfw/common/interfaces/action.interface";
 import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
 import { EngineStatus } from "@stellarfw/common/enums/engine-status.enum";
 import { Action } from "@stellarfw/common/action";
@@ -19,6 +22,9 @@ enum ActionStatus {
 }
 
 class ActionProcessor {
+  /**
+   * API instance.
+   */
   private api: any = null;
 
   /**
@@ -34,7 +40,12 @@ class ActionProcessor {
   /**
    * Action class.
    */
-  private actionTemplate: Action = null;
+  private actionInstance: Action = null;
+
+  /**
+   * Action's metadata.
+   */
+  private actionMetadata: IActionMetadata = {};
 
   /**
    * Action status.
@@ -56,7 +67,7 @@ class ActionProcessor {
   /**
    * Action parameters.
    */
-  private params: any = {};
+  private params: { [key: string]: any } = {};
 
   /**
    * Map with all validator errors.
@@ -203,8 +214,8 @@ class ActionProcessor {
     let logLevel = LogLevel.Info;
 
     // check if the action have a specific log level
-    if (this.actionTemplate && this.actionTemplate.logLevel) {
-      logLevel = this.actionTemplate.logLevel;
+    if (this.actionInstance && this.actionInstance.logLevel) {
+      logLevel = this.actionInstance.logLevel;
     }
 
     const filteredParams = {};
@@ -251,11 +262,11 @@ class ActionProcessor {
   private async preProcessAction() {
     // if the action is private this can only be executed internally
     if (
-      this.actionTemplate.private === true &&
+      this.actionInstance.private === true &&
       this.connection.type !== "internal"
     ) {
       throw new Error(
-        this.api.config.errors.privateActionCalled(this.actionTemplate.id),
+        this.api.config.errors.privateActionCalled(this.actionInstance.id),
       );
     }
 
@@ -263,8 +274,8 @@ class ActionProcessor {
     const processorsNames = this.api.actions.globalMiddleware.slice(0);
 
     // get action processor names
-    if (this.actionTemplate.middleware) {
-      this.actionTemplate.middleware.forEach(m => {
+    if (this.actionInstance.middleware) {
+      this.actionInstance.middleware.forEach(m => {
         processorsNames.push(m);
       });
     }
@@ -302,14 +313,11 @@ class ActionProcessor {
         ];
       }
 
-      const originalInstance = this.api.actions.actions[this.action][
+      const actionClass = this.api.actions.actions[this.action][
         this.params.apiVersion
       ];
 
-      this.actionTemplate = Object.assign(
-        Object.create(Object.getPrototypeOf(originalInstance)),
-        originalInstance,
-      );
+      this.actionInstance = new actionClass(this.api);
     }
 
     if (this.api.status !== EngineStatus.Running) {
@@ -319,11 +327,11 @@ class ActionProcessor {
       this.api.configs.general.simultaneousActions
     ) {
       this.completeAction(ActionStatus.TOO_MANY_REQUESTS);
-    } else if (!this.action || !this.actionTemplate) {
+    } else if (!this.action || !this.actionInstance) {
       this.completeAction(ActionStatus.UNKNOWN_ACTION);
     } else if (
-      this.actionTemplate.blockedConnectionTypes &&
-      this.actionTemplate.blockedConnectionTypes.includes(this.connection.type)
+      this.actionMetadata.blockedConnectionTypes &&
+      this.actionMetadata.blockedConnectionTypes.includes(this.connection.type)
     ) {
       this.completeAction(ActionStatus.UNSUPPORTED_SERVER_TYPE);
     } else {
@@ -342,12 +350,12 @@ class ActionProcessor {
   private validateParams() {
     const toValidate = {};
 
-    for (const key in this.actionTemplate.inputs) {
-      if (!this.actionTemplate.inputs.hasOwnProperty(key)) {
+    for (const key in this.actionInstance.inputs) {
+      if (!this.actionInstance.inputs.hasOwnProperty(key)) {
         continue;
       }
 
-      const props = this.actionTemplate.inputs[key];
+      const props = this.actionInstance.inputs[key];
 
       // Default
       if (this.params[key] === undefined && props.default !== undefined) {
@@ -416,8 +424,8 @@ class ActionProcessor {
   private async postProcessAction(): Promise<void> {
     const processorNames = this.api.actions.globalMiddleware.slice(0);
 
-    if (this.actionTemplate.middleware) {
-      this.actionTemplate.middleware.forEach(m => {
+    if (this.actionInstance.middleware) {
+      this.actionInstance.middleware.forEach(m => {
         processorNames.push(m);
       });
     }
@@ -463,7 +471,7 @@ class ActionProcessor {
 
     let response = null;
     try {
-      response = await this.actionTemplate.run(this.api, this);
+      response = await this.actionInstance.run(this.api, this);
     } catch (error) {
       clearTimeout(this.timeoutTimer);
       this.completeAction(null, error);

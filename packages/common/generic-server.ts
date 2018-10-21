@@ -1,7 +1,7 @@
 import { EventEmitter } from "events";
 import ConnectionDetails from "./interfaces/connection-details.interface";
 import { LogLevel } from "./enums/log-level.enum";
-import Connection from "./connection";
+import { Connection } from "./connection";
 import { ReadStream } from "fs";
 
 /**
