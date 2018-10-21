@@ -179,7 +179,7 @@ export default class TasksSatellite extends Satellite {
     taskName: string,
     params: {} = {},
     queue: string = null,
-  ): Promise<void> {
+  ): Promise<boolean> {
     if (!queue) {
       queue = this.tasks[taskName].queue;
     }

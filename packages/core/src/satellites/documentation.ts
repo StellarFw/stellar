@@ -1,8 +1,9 @@
 import { Satellite } from "@stellarfw/common/satellite";
 import { readFileSync, writeFileSync } from "fs";
 import * as Handlebars from "handlebars";
-import { IAction } from "@stellarfw/common/interfaces/action.interface";
 import { Action } from "@stellarfw/common/action";
+import { IActionMetadata } from "@stellarfw/common";
+import { ACTION_METADATA } from "@stellarfw/common/constants";
 
 export default class DocumentationSatellite extends Satellite {
   protected _name: string = "documentation";
@@ -98,9 +99,12 @@ export default class DocumentationSatellite extends Satellite {
           continue;
         }
 
-        const action = this.prepareActionToPrint(
+        const actionMetadata = Reflect.getMetadata(
+          ACTION_METADATA,
           actions[actionName][versionNumber],
         );
+
+        const action = this.prepareActionToPrint(actionMetadata);
 
         action.version = versionNumber;
         data.actionVersions.push(action);
@@ -185,12 +189,12 @@ export default class DocumentationSatellite extends Satellite {
    *
    * @param action Action to be prepared
    */
-  private prepareActionToPrint(action: IAction): any {
+  private prepareActionToPrint(action: IActionMetadata): any {
     // create a new object with the data prepared to be printed
     const output: any = {};
 
     // action name
-    output.name = action.id;
+    output.name = action.name;
 
     // action description
     output.description = action.description;

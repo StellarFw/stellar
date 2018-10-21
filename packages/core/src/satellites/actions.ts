@@ -10,7 +10,7 @@ import {
 import { ACTION_METADATA } from "@stellarfw/common/constants";
 
 export interface VersionActionMap {
-  [key: number]: IAction;
+  [key: number]: Action;
 }
 
 /**
@@ -531,7 +531,7 @@ export default class ActionsSatellite extends Satellite {
       return false;
     } else if (
       this.api.connections !== null &&
-      this.api.connections.allowedVerbs.indexOf(action.id) >= 0
+      this.api.connections.allowedVerbs.indexOf(actionMetadata.name) >= 0
     ) {
       fail(
         `${action.run} is a reserved verb for connections. Choose a new name`,

@@ -3,7 +3,7 @@ import { Server, Socket, createServer } from "net";
 import { createServer as createSecureServer } from "tls";
 
 import ConnectionDetails from "@stellarfw/common/interfaces/connection-details.interface";
-import Connection from "@stellarfw/common/connection";
+import { Connection } from "@stellarfw/common/connection";
 import { GenericServer } from "@stellarfw/common/generic-server";
 import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
 

@@ -29,7 +29,7 @@ class ActionProcessor implements IActionProcessor {
   /**
    * Connection instance.
    */
-  private connection: Connection = null;
+  public connection: Connection = null;
 
   /**
    * Action name
@@ -56,7 +56,7 @@ class ActionProcessor implements IActionProcessor {
   /**
    * Inform if the action response must be rendered.
    */
-  private toRender: boolean = true;
+  public toRender: boolean = true;
 
   /**
    * Message identifier.
@@ -213,8 +213,8 @@ class ActionProcessor implements IActionProcessor {
     let logLevel = LogLevel.Info;
 
     // check if the action have a specific log level
-    if (this.actionInstance && this.actionInstance.logLevel) {
-      logLevel = this.actionInstance.logLevel;
+    if (this.actionMetadata.logLevel) {
+      logLevel = this.actionMetadata.logLevel;
     }
 
     const filteredParams = {};
@@ -439,8 +439,8 @@ class ActionProcessor implements IActionProcessor {
   private async postProcessAction(): Promise<void> {
     const processorNames = this.api.actions.globalMiddleware.slice(0);
 
-    if (this.actionInstance.middleware) {
-      this.actionInstance.middleware.forEach(m => {
+    if (this.actionMetadata.middleware) {
+      this.actionMetadata.middleware.forEach(m => {
         processorNames.push(m);
       });
     }
