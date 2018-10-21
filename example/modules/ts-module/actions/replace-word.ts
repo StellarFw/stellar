@@ -1,5 +1,4 @@
-import { Action } from "@stellarfw/common/action";
-import { ActionMetadata } from "@stellarfw/common/decorators/action-metadata.decorator";
+import { Action, ActionMetadata } from "@stellarfw/common";
 
 @ActionMetadata({
   name: "replaceWords",
@@ -9,13 +8,25 @@ import { ActionMetadata } from "@stellarfw/common/decorators/action-metadata.dec
       type: "string",
       required: true,
     },
-    words: {
+    target: {
       type: "object",
+      required: true,
+    },
+    replacement: {
+      type: "string",
+      required: true,
     },
   },
 })
 export default class ReplaceWordsAction extends Action {
   public async run() {
-    console.log(`I'm here! 💪`);
+    const newText = (this.params.text as string).replace(
+      this.params.target,
+      this.params.replacement,
+    );
+
+    return {
+      newText,
+    };
   }
 }

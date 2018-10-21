@@ -1,3 +1,4 @@
+export * from "./action-processor.interface";
 export * from "./action.interface";
 export * from "./api.interface";
 export * from "./cache-object.interface";

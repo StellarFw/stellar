@@ -1,12 +1,11 @@
-import { Satellite } from "@stellarfw/common/satellite";
-import Connection from "@stellarfw/common/connection";
-import {
-  IAction,
-  IActionMetadata,
-} from "@stellarfw/common/interfaces/action.interface";
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
-import { EngineStatus } from "@stellarfw/common/enums/engine-status.enum";
 import { Action } from "@stellarfw/common/action";
+import { Connection } from "@stellarfw/common/connection";
+import { EngineStatus } from "@stellarfw/common/enums/engine-status.enum";
+import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
+import { IActionMetadata } from "@stellarfw/common/interfaces/action.interface";
+import { Satellite } from "@stellarfw/common/satellite";
+import { UnknownActionException, IActionProcessor } from "@stellarfw/common";
+import { ACTION_METADATA } from "@stellarfw/common/constants";
 
 type ActionProcessorCallback = (data: any) => void;
 
@@ -21,7 +20,7 @@ enum ActionStatus {
   OTHER = "other",
 }
 
-class ActionProcessor {
+class ActionProcessor implements IActionProcessor {
   /**
    * API instance.
    */
@@ -260,22 +259,24 @@ class ActionProcessor {
   }
 
   private async preProcessAction() {
-    // if the action is private this can only be executed internally
+    // If the action is private this can only be executed internally
     if (
-      this.actionInstance.private === true &&
+      this.actionMetadata.private === true &&
       this.connection.type !== "internal"
     ) {
       throw new Error(
-        this.api.config.errors.privateActionCalled(this.actionInstance.id),
+        this.api.config.errors.privateActionCalled(this.actionMetadata.name),
       );
     }
 
-    const processors = [];
+    // Copy call parameters into the action instance
+    this.actionInstance.params = this.params;
+
     const processorsNames = this.api.actions.globalMiddleware.slice(0);
 
     // get action processor names
-    if (this.actionInstance.middleware) {
-      this.actionInstance.middleware.forEach(m => {
+    if (this.actionMetadata.middleware) {
+      this.actionMetadata.middleware.forEach(m => {
         processorsNames.push(m);
       });
     }
@@ -296,16 +297,9 @@ class ActionProcessor {
   }
 
   /**
-   * Process the action.
+   * Instantiate the requested action.
    */
-  public processAction(): void {
-    // Initialize processing environment
-    this.actionStartTime = new Date().getTime();
-    this.working = true;
-    this.incrementTotalActions();
-    this.incrementPendingActions();
-    this.action = this.params.action;
-
+  private instantiateAction() {
     if (this.api.actions.versions[this.action]) {
       if (!this.params.apiVersion) {
         this.params.apiVersion = this.api.actions.versions[this.action][
@@ -317,7 +311,30 @@ class ActionProcessor {
         this.params.apiVersion
       ];
 
-      this.actionInstance = new actionClass(this.api);
+      this.actionMetadata = Reflect.getMetadata(ACTION_METADATA, actionClass);
+      this.actionInstance = new actionClass(this.api, this);
+      return;
+    }
+
+    throw new UnknownActionException();
+  }
+
+  /**
+   * Process the action.
+   */
+  public processAction(): void {
+    // Initialize processing environment
+    this.actionStartTime = new Date().getTime();
+    this.working = true;
+    this.incrementTotalActions();
+    this.incrementPendingActions();
+    this.action = this.params.action;
+
+    try {
+      this.instantiateAction();
+    } catch (e) {
+      this.completeAction(ActionStatus.UNKNOWN_ACTION);
+      return;
     }
 
     if (this.api.status !== EngineStatus.Running) {
@@ -327,8 +344,6 @@ class ActionProcessor {
       this.api.configs.general.simultaneousActions
     ) {
       this.completeAction(ActionStatus.TOO_MANY_REQUESTS);
-    } else if (!this.action || !this.actionInstance) {
-      this.completeAction(ActionStatus.UNKNOWN_ACTION);
     } else if (
       this.actionMetadata.blockedConnectionTypes &&
       this.actionMetadata.blockedConnectionTypes.includes(this.connection.type)
@@ -350,12 +365,12 @@ class ActionProcessor {
   private validateParams() {
     const toValidate = {};
 
-    for (const key in this.actionInstance.inputs) {
-      if (!this.actionInstance.inputs.hasOwnProperty(key)) {
+    for (const key in this.actionMetadata.inputs) {
+      if (!this.actionMetadata.inputs.hasOwnProperty(key)) {
         continue;
       }
 
-      const props = this.actionInstance.inputs[key];
+      const props = this.actionMetadata.inputs[key];
 
       // Default
       if (this.params[key] === undefined && props.default !== undefined) {
@@ -469,9 +484,8 @@ class ActionProcessor {
       this.api.configs.general.actionTimeout,
     );
 
-    let response = null;
     try {
-      response = await this.actionInstance.run(this.api, this);
+      this.response = await this.actionInstance.run();
     } catch (error) {
       clearTimeout(this.timeoutTimer);
       this.completeAction(null, error);

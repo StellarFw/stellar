@@ -1,4 +1,5 @@
 import { API } from "./interfaces/api.interface";
+import { IActionProcessor } from "./interfaces";
 
 /**
  * Abstract implementation of a Action.
@@ -10,12 +11,24 @@ export abstract class Action {
   private api: API;
 
   /**
+   * This allows to access the action processor
+   * responsible by this action.
+   */
+  private processor: IActionProcessor;
+
+  /**
+   * Parameters which the action has called with.
+   */
+  public params: { [key: string]: any } = {};
+
+  /**
    * Creates a new action instance
    *
    * @param api API reference.
    */
-  constructor(api) {
+  constructor(api, actionProcessor: IActionProcessor) {
     this.api = api;
+    this.processor = actionProcessor;
   }
 
   public abstract run(): Promise<any>;
