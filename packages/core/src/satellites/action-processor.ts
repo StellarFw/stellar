@@ -492,6 +492,12 @@ class ActionProcessor implements IActionProcessor {
       return;
     }
 
+    // If the action returns an undefined fallback it to
+    // an object.
+    if (this.response === undefined) {
+      this.response = {};
+    }
+
     // Clear the timeout timer
     clearTimeout(this.timeoutTimer);
 

@@ -1,7 +1,13 @@
 {
   "id": "test",
-  "name": "Test Module",
+  "name": "Test module",
   "version": "1.0.0",
   "description": "This is a test module.",
-  "author": "Gil Mendes <gil00mendes@gmail.com>"
+  "author": "Gil Mendes <gil00mendes@gmail.com>",
+
+  "isTypescript": true,
+
+  "nodeDependencies": {
+    "@stellar/common": "../packages/common"
+  }
 }

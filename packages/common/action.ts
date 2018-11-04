@@ -8,13 +8,13 @@ export abstract class Action {
   /**
    * Reference for the API object.
    */
-  private api: API;
+  protected api: API;
 
   /**
    * This allows to access the action processor
    * responsible by this action.
    */
-  private processor: IActionProcessor;
+  protected processor: IActionProcessor;
 
   /**
    * Parameters which the action has called with.

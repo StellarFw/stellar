@@ -1,5 +1,6 @@
 module.exports = {
   testRegex: "test/.*\.spec\\.tsx?$",
+  testEnvironment: "node",
   setupTestFrameworkScriptFile: './test/jest.setup.js',
   moduleFileExtensions: [
     "ts",

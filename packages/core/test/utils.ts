@@ -5,7 +5,7 @@ const pkg = require("../package.json");
 
 export const buildEngineArgs = () => {
   return {
-    rootPath: join(process.cwd(), "/example"),
+    rootPath: join(process.cwd(), "/../../example"),
     stellarPackageJSON: pkg,
     args: {},
   };

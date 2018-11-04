@@ -28,7 +28,7 @@
   "scripts": {
     "dev": "rm -rf ./lib && tsc -w",
     "build": "rm -rf ./lib && tsc",
-    "test": "NODE_ENV=test jest --runInBand --config jest.conf.js"
+    "test": "NODE_ENV=test jest --runInBand --config jest.conf.js --verbose false"
   },
   "dependencies": {
     "@stellarfw/common": "^2.0.0",
