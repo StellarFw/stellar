@@ -112,7 +112,7 @@ class DocumentationGenerator {
     let actions = self._getActionToGenerateDoc()
 
     // object with the template data
-    let data = {actions: Object.keys(actions)}
+    let data = { actions: Object.keys(actions) }
 
     // get base template
     let source = fs.readFileSync(`${self.staticFolder}/action.html`).toString()
@@ -219,20 +219,20 @@ class DocumentationGenerator {
         newInput.validators = []
 
         if (!(input.required === undefined || input.required === false)) {
-          newInput.validators.push({type: 'required', value: 'required'})
+          newInput.validators.push({ type: 'required', value: 'required' })
         }
 
         // validators
         if (typeof input.validator === 'function') {
-          newInput.validators.push({type: 'function', value: 'function'})
+          newInput.validators.push({ type: 'function', value: 'function' })
         } else if (input.validator instanceof RegExp) {
-          newInput.validators.push({type: 'regex', value: String(input.validator)})
+          newInput.validators.push({ type: 'regex', value: String(input.validator) })
         } else if (typeof input.validator === 'string') {
           // the validator string can have many validators separated by '|', we need to split them
           let validators = input.validator.split('|')
 
           for (let index in validators) {
-            newInput.validators.push({type: 'validator', value: validators[ index ]})
+            newInput.validators.push({ type: 'validator', value: validators[ index ] })
           }
         }
 
