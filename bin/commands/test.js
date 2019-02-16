@@ -17,7 +17,6 @@ const Engine = require('../../dist/engine').default
  * @todo add support to test a single module or some modules using commas.
  */
 class TestCommand extends Command {
-
   /**
    * Create a new TestCommand instance.
    *
@@ -28,8 +27,8 @@ class TestCommand extends Command {
     super()
 
     // command definition
-    this.command = 'test'
-    this.describe = 'Run application tests'
+    this.flags = 'test'
+    this.desc = 'Run application tests'
   }
 
   /**
@@ -44,7 +43,7 @@ class TestCommand extends Command {
   /**
    * Execute the command.
    */
-  run () {
+  exec () {
     // get all active modules from the application
     const modules = Utils.getAppModules()
 
@@ -64,7 +63,7 @@ class TestCommand extends Command {
       if (!Utils.exists(testsPath)) { return }
 
       fs.readdirSync(testsPath)
-        .filter(file => file.substr(-3) === '.js')
+        .filter(file => file.substr(-8) === '.spec.js')
         .forEach(file => mocha.addFile(path.join(testsPath, file)))
     })
 
@@ -82,7 +81,6 @@ class TestCommand extends Command {
     // run the tests
     mocha.run(failures => { process.exit(failures) })
   }
-
 }
 
 // export the command

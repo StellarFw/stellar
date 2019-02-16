@@ -2,8 +2,8 @@
 
 // ----------------------------------------------------------------------------- [Imports]
 
-let Command = require('../Command')
-let Utils = require('../utils')
+let Command = require('../../Command')
+let Utils = require('../../utils')
 
 // ----------------------------------------------------------------------------- [Command]
 
@@ -17,40 +17,23 @@ class MakeModel extends Command {
     super()
 
     // command definition
-    this.command = 'model <model_name>'
-    this.describe = 'Create a new Model'
-    this.builder = {
-      module: {
-        describe: 'Module where the files will be created',
-        type: 'string',
-        default: 'private'
-      },
-      force: {
-        describe: 'Overwrite existent files',
-        type: 'boolean',
-        default: false
-      },
-      crud: {
-        describe: 'Create a set of actions with the CRUD operations',
-        type: 'boolean',
-        default: false
-      },
-      actionName: {
-        describe: 'Overwrite the action file name',
-        type: 'string'
-      },
-      rest: {
-        describe: 'Generate RESTfull URLs for the generated actions',
-        type: 'boolean',
-        default: false
-      }
+    this.group = 'Components:'
+    this.flags = 'model <model_name>'
+    this.desc = 'Create a new Model'
+    this.paramsDesc = 'The name of the Model to create'
+    this.setup = sywac => {
+      sywac
+        .boolean('--crud', { desc: 'Create a set of actions with the CRUD operations' })
+        .string('--actionName <action_name>', { desc: 'Overwrite the action file name' })
+        .boolean('--rest', { desc: 'Generate RESTfull URLs for the generated actions' })
+        .outputSettings({ maxWidth: 99 })
     }
   }
 
   /**
    * Execute the command.
    */
-  run () {
+  exec () {
     // we need the module name here the model must be created
     if (this.args.module.length === 0) {
       return this.printError('You need to specify the module where the model must be created')

@@ -2,8 +2,8 @@
 
 // ----------------------------------------------------------------------------- [Imports]
 
-let Command = require('../Command')
-let Utils = require('../utils')
+let Command = require('../../Command')
+let Utils = require('../../utils')
 
 // ----------------------------------------------------------------------------- [Command]
 
@@ -17,25 +17,16 @@ class MakeAction extends Command {
     super()
 
     // command definition
-    this.command = 'action <action_name>'
-    this.describe = 'Create a new action file'
-    this.builder = {
-      module: {
-        describe: 'Module where the action must be created',
-        type: 'string',
-        default: 'private'
-      },
-      force: {
-        describe: 'Overwrite existent files',
-        default: false
-      }
-    }
+    this.group = 'Components:'
+    this.flags = 'action <action_name>'
+    this.desc = 'Create a new action file'
+    this.paramsDesc = 'The name of the action to create'
   }
 
   /**
    * Execute the command
    */
-  run () {
+  exec () {
     if (this.args.module.length === 0) {
       return this.printError('You need to specify the module where the action must be created')
     }
