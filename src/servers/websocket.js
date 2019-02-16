@@ -4,7 +4,6 @@ import path from 'path'
 import Primus from 'primus'
 import UglifyJS from 'uglify-es'
 import GenericServer from '../genericServer'
-import BrowserFingerprint from 'browser_fingerprint'
 
 // server type
 let type = 'websocket'
@@ -272,12 +271,9 @@ export default class WebSocketServer extends GenericServer {
    * @private
    */
   _handleConnection (rawConnection) {
-    let self = this
+    const fingerPrint = rawConnection.query[ this.api.config.servers.web.fingerprintOptions.cookieKey ]
 
-    let parsedCookies = BrowserFingerprint.parseCookies(rawConnection)
-    let fingerPrint = parsedCookies[ self.api.config.servers.web.fingerprintOptions.cookieKey ]
-
-    self.buildConnection({
+    this.buildConnection({
       rawConnection: rawConnection,
       remoteAddress: rawConnection.address.ip,
       remotePort: rawConnection.address.port,

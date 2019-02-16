@@ -2,8 +2,8 @@
 
 // ----------------------------------------------------------------------------- [Imports]
 
-let Command = require('../Command')
-let Utils = require('../utils')
+let Command = require('../../Command')
+let Utils = require('../../utils')
 
 // ----------------------------------------------------------------------------- [Class]
 
@@ -17,26 +17,16 @@ class MakeListener extends Command {
     super()
 
     // command definition
-    this.command = 'listener <listener_name>'
-    this.describe = 'Create a new event listener'
-    this.builder = {
-      module: {
-        describe: 'Module where the action must be created',
-        type: 'string',
-        default: 'private'
-      },
-      force: {
-        describe: 'Overwrite existent files',
-        type: 'boolean',
-        default: false
-      }
-    }
+    this.group = 'Components:'
+    this.flags = 'listener <listener_name>'
+    this.desc = 'Create a new event listener'
+    this.paramsDesc = 'The name of the listener to create'
   }
 
   /**
    * Execute the command.
    */
-  run () {
+  exec () {
     if (this.args.module.length === 0) {
       return this.printError('You need to specify the module where the listener must be created')
     }

@@ -45,6 +45,8 @@ export default class Web extends GenericServer {
 
     let self = this
 
+    this.fingerprinter = new BrowserFingerprint(self.api.config.servers.web.fingerprintOptions)
+
     if ([ 'api', 'file' ].indexOf(self.api.config.servers.web.rootEndpointType) < 0) {
       throw new Error('api.config.servers.web.rootEndpointType can only be \'api\' or \'file\'.')
     }
@@ -368,75 +370,75 @@ export default class Web extends GenericServer {
     let self = this
 
     // get the client fingerprint
-    BrowserFingerprint.fingerprint(req, self.api.config.servers.web.fingerprintOptions, (error, fingerprint, elementHash, cookieHash) => {
-      if (error) { throw error }
+    const { fingerprint, headersHash } = this.fingerprinter.fingerprint(req)
 
-      let responseHeaders = []
-      let cookies = this.api.utils.parseCookies(req)
-      let responseHttpCode = 200
-      let method = req.method.toUpperCase()
-      let parsedURL = url.parse(req.url, true)
-      let i
+    let responseHeaders = []
+    let cookies = this.api.utils.parseCookies(req)
+    let responseHttpCode = 200
+    let method = req.method.toUpperCase()
+    let parsedURL = url.parse(req.url, true)
+    let i
 
-      // push all cookies from the request to the response
-      for (i in cookieHash) { responseHeaders.push([ i, cookieHash[ i ] ]) }
+    // push all cookies from the request to the response
+    for (i in headersHash) {
+      responseHeaders.push([ i, headersHash[ i ] ])
+    }
 
-      // set content type to JSON
-      responseHeaders.push([ 'Content-Type', 'application/json; charset=utf-8' ])
+    // set content type to JSON
+    responseHeaders.push([ 'Content-Type', 'application/json; charset=utf-8' ])
 
-      // push all the default headers to the response object
-      for (i in self.api.config.servers.web.httpHeaders) {
-        responseHeaders.push([ i, self.api.config.servers.web.httpHeaders[ i ] ])
+    // push all the default headers to the response object
+    for (i in self.api.config.servers.web.httpHeaders) {
+      responseHeaders.push([ i, self.api.config.servers.web.httpHeaders[ i ] ])
+    }
+
+    // get the client IP
+    let remoteIP = req.connection.remoteAddress
+
+    // get the client port
+    let remotePort = req.connection.remotePort
+
+    // helpers for unix socket bindings with no forward
+    if (!remoteIP && !remotePort) {
+      remoteIP = '0.0.0.0'
+      remotePort = '0'
+    }
+
+    if (req.headers[ 'x-forwarded-for' ]) {
+      let parts
+      let forwardedIp = req.headers[ 'x-forwarded-for' ].split(',')[ 0 ]
+      if (forwardedIp.indexOf('.') >= 0 || (forwardedIp.indexOf('.') < 0 && forwardedIp.indexOf(':') < 0)) {
+        // IPv4
+        forwardedIp = forwardedIp.replace('::ffff:', '') // remove any IPv6 information, ie: '::ffff:127.0.0.1'
+        parts = forwardedIp.split(':')
+        if (parts[ 0 ]) { remoteIP = parts[ 0 ] }
+        if (parts[ 1 ]) { remotePort = parts[ 1 ] }
+      } else {
+        // IPv6
+        parts = this.api.utils.parseIPv6URI(forwardedIp)
+        if (parts.host) { remoteIP = parts.host }
+        if (parts.port) { remotePort = parts.port }
       }
 
-      // get the client IP
-      let remoteIP = req.connection.remoteAddress
+      if (req.headers[ 'x-forwarded-port' ]) { remotePort = req.headers[ 'x-forwarded-port' ] }
+    }
 
-      // get the client port
-      let remotePort = req.connection.remotePort
-
-      // helpers for unix socket bindings with no forward
-      if (!remoteIP && !remotePort) {
-        remoteIP = '0.0.0.0'
-        remotePort = '0'
-      }
-
-      if (req.headers[ 'x-forwarded-for' ]) {
-        let parts
-        let forwardedIp = req.headers[ 'x-forwarded-for' ].split(',')[ 0 ]
-        if (forwardedIp.indexOf('.') >= 0 || (forwardedIp.indexOf('.') < 0 && forwardedIp.indexOf(':') < 0)) {
-          // IPv4
-          forwardedIp = forwardedIp.replace('::ffff:', '') // remove any IPv6 information, ie: '::ffff:127.0.0.1'
-          parts = forwardedIp.split(':')
-          if (parts[ 0 ]) { remoteIP = parts[ 0 ] }
-          if (parts[ 1 ]) { remotePort = parts[ 1 ] }
-        } else {
-          // IPv6
-          parts = this.api.utils.parseIPv6URI(forwardedIp)
-          if (parts.host) { remoteIP = parts.host }
-          if (parts.port) { remotePort = parts.port }
-        }
-
-        if (req.headers[ 'x-forwarded-port' ]) { remotePort = req.headers[ 'x-forwarded-port' ] }
-      }
-
-      self.buildConnection({
-        // will emit 'connection'
-        rawConnection: {
-          req: req,
-          res: res,
-          params: {},
-          method: method,
-          cookies: cookies,
-          responseHeaders: responseHeaders,
-          responseHttpCode: responseHttpCode,
-          parsedURL: parsedURL
-        },
-        id: `${fingerprint}-${uuid.v4()}`,
-        fingerprint: fingerprint,
-        remoteAddress: remoteIP,
-        remotePort: remotePort
-      })
+    self.buildConnection({
+      // will emit 'connection'
+      rawConnection: {
+        req: req,
+        res: res,
+        params: {},
+        method: method,
+        cookies: cookies,
+        responseHeaders: responseHeaders,
+        responseHttpCode: responseHttpCode,
+        parsedURL: parsedURL
+      },
+      id: `${fingerprint}-${uuid.v4()}`,
+      fingerprint: fingerprint,
+      remoteAddress: remoteIP,
+      remotePort: remotePort
     })
   }
 
@@ -503,6 +505,10 @@ export default class Web extends GenericServer {
     } else if (requestMode === 'api') { // API
       // enable trace mode
       if (connection.rawConnection.method === 'TRACE') { requestMode = 'trace' }
+
+      // Normalize `search` param to be a string even when there is
+      // no search query set
+      connection.rawConnection.parsedURL.search = typeof connection.rawConnection.parsedURL.search === 'string' ? connection.rawConnection.parsedURL.search : ''
 
       let search = connection.rawConnection.parsedURL.search.slice(1)
       self._fillParamsFromWebRequest(connection, qs.parse(search, self.api.config.servers.web.queryParseOptions))
@@ -646,7 +652,16 @@ export default class Web extends GenericServer {
 
     // build the string response
     if (this._extractHeader(data.connection, 'Content-Type').match(/json/)) {
-      stringResponse = JSON.stringify(data.response, null, this.api.config.servers.web.padding)
+      try {
+        stringResponse = JSON.stringify(data.response, null, this.api.config.servers.web.padding)
+      } catch (_) {
+        data.connection.rawConnection.responseHttpCode = 500
+        stringResponse = JSON.stringify({
+          error: 'invalid_response_object',
+          requesterInformation: this._buildRequesterInformation(data.connection)
+        })
+      }
+
       if (data.params.callback) {
         data.connection.rawConnection.responseHeaders.push([ 'Content-Type', 'application/javascript' ])
         stringResponse = data.connection.params.callback + '(' + stringResponse + ');'

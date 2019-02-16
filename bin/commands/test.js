@@ -28,8 +28,8 @@ class TestCommand extends Command {
     super()
 
     // command definition
-    this.command = 'test'
-    this.describe = 'Run application tests'
+    this.flags = 'test'
+    this.desc = 'Run application tests'
   }
 
   /**
@@ -44,7 +44,7 @@ class TestCommand extends Command {
   /**
    * Execute the command.
    */
-  run () {
+  exec () {
     // get all active modules from the application
     const modules = Utils.getAppModules()
 
