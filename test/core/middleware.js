@@ -9,7 +9,6 @@ let async = require('async')
 let api = null
 
 describe('Core: Middleware', function () {
-
   before(function (done) {
     // start a Stellar instance
     engine.start(function (error, a) {
@@ -33,7 +32,6 @@ describe('Core: Middleware', function () {
   })
 
   describe('action preProcessors', function () {
-
     it('I can define a global preProcessor and it can append the connection', function (done) {
       api.actions.addMiddleware({
         name: 'test middleware',
@@ -188,7 +186,7 @@ describe('Core: Middleware', function () {
       api.actions.addMiddleware({
         name: 'early test middleware',
         global: true,
-        priority: api.config.general.defaultProcessorPriority - 1,
+        priority: api.config.general.defaultMiddlewarePriority - 1,
         postProcessor: (data, next) => {
           data.response._postProcessorNote2 = 'early'
           data.response._postProcessorNote3 = 'early'
@@ -212,7 +210,7 @@ describe('Core: Middleware', function () {
       api.actions.addMiddleware({
         name: 'late test middleware',
         global: true,
-        priority: api.config.general.defaultProcessorPriority + 1,
+        priority: api.config.general.defaultMiddlewarePriority + 1,
         postProcessor: (data, next) => {
           data.response._postProcessorNote4 = 'late'
           next()
@@ -289,7 +287,6 @@ describe('Core: Middleware', function () {
   })
 
   describe('connection create/destroy callbacks', function () {
-
     beforeEach(function (done) {
       api.connections.middleware = {}
       api.connections.globalMiddleware = []
