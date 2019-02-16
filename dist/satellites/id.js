@@ -4,7 +4,9 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _yargs = require('yargs');
+var _sywac = require('sywac');
+
+var _sywac2 = _interopRequireDefault(_sywac);
 
 var _cluster = require('cluster');
 
@@ -12,10 +14,12 @@ var _cluster2 = _interopRequireDefault(_cluster);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
 /**
  * Setup the server ID.
  *
- * TODO: we can use the args from the engine to avoid using the yargs.
+ * TODO: we can use the args from the engine to avoid using sywac here.
  *
  * This ID, can be configured using:
  * - the 'api.config.general.id' configuration;
@@ -49,37 +53,40 @@ exports.default = class {
    * @param next  Callback.
    */
   load(api, next) {
-    if (_yargs.argv.title) {
-      api.id = _yargs.argv.title;
-    } else if (process.env.STELLAR_TITLE) {
-      api.id = process.env.STELLAR_TITLE;
-    } else if (!api.config.general.id) {
-      // get servers external IP
-      let externalIP = api.utils.getExternalIPAddress();
+    return _asyncToGenerator(function* () {
+      const { argv } = yield _sywac2.default.string('--title').parse();
+      if (argv.title) {
+        api.id = argv.title;
+      } else if (process.env.STELLAR_TITLE) {
+        api.id = process.env.STELLAR_TITLE;
+      } else if (!api.config.general.id) {
+        // get servers external IP
+        let externalIP = api.utils.getExternalIPAddress();
 
-      if (externalIP === false) {
-        let message = ' * Error fetching this host external IP address; setting id base to \'stellar\'';
+        if (externalIP === false) {
+          let message = ' * Error fetching this host external IP address; setting id base to \'stellar\'';
 
-        try {
-          api.log(message, 'crit');
-        } catch (e) {
-          console.log(message);
+          try {
+            api.log(message, 'crit');
+          } catch (e) {
+            console.log(message);
+          }
         }
+
+        api.id = externalIP;
+        if (_cluster2.default.isWorker) {
+          api.id += `:${process.pid}`;
+        }
+      } else {
+        api.id = api.config.general.id;
       }
 
-      api.id = externalIP;
-      if (_cluster2.default.isWorker) {
-        api.id += `:${process.pid}`;
-      }
-    } else {
-      api.id = api.config.general.id;
-    }
+      // save Stellar version
+      api.stellarVersion = require('../../package.json').version;
 
-    // save Stellar version
-    api.stellarVersion = require('../../package.json').version;
-
-    // finish the initializer load
-    next();
+      // finish the initializer load
+      next();
+    })();
   }
 
   /**

@@ -326,7 +326,7 @@ class CacheManager {
    */
   push (key, item) {
     // stringify the data to save
-    let object = JSON.stringify({data: item})
+    let object = JSON.stringify({ data: item })
 
     // push the new item to Redis
     return this.api.redis.clients.client.rpush(this.redisPrefix + key, object)

@@ -18,7 +18,7 @@ export default class {
     }
 
     // create the logger instance
-    api.logger = new winston.Logger({transports: transports})
+    api.logger = new winston.Logger({ transports: transports })
 
     // define the log level
     if (api.config.logger.levels) {

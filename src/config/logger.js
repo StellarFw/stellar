@@ -5,7 +5,7 @@ import BeautifulLogger from '../BeautifulLogger'
 
 export default {
   logger (api) {
-    let logger = {transports: []}
+    let logger = { transports: [] }
 
     // check if this Stellar instance is the Master
     if (cluster.isMaster) {

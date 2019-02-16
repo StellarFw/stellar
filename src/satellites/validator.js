@@ -767,7 +767,7 @@ class Validator {
    * Replace all place-holders for the between rule.
    */
   replaceBetween (message, attribute, rule, parameters) {
-    const repl = {':min': parameters[0], ':max': parameters[1]}
+    const repl = { ':min': parameters[0], ':max': parameters[1] }
     return message.replace(/:min|:max/ig, match => repl[match])
   }
 

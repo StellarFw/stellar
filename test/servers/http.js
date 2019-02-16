@@ -13,7 +13,6 @@ let api = null
 let url = null
 
 describe('Servers: HTTP', function () {
-
   before(done => {
     // start a Stellar instance
     engine.start((error, a) => {
@@ -93,7 +92,6 @@ describe('Servers: HTTP', function () {
   })
 
   describe('will properly destroy connections', function () {
-
     it('works for the API', done => {
       Object.keys(api.connections.connections).length.should.equal(0)
 
@@ -108,11 +106,9 @@ describe('Servers: HTTP', function () {
     })
 
     // @todo - test for files
-
   })
 
   describe('errors', function () {
-
     before(done => {
       api.actions.versions.stringErrorTestAction = [ 1 ]
       api.actions.actions.stringErrorTestAction = {
@@ -121,7 +117,7 @@ describe('Servers: HTTP', function () {
           description: 'stringErrorTestAction',
           version: 1,
           run: function (api, data, next) {
-            next('broken');
+            next('broken')
           }
         }
       }
@@ -133,7 +129,7 @@ describe('Servers: HTTP', function () {
           description: 'errorErrorTestAction',
           version: 1,
           run: function (api, data, next) {
-            next(new Error('broken'));
+            next(new Error('broken'))
           }
         }
       }
@@ -145,7 +141,7 @@ describe('Servers: HTTP', function () {
           description: 'complexErrorTestAction',
           version: 1,
           run: function (api, data, next) {
-            next({error: 'broken', reason: 'stuff'});
+            next({error: 'broken', reason: 'stuff'})
           }
         }
       }
@@ -261,7 +257,6 @@ describe('Servers: HTTP', function () {
   })
 
   describe('connection.rawConnection.params', function () {
-
     before(done => {
       api.actions.versions.paramTestAction = [ 1 ]
       api.actions.actions.paramTestAction = {
@@ -330,7 +325,6 @@ describe('Servers: HTTP', function () {
   })
 
   describe('HTTP header', function () {
-
     before(done => {
       // enable HTTP status codes
       api.config.servers.web.returnErrorCodes = true
@@ -442,7 +436,6 @@ describe('Servers: HTTP', function () {
   })
 
   describe('HTTP returnErrorCode true', function () {
-
     before(done => {
       // enable the HTTP status codes
       api.config.servers.web.returnErrorCodes = true
@@ -470,6 +463,5 @@ describe('Servers: HTTP', function () {
         }
       }
     })
-
   })
 })
