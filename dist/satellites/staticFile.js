@@ -121,7 +121,7 @@ class StaticFile {
         // if we can't read the file respond with an error
         self.sendFileNotFound(connection, self.api.config.errors.fileReadError(String(err)), callback);
       } else {
-        let mime = _mime2.default.lookup(file);
+        let mime = _mime2.default.getType(file);
         let length = stats.size;
         let fileStream = _fs2.default.createReadStream(file);
         let start = new Date().getTime();
@@ -132,15 +132,15 @@ class StaticFile {
         fileStream.on('close', () => {
           let duration = new Date().getTime() - start;
           self.logRequest(file, connection, length, duration, true);
-        }
+        });
 
         // add a listener to the 'error' event
-        );fileStream.on('error', err => {
+        fileStream.on('error', err => {
           self.api.log(err);
-        }
+        });
 
         // execute the callback
-        );callback(connection, null, fileStream, mime, length, lastModified);
+        callback(connection, null, fileStream, mime, length, lastModified);
       }
     });
   }
@@ -159,10 +159,10 @@ class StaticFile {
     connection.error = new Error(errorMessage);
 
     // load 404 error
-    self.logRequest('{404: not found}', connection, null, null, false
+    self.logRequest('{404: not found}', connection, null, null, false);
 
     // execute the callback function
-    );callback(connection, self.api.config.errors.fileNotFound(), null, 'text/html', self.api.config.errors.fileNotFound().length);
+    callback(connection, self.api.config.errors.fileNotFound(), null, 'text/html', self.api.config.errors.fileNotFound().length);
   }
 
   /**

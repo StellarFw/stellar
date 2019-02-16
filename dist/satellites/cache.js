@@ -98,10 +98,10 @@ class CacheManager {
       let length = 0;
 
       // get all cached keys
-      const keys = yield _this2.keys
+      const keys = yield _this2.keys();
 
       // get the keys length if present
-      ();if (keys) {
+      if (keys) {
         length = keys.length;
       }
 
@@ -117,18 +117,18 @@ class CacheManager {
 
     return _asyncToGenerator(function* () {
       // get all cached keys
-      const keys = yield _this3.keys
+      const keys = yield _this3.keys();
 
       // array with the jobs to be done
-      ();let jobs = [];
+      let jobs = [];
 
       // iterate all keys and push a new jobs for the array
       keys.forEach(function (key) {
         return jobs.push(_this3.api.redis.clients.client.del(key));
-      }
+      });
 
       // execute all the jobs, this can be done in parallel
-      );return Promise.all(jobs);
+      return Promise.all(jobs);
     })();
   }
 
@@ -167,10 +167,10 @@ class CacheManager {
 
       // save the new key and value
       const keyToSave = _this4.redisPrefix + key;
-      yield _this4.api.redis.clients.client.set(keyToSave, JSON.stringify(cacheObj)
+      yield _this4.api.redis.clients.client.set(keyToSave, JSON.stringify(cacheObj));
 
       // if the new cache entry has been saved define the expire date if needed
-      );if (expireTimeSeconds) {
+      if (expireTimeSeconds) {
         yield _this4.api.redis.clients.client.expire(keyToSave, expireTimeSeconds);
       }
 
@@ -319,10 +319,10 @@ class CacheManager {
 
       // create a new lock
       const lockKey = _this7.lockPrefix + key;
-      yield _this7.api.redis.clients.client.setnx(lockKey, _this7.lockName
+      yield _this7.api.redis.clients.client.setnx(lockKey, _this7.lockName);
 
       // set an expire date for the lock
-      );try {
+      try {
         yield _this7.api.redis.clients.client.expire(lockKey, Math.ceil(expireTimeMS / 1000));
       } catch (e) {
         return false;
@@ -371,10 +371,10 @@ class CacheManager {
 
     return _asyncToGenerator(function* () {
       // get the cache entry
-      const lockedBy = yield _this9.api.redis.clients.client.get(_this9.lockPrefix + key
+      const lockedBy = yield _this9.api.redis.clients.client.get(_this9.lockPrefix + key);
 
       // if the lock name is equals to this instance lock name, the resource can be used
-      );if (lockedBy === _this9.lockName || lockedBy === null) {
+      if (lockedBy === _this9.lockName || lockedBy === null) {
         return true;
       }
 
@@ -400,10 +400,10 @@ class CacheManager {
    */
   push(key, item) {
     // stringify the data to save
-    let object = JSON.stringify({ data: item }
+    let object = JSON.stringify({ data: item });
 
     // push the new item to Redis
-    );return this.api.redis.clients.client.rpush(this.redisPrefix + key, object);
+    return this.api.redis.clients.client.rpush(this.redisPrefix + key, object);
   }
 
   /**
@@ -418,18 +418,18 @@ class CacheManager {
 
     return _asyncToGenerator(function* () {
       // pop the item from Redis
-      const object = yield _this10.api.redis.clients.client.lpop(_this10.redisPrefix + key
+      const object = yield _this10.api.redis.clients.client.lpop(_this10.redisPrefix + key);
 
       // if the object not exist return null
-      );if (!object) {
+      if (!object) {
         return null;
       }
 
       // try parse the item and return it
-      let item = JSON.parse(object
+      let item = JSON.parse(object);
 
       // return the parsed object
-      );return item.data;
+      return item.data;
     })();
   }
 

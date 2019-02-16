@@ -106,10 +106,10 @@ class GenericServer extends _events.EventEmitter {
     };
 
     // emit the new connection object
-    self.emit('connection', connection
+    self.emit('connection', connection);
 
     // check if the lod for this type of connection is active
-    );if (self.attributes.logConnections === true) {
+    if (self.attributes.logConnections === true) {
       self.log('new connection', 'info', { to: connection.remoteIP });
     }
 

@@ -56,7 +56,7 @@ class ExceptionsManager {
       }
 
       // reduce the extra messages into a single string
-      output += extraMessages.reduce((prev, item) => prev + `${item} \n`, ''
+      output += extraMessages.reduce((prev, item) => prev + `${item} \n`, '');
 
       // FIXME I think that this can be removed, but for now we keep it where in case to be needed
       // if there is one of the known core exceptions we need to add information
@@ -64,17 +64,17 @@ class ExceptionsManager {
       // if (err.name) { lines.push(`${err.name}: ${err.message}`) }
 
       // add the stack trace
-      );try {
+      try {
         lines = lines.concat(err.stack.split(_os2.default.EOL));
       } catch (e) {
         lines = lines.concat(new Error(err).stack.split(_os2.default.EOL));
       }
 
       // reduce the lines array into a single string
-      output += lines.reduce((prev, item) => prev + `${item}\n`, ''
+      output += lines.reduce((prev, item) => prev + `${item}\n`, '');
 
       // print out the output message
-      );api.log(output, severity);
+      api.log(output, severity);
     });
   }
 
@@ -134,10 +134,10 @@ class ExceptionsManager {
     }
 
     // report the error
-    self.report(err, 'action', simpleName, { connection: data.connection }, 'error'
+    self.report(err, 'action', simpleName, { connection: data.connection }, 'error');
 
     // remove already processed responses
-    );data.response = {};
+    data.response = {};
 
     if (typeof next === 'function') {
       next();

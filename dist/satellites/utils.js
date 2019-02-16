@@ -311,10 +311,10 @@ class Utils {
       } else {
         this.removeDirectory(filePath);
       }
-    }
+    });
 
     // remove current directory
-    );_fs2.default.rmdirSync(path);
+    _fs2.default.rmdirSync(path);
   }
 
   /**
@@ -433,10 +433,10 @@ class Utils {
     // if we have brackets parse them and find a port
     if (address.indexOf('[') > -1 && address.indexOf(']') > -1) {
       // execute the regular expression
-      let res = regexp.exec(address
+      let res = regexp.exec(address);
 
       // if null this isn't a valid IPv6 address
-      );if (res === null) {
+      if (res === null) {
         throw new Error('failed to parse address');
       }
 

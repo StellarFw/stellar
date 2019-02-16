@@ -43,10 +43,10 @@ let attributes = {
    */
   constructor(api, options) {
     // call super constructor
-    super(api, type, options, attributes
+    super(api, type, options, attributes);
 
     // define events
-    );this.server = null;
+    this.server = null;
     this._defineEvents();
   }
 
@@ -77,10 +77,10 @@ let attributes = {
     // on server error
     self.server.on('error', e => {
       return callback(new Error(`Cannot start tcp server @ ${self.options.bindIP}:${self.options.port} => ${e.message}`));
-    }
+    });
 
     // server listener
-    );self.server.listen(self.options.port, self.options.bindIP, () => {
+    self.server.listen(self.options.port, self.options.bindIP, () => {
       process.nextTick(callback);
     });
   }
@@ -217,10 +217,10 @@ let attributes = {
             data.split(delimiter).forEach(parseLine);
           }
         }
-      }
+      });
 
       // on end event
-      );connection.rawConnection.on('end', () => {
+      connection.rawConnection.on('end', () => {
         // if the connection isn't destroyed do it now
         if (connection.destroyed !== true) {
           try {
@@ -228,10 +228,10 @@ let attributes = {
           } catch (e) {}
           connection.destroy();
         }
-      }
+      });
 
       // on error event
-      );connection.rawConnection.on('error', e => {
+      connection.rawConnection.on('error', e => {
         if (connection.destroyed !== true) {
           self.log(`server error: ${e}`, 'error');
 
@@ -241,10 +241,10 @@ let attributes = {
           connection.destroy();
         }
       });
-    }
+    });
 
     // on actionComplete event
-    );self.on('actionComplete', data => {
+    self.on('actionComplete', data => {
       if (data.toRender === true) {
         data.response.context = 'response';
         self.sendMessage(data.connection, data.response, data.messageCount);
@@ -264,10 +264,10 @@ let attributes = {
   _parseRequest(connection, line) {
     let self = this;
 
-    let words = line.split(' '
+    let words = line.split(' ');
 
     // get the verb how are
-    );let verb = words.shift();
+    let verb = words.shift();
 
     if (verb === 'file') {
       if (words.length > 0) {
@@ -289,10 +289,10 @@ let attributes = {
         // check for and attempt to check single-use params
         try {
           // parse JSON request
-          let requestHash = JSON.parse(line
+          let requestHash = JSON.parse(line);
 
           // pass all founded params to the connection object
-          );if (requestHash.params !== undefined) {
+          if (requestHash.params !== undefined) {
             connection.params = {};
 
             for (let v in requestHash.params) {

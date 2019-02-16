@@ -55,10 +55,10 @@ exports.default = {
         level: 'info',
         timestamp: true
       });
-    }
+    });
 
     // define the maximum length of params to log (we will truncate)
-    );logger.maxLogStringLength = 100;
+    logger.maxLogStringLength = 100;
 
     return logger;
   }

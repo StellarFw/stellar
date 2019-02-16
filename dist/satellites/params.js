@@ -49,10 +49,10 @@ class Params {
     let postVariables = [];
 
     // push the global safe params for the 'postVariables'
-    self.globalSafeParams.forEach(p => postVariables.push(p)
+    self.globalSafeParams.forEach(p => postVariables.push(p));
 
     // iterate all actions files
-    );for (i in self.api.actions.actions) {
+    for (i in self.api.actions.actions) {
       // iterate all actions definitions
       for (j in self.api.actions.actions[i]) {
         // get current action
@@ -94,9 +94,9 @@ exports.default = class {
     api.params = new Params(api);
 
     // build the post variables
-    api.params.buildPostVariables
+    api.params.buildPostVariables();
 
     // finish the initializer execution
-    ();next();
+    next();
   }
 };

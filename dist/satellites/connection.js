@@ -92,16 +92,16 @@ class Connections {
     }
 
     // ensure the priority is a number
-    data.priority = Number(data.priority
+    data.priority = Number(data.priority);
 
     // save the new middleware
-    );this.middleware[data.name] = data;
+    this.middleware[data.name] = data;
 
     // push the new middleware to the global list
-    this.globalMiddleware.push(data.name
+    this.globalMiddleware.push(data.name);
 
     // sort the global middleware array
-    );this.globalMiddleware.sort((a, b) => {
+    this.globalMiddleware.sort((a, b) => {
       if (this.middleware[a].priority > this.middleware[b].priority) {
         return 1;
       }
@@ -174,10 +174,10 @@ class Connection {
     this.rooms = [];
 
     this.api = api;
-    this._setup(data
+    this._setup(data);
 
     // save this connection on the connection manager
-    );api.connections.connections[this.id] = this;
+    api.connections.connections[this.id] = this;
 
     // execute the middleware
     this.api.connections.globalMiddleware.forEach(middlewareName => {
@@ -231,10 +231,10 @@ class Connection {
         }
       }
       this[req] = data[req];
-    }
+    });
 
     // set connection defaults
-    );let connectionDefaults = {
+    let connectionDefaults = {
       error: null,
       params: {},
       rooms: [],
@@ -303,10 +303,10 @@ class Connection {
       if (typeof this.api.connections.middleware[middlewareName].destroy === 'function') {
         this.api.connections.middleware[middlewareName].destroy(this);
       }
-    }
+    });
 
     // remove the connection from all rooms
-    );if (this.canChat === true) {
+    if (this.canChat === true) {
       this.rooms.forEach(room => this.api.chatRoom.leave(this.id, room));
     }
 
@@ -455,24 +455,24 @@ class Connection {
         }
       } else if (verb === 'say') {
         // get the room name
-        room = words.shift
+        room = words.shift();
 
         // broadcast the message on the requested room
-        ();this.api.chatRoom.broadcast(this, room, words.join(' ')).then(() => {
+        this.api.chatRoom.broadcast(this, room, words.join(' ')).then(() => {
           callback(null);
         }).catch(error => {
           callback(error);
         });
       } else if (verb === 'event') {
         // get the vent information
-        const { room, event, data } = words.shift
+        const { room, event, data } = words.shift();
 
         // execute the event on the event system
-        ();this.api.events.fire(`event.${event}`, { room, data });
-        this.api.events.fire(`event.${room}.${event}`, { room, data }
+        this.api.events.fire(`event.${event}`, { room, data });
+        this.api.events.fire(`event.${room}.${event}`, { room, data });
 
         // broadcast the event to the room
-        );this.api.chatRoom.broadcast(this, room, { event, data }).then(() => {
+        this.api.chatRoom.broadcast(this, room, { event, data }).then(() => {
           callback(null);
         }).catch(error => callback(error));
       } else {

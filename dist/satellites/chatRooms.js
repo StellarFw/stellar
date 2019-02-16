@@ -73,16 +73,16 @@ class ChatRooms {
     }
 
     // ensure the priority is a number
-    data.priority = Number(data.priority
+    data.priority = Number(data.priority);
 
     // save the middleware object
-    );this.middleware[data.name] = data;
+    this.middleware[data.name] = data;
 
     // push the middleware name to the globalMiddleware
-    this.globalMiddleware.push(data.name
+    this.globalMiddleware.push(data.name);
 
     // sort the globalMiddleware by priority
-    );this.globalMiddleware.sort((a, b) => this.middleware[a].priority > this.middleware[b].priority ? 1 : -1);
+    this.globalMiddleware.sort((a, b) => this.middleware[a].priority > this.middleware[b].priority ? 1 : -1);
   }
 
   /**
@@ -133,13 +133,13 @@ class ChatRooms {
           }
 
           // generate the message payload
-        };let messagePayload = _this._generateMessagePayload(payload
+        };let messagePayload = _this._generateMessagePayload(payload);
 
         // handle callbacks
-        );const newPayload = yield _this._handleCallbacks(connection, messagePayload.room, 'onSayReceive', messagePayload
+        const newPayload = yield _this._handleCallbacks(connection, messagePayload.room, 'onSayReceive', messagePayload);
 
         // create the payload to send
-        );let payloadToSend = {
+        let payloadToSend = {
           messageType: 'chat',
           serverToken: _this.api.config.general.serverToken,
           serverId: _this.api.id,
@@ -167,10 +167,10 @@ class ChatRooms {
    */
   incomingMessage(message) {
     // generate the message payload
-    let messagePayload = this._generateMessagePayload(message
+    let messagePayload = this._generateMessagePayload(message);
 
     // iterate all connection
-    );for (let i in this.api.connections.connections) {
+    for (let i in this.api.connections.connections) {
       this._incomingMessagePerConnection(this.api.connections.connections[i], messagePayload);
     }
   }
@@ -192,10 +192,10 @@ class ChatRooms {
 
     return _asyncToGenerator(function* () {
       // check if the room already exists
-      const found = yield _this2.exists(room
+      const found = yield _this2.exists(room);
 
       // if the room already exists throw an error
-      );if (found === true) {
+      if (found === true) {
         throw _this2.api.config.errors.connectionRoomExists(room);
       }
 
@@ -214,21 +214,21 @@ class ChatRooms {
 
     return _asyncToGenerator(function* () {
       // check if the room exists
-      const found = yield _this3.exists(room
+      const found = yield _this3.exists(room);
 
       // throw an error if th room not exists
-      );if (found === false) {
+      if (found === false) {
         throw _this3.api.config.errors.connectionRoomNotExist(room);
       }
 
       // emit destroy event to the room
-      yield _this3.emit(room, 'destroy', _this3.api.config.errors.connectionRoomHasBeenDeleted(room)
+      yield _this3.emit(room, 'destroy', _this3.api.config.errors.connectionRoomHasBeenDeleted(room));
 
       // get all room members
-      );const members = yield _this3.api.redis.clients.client.hgetall(_this3.keys.members + room
+      const members = yield _this3.api.redis.clients.client.hgetall(_this3.keys.members + room);
 
       // remove each member from the room
-      );for (let id in members) {
+      for (let id in members) {
         yield _this3.leave(id, room);
       }
 
@@ -328,16 +328,16 @@ class ChatRooms {
       }
 
       // wait for callback
-      yield _this6._handleCallbacks(connection, room, 'join', null
+      yield _this6._handleCallbacks(connection, room, 'join', null);
 
       // generate the member details
-      );let memberDetails = _this6._generateMemberDetails(connection
+      let memberDetails = _this6._generateMemberDetails(connection);
 
       // add member to the room
-      );yield _this6.api.redis.clients.client.hset(_this6.keys.members + room, connection.id, JSON.stringify(memberDetails)
+      yield _this6.api.redis.clients.client.hset(_this6.keys.members + room, connection.id, JSON.stringify(memberDetails));
 
       // push the new room to the connection object
-      );connection.rooms.push(room);
+      connection.rooms.push(room);
 
       return true;
     })();
@@ -368,24 +368,24 @@ class ChatRooms {
       }
 
       // check if the room exists
-      const found = yield _this7.exists(room
+      const found = yield _this7.exists(room);
 
       // if the room has not been found returned an error
-      );if (!found) {
+      if (!found) {
         throw _this7.api.config.errors.connectionRoomNotExist(room);
       }
 
       // passes the response by the middleware
-      yield _this7._handleCallbacks(connection, room, 'leave', null
+      yield _this7._handleCallbacks(connection, room, 'leave', null);
 
       // remove the user
-      );yield _this7.api.redis.clients.client.hdel(_this7.keys.members + room, connection.id
+      yield _this7.api.redis.clients.client.hdel(_this7.keys.members + room, connection.id);
 
       // get the room index
-      );let index = connection.rooms.indexOf(room
+      let index = connection.rooms.indexOf(room);
 
       // remove room from the rooms array
-      );if (index > -1) {
+      if (index > -1) {
         connection.rooms.splice(index, 1);
       }
 
@@ -478,10 +478,10 @@ class ChatRooms {
       // execute all middleware
       _async2.default.series(jobs, (error, data) => {
         while (data.length > 0) {
-          let thisData = data.shift
+          let thisData = data.shift();
 
           // change the new message object to the next middleware use it
-          ();if (thisData) {
+          if (thisData) {
             newMessagePayload = thisData;
           }
         }
@@ -534,10 +534,10 @@ class ChatRooms {
 
       try {
         // apply the middleware
-        const newMessagePayload = yield _this8._handleCallbacks(connection, messagePayload.room, 'say', messagePayload
+        const newMessagePayload = yield _this8._handleCallbacks(connection, messagePayload.room, 'say', messagePayload);
 
         // send a message to the connection
-        );connection.sendMessage(newMessagePayload, 'say');
+        connection.sendMessage(newMessagePayload, 'say');
       } catch (e) {
         // TODO should we do anything here?
       }
@@ -588,10 +588,10 @@ exports.default = class {
    * @param next  Callback.
    */
   start(api, next) {
-    let work = Promise.resolve
+    let work = Promise.resolve();
 
     // subscribe new chat messages on the redis server
-    ();api.redis.subscriptionHandlers['chat'] = message => {
+    api.redis.subscriptionHandlers['chat'] = message => {
       api.chatRoom.incomingMessage(message);
     };
 

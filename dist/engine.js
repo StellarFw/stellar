@@ -78,14 +78,14 @@ class Engine {
     }
 
     // sort the keys in ascendant way
-    keys.sort((a, b) => a - b
+    keys.sort((a, b) => a - b);
 
     // iterate the ordered keys and create the new ordered object to be
     // outputted
-    );keys.forEach(key => collection[key].forEach(d => output.push(d))
+    keys.forEach(key => collection[key].forEach(d => output.push(d)));
 
     // return the new ordered object
-    );return output;
+    return output;
   }
 
   /**
@@ -109,13 +109,13 @@ class Engine {
 
     // log an emergency message
     console.log();
-    api.log(`Error with satellite step: ${type}`, 'emerg'
+    api.log(`Error with satellite step: ${type}`, 'emerg');
 
     // log all the errors
-    );errors.forEach(err => api.log(err, 'emerg')
+    errors.forEach(err => api.log(err, 'emerg'));
 
     // finish the process execution
-    );api.commands.stop.call(api, () => {
+    api.commands.stop.call(api, () => {
       process.exit(1);
     });
   }
@@ -252,10 +252,10 @@ class Engine {
     self.api._self = self;
 
     // print current execution path
-    self.api.log(`Current universe "${self.api.scope.rootPath}"`, 'info'
+    self.api.log(`Current universe "${self.api.scope.rootPath}"`, 'info');
 
     // execute the stage 0
-    );this.stage0(callback);
+    this.stage0(callback);
   }
 
   /**
@@ -315,49 +315,49 @@ class Engine {
       self.api.status = 'shutting_down';
 
       // log a shutting down message
-      self.api.log('Shutting down open servers and stopping task processing', 'alert'
+      self.api.log('Shutting down open servers and stopping task processing', 'alert');
 
       // if this is the second shutdown we need remove the `finalStopInitializer` callback
-      );if (self.stopSatellites[self.stopSatellites.length - 1].name === 'finalStopInitializer') {
+      if (self.stopSatellites[self.stopSatellites.length - 1].name === 'finalStopInitializer') {
         self.stopSatellites.pop();
       }
 
       // add the final callback
       self.stopSatellites.push(function finalStopInitializer(next) {
         // stop watch for file changes
-        self.api.configs.unwatchAllFiles
+        self.api.configs.unwatchAllFiles();
 
         // clear cluster PIDs
-        ();self.api.pids.clearPidFile
+        self.api.pids.clearPidFile();
 
         // log a shutdown message
-        ();self.api.log('Stellar has been stopped', 'alert');
-        self.api.log('***', 'debug'
+        self.api.log('Stellar has been stopped', 'alert');
+        self.api.log('***', 'debug');
 
         // mark server as stopped
-        );self.api.status = 'stopped';
+        self.api.status = 'stopped';
 
         // execute the callback on the next tick
         process.nextTick(() => {
           if (callback !== null) {
             callback(null, self.api);
           }
-        }
+        });
 
         // async callback
-        );next();
-      }
+        next();
+      });
 
       // iterate all satellites and stop them
-      );_async2.default.series(self.stopSatellites, errors => Engine.fatalError(self.api, errors, 'stop'));
+      _async2.default.series(self.stopSatellites, errors => Engine.fatalError(self.api, errors, 'stop'));
     } else if (self.api.status === 'shutting_down') {
       // double sigterm; ignore it
     } else {
       // we can shutdown the Engine if it is not running
-      self.api.log('Cannot shutdown Stellar, not running', 'error'
+      self.api.log('Cannot shutdown Stellar, not running', 'error');
 
       // exists a callback?
-      );if (callback !== null) {
+      if (callback !== null) {
         callback(null, self.api);
       }
     }
@@ -394,10 +394,10 @@ class Engine {
           }
 
           // log a restart message
-          self.api.log('*** Stellar Restarted ***', 'info'
+          self.api.log('*** Stellar Restarted ***', 'info');
 
           // exists a callback
-          );if (callback !== null) {
+          if (callback !== null) {
             callback(null, self.api);
           }
         });
@@ -410,10 +410,10 @@ class Engine {
         }
 
         // log a restart message
-        self.api.log('*** Stellar Restarted ***', 'info'
+        self.api.log('*** Stellar Restarted ***', 'info');
 
         // exists a callback
-        );if (callback !== null) {
+        if (callback !== null) {
           callback(null, self.api);
         }
       });
@@ -439,10 +439,10 @@ class Engine {
     let initialSatellites = [_path2.default.resolve(`${__dirname}/satellites/utils.js`), _path2.default.resolve(`${__dirname}/satellites/config.js`)];
     initialSatellites.forEach(file => {
       // get full file name
-      let filename = file.replace(/^.*[\\\/]/, ''
+      let filename = file.replace(/^.*[\\\/]/, '');
 
       // get the first part of the file name
-      );let initializer = filename.split('.')[0];
+      let initializer = filename.split('.')[0];
 
       // get the initializer
       const Satellite = require(file).default;
@@ -450,15 +450,15 @@ class Engine {
 
       // add it to array
       this.initialSatellites.push(next => this.satellites[initializer].load(this.api, next));
-    }
+    });
 
     // execute stage0 satellites in series
-    );_async2.default.series(this.initialSatellites, error => {
+    _async2.default.series(this.initialSatellites, error => {
       // execute the callback
-      callback(error, this.api
+      callback(error, this.api);
 
       // if an error occurs show
-      );if (error) {
+      if (error) {
         Engine.fatalError(this.api, error, 'stage0');
       }
     });
@@ -496,10 +496,10 @@ class Engine {
         // get satellite normalized file name and
         let file = _path2.default.normalize(f);
         let initializer = _path2.default.basename(f).split('.')[0];
-        let ext = file.split('.').pop
+        let ext = file.split('.').pop();
 
         // only load files with the `.js` extension
-        ();if (ext !== 'js') {
+        if (ext !== 'js') {
           continue;
         }
 
@@ -511,10 +511,10 @@ class Engine {
         let loadFunction = next => {
           // check if the initializer have a load function
           if (typeof this.satellites[initializer].load === 'function') {
-            this.api.log(` > load: ${initializer}`, 'debug'
+            this.api.log(` > load: ${initializer}`, 'debug');
 
             // call `load` property
-            );this.satellites[initializer].load(this.api, err => {
+            this.satellites[initializer].load(this.api, err => {
               if (!err) {
                 this.api.log(`   loaded: ${initializer}`, 'debug');
               }
@@ -529,10 +529,10 @@ class Engine {
         let startFunction = next => {
           // check if the initializer have a start function
           if (typeof this.satellites[initializer].start === 'function') {
-            this.api.log(` > start: ${initializer}`, 'debug'
+            this.api.log(` > start: ${initializer}`, 'debug');
 
             // execute start routine
-            );this.satellites[initializer].start(this.api, err => {
+            this.satellites[initializer].start(this.api, err => {
               if (!err) {
                 this.api.log(`   started: ${initializer}`, 'debug');
               }
@@ -573,10 +573,10 @@ class Engine {
     };
 
     // get an array with all satellites
-    loadSatellitesInPlace(Utils.getFiles(`${__dirname}/satellites`)
+    loadSatellitesInPlace(Utils.getFiles(`${__dirname}/satellites`));
 
     // load satellites from all the active modules
-    );this.api.config.modules.forEach(moduleName => {
+    this.api.config.modules.forEach(moduleName => {
       // build the full path to the satellites folder
       let moduleSatellitePaths = `${this.api.scope.rootPath}/modules/${moduleName}/satellites`;
 
@@ -584,20 +584,20 @@ class Engine {
       if (Utils.directoryExists(moduleSatellitePaths)) {
         loadSatellitesInPlace(Utils.getFiles(moduleSatellitePaths));
       }
-    }
+    });
 
     // organize final array to match the satellites priorities
-    );this.loadSatellites = Engine.flattenOrderedInitializer(loadSatellitesRankings);
+    this.loadSatellites = Engine.flattenOrderedInitializer(loadSatellitesRankings);
     this.startSatellites = Engine.flattenOrderedInitializer(startSatellitesRankings);
-    this.stopSatellites = Engine.flattenOrderedInitializer(stopSatellitesRankings
+    this.stopSatellites = Engine.flattenOrderedInitializer(stopSatellitesRankings);
 
     // on the end of loading all satellites set engine like initialized
-    );this.loadSatellites.push(() => {
+    this.loadSatellites.push(() => {
       this.stage2(callback);
-    }
+    });
 
     // start initialization process
-    );_async2.default.series(this.loadSatellites, errors => Engine.fatalError(this.api, errors, 'stage1'));
+    _async2.default.series(this.loadSatellites, errors => Engine.fatalError(this.api, errors, 'stage1'));
   }
 
   /**

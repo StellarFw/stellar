@@ -4,10 +4,6 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _sywac = require('sywac');
-
-var _sywac2 = _interopRequireDefault(_sywac);
-
 var _cluster = require('cluster');
 
 var _cluster2 = _interopRequireDefault(_cluster);
@@ -54,7 +50,8 @@ exports.default = class {
    */
   load(api, next) {
     return _asyncToGenerator(function* () {
-      const { argv } = yield _sywac2.default.string('--title').parse();
+      const argv = api.scope.args;
+
       if (argv.title) {
         api.id = argv.title;
       } else if (process.env.STELLAR_TITLE) {
@@ -97,9 +94,9 @@ exports.default = class {
    */
   start(api, next) {
     // print out the server ID
-    api.log(`server ID: ${api.id}`, 'notice'
+    api.log(`server ID: ${api.id}`, 'notice');
 
     // finish the initializer start
-    );next();
+    next();
   }
 };

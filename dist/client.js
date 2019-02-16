@@ -77,10 +77,10 @@ class Build {
     // send an event for each room, and store the Promise on the array
     this.rooms.forEach(room => {
       work.push(this.client.send({ event: 'event', params: { room, event, data } }));
-    }
+    });
 
     // return an array of Promises
-    );return Promise.all(work);
+    return Promise.all(work);
   }
 
   /**
@@ -103,20 +103,20 @@ class Build {
     // create an handler for each room
     this.rooms.forEach(room => {
       this.client.on(`[${room}].${event}`, callback);
-    }
+    });
 
     // return this instance
-    );return this;
+    return this;
   }
 
   off(event, func) {
     // for each selected room we must remove the requested event.
     this.rooms.forEach(room => {
       this.client.removeListener(`[${room}].${event}`, func);
-    }
+    });
 
     // return this instance
-    );return this;
+    return this;
   }
 }
 
@@ -207,45 +207,45 @@ StellarClient.prototype.connect = function () {
 
         this._emit('connected');
       });
-    }
+    });
 
     // error
-    );this.client.on('error', err => {
+    this.client.on('error', err => {
       reject(err);
       this._emit('error', err);
-    }
+    });
 
     // reconnect
-    );this.client.on('reconnect', () => {
+    this.client.on('reconnect', () => {
       this.messageCount = 0;
       this._emit('reconnect');
-    }
+    });
 
     // reconnecting
-    );this.client.on('reconnecting', () => {
+    this.client.on('reconnecting', () => {
       this._emit('reconnecting');
       this.state = 'reconnecting';
       this._emit('disconnected');
-    }
+    });
 
     // timeout
-    );this.client.on('timeout', () => {
+    this.client.on('timeout', () => {
       this.state = 'timeout';
       this._emit('timeout');
-    }
+    });
 
     // end
-    );this.client.on('end', () => {
+    this.client.on('end', () => {
       this.messageCount = 0;
 
       if (this.state !== 'disconnected') {
         this.state = 'disconnected';
         this._emit('disconnected');
       }
-    }
+    });
 
     // data
-    );this.client.on('data', data => this.handleMessage(data));
+    this.client.on('data', data => this.handleMessage(data));
   });
 };
 
@@ -280,10 +280,10 @@ StellarClient.prototype.processNextPendingRequest = function () {
   }
 
   // get the next request to be processed
-  const requestFn = this.pendingRequestsQueue.shift
+  const requestFn = this.pendingRequestsQueue.shift();
 
   // execute the process
-  ();requestFn();
+  requestFn();
 };
 
 // ----------------------------------------------------------------------------- [Messaging]
@@ -324,17 +324,17 @@ StellarClient.prototype.handleMessage = function (message) {
   } else if (message.context === 'user') {
     // TODO this must be changed in order to support events
     // emit a global event
-    this._emit('say', message
+    this._emit('say', message);
 
     // check if it's an event and emit the correct events
-    );if (message.message.event) {
+    if (message.message.event) {
       const packet = message.message;
 
       // emit event into global scope
-      this._emit(packet.event, packet.data, message
+      this._emit(packet.event, packet.data, message);
 
       // emit an event specific for a given room
-      );this._emit(`[${message.room}].${packet.event}`, packet.data, message);
+      this._emit(`[${message.room}].${packet.event}`, packet.data, message);
     }
   } else if (message.context === 'alert') {
     this._emit('alert', message);
@@ -366,10 +366,10 @@ StellarClient.prototype.action = function (action, params = {}) {
 
     // array with the request interceptor. We need to make a copy to keep the
     // original array intact
-    const reqHandlers = this.interceptors.slice(0
+    const reqHandlers = this.interceptors.slice(0);
 
     // array with the response handlers. this is local to avoid repetition
-    );const resHandlers = [];
+    const resHandlers = [];
 
     // sets the parameter action, in case of the action call be done over HTTP.
     params.action = action;
@@ -446,11 +446,11 @@ StellarClient.prototype.action = function (action, params = {}) {
       }
 
       // get the next handle to be processed
-      handler = reqHandlers.pop
+      handler = reqHandlers.pop();
 
       // execute the next handler if it is a function, otherwise print out an
       // warning and processed to the handler
-      ();if (isFunction(handler)) {
+      if (isFunction(handler)) {
         handler.call(this, params, next, reject);
       } else {
         warn(`Invalid interceptor of type ${typeof handler}, must be a function`);
@@ -473,10 +473,10 @@ StellarClient.prototype.action = function (action, params = {}) {
 StellarClient.prototype._actionWeb = (() => {
   var _ref = _asyncToGenerator(function* (params) {
     // define the HTTP method to be used (by default we use POST)
-    const method = (params.httpMethod || 'POST').toUpperCase
+    const method = (params.httpMethod || 'POST').toUpperCase();
 
     // define the URL to be called and append the action on the query params
-    ();let url = `${this.options.url}${this.options.apiPath}?action=${params.action}`;
+    let url = `${this.options.url}${this.options.apiPath}?action=${params.action}`;
 
     // when it's a GET request we must append the params to the URL address
     if (method === 'GET') {
@@ -505,10 +505,10 @@ StellarClient.prototype._actionWeb = (() => {
     const request = new Request(url, options);
 
     // make the request
-    const response = yield fetch(request
+    const response = yield fetch(request);
 
     // catch errors
-    );if (response.status !== 200) {
+    if (response.status !== 200) {
       throw yield response.json();
     }
 
@@ -649,10 +649,10 @@ StellarClient.prototype.roomView = function (room) {
  */
 StellarClient.prototype.join = (() => {
   var _ref2 = _asyncToGenerator(function* (room) {
-    yield this.send({ event: 'roomJoin', room }
+    yield this.send({ event: 'roomJoin', room });
 
     // configure connection
-    );return this.configure();
+    return this.configure();
   });
 
   return function (_x2) {
@@ -669,18 +669,18 @@ StellarClient.prototype.join = (() => {
 StellarClient.prototype.leave = (() => {
   var _ref3 = _asyncToGenerator(function* (room) {
     // get the position of the room on the client rooms list
-    let index = this.rooms.indexOf(room
+    let index = this.rooms.indexOf(room);
 
     // remove the room from the client room list
-    );if (index > -1) {
+    if (index > -1) {
       this.rooms.splice(index, 1);
     }
 
     // make a server request to remove the client from the room
-    yield this.send({ event: 'roomLeave', room: room }
+    yield this.send({ event: 'roomLeave', room: room });
 
     // configure the connection
-    );return this.configure();
+    return this.configure();
   });
 
   return function (_x3) {
@@ -696,10 +696,10 @@ StellarClient.prototype.disconnect = function () {
   this.state = 'disconnected';
 
   // finish the connection between the client and the server
-  this.client.end
+  this.client.end();
 
   // emit the 'disconnected' event
-  ();this._emit('disconnected');
+  this._emit('disconnected');
 };
 
 exports.StellarClient = StellarClient;

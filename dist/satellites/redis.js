@@ -141,10 +141,10 @@ class RedisManager {
           // on error event
           this.clients[r].on('error', error => {
             this.api.log(`Redis connection ${r} error`, error);
-          }
+          });
 
           // on connect event
-          );this.clients[r].on('connect', () => {
+          this.clients[r].on('connect', () => {
             this.api.log(`Redis connection ${r} connected`, 'info');
             done();
           });
@@ -181,10 +181,10 @@ class RedisManager {
               this.subscriptionHandlers[message.messageType](message);
             }
           }
-        }
+        });
 
         // execute the callback
-        );done();
+        done();
       });
     }
 
@@ -295,10 +295,10 @@ exports.default = class {
         return next(error);
       }
 
-      api.redis._doCluster('api.log', `Stellar member ${api.id} has joined the cluster`, null, null
+      api.redis._doCluster('api.log', `Stellar member ${api.id} has joined the cluster`, null, null);
 
       // finish the loading
-      );process.nextTick(next);
+      process.nextTick(next);
     });
   }
 
@@ -317,10 +317,10 @@ exports.default = class {
     }
 
     // inform the cluster of stellar leaving
-    api.redis._doCluster('api.log', `Stellar member ${api.id} has left the cluster`, null, null
+    api.redis._doCluster('api.log', `Stellar member ${api.id} has left the cluster`, null, null);
 
     // unsubscribe stellar instance and finish the stop method execution
-    );process.nextTick(() => {
+    process.nextTick(() => {
       api.redis.clients.subscriber.unsubscribe();
       api.redis.status.subscribed = false;
 

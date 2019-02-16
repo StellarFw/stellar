@@ -60,17 +60,17 @@ class TaskSatellite {
     };
 
     // start watch for file changes
-    this.api.configs.watchFileAndAct(fullFilePath, () => this.loadFile(fullFilePath, true)
+    this.api.configs.watchFileAndAct(fullFilePath, () => this.loadFile(fullFilePath, true));
 
     // temporary task info
-    );let task = null;
+    let task = null;
 
     try {
       // get task collection
-      let collection = require(fullFilePath
+      let collection = require(fullFilePath);
 
       // iterate all collections
-      );for (let i in collection) {
+      for (let i in collection) {
         // get task logic
         task = collection[i];
 
@@ -83,19 +83,19 @@ class TaskSatellite {
         }
 
         // create a job wrapper on the new task
-        this.jobs[task.name] = this._jobWrapper(task.name
+        this.jobs[task.name] = this._jobWrapper(task.name);
 
         // log the load message
-        );loadMessage(task.name);
+        loadMessage(task.name);
       }
     } catch (err) {
-      this.api.log(`[TaskSatellite::loadFile] ${err}`
+      this.api.log(`[TaskSatellite::loadFile] ${err}`);
 
       // handle the exception
-      );this.api.exceptionHandlers.loader(fullFilePath, err
+      this.api.exceptionHandlers.loader(fullFilePath, err);
 
       // remove the task if that exists
-      );delete this.tasks[task.name];
+      delete this.tasks[task.name];
       delete this.jobs[task.name];
     }
   }
@@ -137,13 +137,13 @@ class TaskSatellite {
       pluginsOptions: pluginOptions,
       perform: function () {
         // get the task arguments
-        let args = Array.prototype.slice.call(arguments
+        let args = Array.prototype.slice.call(arguments);
 
         // get the callback function
-        );let cb = args.pop
+        let cb = args.pop();
 
         // if there is no arguments
-        ();if (args.length === 0) {
+        if (args.length === 0) {
           args.push({});
         }
 
@@ -152,13 +152,13 @@ class TaskSatellite {
           self.enqueueRecurrentJob(taskName, () => {
             cb(error, resp);
           });
-        }
+        });
 
         // add the API object at the begin of the arguments array
-        );args.unshift(self.api
+        args.unshift(self.api);
 
         // execute the task
-        );self.tasks[taskName].run.apply(self, args);
+        self.tasks[taskName].run.apply(self, args);
       }
     };
   }
@@ -549,10 +549,10 @@ class TaskSatellite {
         }
         result.workers = workers;
       });
-    }
+    });
 
     // push all the queue to the result var
-    );jobs.push(done => {
+    jobs.push(done => {
       self.api.resque.queue.queues((error, queues) => {
         if (error) {
           return done(error);
@@ -612,10 +612,10 @@ exports.default = class {
     api.tasks = new TaskSatellite(api);
 
     // load modules tasks
-    api.tasks.loadModulesTasks
+    api.tasks.loadModulesTasks();
 
     // finish the satellite initialization
-    ();next();
+    next();
   }
 
   /**

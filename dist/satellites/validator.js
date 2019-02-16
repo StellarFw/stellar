@@ -96,10 +96,10 @@ class Validator {
     this.params = data;
 
     // parse all given rules and save them to use later
-    this.rules = this._parseRules(rules
+    this.rules = this._parseRules(rules);
 
     // iterate through the fields under validation
-    );for (const fieldName in this.rules) {
+    for (const fieldName in this.rules) {
       // get the data value for the current fields
       const value = data[fieldName];
 
@@ -133,10 +133,10 @@ class Validator {
         }
 
         // convert the rule to camel case
-        const ruleNormalized = this._normalizeRuleName(ruleName
+        const ruleNormalized = this._normalizeRuleName(ruleName);
 
         // before continue we check if the validator exists
-        );if (!this._isAValidator(ruleNormalized)) {
+        if (!this._isAValidator(ruleNormalized)) {
           throw new Error(`The is no validator named '${ruleName}'`);
         }
 
@@ -160,10 +160,10 @@ class Validator {
    */
   _normalizeRuleName(ruleName) {
     // convert snake to camel case
-    let camelCase = this.api.utils.snakeToCamel(ruleName
+    let camelCase = this.api.utils.snakeToCamel(ruleName);
 
     // capitalize the first letter
-    );return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
+    return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
   }
 
   /**
@@ -207,18 +207,18 @@ class Validator {
    */
   _addFailure(attribute, rule, parameters, errors) {
     // get the error message
-    let message = this._getMessage(attribute, rule
+    let message = this._getMessage(attribute, rule);
 
     // if there is no message for the validator throw an error
-    );if (message === undefined) {
+    if (message === undefined) {
       throw new Error(`No error message was been specified for the '${rule}' validator`);
     }
 
     // replace the fields on the error message
-    message = this._doReplacements(message, attribute, rule, parameters
+    message = this._doReplacements(message, attribute, rule, parameters);
 
     // set the error message on the errors hash
-    );errors.set(attribute, message);
+    errors.set(attribute, message);
   }
 
   /**
@@ -261,13 +261,13 @@ class Validator {
    */
   _doReplacements(message, attribute, _rule, parameters) {
     // replace attribute placeholder
-    message = message.replace(/:attribute/gi, attribute
+    message = message.replace(/:attribute/gi, attribute);
 
     // normalize the rule name
-    );const rule = this._normalizeRuleName(_rule
+    const rule = this._normalizeRuleName(_rule);
 
     // check if there is a specific replacer for this type of rule
-    );const replacerMethod = `replace${rule}`;
+    const replacerMethod = `replace${rule}`;
     if (this[replacerMethod] !== undefined) {
       message = this[replacerMethod](message, attribute, rule, parameters);
     }
@@ -349,10 +349,10 @@ class Validator {
    * @returns {*}
    */
   validatorBefore(value, args) {
-    this._requireParameterCount(1, args, 'before'
+    this._requireParameterCount(1, args, 'before');
 
     // check if the argument are valid
-    );if (isNaN(Date.parse(args))) {
+    if (isNaN(Date.parse(args))) {
       throw new Error('the specified argument is not a valid date');
     }
 
@@ -366,10 +366,10 @@ class Validator {
   }
 
   validatorAfter(value, args) {
-    this._requireParameterCount(1, args, 'after'
+    this._requireParameterCount(1, args, 'after');
 
     // check if the argument are valid
-    );if (isNaN(Date.parse(args))) {
+    if (isNaN(Date.parse(args))) {
       return false;
     }
 
@@ -385,10 +385,10 @@ class Validator {
    * @returns {*}
    */
   validatorBetween(value, args) {
-    this._requireParameterCount(2, args, 'between'
+    this._requireParameterCount(2, args, 'between');
 
     // check if the value is valid
-    );if (typeof value === 'string') {
+    if (typeof value === 'string') {
       return value.length >= args[0] && value.length <= args[1];
     } else if (typeof value === 'number') {
       return value >= args[0] && value <= args[1];
@@ -521,10 +521,10 @@ class Validator {
    */
   validatorInteger(value) {
     // try parse to pin
-    let parsedValue = Number.parseInt(value
+    let parsedValue = Number.parseInt(value);
 
     // check if is a number
-    );return Number.isInteger(parsedValue);
+    return Number.isInteger(parsedValue);
   }
 
   /**
@@ -611,10 +611,10 @@ class Validator {
    * @param Array parameters
    */
   validatorRegex(value, parameters) {
-    this._requireParameterCount(1, parameters, 'regex'
+    this._requireParameterCount(1, parameters, 'regex');
 
     // create an RegEx instance and validate
-    );const regex = new RegExp(parameters[0], parameters[1] || '');
+    const regex = new RegExp(parameters[0], parameters[1] || '');
     return regex.test(value);
   }
 
@@ -636,10 +636,10 @@ class Validator {
    * @returns {*}
    */
   validatorRequiredIf(value, args) {
-    this._requireParameterCount(2, args, 'required_if'
+    this._requireParameterCount(2, args, 'required_if');
 
     // if the args[0] param value is present in the values array the value is required
-    );if (args.indexOf(String(this.params[args[0]])) > -1) {
+    if (args.indexOf(String(this.params[args[0]])) > -1) {
       return this.validatorFilled(value);
     }
 
@@ -655,10 +655,10 @@ class Validator {
    * @returns {*}
    */
   validatorRequiredUnless(value, args) {
-    this._requireParameterCount(2, args, 'required_unless'
+    this._requireParameterCount(2, args, 'required_unless');
 
     // if the parameter not have a valid value the current parameter is required
-    );if (args.indexOf(String(this.params[args[0]])) === -1) {
+    if (args.indexOf(String(this.params[args[0]])) === -1) {
       return this.validatorFilled(value);
     }
 
@@ -674,10 +674,10 @@ class Validator {
    * @returns {*}
    */
   validatorRequiredWith(value, args) {
-    this._requireParameterCount(1, args, 'required_with'
+    this._requireParameterCount(1, args, 'required_with');
 
     // check if one of the parameters are present
-    );for (let index in args) {
+    for (let index in args) {
       // get parameter name
       let paramName = args[index];
 
@@ -699,10 +699,10 @@ class Validator {
    * @returns {*}
    */
   validatorRequiredWithAll(value, args) {
-    this._requireParameterCount(2, args, 'required_with_all'
+    this._requireParameterCount(2, args, 'required_with_all');
 
     // check if all the parameters are present
-    );for (let index in args) {
+    for (let index in args) {
       // get parameter name
       let paramName = args[index];
 
@@ -724,10 +724,10 @@ class Validator {
    * @returns {*}
    */
   validatorRequiredWithout(value, args) {
-    this._requireParameterCount(1, args, 'required_without'
+    this._requireParameterCount(1, args, 'required_without');
 
     // if one of the fields are not present the field under validation is required
-    );for (let index in args) {
+    for (let index in args) {
       // get parameter name
       let paramName = args[index];
 

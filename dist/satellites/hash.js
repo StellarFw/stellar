@@ -69,10 +69,10 @@ class Hash {
     let self = this;
 
     // build the configs object
-    let config = self._getConfigs(_config
+    let config = self._getConfigs(_config);
 
     // create a new promise and generate the hash
-    );return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       _bcrypt2.default.hash(data, config.salt || config.saltLength, (error, hash) => error ? reject(error) : resolve(hash));
     });
   }
@@ -88,10 +88,10 @@ class Hash {
     let self = this;
 
     // build the configs object
-    let config = self._getConfigs(_config
+    let config = self._getConfigs(_config);
 
     // hash the data with the bcrypt
-    );return _bcrypt2.default.hashSync(data, config.salt || config.saltLength);
+    return _bcrypt2.default.hashSync(data, config.salt || config.saltLength);
   }
 
   /**

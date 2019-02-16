@@ -141,13 +141,13 @@ class EventsManager {
       }
 
       // get the array with all registered listeners for this event
-      let listeners = this.events.get(event
+      let listeners = this.events.get(event);
 
       // register the new listener
-      );listeners.push(listenerObj
+      listeners.push(listenerObj);
 
       // order the listeners by priority
-      );listeners.sort((l1, l2) => l1.priority - l2.priority);
+      listeners.sort((l1, l2) => l1.priority - l2.priority);
     }
 
     return true;
@@ -173,10 +173,10 @@ class EventsManager {
     };
 
     // require listener file
-    let collection = require(path
+    let collection = require(path);
 
     // start watching for changes on the model
-    );if (!reload) {
+    if (!reload) {
       this._watchForChanges(path);
     }
 
@@ -188,13 +188,13 @@ class EventsManager {
       let listener = collection[i];
 
       // insert the listener on the map
-      this._listenerObj(listener
+      this._listenerObj(listener);
 
       // push the listener to the array
-      );listeners.push(listener
+      listeners.push(listener);
 
       // log a message
-      );loadMessage(listener);
+      loadMessage(listener);
     }
 
     // keep track of the functions by file to make live-reload
@@ -213,18 +213,18 @@ class EventsManager {
 
         for (const event of events) {
           // get array of functions
-          const listeners = this.events.get(event
+          const listeners = this.events.get(event);
 
           // get listener index
-          );const index = listeners.indexOf(listener
+          const index = listeners.indexOf(listener);
 
           // remove listener
-          );listeners.splice(index, 1);
+          listeners.splice(index, 1);
         }
-      }
+      });
 
       // load the listeners again
-      );this._loadFile(path, true);
+      this._loadFile(path, true);
     });
   }
 
@@ -250,10 +250,10 @@ class EventsManager {
       this.api.utils.recursiveDirectoryGlob(listenersFolderPath, 'js').forEach(listenerPath => {
         this._loadFile(listenerPath);
       });
-    }
+    });
 
     // end listeners loading
-    );next();
+    next();
   }
 }
 

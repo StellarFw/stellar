@@ -118,10 +118,10 @@ class Models {
 
       // execute the add event to allow other modules modify this model before it
       // gets compiled
-      const response = yield _this2.api.events.fire(`core.models.add.${name}`, { model }
+      const response = yield _this2.api.events.fire(`core.models.add.${name}`, { model });
 
       // when there is no identity property defined we use the file basename
-      );if (!response.model.identity) {
+      if (!response.model.identity) {
         response.model.identity = name;
       }
 
@@ -137,10 +137,10 @@ class Models {
       }
 
       // create a Waterline collection
-      const collection = _waterline2.default.Collection.extend(response.model
+      const collection = _waterline2.default.Collection.extend(response.model);
 
       // load the connection into the waterline instance
-      );_this2.waterline.loadCollection(collection);
+      _this2.waterline.loadCollection(collection);
     })();
   }
 
@@ -155,13 +155,13 @@ class Models {
       this.api.modules.modulesPaths.forEach(modulePath => {
         this.api.utils.recursiveDirectoryGlob(`${modulePath}/models`).forEach(moduleFile => {
           // get file basename
-          let basename = _path2.default.basename(moduleFile, '.js'
+          let basename = _path2.default.basename(moduleFile, '.js');
 
           // start watching for changes on the model
-          );this._watchForChanges(moduleFile
+          this._watchForChanges(moduleFile);
 
           // push a new work to the array
-          );work.push(callback => {
+          work.push(callback => {
             // if there is a syntax error on the model file we catch them an show a well formatted error
             try {
               this.add(basename, require(moduleFile).default);
@@ -174,10 +174,10 @@ class Models {
             callback();
           });
         });
-      }
+      });
 
       // process the all work and resolve the promise at the end
-      );_async3.default.parallel(work, () => resolve());
+      _async3.default.parallel(work, () => resolve());
     });
   }
 
@@ -198,10 +198,10 @@ class Models {
     // watch for changes on the model file
     this.api.configs.watchFileAndAct(file, () => {
       // log a information message
-      this.api.log(`\r\n\r\n*** rebooting due to model change (${file}) ***\r\n\r\n`, 'info'
+      this.api.log(`\r\n\r\n*** rebooting due to model change (${file}) ***\r\n\r\n`, 'info');
 
       // remove require cache
-      );delete require.cache[require.resolve(file)];
+      delete require.cache[require.resolve(file)];
 
       // reload Stellar
       this.api.commands.restart.call(this.api._self);

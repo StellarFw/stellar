@@ -46,16 +46,16 @@ class ConfigManager {
    */
   execute(next) {
     // init the execution environment
-    this._setupEnvironment
+    this._setupEnvironment();
 
     // creates 'temp' folder if it does not exist
-    ();this._createTempFolder
+    this._createTempFolder();
 
     // load manifest file, and core, project and modules configs
-    ();this._loadConfigs
+    this._loadConfigs();
 
     // finish the config execution on the next tick
-    ();process.nextTick(next);
+    process.nextTick(next);
   }
 
   /**
@@ -83,10 +83,10 @@ class ConfigManager {
     // iterate all watched files and say to the FS to stop watch the changes
     this._watchedFiles.forEach(file => {
       _fs2.default.unwatchFile(file);
-    }
+    });
 
     // reset the watch array
-    );this._watchedFiles = [];
+    this._watchedFiles = [];
   }
 
   /**
@@ -98,10 +98,10 @@ class ConfigManager {
    */
   watchFileAndAct(file, callback) {
     // normalise file path
-    file = _path2.default.normalize(file
+    file = _path2.default.normalize(file);
 
     // check if file exists
-    );if (!_fs2.default.existsSync(file)) {
+    if (!_fs2.default.existsSync(file)) {
       throw new Error(`${file} does not exist, and cannot be watched`);
     }
 
@@ -111,10 +111,10 @@ class ConfigManager {
     }
 
     // push the new file to the array of watched files
-    this._watchedFiles.push(file
+    this._watchedFiles.push(file);
 
     // say to the FS to start watching for changes in this file with an interval of 1 seconds
-    );_fs2.default.watchFile(file, { interval: 1000 }, (curr, prev) => {
+    _fs2.default.watchFile(file, { interval: 1000 }, (curr, prev) => {
       if (curr.mtime > prev.mtime && this.api.config.general.developmentMode === true) {
         process.nextTick(() => {
           let cleanPath = file;
@@ -161,21 +161,21 @@ class ConfigManager {
     } catch (e) {
       // when the project manifest doesn't exists the user is informed
       // and the engine instance is terminated
-      this.api.log('Project `manifest.json` file does not exists.', 'emergency'
+      this.api.log('Project `manifest.json` file does not exists.', 'emergency');
 
       // finish process (we can not stop the Engine because it can not be run)
-      );process.exit(1);
+      process.exit(1);
     }
 
     // load the default config files from the Stellar core
-    this.loadConfigDirectory(`${__dirname}/../config`, false
+    this.loadConfigDirectory(`${__dirname}/../config`, false);
 
     // load all the configs from the modules
-    );this.api.config.modules.forEach(moduleName => this.loadConfigDirectory(`${this.api.scope.rootPath}/modules/${moduleName}/config`, isToWatch)
+    this.api.config.modules.forEach(moduleName => this.loadConfigDirectory(`${this.api.scope.rootPath}/modules/${moduleName}/config`, isToWatch));
 
     // load the config files from the current universe if exists the platform
     // should be reloaded when the project configs changes
-    );this.loadConfigDirectory(`${this.api.scope.rootPath}/config`, isToWatch);
+    this.loadConfigDirectory(`${this.api.scope.rootPath}/config`, isToWatch);
   }
 
   /**
@@ -281,17 +281,17 @@ exports.default = class {
    */
   start(api, next) {
     // print out the current environment
-    api.log(`environment: ${api.env}`, 'notice'
+    api.log(`environment: ${api.env}`, 'notice');
 
     // finish the satellite start
-    );next();
+    next();
   }
 
   stop(api, next) {
     // stop watching all files
-    api.configs.unwatchAllFiles
+    api.configs.unwatchAllFiles();
 
     // finish the satellite stop
-    ();next();
+    next();
   }
 };

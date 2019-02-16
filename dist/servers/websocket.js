@@ -28,10 +28,6 @@ var _genericServer = require('../genericServer');
 
 var _genericServer2 = _interopRequireDefault(_genericServer);
 
-var _browser_fingerprint = require('browser_fingerprint');
-
-var _browser_fingerprint2 = _interopRequireDefault(_browser_fingerprint);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // server type
@@ -64,10 +60,10 @@ class WebSocketServer extends _genericServer2.default {
       connection.rawConnection.on('data', data => {
         self._handleData(connection, data);
       });
-    }
+    });
 
     // action complete event
-    );self.on('actionComplete', data => {
+    self.on('actionComplete', data => {
       if (data.toRender !== false) {
         data.connection.response.messageCount = data.messageCount;
         self.sendMessage(data.connection, data.response, data.messageCount);
@@ -101,10 +97,10 @@ class WebSocketServer extends _genericServer2.default {
     self.server.active = true;
 
     // write client js
-    self._writeClientJS
+    self._writeClientJS();
 
     // execute the callback
-    ();callback();
+    callback();
   }
 
   /**
@@ -299,12 +295,9 @@ class WebSocketServer extends _genericServer2.default {
    * @private
    */
   _handleConnection(rawConnection) {
-    let self = this;
+    const fingerPrint = rawConnection.query[this.api.config.servers.web.fingerprintOptions.cookieKey];
 
-    let parsedCookies = _browser_fingerprint2.default.parseCookies(rawConnection);
-    let fingerPrint = parsedCookies[self.api.config.servers.web.fingerprintOptions.cookieKey];
-
-    self.buildConnection({
+    this.buildConnection({
       rawConnection: rawConnection,
       remoteAddress: rawConnection.address.ip,
       remotePort: rawConnection.address.port,

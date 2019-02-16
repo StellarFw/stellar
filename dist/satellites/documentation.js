@@ -39,10 +39,10 @@ class DocumentationGenerator {
     self.api = api;
 
     // unsure the public folder exists
-    this.api.utils.createFolder(self.api.config.general.paths.public
+    this.api.utils.createFolder(self.api.config.general.paths.public);
 
     // build docs folder path
-    );self.docsFolder = `${self.api.config.general.paths.public}/docs`;
+    self.docsFolder = `${self.api.config.general.paths.public}/docs`;
 
     // build static folder path
     self.staticFolder = `${__dirname}/../../staticFiles/docs`;
@@ -122,22 +122,22 @@ class DocumentationGenerator {
     let self = this;
 
     // remove docs directory
-    this.api.utils.removeDirectory(self.docsFolder
+    this.api.utils.removeDirectory(self.docsFolder);
 
     // create the directory again
-    );this.api.utils.createFolder(self.docsFolder
+    this.api.utils.createFolder(self.docsFolder);
 
     // get actions to generate documentation
-    );let actions = self._getActionToGenerateDoc
+    let actions = self._getActionToGenerateDoc();
 
     // object with the template data
-    ();let data = { actions: Object.keys(actions)
+    let data = { actions: Object.keys(actions)
 
       // get base template
-    };let source = _fs2.default.readFileSync(`${self.staticFolder}/action.html`).toString
+    };let source = _fs2.default.readFileSync(`${self.staticFolder}/action.html`).toString();
 
     // iterate all loaded actions
-    ();for (let actionName in actions) {
+    for (let actionName in actions) {
       // set action name
       data.actionName = actionName;
 
@@ -147,27 +147,27 @@ class DocumentationGenerator {
       // iterate all versions
       for (let versionNumber in actions[actionName]) {
         // get action object
-        let action = self._prepareActionToPrint(actions[actionName][versionNumber]
+        let action = self._prepareActionToPrint(actions[actionName][versionNumber]);
 
         // push the version number
-        );action.version = versionNumber;
+        action.version = versionNumber;
 
         // push the new action to the actionVersions array
         data.actionVersions.push(action);
       }
 
       // build the template
-      let template = _handlebars2.default.compile(source
+      let template = _handlebars2.default.compile(source);
 
       // output the result to the temp folder
-      );_fs2.default.writeFileSync(`${self.docsFolder}/action_${actionName}.html`, template(data), 'utf8');
+      _fs2.default.writeFileSync(`${self.docsFolder}/action_${actionName}.html`, template(data), 'utf8');
     }
 
     // build the index.html
-    self._buildIndexFile
+    self._buildIndexFile();
 
     // copy resource files
-    ();this._copyResourceFiles();
+    this._copyResourceFiles();
   }
 
   /**
@@ -188,16 +188,16 @@ class DocumentationGenerator {
     data.project.version = self.api.config.version;
 
     // append the tasks information
-    data.tasks = this._getTasksInformation
+    data.tasks = this._getTasksInformation();
 
     // get template source
-    ();let source = _fs2.default.readFileSync(`${self.staticFolder}/index.html`).toString
+    let source = _fs2.default.readFileSync(`${self.staticFolder}/index.html`).toString();
 
     // compile source
-    ();let template = _handlebars2.default.compile(source
+    let template = _handlebars2.default.compile(source);
 
     // save index.html file on final docs folder
-    );_fs2.default.writeFileSync(`${self.docsFolder}/index.html`, template(data), 'utf8');
+    _fs2.default.writeFileSync(`${self.docsFolder}/index.html`, template(data), 'utf8');
   }
 
   /**
@@ -305,9 +305,9 @@ exports.default = class {
     }
 
     // build the documentation
-    new DocumentationGenerator(api).generateDocumentation
+    new DocumentationGenerator(api).generateDocumentation();
 
     // finish the satellite loading
-    ();next();
+    next();
   }
 };

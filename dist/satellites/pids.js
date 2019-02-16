@@ -142,10 +142,10 @@ exports.default = class {
     api.pids = new Pids(api);
 
     // init pid manager
-    api.pids.init
+    api.pids.init();
 
     // finish the initializer load
-    ();next();
+    next();
   }
 
   /**
@@ -156,12 +156,12 @@ exports.default = class {
    */
   start(api, next) {
     // write pid file
-    api.pids.writePidFile
+    api.pids.writePidFile();
 
     // log the process pid
-    ();api.log(`pid: ${process.pid}`, 'notice'
+    api.log(`pid: ${process.pid}`, 'notice');
 
     // finish the initializer start
-    );next();
+    next();
   }
 };

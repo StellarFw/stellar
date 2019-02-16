@@ -81,6 +81,8 @@ let attributes = {
     this.server = null;
     let self = this;
 
+    this.fingerprinter = new _browser_fingerprint2.default(self.api.config.servers.web.fingerprintOptions);
+
     if (['api', 'file'].indexOf(self.api.config.servers.web.rootEndpointType) < 0) {
       throw new Error('api.config.servers.web.rootEndpointType can only be \'api\' or \'file\'.');
     }
@@ -105,10 +107,10 @@ let attributes = {
             self._respondToTrace(connection);
         }
       });
-    }
+    });
 
     // event to be executed after the action completion
-    );self.on('actionComplete', data => {
+    self.on('actionComplete', data => {
       self._completeResponse(data);
     });
   }
@@ -176,10 +178,10 @@ let attributes = {
     let self = this;
 
     // close the server socket
-    self.server.close
+    self.server.close();
 
     // execute the callback function
-    ();process.nextTick(() => {
+    process.nextTick(() => {
       next();
     });
   }
@@ -203,16 +205,16 @@ let attributes = {
     }
 
     // clean HTTP headers
-    self._cleanHeaders(connection
+    self._cleanHeaders(connection);
 
     // get the response headers
-    );let headers = connection.rawConnection.responseHeaders;
+    let headers = connection.rawConnection.responseHeaders;
 
     // get the response status code
-    let responseHttpCode = parseInt(connection.rawConnection.responseHttpCode
+    let responseHttpCode = parseInt(connection.rawConnection.responseHttpCode);
 
     // send the response to the client (use compression if active)
-    );self.sendWithCompression(connection, responseHttpCode, headers, stringResponse);
+    self.sendWithCompression(connection, responseHttpCode, headers, stringResponse);
   }
 
   /**
@@ -235,13 +237,13 @@ let attributes = {
       if (pair[0].toLowerCase() === 'cache-control') {
         foundCacheControl = true;
       }
-    }
+    });
 
     // add mime type to the response headers
-    );connection.rawConnection.responseHeaders.push(['Content-Type', mime]
+    connection.rawConnection.responseHeaders.push(['Content-Type', mime]);
 
     // If is to use a cache mechanism we must append a cache control header to the response
-    );if (fileStream) {
+    if (fileStream) {
       if (!foundCacheControl) {
         connection.rawConnection.responseHeaders.push(['Cache-Control', `max-age=${this.api.config.servers.web.flatFileCacheDuration}, must-revalidate, public`]);
       }
@@ -255,10 +257,10 @@ let attributes = {
     }
 
     // clean the connection headers
-    this._cleanHeaders(connection
+    this._cleanHeaders(connection);
 
     // get headers from the client request
-    );reqHeaders = connection.rawConnection.req.headers;
+    reqHeaders = connection.rawConnection.req.headers;
 
     // get the response headers
     const headers = connection.rawConnection.responseHeaders;
@@ -375,10 +377,10 @@ let attributes = {
     // the 'finish' event deontes a successful transfer
     connection.rawConnection.res.on('finish', () => {
       connection.destroy();
-    }
+    });
 
     // the 'close' event deontes a failed transfer, but it is probably the client's fault
-    );connection.rawConnection.res.on('close', () => {
+    connection.rawConnection.res.on('close', () => {
       connection.destroy();
     });
 
@@ -428,89 +430,85 @@ let attributes = {
     let self = this;
 
     // get the client fingerprint
-    _browser_fingerprint2.default.fingerprint(req, self.api.config.servers.web.fingerprintOptions, (error, fingerprint, elementHash, cookieHash) => {
-      if (error) {
-        throw error;
-      }
+    const { fingerprint, headersHash } = this.fingerprinter.fingerprint(req);
 
-      let responseHeaders = [];
-      let cookies = this.api.utils.parseCookies(req);
-      let responseHttpCode = 200;
-      let method = req.method.toUpperCase();
-      let parsedURL = _url2.default.parse(req.url, true);
-      let i;
+    let responseHeaders = [];
+    let cookies = this.api.utils.parseCookies(req);
+    let responseHttpCode = 200;
+    let method = req.method.toUpperCase();
+    let parsedURL = _url2.default.parse(req.url, true);
+    let i;
 
-      // push all cookies from the request to the response
-      for (i in cookieHash) {
-        responseHeaders.push([i, cookieHash[i]]);
-      }
+    // push all cookies from the request to the response
+    for (i in headersHash) {
+      responseHeaders.push([i, headersHash[i]]);
+    }
 
-      // set content type to JSON
-      responseHeaders.push(['Content-Type', 'application/json; charset=utf-8']
+    // set content type to JSON
+    responseHeaders.push(['Content-Type', 'application/json; charset=utf-8']);
 
-      // push all the default headers to the response object
-      );for (i in self.api.config.servers.web.httpHeaders) {
-        responseHeaders.push([i, self.api.config.servers.web.httpHeaders[i]]);
-      }
+    // push all the default headers to the response object
+    for (i in self.api.config.servers.web.httpHeaders) {
+      responseHeaders.push([i, self.api.config.servers.web.httpHeaders[i]]);
+    }
 
-      // get the client IP
-      let remoteIP = req.connection.remoteAddress;
+    // get the client IP
+    let remoteIP = req.connection.remoteAddress;
 
-      // get the client port
-      let remotePort = req.connection.remotePort;
+    // get the client port
+    let remotePort = req.connection.remotePort;
 
-      // helpers for unix socket bindings with no forward
-      if (!remoteIP && !remotePort) {
-        remoteIP = '0.0.0.0';
-        remotePort = '0';
-      }
+    // helpers for unix socket bindings with no forward
+    if (!remoteIP && !remotePort) {
+      remoteIP = '0.0.0.0';
+      remotePort = '0';
+    }
 
-      if (req.headers['x-forwarded-for']) {
-        let parts;
-        let forwardedIp = req.headers['x-forwarded-for'].split(',')[0];
-        if (forwardedIp.indexOf('.') >= 0 || forwardedIp.indexOf('.') < 0 && forwardedIp.indexOf(':') < 0) {
-          // IPv4
-          forwardedIp = forwardedIp.replace('::ffff:', '' // remove any IPv6 information, ie: '::ffff:127.0.0.1'
-          );parts = forwardedIp.split(':');
-          if (parts[0]) {
-            remoteIP = parts[0];
-          }
-          if (parts[1]) {
-            remotePort = parts[1];
-          }
-        } else {
-          // IPv6
-          parts = this.api.utils.parseIPv6URI(forwardedIp);
-          if (parts.host) {
-            remoteIP = parts.host;
-          }
-          if (parts.port) {
-            remotePort = parts.port;
-          }
+    if (req.headers['x-forwarded-for']) {
+      let parts;
+      let forwardedIp = req.headers['x-forwarded-for'].split(',')[0];
+      if (forwardedIp.indexOf('.') >= 0 || forwardedIp.indexOf('.') < 0 && forwardedIp.indexOf(':') < 0) {
+        // IPv4
+        forwardedIp = forwardedIp.replace('::ffff:', ''); // remove any IPv6 information, ie: '::ffff:127.0.0.1'
+        parts = forwardedIp.split(':');
+        if (parts[0]) {
+          remoteIP = parts[0];
         }
-
-        if (req.headers['x-forwarded-port']) {
-          remotePort = req.headers['x-forwarded-port'];
+        if (parts[1]) {
+          remotePort = parts[1];
+        }
+      } else {
+        // IPv6
+        parts = this.api.utils.parseIPv6URI(forwardedIp);
+        if (parts.host) {
+          remoteIP = parts.host;
+        }
+        if (parts.port) {
+          remotePort = parts.port;
         }
       }
 
-      self.buildConnection({
-        // will emit 'connection'
-        rawConnection: {
-          req: req,
-          res: res,
-          params: {},
-          method: method,
-          cookies: cookies,
-          responseHeaders: responseHeaders,
-          responseHttpCode: responseHttpCode,
-          parsedURL: parsedURL
-        },
-        id: `${fingerprint}-${_uuid2.default.v4()}`,
-        fingerprint: fingerprint,
-        remoteAddress: remoteIP,
-        remotePort: remotePort
-      });
+      if (req.headers['x-forwarded-port']) {
+        remotePort = req.headers['x-forwarded-port'];
+      }
+    }
+
+    self.buildConnection({
+      // will emit 'connection'
+      rawConnection: {
+        req: req,
+        res: res,
+        params: {},
+        method: method,
+        cookies: cookies,
+        responseHeaders: responseHeaders,
+        responseHttpCode: responseHttpCode,
+        parsedURL: parsedURL
+      },
+      id: `${fingerprint}-${_uuid2.default.v4()}`,
+      fingerprint: fingerprint,
+      remoteAddress: remoteIP,
+      remotePort: remotePort
     });
   }
 
@@ -593,6 +591,10 @@ let attributes = {
         requestMode = 'trace';
       }
 
+      // Normalize `search` param to be a string even when there is
+      // no search query set
+      connection.rawConnection.parsedURL.search = typeof connection.rawConnection.parsedURL.search === 'string' ? connection.rawConnection.parsedURL.search : '';
+
       let search = connection.rawConnection.parsedURL.search.slice(1);
       self._fillParamsFromWebRequest(connection, _qs2.default.parse(search, self.api.config.servers.web.queryParseOptions));
 
@@ -653,10 +655,10 @@ let attributes = {
     let self = this;
 
     // client lib
-    let file = _path2.default.normalize(self.api.config.general.paths.public + _path2.default.sep + self.api.config.servers.websocket.clientJsName + '.js'
+    let file = _path2.default.normalize(self.api.config.general.paths.public + _path2.default.sep + self.api.config.servers.websocket.clientJsName + '.js');
 
     // define the file to be loaded
-    );connection.params.file = file;
+    connection.params.file = file;
 
     // process like a file
     self.processFile(connection);
@@ -728,7 +730,7 @@ let attributes = {
     }
 
     if (!data.response.error && data.action && data.params.apiVersion && this.api.actions.actions[data.params.action][data.params.apiVersion].matchExtensionMimeType === true && data.connection.extension) {
-      data.connection.rawConnection.responseHeaders.push(['Content-Type', _mime2.default.lookup(data.connection.extension)]);
+      data.connection.rawConnection.responseHeaders.push(['Content-Type', _mime2.default.getType(data.connection.extension)]);
     }
 
     // if its an error response we need to serialize the error object
@@ -740,7 +742,16 @@ let attributes = {
 
     // build the string response
     if (this._extractHeader(data.connection, 'Content-Type').match(/json/)) {
-      stringResponse = JSON.stringify(data.response, null, this.api.config.servers.web.padding);
+      try {
+        stringResponse = JSON.stringify(data.response, null, this.api.config.servers.web.padding);
+      } catch (_) {
+        data.connection.rawConnection.responseHttpCode = 500;
+        stringResponse = JSON.stringify({
+          error: 'invalid_response_object',
+          requesterInformation: this._buildRequesterInformation(data.connection)
+        });
+      }
+
       if (data.params.callback) {
         data.connection.rawConnection.responseHeaders.push(['Content-Type', 'application/javascript']);
         stringResponse = data.connection.params.callback + '(' + stringResponse + ');';
@@ -865,10 +876,10 @@ let attributes = {
     let self = this;
 
     // build the request information
-    let data = self._buildRequesterInformation(connection
+    let data = self._buildRequesterInformation(connection);
 
     // build the response string and send it to the client
-    );let stringResponse = JSON.stringify(data, null, self.api.config.servers.web.padding);
+    let stringResponse = JSON.stringify(data, null, self.api.config.servers.web.padding);
     self.sendMessage(connection, stringResponse);
   }
 
