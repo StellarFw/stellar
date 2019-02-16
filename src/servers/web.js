@@ -506,6 +506,10 @@ export default class Web extends GenericServer {
       // enable trace mode
       if (connection.rawConnection.method === 'TRACE') { requestMode = 'trace' }
 
+      // Normalize `search` param to be a string even when there is
+      // no search query set
+      connection.rawConnection.parsedURL.search = typeof connection.rawConnection.parsedURL.search === 'string' ? connection.rawConnection.parsedURL.search : ''
+
       let search = connection.rawConnection.parsedURL.search.slice(1)
       self._fillParamsFromWebRequest(connection, qs.parse(search, self.api.config.servers.web.queryParseOptions))
 
@@ -648,7 +652,16 @@ export default class Web extends GenericServer {
 
     // build the string response
     if (this._extractHeader(data.connection, 'Content-Type').match(/json/)) {
-      stringResponse = JSON.stringify(data.response, null, this.api.config.servers.web.padding)
+      try {
+        stringResponse = JSON.stringify(data.response, null, this.api.config.servers.web.padding)
+      } catch (_) {
+        data.connection.rawConnection.responseHttpCode = 500
+        stringResponse = JSON.stringify({
+          error: 'invalid_response_object',
+          requesterInformation: this._buildRequesterInformation(data.connection)
+        })
+      }
+
       if (data.params.callback) {
         data.connection.rawConnection.responseHeaders.push([ 'Content-Type', 'application/javascript' ])
         stringResponse = data.connection.params.callback + '(' + stringResponse + ');'
