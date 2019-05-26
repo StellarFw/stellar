@@ -38,7 +38,7 @@
     "is-running": "^2.1.0",
     "log": "^3.2.0",
     "mime": "^2.0.1",
-    "node-resque": "^4.0.7",
+    "node-resque": "^5.5.4",
     "primus": "^7.3.2",
     "qs": "^6.5.0",
     "sails-memory": "^0.10.7",
