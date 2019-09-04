@@ -11,7 +11,6 @@ const engine = new EngineClass({ rootPath: process.cwd() + '/example' })
 let api = null
 
 describe('Core: Actions', () => {
-
   before(function (done) {
     // start a Stellar instance
     engine.start(function (error, a) {
@@ -30,7 +29,6 @@ describe('Core: Actions', () => {
   // ----------------------------------------------------------- [Internal Call]
 
   describe('can execute internally', () => {
-
     it('without params', done => {
       api.actions.call('formattedSum').catch(_ => { done() })
     })
@@ -46,7 +44,6 @@ describe('Core: Actions', () => {
         .should.be.fulfilledWith({ formatted: '3 + 3 = 6' })
         .then(_ => { done() })
     })
-
   })
 
   // ------------------------------------------------------------------ [Groups]
@@ -126,11 +123,11 @@ describe('Core: Actions', () => {
 
     it('throw a well formed error', done => {
       api.actions.call('sleep', { sleepDuration: 150 })
-      .catch(error => {
-        error.code.should.be.equal('022')
-        error.message.should.be.equal(`Response timeout for action 'sleep'`)
-        done()
-      })
+        .catch(error => {
+          error.code.should.be.equal('022')
+          error.message.should.be.equal(`Response timeout for action 'sleep'`)
+          done()
+        })
     })
   })
 
@@ -172,4 +169,10 @@ describe('Core: Actions', () => {
       })
   })
 
+  it('can use a function to set a param default value accessing the api object', async () => {
+    const testVal = 'looks-awesome'
+    api.config.testValue = testVal
+    const response = await api.actions.call('inputDefaultFunctionApi')
+    response.value.should.be.equal(testVal)
+  })
 })

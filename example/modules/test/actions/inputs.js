@@ -41,6 +41,21 @@ module.exports = [ {
     next()
   }
 }, {
+  name: 'inputDefaultFunctionApi',
+  description: 'Test input default value using a function and the API object',
+
+  inputs: {
+    value: {
+      default (api) {
+        return api.config.testValue
+      }
+    }
+  },
+
+  async run (_, { params, response }) {
+    response.value = params.value
+  }
+}, {
   name: 'input-validator-regex',
   description: 'Test input string validator',
 
