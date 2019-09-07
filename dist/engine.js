@@ -224,9 +224,11 @@ class Engine {
       }
 
       if (level === 'emergency' || level === 'error') {
-        console.log(`\x1b[31m[-] ${msg}\x1b[37m`);
+        return console.error(`\x1b[31m[-] ${msg}\x1b[37m`);
       } else if (level === 'info') {
-        console.log(`[!] ${msg}`);
+        return console.info(`[!] ${msg}`);
+      } else if (level !== 'debug') {
+        console.log(`[d] ${msg}`);
       }
     };
 

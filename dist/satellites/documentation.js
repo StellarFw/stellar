@@ -8,10 +8,6 @@ var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
 
-var _handlebars = require('handlebars');
-
-var _handlebars2 = _interopRequireDefault(_handlebars);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 class DocumentationGenerator {
@@ -134,7 +130,7 @@ class DocumentationGenerator {
     let data = { actions: Object.keys(actions)
 
       // get base template
-    };let source = _fs2.default.readFileSync(`${self.staticFolder}/action.html`).toString();
+    };let generator = require(`${self.staticFolder}/action.html.js`);
 
     // iterate all loaded actions
     for (let actionName in actions) {
@@ -156,11 +152,10 @@ class DocumentationGenerator {
         data.actionVersions.push(action);
       }
 
-      // build the template
-      let template = _handlebars2.default.compile(source);
+      const generatedHtml = generator.render(data);
 
       // output the result to the temp folder
-      _fs2.default.writeFileSync(`${self.docsFolder}/action_${actionName}.html`, template(data), 'utf8');
+      _fs2.default.writeFileSync(`${self.docsFolder}/action_${actionName}.html`, generatedHtml, 'utf8');
     }
 
     // build the index.html
@@ -190,14 +185,11 @@ class DocumentationGenerator {
     // append the tasks information
     data.tasks = this._getTasksInformation();
 
-    // get template source
-    let source = _fs2.default.readFileSync(`${self.staticFolder}/index.html`).toString();
-
-    // compile source
-    let template = _handlebars2.default.compile(source);
+    const generator = require(`${self.staticFolder}/index.html.js`);
+    const contentGenerated = generator.render(data);
 
     // save index.html file on final docs folder
-    _fs2.default.writeFileSync(`${self.docsFolder}/index.html`, template(data), 'utf8');
+    _fs2.default.writeFileSync(`${self.docsFolder}/index.html`, contentGenerated, 'utf8');
   }
 
   /**
