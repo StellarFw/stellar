@@ -4,8 +4,12 @@
 const inputsDeclaration = {}
 
 // constant with the edit input declaration
-const editInputDeclaration = JSON.parse(JSON.stringify(inputsDeclaration))
-editInputDeclaration.id = { required: true }
+const editInputDeclaration = {
+  ...inputsDeclaration,
+  id: {
+    required: true
+  }
+}
 
 module.exports = [{
   name: 'create{{modelNameCapitalize}}',
@@ -13,31 +17,21 @@ module.exports = [{
 
   inputs: inputsDeclaration,
 
-  run(api, action, next) {
+  async run(api, { params, response }) {
     // create a new entry on the database
-    api.models.get('{{modelName}}')
-      .create(action.params)
-      .catch(error => { next(error) })
-      .then(model => {
-        // append the new model on the response object
-        action.response.{{modelName}} = model
-
-        // finish the action execution
-        next()
-      })
+    const model = await api.models.get('{{modelName}}')
+      .create(params)
+    response.{{modelName}} = model
   }
 }, {
   name: 'get{{modelNameCapitalize}}s',
   description: 'Get all {{modelNameCapitalize}}s',
 
-  run(api, action, next) {
-    api.models.get('{{modelName}}')
+  async run(api, { response }) {
+    const resources = await api.models.get('{{modelName}}')
       .find({})
-      .catch(error => { next(error) })
-      .then(resources => {
-        action.response.{{modelName}}s = resources
-        next()
-      })
+
+    response.{{modelName}}s = resources
   }
 }, {
   name: 'get{{modelNameCapitalize}}',
@@ -47,20 +41,17 @@ module.exports = [{
     id: { required: true }
   },
 
-  run(api, action, next) {
+  async run(api, { params, response }) {
     // search for the request post on the DB
-    api.models.get('{{modelName}}')
-      .findOneById(action.params.id)
-      .catch(error => { next(error) })
-      .then(resource => {
-        if (!resource) { return next(`There is no resource with that ID`) }
+    const resource = await api.models.get('{{modelName}}')
+      .findOneById(params.id)
 
-        // append the model to the response object
-        action.response.{{modelName}} = resource
 
-        // finish the action execution
-        next()
-      })
+    if (!resource) {
+      throw new Error('There is no resource with that ID')
+    }
+
+    response.{{modelName}} = resource
   }
 }, {
   name: 'edit{{modelNameCapitalize}}',
@@ -68,20 +59,16 @@ module.exports = [{
 
   inputs: editInputDeclaration,
 
-  run(api, action, next) {
+  async run(api, { params, response }) {
     // search for the {{modelNameCapitalize}} and update it
-    api.models.get('{{modelName}}')
-      .update({ id: action.params.id }, action.params)
-      .catch(error => { next(error) })
-      .then(result => {
-        if (result.length == 0) { return next(`There is no resource with that ID`) }
+    const [result] = await api.models.get('{{modelName}}')
+      .update({ id: params.id }, params)
 
-        // append the updated model to the response object
-        action.response.{{modelName}} = result[0]
+    if (!result) {
+      throw new Error("There is no resource with that ID")
+    }
 
-        // finish the action execution
-        next()
-      })
+    response.{{modelName}} = result
   }
 }, {
   name: 'remove{{modelNameCapitalize}}',
@@ -91,11 +78,9 @@ module.exports = [{
     id: { required: true }
   },
 
-  run(api, action, next) {
+  async run(api, { params }) {
     // search and remove the model
-    api.models.get('{{modelName}}')
-      .destroy({ id: action.params.id })
-      .catch(error => { next(error) })
-      .then(() => { next() })
+    await api.models.get('{{modelName}}')
+      .destroy({ id: params.id })
   }
 }]

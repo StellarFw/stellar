@@ -15,11 +15,8 @@ module.exports = [{
     }
   },
 
-  run (api, action, next) {
-    // put the inputed parameters on the response object
+  async run (api, action) {
+    // put the input parameters on the response object
     action.response.inputtedData = action.params
-
-    // finish the action execution
-    next()
   }
 }]
