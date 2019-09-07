@@ -2,13 +2,12 @@
 
 // ----------------------------------------------------------------------------- [Imports]
 
-let Command = require('../../Command')
-let Utils = require('../../utils')
+const Command = require('../../Command')
+const Utils = require('../../utils')
 
 // ----------------------------------------------------------------------------- [Command]
 
 class MakeAction extends Command {
-
   /**
    * Create a new MakeAction instance.
    */

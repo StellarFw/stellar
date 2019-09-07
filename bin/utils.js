@@ -3,7 +3,6 @@
 // ---------------------------------------------------------------------------- [Imports]
 
 let fs = require('fs')
-let Handlebars = require('handlebars')
 
 // ---------------------------------------------------------------------------- [Class]
 
@@ -116,7 +115,7 @@ module.exports = class Utils {
    * @param path    Path here the file must be read.
    * @returns {*}
    */
-  static fileContent (path) { return fs.readFileSync(path).toString()}
+  static fileContent (path) { return fs.readFileSync(path).toString() }
 
   /**
    * Get the template file content.
@@ -125,11 +124,7 @@ module.exports = class Utils {
    * @returns {*}
    */
   static getTemplate (name) {
-    // build the full template path
-    let path = `${__dirname}/templates/${name}.txt`
-
-    // return the template content
-    return Utils.fileContent(path)
+    return require(`${__dirname}/templates/${name}`)
   }
 
   /**
@@ -161,22 +156,16 @@ module.exports = class Utils {
   /**
    * Build a file using a template.
    *
-   * This uses the handlebars template engine to build
-   * the template. The `templateName` must be present
-   * on the template folder.
+   * This uses the string literals to build the template. The `templateName`
+   * must be present on the template folder.
    *
    * @param templateName  Template name
    * @param data          Data to use in the template
    * @param outputPath    Output file path
    */
   static generateFileFromTemplate (templateName, data, outputPath) {
-    // get template source
-    let templateSource = Utils.getTemplate(templateName)
-
-    // compile template
-    let template = Handlebars.compile(templateSource)
-
-    // output the result to the outputPath
-    Utils.createFile(outputPath, template(data))
+    const templateModule = Utils.getTemplate(templateName)
+    const generatedContent = templateModule.render(data)
+    Utils.createFile(outputPath, generatedContent)
   }
 }

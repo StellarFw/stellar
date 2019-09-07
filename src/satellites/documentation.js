@@ -1,5 +1,4 @@
 import fs from 'fs'
-import Handlebars from 'handlebars'
 
 class DocumentationGenerator {
   /**
@@ -115,7 +114,7 @@ class DocumentationGenerator {
     let data = { actions: Object.keys(actions) }
 
     // get base template
-    let source = fs.readFileSync(`${self.staticFolder}/action.html`).toString()
+    let generator = require(`${self.staticFolder}/action.html.js`)
 
     // iterate all loaded actions
     for (let actionName in actions) {
@@ -137,11 +136,10 @@ class DocumentationGenerator {
         data.actionVersions.push(action)
       }
 
-      // build the template
-      let template = Handlebars.compile(source)
+      const generatedHtml = generator.render(data)
 
       // output the result to the temp folder
-      fs.writeFileSync(`${self.docsFolder}/action_${actionName}.html`, template(data), 'utf8')
+      fs.writeFileSync(`${self.docsFolder}/action_${actionName}.html`, generatedHtml, 'utf8')
     }
 
     // build the index.html
@@ -171,14 +169,11 @@ class DocumentationGenerator {
     // append the tasks information
     data.tasks = this._getTasksInformation()
 
-    // get template source
-    let source = fs.readFileSync(`${self.staticFolder}/index.html`).toString()
-
-    // compile source
-    let template = Handlebars.compile(source)
+    const generator = require(`${self.staticFolder}/index.html.js`)
+    const contentGenerated = generator.render(data)
 
     // save index.html file on final docs folder
-    fs.writeFileSync(`${self.docsFolder}/index.html`, template(data), 'utf8')
+    fs.writeFileSync(`${self.docsFolder}/index.html`, contentGenerated, 'utf8')
   }
 
   /**

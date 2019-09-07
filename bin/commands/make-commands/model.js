@@ -8,7 +8,6 @@ let Utils = require('../../utils')
 // ----------------------------------------------------------------------------- [Command]
 
 class MakeModel extends Command {
-
   /**
    * Create a new MakeModel instance.
    */
@@ -56,7 +55,7 @@ class MakeModel extends Command {
     let newFilePath = `${modulePath}/models/${modelNameNormalized}.js`
 
     // create the new model file
-    Utils.createFile(newFilePath, Utils.getTemplate('model'))
+    Utils.generateFileFromTemplate('model', {}, newFilePath)
 
     // print success message
     this.printSuccess(`The "${this.args.model_name}" model was created!`)
@@ -111,7 +110,6 @@ class MakeModel extends Command {
       this.printSuccess(`The routes for the "${this.args.model_name}" model was created!`)
     }
   }
-
 }
 
 // export command

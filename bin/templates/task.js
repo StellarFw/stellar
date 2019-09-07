@@ -1,7 +1,8 @@
+exports.render = data => `
 'use strict'
 
-exports.{{taskName}} = {
-  name: '{{taskName}}',
+exports.${data.taskName} = {
+  name: '${data.taskName}',
   description: 'Change this to describe your task',
 
   queue: 'default',
@@ -14,3 +15,4 @@ exports.{{taskName}} = {
     next()
   }
 }
+`

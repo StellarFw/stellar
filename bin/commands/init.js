@@ -8,7 +8,6 @@ let Utils = require('../utils')
 // ----------------------------------------------------------------------------- [Command]
 
 class InitCommand extends Command {
-
   constructor () {
     // execute the super class constructor method
     super()
@@ -63,7 +62,7 @@ class InitCommand extends Command {
     Utils.createFolder(process.cwd() + '/modules')
     let privateModulePath = process.cwd() + '/modules/private'
     Utils.createFolder(privateModulePath)
-    Utils.createFile(`${privateModulePath}/manifest.json`, Utils.getTemplate('privateModule'))
+    Utils.generateFileFromTemplate('privateModule', {}, `${privateModulePath}/manifest.json`)
     Utils.createFolder(`${privateModulePath}/actions`)
     Utils.createFolder(`${privateModulePath}/tasks`)
     Utils.createFolder(`${privateModulePath}/config`)

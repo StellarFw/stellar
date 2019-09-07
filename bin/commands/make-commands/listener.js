@@ -8,7 +8,6 @@ let Utils = require('../../utils')
 // ----------------------------------------------------------------------------- [Class]
 
 class MakeListener extends Command {
-
   /**
    * Create a new MakeListener class instance.
    */
@@ -54,7 +53,6 @@ class MakeListener extends Command {
     // print a success message
     this.printSuccess(`The "${listenerName}" listener was created!`)
   }
-
 }
 
 // export command

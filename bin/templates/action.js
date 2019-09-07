@@ -1,7 +1,8 @@
+exports.render = data => `
 'use strict'
 
 module.exports = [{
-  name: '{{actionName}}',
+  name: '${data.actionName}',
   description: 'This action was generated using the command line tool',
 
   inputs: {
@@ -20,3 +21,4 @@ module.exports = [{
     action.response.inputtedData = action.params
   }
 }]
+`

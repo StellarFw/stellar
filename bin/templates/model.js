@@ -1,5 +1,5 @@
+exports.render = _ => `
 exports.default = api => {
-  // create a new model
   const newModel = {
     attributes: {
       // TODO: add fields to this model
@@ -8,3 +8,4 @@ exports.default = api => {
 
   return newModel
 }
+`

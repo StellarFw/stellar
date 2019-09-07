@@ -1,6 +1,0 @@
-{
-  "name": "{{projectName}}",
-  "version": "{{projectVersion}}",
-
-  "modules": [ ]
-}

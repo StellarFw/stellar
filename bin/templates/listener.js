@@ -1,8 +1,9 @@
+exports.render = data => `
 'use strict'
 
 exports.default = {
-  event: '{{ name }}',
-  description: `This was automatically generated`,
+  event: '${data.name}',
+  description: 'This was automatically generated',
 
   run (api, params, next) {
     // TODO - implement the listener behaviour
@@ -11,3 +12,4 @@ exports.default = {
     next()
   }
 }
+`
