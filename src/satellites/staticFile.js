@@ -11,14 +11,14 @@ class StaticFile {
    *
    * @type {null}
    */
-  api = null
+  api = null;
 
   /**
    * Search locations.
    *
    * @type {Array}
    */
-  searchLocations = []
+  searchLocations = [];
 
   /**
    * Create a new instance of this class.
@@ -42,10 +42,13 @@ class StaticFile {
   searchPath (connection, counter = 0) {
     let self = this
 
-    if (self.searchLocations.length === 0 || counter >= self.searchLocations.length) {
+    if (
+      self.searchLocations.length === 0 ||
+      counter >= self.searchLocations.length
+    ) {
       return null
     } else {
-      return self.searchLocations[ counter ]
+      return self.searchLocations[counter]
     }
   }
 
@@ -60,17 +63,25 @@ class StaticFile {
     let self = this
 
     if (!connection.params.file || !self.searchPath(connection, counter)) {
-      self.sendFileNotFound(connection, self.api.config.errors.fileNotProvided(connection), callback)
+      self.sendFileNotFound(
+        connection,
+        self.api.config.errors.fileNotProvided(connection),
+        callback
+      )
     } else {
       let file = null
 
       if (!path.isAbsolute(connection.params.file)) {
-        file = path.normalize(self.searchPath(connection, counter) + '/' + connection.params.file)
+        file = path.normalize(
+          self.searchPath(connection, counter) + '/' + connection.params.file
+        )
       } else {
         file = connection.params.file
       }
 
-      if (file.indexOf(path.normalize(self.searchPath(connection, counter))) !== 0) {
+      if (
+        file.indexOf(path.normalize(self.searchPath(connection, counter))) !== 0
+      ) {
         self.get(connection, callback, counter + 1)
       } else {
         self.checkExistence(file, (exists, truePath) => {
@@ -89,39 +100,34 @@ class StaticFile {
    *
    * @param file
    * @param connection
-   * @param callback
    */
-  sendFile (file, connection, callback) {
-    let self = this
+  async sendFile (file, connection) {
     let lastModified
 
-    // get file information
-    fs.stat(file, (err, stats) => {
-      // check if is an error
-      if (err) {
-        // if we can't read the file respond with an error
-        self.sendFileNotFound(connection, self.api.config.errors.fileReadError(String(err)), callback)
-      } else {
-        let mime = Mime.getType(file)
-        let length = stats.size
-        let fileStream = fs.createReadStream(file)
-        let start = new Date().getTime()
+    try {
+      const stats = await this.api.utils.stats(file)
+      const mime = Mime.getType(file)
+      const length = stats.size
+      const start = new Date().getTime()
+      lastModified = stats.mtime
 
-        lastModified = stats.mtime
+      const fileStream = fs.createReadStream(file)
+      this.fileLogger(fileStream, connection, start, file, length)
 
-        // add a listener to the 'close' event
-        fileStream.on('close', () => {
-          let duration = new Date().getTime() - start
-          self.logRequest(file, connection, length, duration, true)
-        })
-
-        // add a listener to the 'error' event
-        fileStream.on('error', (err) => { self.api.log(err) })
-
-        // execute the callback
-        callback(connection, null, fileStream, mime, length, lastModified)
+      await new Promise(resolve => fileStream.on('open', resolve))
+      return {
+        connection,
+        fileStream,
+        mime,
+        length,
+        lastModified
       }
-    })
+    } catch (error) {
+      return this.sendFileNotFound(
+        connection,
+        this.api.config.errors.fileReadError(String(error))
+      )
+    }
   }
 
   /**
@@ -141,7 +147,13 @@ class StaticFile {
     self.logRequest('{404: not found}', connection, null, null, false)
 
     // execute the callback function
-    callback(connection, self.api.config.errors.fileNotFound(), null, 'text/html', self.api.config.errors.fileNotFound().length)
+    callback(
+      connection,
+      self.api.config.errors.fileNotFound(),
+      null,
+      'text/html',
+      self.api.config.errors.fileNotFound().length
+    )
   }
 
   /**
@@ -156,7 +168,9 @@ class StaticFile {
     fs.stat(file, (error, stats) => {
       // if exists an error execute the callback
       // function and return
-      if (error) { return callback(false, file) }
+      if (error) {
+        return callback(false, file)
+      }
 
       if (stats.isDirectory()) {
         let indexPath = file + '/' + self.api.config.general.directoryFileType
@@ -176,6 +190,18 @@ class StaticFile {
         callback(false, file)
       }
     })
+  }
+
+  /**
+   * Log a file request.
+   */
+  fileLogger (fileStream, connection, start, file, length) {
+    fileStream.on('end', () => {
+      const duration = new Date().getTime() - start
+      this.logRequest(file, connection, length, duration, true)
+    })
+
+    fileStream.on('error', error => { throw error })
   }
 
   /**
@@ -206,7 +232,7 @@ export default class {
    *
    * @type {number}
    */
-  loadPriority = 510
+  loadPriority = 510;
 
   /**
    * Satellite load function.
@@ -220,7 +246,9 @@ export default class {
 
     // load in the explicit public paths first
     if (api.config.general.paths !== undefined) {
-      api.staticFile.searchLocations.push(path.normalize(api.config.general.paths.public))
+      api.staticFile.searchLocations.push(
+        path.normalize(api.config.general.paths.public)
+      )
     }
 
     // finish satellite loading

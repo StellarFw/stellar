@@ -25,6 +25,23 @@ export class Utils {
   constructor (api = null) { this.api = api }
 
   /**
+   * Gets the filesystem stats for the given file.
+   *
+   * @param {string} file path for the file
+   */
+  async stats (file) {
+    return new Promise((resolve, reject) => {
+      fs.stat(file, (error, stats) => {
+        if (error) {
+          return reject(error)
+        }
+
+        return resolve(stats)
+      })
+    })
+  }
+
+  /**
    * A Promise abstraction for the setTimeout function.
    *
    * @param t             Time in millisecond.
