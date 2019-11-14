@@ -1,7 +1,7 @@
 {
   "name": "stellar-fw",
   "author": "Gil Mendes <gil00mendes@gmail.com>",
-  "version": "1.4.0",
+  "version": "1.4.3",
   "description": "A modular Web framework based on actions, to create Web APIs easily",
   "keywords": [
     "api",

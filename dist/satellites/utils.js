@@ -19,6 +19,8 @@ var _path2 = _interopRequireDefault(_path);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
 class ExtendableError extends Error {
   constructor(message) {
     super(message);
@@ -40,16 +42,35 @@ class Utils {
   }
 
   /**
-   * A Promise abstraction for the setTimeout function.
+   * Gets the filesystem stats for the given file.
    *
-   * @param t             Time in millisecond.
-   * @returns {Promise}
+   * @param {string} file path for the file
    */
 
   /**
    * Reference for the API object.
    *
    * @type {}
+   */
+  stats(file) {
+    return _asyncToGenerator(function* () {
+      return new Promise(function (resolve, reject) {
+        _fs2.default.stat(file, function (error, stats) {
+          if (error) {
+            return reject(error);
+          }
+
+          return resolve(stats);
+        });
+      });
+    })();
+  }
+
+  /**
+   * A Promise abstraction for the setTimeout function.
+   *
+   * @param t             Time in millisecond.
+   * @returns {Promise}
    */
   delay(t) {
     return new Promise(resolve => {

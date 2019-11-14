@@ -696,17 +696,26 @@ let attributes = {
    * @private
    */
   _completeResponse(data) {
-    if (data.toRender === true) {
-      if (this.api.config.servers.web.metadataOptions.serverInformation) {
-        let stopTime = new Date().getTime();
-
-        data.response.serverInformation = {
-          serverName: this.api.config.general.serverName,
-          apiVersion: this.api.config.general.apiVersion,
-          requestDuration: stopTime - data.connection.connectedAt,
-          currentTime: stopTime
-        };
+    if (data.toRender !== true) {
+      if (data.connection.rawConnection.res.finished) {
+        data.connection.destroy();
+      } else {
+        data.connection.rawConnection.res.on('finish', () => data.connection.destroy());
+        data.connection.rawConnection.res.on('close', () => data.connection.destroy());
       }
+
+      return;
+    }
+
+    if (this.api.config.servers.web.metadataOptions.serverInformation) {
+      let stopTime = new Date().getTime();
+
+      data.response.serverInformation = {
+        serverName: this.api.config.general.serverName,
+        apiVersion: this.api.config.general.apiVersion,
+        requestDuration: stopTime - data.connection.connectedAt,
+        currentTime: stopTime
+      };
     }
 
     // check if is to use requester information

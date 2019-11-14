@@ -18,6 +18,8 @@ var _mime2 = _interopRequireDefault(_mime);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
 /**
  * Class to manage the static files.
  */
@@ -108,41 +110,37 @@ class StaticFile {
    *
    * @param file
    * @param connection
-   * @param callback
    */
-  sendFile(file, connection, callback) {
-    let self = this;
-    let lastModified;
+  sendFile(file, connection) {
+    var _this = this;
 
-    // get file information
-    _fs2.default.stat(file, (err, stats) => {
-      // check if is an error
-      if (err) {
-        // if we can't read the file respond with an error
-        self.sendFileNotFound(connection, self.api.config.errors.fileReadError(String(err)), callback);
-      } else {
-        let mime = _mime2.default.getType(file);
-        let length = stats.size;
-        let fileStream = _fs2.default.createReadStream(file);
-        let start = new Date().getTime();
+    return _asyncToGenerator(function* () {
+      let lastModified;
 
+      try {
+        const stats = yield _this.api.utils.stats(file);
+        const mime = _mime2.default.getType(file);
+        const length = stats.size;
+        const start = new Date().getTime();
         lastModified = stats.mtime;
 
-        // add a listener to the 'close' event
-        fileStream.on('close', () => {
-          let duration = new Date().getTime() - start;
-          self.logRequest(file, connection, length, duration, true);
-        });
+        const fileStream = _fs2.default.createReadStream(file);
+        _this.fileLogger(fileStream, connection, start, file, length);
 
-        // add a listener to the 'error' event
-        fileStream.on('error', err => {
-          self.api.log(err);
+        yield new Promise(function (resolve) {
+          return fileStream.on('open', resolve);
         });
-
-        // execute the callback
-        callback(connection, null, fileStream, mime, length, lastModified);
+        return {
+          connection,
+          fileStream,
+          mime,
+          length,
+          lastModified
+        };
+      } catch (error) {
+        return _this.sendFileNotFound(connection, _this.api.config.errors.fileReadError(String(error)));
       }
-    });
+    })();
   }
 
   /**
@@ -198,6 +196,20 @@ class StaticFile {
       } else {
         callback(false, file);
       }
+    });
+  }
+
+  /**
+   * Log a file request.
+   */
+  fileLogger(fileStream, connection, start, file, length) {
+    fileStream.on('end', () => {
+      const duration = new Date().getTime() - start;
+      this.logRequest(file, connection, length, duration, true);
+    });
+
+    fileStream.on('error', error => {
+      throw error;
     });
   }
 
