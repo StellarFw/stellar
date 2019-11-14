@@ -78,31 +78,51 @@ class StaticFile {
    * @param counter
    */
   get(connection, callback, counter = 0) {
-    let self = this;
+    var _this = this;
 
-    if (!connection.params.file || !self.searchPath(connection, counter)) {
-      self.sendFileNotFound(connection, self.api.config.errors.fileNotProvided(connection), callback);
-    } else {
-      let file = null;
+    return _asyncToGenerator(function* () {
+      let self = _this;
 
-      if (!_path2.default.isAbsolute(connection.params.file)) {
-        file = _path2.default.normalize(self.searchPath(connection, counter) + '/' + connection.params.file);
+      if (!connection.params.file || !self.searchPath(connection, counter)) {
+        self.sendFileNotFound(connection, self.api.config.errors.fileNotProvided(connection), callback);
       } else {
-        file = connection.params.file;
-      }
+        let file = null;
 
-      if (file.indexOf(_path2.default.normalize(self.searchPath(connection, counter))) !== 0) {
-        self.get(connection, callback, counter + 1);
-      } else {
-        self.checkExistence(file, (exists, truePath) => {
-          if (exists) {
-            self.sendFile(truePath, connection, callback);
-          } else {
-            self.get(connection, callback, counter + 1);
-          }
-        });
+        if (!_path2.default.isAbsolute(connection.params.file)) {
+          file = _path2.default.normalize(self.searchPath(connection, counter) + '/' + connection.params.file);
+        } else {
+          file = connection.params.file;
+        }
+
+        if (file.indexOf(_path2.default.normalize(self.searchPath(connection, counter))) !== 0) {
+          self.get(connection, callback, counter + 1);
+        } else {
+          self.checkExistence(file, (() => {
+            var _ref = _asyncToGenerator(function* (exists, truePath) {
+              if (exists) {
+                const {
+                  connection: connectionObj,
+                  fileStream,
+                  mime,
+                  length,
+                  lastModified,
+                  error
+                } = yield self.sendFile(truePath, connection);
+                if (callback) {
+                  callback(connectionObj, error, fileStream, mime, length, lastModified);
+                }
+              } else {
+                self.get(connection, callback, counter + 1);
+              }
+            });
+
+            return function (_x, _x2) {
+              return _ref.apply(this, arguments);
+            };
+          })());
+        }
       }
-    }
+    })();
   }
 
   /**
@@ -112,20 +132,20 @@ class StaticFile {
    * @param connection
    */
   sendFile(file, connection) {
-    var _this = this;
+    var _this2 = this;
 
     return _asyncToGenerator(function* () {
       let lastModified;
 
       try {
-        const stats = yield _this.api.utils.stats(file);
+        const stats = yield _this2.api.utils.stats(file);
         const mime = _mime2.default.getType(file);
         const length = stats.size;
         const start = new Date().getTime();
         lastModified = stats.mtime;
 
         const fileStream = _fs2.default.createReadStream(file);
-        _this.fileLogger(fileStream, connection, start, file, length);
+        _this2.fileLogger(fileStream, connection, start, file, length);
 
         yield new Promise(function (resolve) {
           return fileStream.on('open', resolve);
@@ -138,7 +158,7 @@ class StaticFile {
           lastModified
         };
       } catch (error) {
-        return _this.sendFileNotFound(connection, _this.api.config.errors.fileReadError(String(error)));
+        return _this2.sendFileNotFound(connection, _this2.api.config.errors.fileReadError(String(error)));
       }
     })();
   }

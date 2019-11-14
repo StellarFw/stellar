@@ -59,7 +59,7 @@ class StaticFile {
    * @param callback    Callback function.
    * @param counter
    */
-  get (connection, callback, counter = 0) {
+  async get (connection, callback, counter = 0) {
     let self = this
 
     if (!connection.params.file || !self.searchPath(connection, counter)) {
@@ -84,9 +84,19 @@ class StaticFile {
       ) {
         self.get(connection, callback, counter + 1)
       } else {
-        self.checkExistence(file, (exists, truePath) => {
+        self.checkExistence(file, async (exists, truePath) => {
           if (exists) {
-            self.sendFile(truePath, connection, callback)
+            const {
+              connection: connectionObj,
+              fileStream,
+              mime,
+              length,
+              lastModified,
+              error
+            } = await self.sendFile(truePath, connection)
+            if (callback) {
+              callback(connectionObj, error, fileStream, mime, length, lastModified)
+            }
           } else {
             self.get(connection, callback, counter + 1)
           }
