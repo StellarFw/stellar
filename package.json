@@ -28,7 +28,7 @@
     "babel-polyfill": "^6.16.0",
     "bcrypt": "3.0.6",
     "bluebird": "^3.5.0",
-    "browser_fingerprint": "1.0.4",
+    "browser_fingerprint": "2.0.1",
     "chalk": "^2.0.1",
     "etag": "^1.7.0",
     "fakeredis": "^2.0.0",
