@@ -1,6 +1,7 @@
 import os from 'os'
 import fs from 'fs'
 import path from 'path'
+import { randomBytes } from 'crypto'
 
 export class ExtendableError extends Error {
   constructor (message) {
@@ -515,6 +516,17 @@ export class Utils {
    */
   snakeToCamel (s) {
     return s.replace(/(\_\w)/g, m => m[ 1 ].toUpperCase())
+  }
+
+  /**
+   * Generate a random string with the given length.
+   *
+   * @param {Number} length size of the generated string. By default this
+   * parameters is set to 16.
+   */
+  randomStr (length = 16) {
+    const characterEntropy = Math.ceil(length * 0.5)
+    return randomBytes(characterEntropy).toString('hex').slice(0, length)
   }
 }
 
