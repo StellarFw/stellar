@@ -24,7 +24,7 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "async": "^2.5.0",
+    "async": "^3.1.1",
     "babel-polyfill": "^6.16.0",
     "bcrypt": "3.0.6",
     "bluebird": "^3.5.0",
