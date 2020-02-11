@@ -68,7 +68,7 @@
     "eslint-plugin-promise": "^4.0.0",
     "eslint-plugin-standard": "^4.0.0",
     "istanbul": "^0.4.3",
-    "request": "2.87.0"
+    "request": "2.88.2"
   },
   "repository": {
     "type": "git",
