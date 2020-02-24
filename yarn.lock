@@ -4473,10 +4473,10 @@ utile@0.2.x:
     ncp "0.4.x"
     rimraf "2.x.x"
 
-uuid@3.2.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.2.0.tgz#19a63e22b3b32a0ba23984a4f384836465e24949"
-  integrity sha512-qC0vMFX6q6ee8JaoTF2Om1uL8KAV1ATUjVaHRxLiPJkIsp8JZl6ZjG0MIB+twZFLbi1vXj30rqj4zlqYiOS9xg==
+uuid@7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-7.0.0.tgz#1833d4b9ce50b732bfaa271f9cb74e974d303c79"
+  integrity sha512-LNUrNsXdI/fUsypJbWM8Jt4DgQdFAZh41p9C7WE9Cn+CULOEkoG2lgQyH68v3wnIy5K3fN4jdSt270K6IFA3MQ==
 
 uuid@^3.1.0, uuid@^3.3.2:
   version "3.3.3"
