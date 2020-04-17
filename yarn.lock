@@ -2003,10 +2003,10 @@ http-signature@~1.2.0:
     jsprim "^1.2.2"
     sshpk "^1.7.0"
 
-i18n@^0.8.3:
-  version "0.8.4"
-  resolved "https://registry.yarnpkg.com/i18n/-/i18n-0.8.4.tgz#948e1ee7ddefef18b2785969388e097327031bd0"
-  integrity sha512-PvMcG+yqYWXrwgdmCpL+APCGa8lRY0tdlo2cXp9UeR3u4h1bJGqFsgybfmG/MqtL1iDmdaPPPLJebXGrZ1XoMQ==
+i18n@^0.9.0:
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/i18n/-/i18n-0.9.0.tgz#5688d524e345a2f8787f11e1319c90755f20cbde"
+  integrity sha512-/Sie5k0xz8VoB0dilo0OPJic5gukT6j+/24aprosU700iWgHcyP5GqDwgNuNscwK2YkGHRE3fO/wn5d2Nc7dBw==
   dependencies:
     debug "*"
     make-plural "^6.0.1"
