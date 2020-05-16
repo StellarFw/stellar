@@ -135,7 +135,7 @@ class StaticFile {
     } catch (error) {
       return this.sendFileNotFound(
         connection,
-        this.api.config.errors.fileReadError(String(error))
+        this.api.config.errors.fileReadError(connection, String(error))
       )
     }
   }
@@ -147,23 +147,17 @@ class StaticFile {
    * @param errorMessage  Error message to send.
    * @param callback      Callback function.
    */
-  sendFileNotFound (connection, errorMessage, callback) {
-    let self = this
-
-    // add error message
+  sendFileNotFound (connection, errorMessage) {
     connection.error = new Error(errorMessage)
 
-    // load 404 error
-    self.logRequest('{404: not found}', connection, null, null, false)
+    this.logRequest('{404: not found}', connection, null, null, false)
 
-    // execute the callback function
-    callback(
+    return {
       connection,
-      self.api.config.errors.fileNotFound(),
-      null,
-      'text/html',
-      self.api.config.errors.fileNotFound().length
-    )
+      error: this.api.config.errors.fileNotFound(connection),
+      mime: 'text/html',
+      length: this.api.config.errors.fileNotFound(connection).length
+    }
   }
 
   /**
