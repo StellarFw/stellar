@@ -158,7 +158,7 @@ class StaticFile {
           lastModified
         };
       } catch (error) {
-        return _this2.sendFileNotFound(connection, _this2.api.config.errors.fileReadError(String(error)));
+        return _this2.sendFileNotFound(connection, _this2.api.config.errors.fileReadError(connection, String(error)));
       }
     })();
   }
@@ -170,17 +170,17 @@ class StaticFile {
    * @param errorMessage  Error message to send.
    * @param callback      Callback function.
    */
-  sendFileNotFound(connection, errorMessage, callback) {
-    let self = this;
-
-    // add error message
+  sendFileNotFound(connection, errorMessage) {
     connection.error = new Error(errorMessage);
 
-    // load 404 error
-    self.logRequest('{404: not found}', connection, null, null, false);
+    this.logRequest('{404: not found}', connection, null, null, false);
 
-    // execute the callback function
-    callback(connection, self.api.config.errors.fileNotFound(), null, 'text/html', self.api.config.errors.fileNotFound().length);
+    return {
+      connection,
+      error: this.api.config.errors.fileNotFound(connection),
+      mime: 'text/html',
+      length: this.api.config.errors.fileNotFound(connection).length
+    };
   }
 
   /**
