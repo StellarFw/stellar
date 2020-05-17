@@ -127,8 +127,10 @@ export class Utils {
     let i, response
 
     for (i in a) {
-      if (this.isPlainObject(a[ i ]) && Object.keys(a[ i ]).length > 0) {
-        c[ i ] = this.hashMerge(c[ i ], a[ i ], arg)
+      if (this.isPlainObject(a[ i ])) {
+        // can't be added into above condition, or empty objects will overwrite and not merge
+        // also make sure empty objects are created
+        c[ i ] = Object.keys(a[ i ]).length > 0 ? this.hashMerge(c[ i ], a[ i ], arg) : {}
       } else {
         if (typeof a[ i ] === 'function') {
           response = a[ i ](arg)
@@ -138,13 +140,21 @@ export class Utils {
             c[ i ] = response
           }
         } else {
-          c[ i ] = a[ i ]
+          // don't create first term if it is undefined or null
+          if (a[i] === undefined || a[i] === null) {
+          } else {
+            c[ i ] = a[ i ]
+          }
         }
       }
     }
     for (i in b) {
-      if (this.isPlainObject(b[ i ]) && Object.keys(b[ i ]).length > 0) {
-        c[ i ] = this.hashMerge(c[ i ], b[ i ], arg)
+      if (this.isPlainObject(b[ i ])) {
+        if (Object.keys(b[ i ]).length > 0) { // prevent empty objects from being overwrite
+          c[ i ] = this.hashMerge(c[ i ], b[ i ], arg)
+        } else if (!(i in c)) { // make sure objects are not created, when no key exists yet
+          c[i] = {}
+        }
       } else {
         if (typeof b[ i ] === 'function') {
           response = b[ i ](arg)
@@ -154,7 +164,12 @@ export class Utils {
             c[ i ] = response
           }
         } else {
-          c[ i ] = b[ i ]
+          if (b[i] === undefined) { // ignore second term if is undefined
+          } else if (b[i] === null && i in c) { // delete second term/key if value is null and ir already exists
+            delete c[i]
+          } else {
+            c[ i ] = b[ i ]
+          }
         }
       }
     }
