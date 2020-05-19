@@ -1,9 +1,4 @@
-/**
- * Task handler type.
- */
-export type TaskHandler = (params) => Promise<void>;
-
-export interface TaskInterface {
+export interface ITaskMetadata {
   /**
    * Name of the task, which must be unique.
    */
@@ -39,9 +34,4 @@ export interface TaskInterface {
    * This is an object with options for plugins.
    */
   pluginOptions: any;
-
-  /**
-   * Task function, that contains the task logic.
-   */
-  run: TaskHandler;
 }

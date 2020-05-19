@@ -4,3 +4,4 @@
  */
 
 export const ACTION_METADATA = "__actionMetadata__";
+export const TASK_METADATA = "__taskMetadata__";
