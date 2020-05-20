@@ -1,0 +1,35 @@
+{
+  "name": "@stellarfw/cli",
+  "version": "2.0.0",
+  "description": "Stellar command line",
+  "keywords": [
+    "stellar"
+  ],
+  "author": "Gil Mendes <gil00mendes@gmail.com>",
+  "homepage": "https://stellar-framework.com/",
+  "license": "MIT",
+  "main": "lib/cli.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/StellarFw/stellar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/StellarFw/stellar/issues"
+  },
+  "dependencies": {
+    "@stellarfw/core": "^2.0.0",
+    "sywac": "^1.2.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bin": {
+    "stellar": "./src/stellar.js"
+  }
+}
