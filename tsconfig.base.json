@@ -1,19 +1,20 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "lib",
+    "sourceMap": true,
     "module": "commonjs",
     "declaration": true,
     "noImplicitAny": false,
     "noUnusedLocals": false,
-    "removeComments": false,
+    "removeComments": true,
     "noLib": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "target": "esnext",
-    "sourceMap": true,
     "allowJs": false,
-    "outDir": "lib",
-    "lib": [
-      "es7"
-    ]
-  }
+    "lib": ["es7"],
+  },
+  "include": ["packages/*/src"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
 }

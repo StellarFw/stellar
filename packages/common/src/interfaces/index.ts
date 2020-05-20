@@ -10,4 +10,4 @@ export * from "./model.interface";
 export * from "./module.interface";
 export * from "./route.interface";
 export * from "./satellite.interface";
-export * from "./task.interface";
+export * from "./task-metadata.interface";

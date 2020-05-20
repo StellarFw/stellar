@@ -1,13 +1,29 @@
 {
-  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": "./packages",
+    "baseUrl": ".",
+    "outDir": "dist",
+    "sourceMap": true,
+    "target": "esnext",
+    "module": "commonjs",
+    "moduleResolution": "Node",
+    "allowJs": false,
+    "noUnusedLocals": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "resolveJsonModule": true,
+    "removeComments": true,
+    "lib": ["ESNext"],
+    "noLib": false,
+    "types": ["jest", "node"],
+    "declaration": true,
+    "noImplicitAny": false,
+    "rootDir": ".",
     "paths": {
-      "@stellarfw/*": ["./*/src"]
+      "@stellarfw/*": ["packages/*/src"],
     }
   },
-  "exclude": [
-    "/node_modules/",
-    "/example"
-  ]
+  "include": [
+    "packages/*/src"
+  ],
+  "exclude": ["node_modules", "**/*.spec.ts"]
 }
