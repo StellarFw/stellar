@@ -1,4 +1,4 @@
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
+import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
 /**
  * Default task configs.

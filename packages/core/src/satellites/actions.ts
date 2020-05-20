@@ -6,8 +6,8 @@ import {
   Connection,
   MiddlewareInterface,
   ActionMetadata,
-} from "@stellarfw/common";
-import { ACTION_METADATA } from "@stellarfw/common/constants";
+} from "@stellarfw/common/lib";
+import { ACTION_METADATA } from "@stellarfw/common/lib/constants";
 
 export interface VersionActionMap {
   [key: number]: Action;
@@ -19,7 +19,7 @@ export interface VersionActionMap {
  *
  * @type {Array}
  */
-const PROTECTED_KEYS = ["name", "run"];
+const PROTECTED_KEYS = ["name"];
 
 /**
  * System action to show the server status.
@@ -390,6 +390,7 @@ export default class ActionsSatellite extends Satellite {
    *                        applied.
    */
   private applyGroupModToAction(groupName, action) {
+    console.log(">", action);
     // get group metadata modifications
     const metadata = this.groups.get(groupName);
 
@@ -587,7 +588,7 @@ export default class ActionsSatellite extends Satellite {
       const modPath = `${modulePath}/mod.js`;
 
       if (this.api.utils.fileExists(modPath)) {
-        this.api.actions.loadModifier(require(modPath)(this.api).actions);
+        this.loadModifier(require(modPath)(this.api).actions);
 
         // when the modifier file changes we must reload the entire server
         this.api.config.watchFileAndAct(modPath, () =>

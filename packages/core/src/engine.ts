@@ -2,10 +2,10 @@ import "source-map-support/register";
 import "reflect-metadata";
 
 import { resolve, normalize, basename } from "path";
-import { SatelliteInterface } from "@stellarfw/common/interfaces/satellite.interface";
-import { Satellite } from "@stellarfw/common/satellite";
-import { EngineStatus } from "@stellarfw/common/enums/engine-status.enum";
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
+import { SatelliteInterface } from "@stellarfw/common/lib/interfaces/satellite.interface";
+import { Satellite } from "@stellarfw/common/lib/satellite";
+import { EngineStatus } from "@stellarfw/common/lib/enums/engine-status.enum";
+import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
 /**
  * Main entry point for the Stellar code.

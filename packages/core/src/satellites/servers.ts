@@ -1,7 +1,7 @@
-import { Satellite } from "@stellarfw/common/satellite";
-import { GenericServer } from "@stellarfw/common/generic-server";
+import { Satellite } from "@stellarfw/common/lib/satellite";
+import { GenericServer } from "@stellarfw/common/lib/generic-server";
 import { resolve } from "path";
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
+import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
 export default class ServersSatellite extends Satellite {
   public loadPriority = 550;

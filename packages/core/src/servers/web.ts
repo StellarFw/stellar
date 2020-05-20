@@ -14,9 +14,9 @@ import * as etag from "etag";
 import * as zlib from "zlib";
 import { parse } from "url";
 
-import ConnectionDetails from "@stellarfw/common/interfaces/connection-details.interface";
-import { GenericServer } from "@stellarfw/common/generic-server";
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
+import { GenericServer } from "@stellarfw/common/lib/generic-server";
+import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
+import ConnectionDetails from "@stellarfw/common/lib/interfaces/connection-details.interface";
 
 interface RequestInformation {
   id: string;
@@ -149,9 +149,7 @@ export default class WebServer extends GenericServer {
         }, 1000);
       } else {
         throw new Error(
-          `Cannot start web server @ ${this.options.bindIP}:${
-            this.options.port
-          } => ${e.message}`,
+          `Cannot start web server @ ${this.options.bindIP}:${this.options.port} => ${e.message}`,
         );
       }
     });
@@ -246,9 +244,7 @@ export default class WebServer extends GenericServer {
       if (!foundCacheControl) {
         connection.rawConnection.responseHeaders.push([
           "Cache-Control",
-          `max-age=${
-            this.api.configs.servers.web.flatFileCacheDuration
-          }, must-revalidate, public`,
+          `max-age=${this.api.configs.servers.web.flatFileCacheDuration}, must-revalidate, public`,
         ]);
       }
     }

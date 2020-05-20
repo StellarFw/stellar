@@ -1,7 +1,7 @@
 import * as winston from "winston";
 
-import { Satellite } from "@stellarfw/common/satellite";
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
+import { Satellite } from "@stellarfw/common/lib/satellite";
+import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
 export default class LoggerSatellite extends Satellite {
   protected _name: string = "logger";

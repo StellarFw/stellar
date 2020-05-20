@@ -2,10 +2,10 @@ import { Stream } from "stream";
 import { Server, Socket, createServer } from "net";
 import { createServer as createSecureServer } from "tls";
 
-import ConnectionDetails from "@stellarfw/common/interfaces/connection-details.interface";
-import { Connection } from "@stellarfw/common/connection";
-import { GenericServer } from "@stellarfw/common/generic-server";
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
+import ConnectionDetails from "@stellarfw/common/lib/interfaces/connection-details.interface";
+import { Connection } from "@stellarfw/common/lib/connection";
+import { GenericServer } from "@stellarfw/common/lib/generic-server";
+import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
 export default class TCPServer extends GenericServer {
   protected static serverName: string = "TCP";

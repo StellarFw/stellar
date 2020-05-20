@@ -1,4 +1,4 @@
-import { Satellite } from "@stellarfw/common/satellite";
+import { Satellite } from "@stellarfw/common/lib/satellite";
 
 const Messages = require("../../static-files/validator-messages.json");
 

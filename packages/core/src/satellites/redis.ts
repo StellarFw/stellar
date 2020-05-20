@@ -1,8 +1,8 @@
 import * as uuid from "uuid";
 
-import { Satellite } from "@stellarfw/common/satellite";
-import ClusterPayload from "@stellarfw/common/interfaces/cluster-payload.interface";
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
+import { Satellite } from "@stellarfw/common/lib/satellite";
+import ClusterPayload from "@stellarfw/common/lib/interfaces/cluster-payload.interface";
+import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
 // export type RedisCallback = (error, message) =>
 

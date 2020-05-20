@@ -1,11 +1,11 @@
-import { Action } from "@stellarfw/common/action";
-import { Connection } from "@stellarfw/common/connection";
-import { EngineStatus } from "@stellarfw/common/enums/engine-status.enum";
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
-import { IActionMetadata } from "@stellarfw/common/interfaces/action.interface";
-import { Satellite } from "@stellarfw/common/satellite";
+import { Action } from "@stellarfw/common/lib/action";
+import { Connection } from "@stellarfw/common/lib/connection";
+import { EngineStatus } from "@stellarfw/common/lib/enums/engine-status.enum";
+import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
+import { IActionMetadata } from "@stellarfw/common/lib/interfaces/action.interface";
+import { Satellite } from "@stellarfw/common/lib/satellite";
 import { UnknownActionException, IActionProcessor } from "@stellarfw/common";
-import { ACTION_METADATA } from "@stellarfw/common/constants";
+import { ACTION_METADATA } from "@stellarfw/common/lib/constants";
 
 type ActionProcessorCallback = (data: any) => void;
 

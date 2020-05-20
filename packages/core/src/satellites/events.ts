@@ -1,9 +1,9 @@
-import { Satellite } from "@stellarfw/common/satellite";
+import { Satellite } from "@stellarfw/common/lib/satellite";
 import * as _ from "lodash";
 import EventInterface, {
   EventHandler,
-} from "@stellarfw/common/interfaces/event.interface";
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
+} from "@stellarfw/common/lib/interfaces/event.interface";
+import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
 /**
  * Satellite to manage the Stellar's event system.

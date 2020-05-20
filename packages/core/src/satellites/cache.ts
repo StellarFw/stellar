@@ -1,6 +1,6 @@
-import { Satellite } from "@stellarfw/common/satellite";
-import CacheObject from "@stellarfw/common/interfaces/cache-object.interface";
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
+import { Satellite } from "@stellarfw/common/lib/satellite";
+import CacheObject from "@stellarfw/common/lib/interfaces/cache-object.interface";
+import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
 /**
  * Satellite to manage the cache.

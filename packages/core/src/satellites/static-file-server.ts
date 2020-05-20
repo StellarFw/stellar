@@ -1,7 +1,7 @@
-import { Satellite } from "@stellarfw/common/satellite";
+import { Satellite } from "@stellarfw/common/lib/satellite";
 import { normalize, isAbsolute } from "path";
-import ConnectionDetails from "@stellarfw/common/interfaces/connection-details.interface";
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
+import ConnectionDetails from "@stellarfw/common/lib/interfaces/connection-details.interface";
+import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 import { promisify } from "util";
 import { stat, createReadStream, readlink, ReadStream } from "fs";
 

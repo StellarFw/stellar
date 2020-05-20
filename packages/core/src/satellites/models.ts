@@ -3,9 +3,9 @@ import { promisify } from "util";
 
 import * as Waterline from "waterline";
 
-import { Satellite } from "@stellarfw/common/satellite";
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
-import ModelInterface from "@stellarfw/common/interfaces/model.interface";
+import { Satellite } from "@stellarfw/common/lib/satellite";
+import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
+import ModelInterface from "@stellarfw/common/lib/interfaces/model.interface";
 
 /**
  * Custom type for generator models.

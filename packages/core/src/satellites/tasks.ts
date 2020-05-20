@@ -1,6 +1,6 @@
-import { Satellite } from "@stellarfw/common/satellite";
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
-import { TaskInterface } from "@stellarfw/common/interfaces/task.interface";
+import { Satellite } from "@stellarfw/common/lib/satellite";
+import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
+import { TaskInterface } from "@stellarfw/common/lib/interfaces/task.interface";
 
 export interface InternalJob {
   plugins: Array<any>;

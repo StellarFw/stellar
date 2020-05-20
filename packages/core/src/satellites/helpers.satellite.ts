@@ -1,8 +1,8 @@
-import { Satellite } from "@stellarfw/common/satellite";
-import { GenericServer } from "@stellarfw/common/generic-server";
+import { Satellite } from "@stellarfw/common/lib/satellite";
+import { GenericServer } from "@stellarfw/common/lib/generic-server";
 
 import * as UUID from "uuid";
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
+import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
 export class TestServer extends GenericServer {
   constructor(api, type, options) {

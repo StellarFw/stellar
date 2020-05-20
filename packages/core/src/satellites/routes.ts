@@ -1,7 +1,7 @@
-import { Satellite } from "@stellarfw/common/satellite";
-import { RouteInterface } from "@stellarfw/common/interfaces/route.interface";
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
-import ConnectionDetails from "@stellarfw/common/interfaces/connection-details.interface";
+import { Satellite } from "@stellarfw/common/lib/satellite";
+import { RouteInterface } from "@stellarfw/common/lib/interfaces/route.interface";
+import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
+import ConnectionDetails from "@stellarfw/common/lib/interfaces/connection-details.interface";
 
 interface RouterDictionary {
   GET: Array<RouteInterface>;

@@ -1,6 +1,6 @@
 import * as bcrypt from "bcrypt";
 
-import { Satellite } from "@stellarfw/common/satellite";
+import { Satellite } from "@stellarfw/common/lib/satellite";
 
 /**
  * This class is a wrapper for bcrypt library.

@@ -1,6 +1,6 @@
-import { Satellite } from "@stellarfw/common/satellite";
-import { EngineStatus } from "@stellarfw/common/enums/engine-status.enum";
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
+import { Satellite } from "@stellarfw/common/lib/satellite";
+import { EngineStatus } from "@stellarfw/common/lib/enums/engine-status.enum";
+import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 import { normalize } from "path";
 import { existsSync, watchFile, unwatchFile } from "fs";
 

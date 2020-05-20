@@ -6,9 +6,9 @@ import * as UglifyJS from "uglify-es";
 import WebServer from "./web";
 import { inspect } from "util";
 
-import ConnectionDetails from "@stellarfw/common/interfaces/connection-details.interface";
-import { GenericServer } from "@stellarfw/common/generic-server";
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
+import { GenericServer } from "@stellarfw/common/lib/generic-server";
+import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
+import ConnectionDetails from "@stellarfw/common/lib/interfaces/connection-details.interface";
 
 export default class WebSocketServer extends GenericServer {
   protected static serverName: string = "websocket";
@@ -178,9 +178,7 @@ export default class WebSocketServer extends GenericServer {
     this.server.on("disconnection", this.handleDisconnection.bind(this));
 
     this.api.log(
-      `WebSocket bound to ${webServer.options.bindIP}:${
-        webServer.options.port
-      }`,
+      `WebSocket bound to ${webServer.options.bindIP}:${webServer.options.port}`,
       LogLevel.Debug,
     );
 

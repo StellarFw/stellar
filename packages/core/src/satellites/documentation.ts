@@ -1,9 +1,9 @@
-import { Satellite } from "@stellarfw/common/satellite";
+import { Satellite } from "@stellarfw/common/lib/satellite";
 import { readFileSync, writeFileSync } from "fs";
 import * as Handlebars from "handlebars";
-import { Action } from "@stellarfw/common/action";
+import { Action } from "@stellarfw/common/lib/action";
 import { IActionMetadata } from "@stellarfw/common";
-import { ACTION_METADATA } from "@stellarfw/common/constants";
+import { ACTION_METADATA } from "@stellarfw/common/lib/constants";
 
 export default class DocumentationSatellite extends Satellite {
   protected _name: string = "documentation";

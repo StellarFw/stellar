@@ -1,6 +1,6 @@
-import { LogLevel } from "@stellarfw/common/enums/log-level.enum";
-import ModuleInterface from "@stellarfw/common/interfaces/module.interface";
-import { Satellite } from "@stellarfw/common/satellite";
+import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
+import ModuleInterface from "@stellarfw/common/lib/interfaces/module.interface";
+import { Satellite } from "@stellarfw/common/lib/satellite";
 import { execSync } from "child_process";
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
