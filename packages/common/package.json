@@ -1,0 +1,20 @@
+{
+  "name": "@stellarfw/common",
+  "version": "2.0.0",
+  "description": "A modern action based Web Framework, to create Web APIs easily",
+  "repository": "https://github.com/StellarFw/stellar",
+  "author": "Gil Mendes <gil00mendes@gmail.com>",
+  "license": "MIT",
+
+  "main": "./lib/index.js",
+  "typings": "lib/index.d.ts",
+
+  "dependencies": {
+    "uuid": "3.2.1"
+  },
+
+  "scripts": {
+    "dev": "rm -rf ./lib && tsc -w",
+    "build": "rm -rf ./lib && tsc"
+  }
+}

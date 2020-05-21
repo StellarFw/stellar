@@ -1,29 +1,8 @@
 {
-  "compilerOptions": {
-    "baseUrl": ".",
-    "outDir": "dist",
-    "sourceMap": true,
-    "target": "esnext",
-    "module": "commonjs",
-    "moduleResolution": "Node",
-    "allowJs": false,
-    "noUnusedLocals": false,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "resolveJsonModule": true,
-    "removeComments": true,
-    "lib": ["ESNext"],
-    "noLib": false,
-    "types": ["jest", "node"],
-    "declaration": true,
-    "noImplicitAny": false,
-    "rootDir": ".",
-    "paths": {
-      "@stellarfw/*": ["packages/*/src"],
-    }
-  },
-  "include": [
-    "packages/*/src"
-  ],
-  "exclude": ["node_modules", "**/*.spec.ts"]
+  "files": [],
+  "references": [
+      { "path": "packages/cli" },
+      { "path": "packages/common" },
+      { "path": "packages/core" }
+  ]
 }
