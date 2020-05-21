@@ -3,20 +3,20 @@ import { LogLevel } from "../enums/log-level.enum";
 /**
  * Type for the inputs property.
  */
-export interface IActionInput {
+export interface ActionInputMap {
   [key: string]: any;
 }
 
 export type ActionRunFunction = () => Promise<any>;
 
-export interface IActionMetadata {
+export interface Action {
   /**
    * A unique action identifier.
    *
    * It's recommended to use a namespace to eliminate the possibility
    * of collision, e.g. `auth.login`.
    */
-  name?: string;
+  name: string;
 
   /**
    * Describes the action.
@@ -38,7 +38,7 @@ export interface IActionMetadata {
    *
    * You can also apply restrictions to allowed inputted values.
    */
-  inputs?: IActionInput;
+  inputs?: ActionInputMap;
 
   /**
    * Group which this action is part of.
@@ -89,4 +89,9 @@ export interface IActionMetadata {
    * not be generated for the action.
    */
   toDocument?: boolean;
+
+  /**
+   * Action logic.
+   */
+  run: ActionRunFunction;
 }
