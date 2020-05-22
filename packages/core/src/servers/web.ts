@@ -66,7 +66,7 @@ export default class WebServer extends GenericServer {
       !["api", "file"].includes(this.api.configs.servers.web.rootEndpointType)
     ) {
       throw new Error(
-        `api.configs.servers.web.rootEndpointType can only be 'api' or 'file'.`,
+        "api.configs.servers.web.rootEndpointType can only be 'api' or 'file'.",
       );
     }
 
@@ -94,20 +94,20 @@ export default class WebServer extends GenericServer {
     const requestMode = await this.determineRequestParams(connection);
 
     switch (requestMode) {
-      case "api":
-        this.processAction(connection);
-        break;
-      case "file":
-        this.processFile(connection);
-        break;
-      case "options":
-        this.respondToOptions(connection);
-        break;
-      case "client-lib":
-        this.processClientLib(connection);
-        break;
-      case "trace":
-        this.respondToTrace(connection);
+    case "api":
+      this.processAction(connection);
+      break;
+    case "file":
+      this.processFile(connection);
+      break;
+    case "options":
+      this.respondToOptions(connection);
+      break;
+    case "client-lib":
+      this.processClientLib(connection);
+      break;
+    case "trace":
+      this.respondToTrace(connection);
     }
   }
 

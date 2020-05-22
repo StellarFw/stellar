@@ -182,7 +182,7 @@ describe("Actions", () => {
         fancyParam: 123,
       });
       expect(response.error.fancyParam).toBe(
-        `fancyParam should be 'test123'. so says test-server`,
+        "fancyParam should be 'test123'. so says test-server",
       );
     });
   });

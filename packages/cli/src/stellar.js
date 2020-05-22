@@ -1,18 +1,18 @@
 #!/usr/bin/env node
-'use strict'
+"use strict";
 
-const pkg = require('../package.json')
+const pkg = require("../package.json");
 // console.log(`\x1b[34m# Stellar Framework \x1b[37mversion \x1b[33m${pkg.version}\x1b[39m\n`)
 
-require('sywac')
+require("sywac")
   .preface(null, `\x1b[34m# Stellar Framework \x1b[37mversion \x1b[33m${pkg.version}\x1b[39m`)
-  .commandDirectory('commands')
-  .boolean('--daemon', { desc: 'Execute the command as a daemon' })
-  .help('-h, --help')
+  .commandDirectory("commands")
+  .boolean("--daemon", { desc: "Execute the command as a daemon" })
+  .help("-h, --help")
   .showHelpByDefault()
   .outputSettings({ maxWidth: 73 })
   .style({
-    usagePrefix: str => yellow(str.slice(0, 6)) + ' ' + white(str.slice(7)),
+    usagePrefix: str => yellow(str.slice(0, 6)) + " " + white(str.slice(7)),
     usageCommandPlaceholder: str => white(str),
     usagePositionals: str => white(str),
     usageArgsPlaceholder: str => white(str),
@@ -27,22 +27,22 @@ require('sywac')
     hintsError: str => chalk().red(str),
     messages: str => redBold(str)
   })
-  .parseAndExit()
+  .parseAndExit();
 
-let c
+let c;
 function chalk () {
-  if (!c) c = require('chalk')
-  return c
+  if (!c) c = require("chalk");
+  return c;
 }
 
 function white (s) {
-  return chalk().white(s)
+  return chalk().white(s);
 }
 
 function yellow (s) {
-  return chalk().yellow(s)
+  return chalk().yellow(s);
 }
 
 function redBold (s) {
-  return chalk().red.bold(s)
+  return chalk().red.bold(s);
 }

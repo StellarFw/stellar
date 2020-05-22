@@ -1,9 +1,9 @@
-'use strict'
+"use strict";
 
 // ---------------------------------------------------------------------------- [Imports]
 
-let fs = require('fs')
-let Handlebars = require('handlebars')
+let fs = require("fs");
+let Handlebars = require("handlebars");
 
 // ---------------------------------------------------------------------------- [Class]
 
@@ -13,14 +13,14 @@ module.exports = class Utils {
    *
    * @returns {*|String}
    */
-  static getCurrentUniverse () { return process.cwd() }
+  static getCurrentUniverse () { return process.cwd(); }
 
   /**
    * read the manifest.json file to get the active modules and return them.
    */
   static getAppModules () {
-    const manifest = Utils.fileContent(`${Utils.getCurrentUniverse()}/manifest.json`)
-    return JSON.parse(manifest).modules || []
+    const manifest = Utils.fileContent(`${Utils.getCurrentUniverse()}/manifest.json`);
+    return JSON.parse(manifest).modules || [];
   }
 
   /**
@@ -31,11 +31,11 @@ module.exports = class Utils {
    */
   static exists (path) {
     try {
-      fs.accessSync(path, fs.F_OK)
-      return true
+      fs.accessSync(path, fs.F_OK);
+      return true;
     } catch (e) {}
 
-    return false
+    return false;
   }
 
   /**
@@ -44,7 +44,7 @@ module.exports = class Utils {
    * @param path Path to check.
    */
   static createFolderIfNotExists (path) {
-    if (!Utils.exists(path)) { Utils.createFolder(path) }
+    if (!Utils.exists(path)) { Utils.createFolder(path); }
   }
 
   /**
@@ -53,26 +53,26 @@ module.exports = class Utils {
    * @param path   Directory path.
    */
   static removeDirectory (path) {
-    let filesList
+    let filesList;
 
     // get directory files
-    try { filesList = fs.readdirSync(path) } catch (e) { return }
+    try { filesList = fs.readdirSync(path); } catch (e) { return; }
 
     // iterate all folders and files on the directory
     filesList.forEach(file => {
       // get full file path
-      let filePath = `${path}/${file}`
+      let filePath = `${path}/${file}`;
 
       // check if it's a file
       if (fs.statSync(filePath).isFile()) {
-        fs.unlinkSync(filePath)
+        fs.unlinkSync(filePath);
       } else {
-        Utils.removeDirectory(filePath)
+        Utils.removeDirectory(filePath);
       }
-    })
+    });
 
     // remove current directory
-    fs.rmdirSync(path)
+    fs.rmdirSync(path);
   }
 
   /**
@@ -84,13 +84,13 @@ module.exports = class Utils {
    */
   static removePath (path) {
     // if the path don't exists return
-    if (!Utils.exists(path)) { return }
+    if (!Utils.exists(path)) { return; }
 
     // if the path is a file remote it and return
-    if (fs.statSync(path).isFile()) { return fs.unlinkSync(path) }
+    if (fs.statSync(path).isFile()) { return fs.unlinkSync(path); }
 
     // remove all the directory content
-    Utils.removeDirectory(path)
+    Utils.removeDirectory(path);
   }
 
   /**
@@ -99,7 +99,7 @@ module.exports = class Utils {
    * @param moduleName
    * @returns {boolean}
    */
-  static moduleExists (moduleName) { return this.exists(this.getCurrentUniverse() + `/modules/${moduleName}`) }
+  static moduleExists (moduleName) { return this.exists(this.getCurrentUniverse() + `/modules/${moduleName}`); }
 
   /**
    * Create a file and write some content that file.
@@ -108,7 +108,7 @@ module.exports = class Utils {
    * @param content   Content to be written.
    * @returns {*}
    */
-  static createFile (path, content) { return fs.writeFileSync(path, content, 'utf8') }
+  static createFile (path, content) { return fs.writeFileSync(path, content, "utf8"); }
 
   /**
    * Read and return the file content.
@@ -116,7 +116,7 @@ module.exports = class Utils {
    * @param path    Path here the file must be read.
    * @returns {*}
    */
-  static fileContent (path) { return fs.readFileSync(path).toString()}
+  static fileContent (path) { return fs.readFileSync(path).toString();}
 
   /**
    * Get the template file content.
@@ -126,10 +126,10 @@ module.exports = class Utils {
    */
   static getTemplate (name) {
     // build the full template path
-    let path = `${__dirname}/templates/${name}.txt`
+    let path = `${__dirname}/templates/${name}.txt`;
 
     // return the template content
-    return Utils.fileContent(path)
+    return Utils.fileContent(path);
   }
 
   /**
@@ -139,10 +139,10 @@ module.exports = class Utils {
    * @returns {boolean} True if the folder is empty, false otherwise.
    */
   static folderIsEmpty (path) {
-    let list = fs.readdirSync(path)
-    list = list.filter(item => !(/(^|\/)\.[^\/\.]/g).test(item))
+    let list = fs.readdirSync(path);
+    list = list.filter(item => !(/(^|\/)\.[^\/\.]/g).test(item));
 
-    return list.length <= 0
+    return list.length <= 0;
   }
 
   /**
@@ -152,9 +152,9 @@ module.exports = class Utils {
    */
   static createFolder (path) {
     try {
-      fs.mkdirSync(path)
+      fs.mkdirSync(path);
     } catch (e) {
-      if (e.code !== 'EEXIST') { throw e }
+      if (e.code !== "EEXIST") { throw e; }
     }
   }
 
@@ -171,12 +171,12 @@ module.exports = class Utils {
    */
   static generateFileFromTemplate (templateName, data, outputPath) {
     // get template source
-    let templateSource = Utils.getTemplate(templateName)
+    let templateSource = Utils.getTemplate(templateName);
 
     // compile template
-    let template = Handlebars.compile(templateSource)
+    let template = Handlebars.compile(templateSource);
 
     // output the result to the outputPath
-    Utils.createFile(outputPath, template(data))
+    Utils.createFile(outputPath, template(data));
   }
-}
+};

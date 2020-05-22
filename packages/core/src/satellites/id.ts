@@ -43,7 +43,7 @@ export default class IDSatellite extends Satellite {
 
       if (externalIP === false) {
         this.api.log(
-          ` * Error fetching this host external IP address; setting id base to 'stellar'`,
+          " * Error fetching this host external IP address; setting id base to 'stellar'",
         );
         this.api.id = "stellar";
         return;

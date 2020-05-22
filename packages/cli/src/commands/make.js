@@ -1,25 +1,25 @@
-'use strict'
+"use strict";
 
 class MakeCommand {
   constructor () {
-    this.flags = 'make'
-    this.desc = 'Generate some project components'
+    this.flags = "make";
+    this.desc = "Generate some project components";
     this.setup = sywac => {
       sywac
         .usage({
-          commandPlaceholder: '<component>'
+          commandPlaceholder: "<component>"
         })
-        .commandDirectory('make-commands')
-        .string('--module <module>', {
-          desc: 'Module where the file(s) will be created',
-          defaultValue: 'private'
+        .commandDirectory("make-commands")
+        .string("--module <module>", {
+          desc: "Module where the file(s) will be created",
+          defaultValue: "private"
         })
-        .boolean('--force', {
-          desc: 'Overwrite existent files'
+        .boolean("--force", {
+          desc: "Overwrite existent files"
         })
-        .outputSettings({ maxWidth: 90 })
-    }
+        .outputSettings({ maxWidth: 90 });
+    };
   }
 }
 
-module.exports = new MakeCommand()
+module.exports = new MakeCommand();

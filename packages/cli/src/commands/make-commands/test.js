@@ -1,9 +1,9 @@
-'use strict'
+"use strict";
 
 // ----------------------------------------------------------------------------- [Imports]
 
-let Command = require('../../Command')
-let Utils = require('../../utils')
+let Command = require("../../Command");
+let Utils = require("../../utils");
 
 // ----------------------------------------------------------------------------- [Command]
 
@@ -14,13 +14,13 @@ class MakeTest extends Command {
    */
   constructor () {
     // execute the super class constructor method
-    super()
+    super();
 
     // command
-    this.group = 'Components:'
-    this.flags = 'test <file_name>'
-    this.desc = 'Create a new test file'
-    this.paramsDesc = 'The name of the test file to create'
+    this.group = "Components:";
+    this.flags = "test <file_name>";
+    this.desc = "Create a new test file";
+    this.paramsDesc = "The name of the test file to create";
   }
 
   /**
@@ -29,37 +29,37 @@ class MakeTest extends Command {
   exec () {
     // check if the module was specified
     if (this.args.module.length === 0) {
-      return this.printError('You need to specify the module where the task must be created')
+      return this.printError("You need to specify the module where the task must be created");
     }
 
     // check if the module exists
     if (!Utils.moduleExists(this.args.module)) {
-      return this.printError(`The module "${this.args.module}" does not exists`)
+      return this.printError(`The module "${this.args.module}" does not exists`);
     }
 
     // ensure the test folder exists
-    const testFolder = `${Utils.getCurrentUniverse()}/modules/${this.args.module}/tests`
-    if (!Utils.exists(testFolder)) { Utils.createFolder(testFolder) }
+    const testFolder = `${Utils.getCurrentUniverse()}/modules/${this.args.module}/tests`;
+    if (!Utils.exists(testFolder)) { Utils.createFolder(testFolder); }
 
     // get the file name
-    const fileName = this.args.file_name
+    const fileName = this.args.file_name;
 
     // build the output path
-    const newFilePath = `${testFolder}/${fileName}.js`
+    const newFilePath = `${testFolder}/${fileName}.js`;
 
     // check if the file already exists
     if (!this.args.force && Utils.exists(newFilePath)) {
-      return this.printError(`The test file already exists. Use --force param to overwrite.`)
+      return this.printError("The test file already exists. Use --force param to overwrite.");
     }
 
     // generate the new file
-    Utils.generateFileFromTemplate('test', { }, newFilePath)
+    Utils.generateFileFromTemplate("test", { }, newFilePath);
 
     // print a success message
-    this.printSuccess(`The "${fileName}" test was created!`)
+    this.printSuccess(`The "${fileName}" test was created!`);
   }
 
 }
 
 // export command
-module.exports = new MakeTest()
+module.exports = new MakeTest();

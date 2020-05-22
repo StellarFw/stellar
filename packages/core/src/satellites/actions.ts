@@ -522,7 +522,7 @@ export default class ActionsSatellite extends Satellite {
       typeof actionMetadata.name !== "string" ||
       actionMetadata.name.length < 1
     ) {
-      fail(`an action is missing 'action.id'`);
+      fail("an action is missing 'action.id'");
       return false;
     } else if (
       typeof actionMetadata.description !== "string" ||

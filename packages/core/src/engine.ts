@@ -68,12 +68,12 @@ export default class Engine {
     }
 
     switch (level) {
-      case LogLevel.Emergency || LogLevel.Error:
-        console.log(`\x1b[31m[-] ${msg}\x1b[37m`);
-        break;
-      case LogLevel.Info:
-        console.log(`[!] ${msg}`);
-        break;
+    case LogLevel.Emergency || LogLevel.Error:
+      console.log(`\x1b[31m[-] ${msg}\x1b[37m`);
+      break;
+    case LogLevel.Info:
+      console.log(`[!] ${msg}`);
+      break;
     }
   }
 

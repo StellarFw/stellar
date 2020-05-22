@@ -237,7 +237,7 @@ export default class Stellar extends Primus.EventEmitter {
     // Print out an error when Promises aren't supported
     if (Promise === undefined || typeof Promise !== "function") {
       error(
-        `Th browser doesn't support Promises! You must load a polyfill before load Stellar client lib.`,
+        "Th browser doesn't support Promises! You must load a polyfill before load Stellar client lib.",
       );
     }
   }

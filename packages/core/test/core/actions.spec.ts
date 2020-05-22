@@ -88,7 +88,7 @@ describe("Core: Actions", () => {
         await api.actions.call("sleep", { sleepDuration: 150 });
       } catch (error) {
         expect(error.code).toBe("022");
-        expect(error.message).toBe(`Response timeout for action 'sleep'`);
+        expect(error.message).toBe("Response timeout for action 'sleep'");
       }
     });
   });

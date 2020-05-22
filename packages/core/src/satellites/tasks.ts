@@ -76,7 +76,7 @@ export default class TasksSatellite extends Satellite {
     const fail = msg => this.api.log(`${msg}; exiting`, LogLevel.Emergency);
 
     if (typeof task.name !== "string" || task.name.length < 1) {
-      fail(`a task is missing 'task.name'`);
+      fail("a task is missing 'task.name'");
       return false;
     } else if (
       typeof task.description !== "string" ||

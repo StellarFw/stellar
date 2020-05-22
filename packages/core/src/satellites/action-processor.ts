@@ -1,8 +1,7 @@
-import { Action } from "@stellarfw/common/lib/action";
 import { Connection } from "@stellarfw/common/lib/connection";
 import { EngineStatus } from "@stellarfw/common/lib/enums/engine-status.enum";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
-import { IActionMetadata } from "@stellarfw/common/lib/interfaces/action.interface";
+import { Action } from "@stellarfw/common/lib/interfaces/action.interface";
 import { Satellite } from "@stellarfw/common/lib/satellite";
 import { UnknownActionException, IActionProcessor } from "@stellarfw/common";
 import { ACTION_METADATA } from "@stellarfw/common/lib/constants";
@@ -44,7 +43,7 @@ class ActionProcessor implements IActionProcessor {
   /**
    * Action's metadata.
    */
-  private actionMetadata: IActionMetadata = {};
+  private actionMetadata: Action = {};
 
   /**
    * Action status.
@@ -156,29 +155,29 @@ class ActionProcessor implements IActionProcessor {
    */
   public completeAction(status?: ActionStatus, error: Error = null) {
     switch (status) {
-      case ActionStatus.SERVER_ERROR:
-        error = this.api.configs.errors.serverErrorMessage;
-        break;
-      case ActionStatus.SERVER_SHUTTING_DOWN:
-        error = this.api.configs.errors.serverShuttingDown;
-        break;
-      case ActionStatus.TOO_MANY_REQUESTS:
-        error = this.api.configs.errors.tooManyPendingActions();
-        break;
-      case ActionStatus.UNKNOWN_ACTION:
-        error = this.api.configs.errors.unknownAction(this.action);
-        break;
-      case ActionStatus.UNSUPPORTED_SERVER_TYPE:
-        error = this.api.configs.errors.unsupportedServerType(
-          this.connection.type,
-        );
-        break;
-      case ActionStatus.VALIDATOR_ERRORS:
-        error = this.api.configs.errors.invalidParams(this.validatorErrors);
-        break;
-      case ActionStatus.RESPONSE_TIMEOUT:
-        error = this.api.configs.errors.responseTimeout(this.action);
-        break;
+    case ActionStatus.SERVER_ERROR:
+      error = this.api.configs.errors.serverErrorMessage;
+      break;
+    case ActionStatus.SERVER_SHUTTING_DOWN:
+      error = this.api.configs.errors.serverShuttingDown;
+      break;
+    case ActionStatus.TOO_MANY_REQUESTS:
+      error = this.api.configs.errors.tooManyPendingActions();
+      break;
+    case ActionStatus.UNKNOWN_ACTION:
+      error = this.api.configs.errors.unknownAction(this.action);
+      break;
+    case ActionStatus.UNSUPPORTED_SERVER_TYPE:
+      error = this.api.configs.errors.unsupportedServerType(
+        this.connection.type,
+      );
+      break;
+    case ActionStatus.VALIDATOR_ERRORS:
+      error = this.api.configs.errors.invalidParams(this.validatorErrors);
+      break;
+    case ActionStatus.RESPONSE_TIMEOUT:
+      error = this.api.configs.errors.responseTimeout(this.action);
+      break;
     }
 
     if (error && typeof error === "string") {

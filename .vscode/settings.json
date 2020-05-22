@@ -16,4 +16,9 @@
     "packages/**/*.js.map": true,
     "packages/**/*.d.ts": true
   },
+
+  "editor.codeActionsOnSaveTimeout": 2000,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true
+  }
 }

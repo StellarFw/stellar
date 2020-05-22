@@ -79,49 +79,49 @@ export default class WebSocketServer extends GenericServer {
     connection.params = {};
 
     switch (verb) {
-      case "action":
-        connection.params = {
-          ...connection.params,
-          ...data.params,
-        };
+    case "action":
+      connection.params = {
+        ...connection.params,
+        ...data.params,
+      };
 
-        connection.error = null;
-        connection.response = {};
-        this.processAction(connection);
-        break;
-      case "file":
-        connection.params = {
-          file: data.file,
-        };
+      connection.error = null;
+      connection.response = {};
+      this.processAction(connection);
+      break;
+    case "file":
+      connection.params = {
+        file: data.file,
+      };
 
-        this.processFile(connection);
-        break;
-      default:
-        const words = [];
-        let message;
+      this.processFile(connection);
+      break;
+    default:
+      const words = [];
+      let message;
 
-        if (data.room) {
-          words.push(data.room);
-          delete data.room;
+      if (data.room) {
+        words.push(data.room);
+        delete data.room;
+      }
+
+      // TODO: maybe convert this to a more ES7 way of doing things
+      for (const index in data) {
+        if (data.hasOwnProperty(index)) {
+          words.push(data[index]);
         }
+      }
 
-        // TODO: maybe convert this to a more ES7 way of doing things
-        for (const index in data) {
-          if (data.hasOwnProperty(index)) {
-            words.push(data[index]);
-          }
-        }
+      try {
+        const response = await connection.verbs(verb, words);
+        message = { status: "OK", context: "response", data: response };
+      } catch (error) {
+        // TODO: check if we need the data object
+        message = { status: error, context: "response" };
+      }
 
-        try {
-          const response = await connection.verbs(verb, words);
-          message = { status: "OK", context: "response", data: response };
-        } catch (error) {
-          // TODO: check if we need the data object
-          message = { status: error, context: "response" };
-        }
-
-        this.sendMessage(connection, message);
-        break;
+      this.sendMessage(connection, message);
+      break;
     }
   }
 
@@ -312,10 +312,10 @@ export default class WebSocketServer extends GenericServer {
 
     let defaultsString: string = inspect(defaults);
     defaultsString = defaultsString.replace(
-      `'window.location.origin'`,
+      "'window.location.origin'",
       "window.location.origin",
     );
-    clientSource = clientSource.replace(`'%%DEFAULTS%%'`, defaultsString);
+    clientSource = clientSource.replace("'%%DEFAULTS%%'", defaultsString);
 
     return clientSource;
   }

@@ -65,7 +65,7 @@ class ConfigManager {
       this.api.configs = require(`${rootPath}/manifest.json`);
     } catch (e) {
       this.api.log(
-        `Project 'manifest.json' file does not exists.`,
+        "Project 'manifest.json' file does not exists.",
         LogLevel.Emergency,
       );
       process.exit(1);

@@ -124,6 +124,7 @@ export default class ModulesSatellite extends Satellite {
         this.activeModules.set(manifest.id, manifest);
         this.modulesPaths.set(manifest.id, path);
 
+        // TODO: maybe always run this?
         if (manifest.isTypescript === true) {
           // Load TS base configurations if isn't already loaded
           if (Object.keys(this.tsBaseConfigurations).length === 0) {
@@ -134,7 +135,7 @@ export default class ModulesSatellite extends Satellite {
         }
       } catch (e) {
         throw new Error(
-          `There is an invalid module active, named "${moduleName}", fiz this to start Stellar normally.`,
+          `There is an invalid module active, named "${moduleName}", fix this to start Stellar normally. Usually this happens when the 'manifest.json' file doesn't exist.`,
         );
       }
     }
@@ -196,7 +197,7 @@ export default class ModulesSatellite extends Satellite {
       private: true,
       name: "stellar-dependencies",
       version: "1.0.0",
-      description: `This was automatically generated don't edit manually.`,
+      description: "This was automatically generated don't edit manually.",
       dependencies: nodeDependencies,
     };
 
