@@ -11,8 +11,8 @@ addons:
     - g++-4.8
 
 node_js:
-# - "7"
-  - "8"
+  - "10"
+  - "12"
 
 env:
   - "FAKEREDIS=true CXX=g++-4.8"
@@ -20,7 +20,6 @@ env:
 
 os:
   - linux
-  # - osx
 
 before_script:
   - npm run build
