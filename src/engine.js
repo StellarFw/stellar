@@ -1,9 +1,6 @@
 // Enable source map support
 import 'source-map-support/register'
 
-// Enable some ES6 features loading Babel Polyfill
-import 'babel-polyfill'
-
 // Module Dependencies
 import path from 'path'
 import async from 'async'

@@ -1,7 +1,7 @@
 {
   "plugins": [
-    "transform-class-properties",
-    "transform-async-to-generator",
-    "transform-es2015-modules-commonjs"
+    "@babel/plugin-proposal-class-properties",
+    "@babel/plugin-transform-async-to-generator",
+    "@babel/plugin-transform-modules-commonjs"
   ]
 }
