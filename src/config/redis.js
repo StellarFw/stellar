@@ -12,7 +12,7 @@ let password = process.env.REDIS_PASS || null
  * buildNew     - is to use the `new` keyword on the the constructor?
  */
 export default {
-  redis (api) {
+  redis () {
     if (process.env.FAKEREDIS === 'false' || process.env.REDIS_HOST !== undefined) {
       return {
         '_toExpand': false,

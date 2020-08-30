@@ -48,6 +48,7 @@ class ExceptionsManager {
         try {
           extraMessages.push('    arguments: ' + JSON.stringify(objects.task.args))
         } catch (e) {
+          // ignore error
         }
       } else {
         extraMessages.push(`Error: ${err.message}\n`)

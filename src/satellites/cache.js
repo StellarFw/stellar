@@ -157,7 +157,9 @@ class CacheManager {
     }
 
     // try parse the redis response
-    try { cacheObj = JSON.parse(cacheObj) } catch (e) {}
+    try { cacheObj = JSON.parse(cacheObj) } catch (e) {
+      // ignore error
+    }
 
     // check if the object exist
     if (!cacheObj) { throw new Error('Object not found') }

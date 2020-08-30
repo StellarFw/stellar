@@ -48,7 +48,7 @@ export default {
 }
 
 export const test = {
-  logger (api) {
+  logger () {
     return {
       transports: null
     }

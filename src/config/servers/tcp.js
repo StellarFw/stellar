@@ -1,6 +1,6 @@
 export default {
   servers: {
-    tcp (api) {
+    tcp () {
       return {
         // ---------------------------------------------------------------------
         // Enable server?
@@ -60,7 +60,7 @@ export default {
 
 export const test = {
   servers: {
-    tcp (api) {
+    tcp () {
       return {
         enabled: true,
         port: 5001,

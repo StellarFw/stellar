@@ -353,7 +353,7 @@ export default class Web extends GenericServer {
    *
    * @param connection
    */
-  goodbye (connection) {
+  goodbye (_connection) {
     // disconnect handlers
   }
 

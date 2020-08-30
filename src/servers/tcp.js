@@ -136,7 +136,9 @@ export default class Tcp extends GenericServer {
         status: connection.localize(self.api.config.servers.tcp.goodbeyMessage),
         context: 'api'
       }) + '\r\n')
-    } catch (e) {}
+    } catch (e) {
+      // ignore error
+    }
   }
 
   /**
@@ -219,7 +221,9 @@ export default class Tcp extends GenericServer {
         if (connection.destroyed !== true) {
           try {
             connection.rawConnection.end()
-          } catch (e) {}
+          } catch (e) {
+            // ignore error
+          }
           connection.destroy()
         }
       })
@@ -231,7 +235,9 @@ export default class Tcp extends GenericServer {
 
           try {
             connection.rawConnection.end()
-          } catch (e) {}
+          } catch (e) {
+            // ignore error
+          }
           connection.destroy()
         }
       })

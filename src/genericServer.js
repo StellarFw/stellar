@@ -178,12 +178,12 @@ export default class GenericServer extends EventEmitter {
   /**
    * Invoked as part of boot.
    */
-  start (next) { methodNotDefined() }
+  start (_next) { methodNotDefined() }
 
   /**
    * Invoked as part of shutdown.
    */
-  stop (next) { methodNotDefined() }
+  stop (_next) { methodNotDefined() }
 
   /**
    * This method will be appended to the connection as 'connection.sendMessage'
@@ -191,7 +191,7 @@ export default class GenericServer extends EventEmitter {
    * @param connection  Connection object.
    * @param message     Message be sent back to the client.
    */
-  sendMessage (connection, message) { methodNotDefined() }
+  sendMessage (_connection, _message) { methodNotDefined() }
 
   /**
    * This method will be used to gracefully disconnect the client.
@@ -199,5 +199,5 @@ export default class GenericServer extends EventEmitter {
    * @param connection  Connection object.
    * @param reason      Reason for disconnection.
    */
-  goodbye (connection, reason) { methodNotDefined() }
+  goodbye (_connection, _reason) { methodNotDefined() }
 }

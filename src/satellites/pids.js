@@ -55,6 +55,7 @@ class Pids {
     try {
       fs.mkdirSync(self.path)
     } catch (e) {
+      // ignore error
     }
   }
 

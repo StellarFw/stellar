@@ -163,7 +163,7 @@ export default {
  * @type {{}}
  */
 export const test = {
-  general (api) {
+  general () {
     return {
       // set the server identifier during testing
       id: 'test-server',
@@ -190,7 +190,7 @@ export const test = {
  * @type {{}}
  */
 export const production = {
-  general (api) {
+  general () {
     return {
       developmentMode: false
     }

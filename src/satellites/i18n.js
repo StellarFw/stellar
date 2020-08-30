@@ -69,7 +69,7 @@ class I18n {
    *
    * @param connection  Client connection object.
    */
-  determineConnectionLocale (connection) { return this.api.config.i18n.defaultLocale }
+  determineConnectionLocale (_connection) { return this.api.config.i18n.defaultLocale }
 
   /**
    * Invoke the connection locale method.

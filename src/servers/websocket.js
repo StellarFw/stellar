@@ -324,7 +324,7 @@ export default class WebSocketServer extends GenericServer {
         this.processFile(connection)
         break
 
-      default:
+    default: {
         let words = []
         let message
 
@@ -346,7 +346,8 @@ export default class WebSocketServer extends GenericServer {
           message = { status: 'OK', context: 'response', data: data }
           this.sendMessage(connection, message)
         })
-        break
+      break;
+    }
     }
   }
 }

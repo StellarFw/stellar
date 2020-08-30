@@ -1,6 +1,6 @@
 export default {
   servers: {
-    websocket (api) {
+    websocket () {
       return {
         // ---------------------------------------------------------------------
         // Enable the server?

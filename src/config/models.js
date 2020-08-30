@@ -8,7 +8,7 @@
  * By default we use a memory based adapter to make the startup really simple.
  */
 export default {
-  models (api) {
+  models () {
     return {
       '_toExpand': false,
 

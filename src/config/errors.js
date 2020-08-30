@@ -273,7 +273,7 @@ export default {
       // Error handler for a request who need a room name and that parameter
       // are not present.
       // ---------------------------------------------------------------------
-      connectionRoomRequired (room) {
+      connectionRoomRequired () {
         return {
           code: '021',
           message: 'A room is required'

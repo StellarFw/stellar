@@ -515,7 +515,9 @@ class Validator {
       let o = JSON.parse(value)
 
       if (o && typeof o === 'object' && o !== null) { return true }
-    } catch (e) {}
+    } catch (e) {
+      // ignore error, it will return false next
+    }
 
     return false
   }

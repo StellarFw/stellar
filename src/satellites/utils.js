@@ -1,3 +1,5 @@
+/*eslint no-useless-catch: 0 */
+
 import os from 'os'
 import fs from 'fs'
 import path from 'path'
@@ -140,8 +142,8 @@ export class Utils {
             c[ i ] = response
           }
         } else {
-          // don't create first term if it is undefined or null
           if (a[i] === undefined || a[i] === null) {
+            // don't create first term if it is undefined or null
           } else {
             c[ i ] = a[ i ]
           }
@@ -450,7 +452,9 @@ export class Utils {
     try {
       fs.accessSync(path, fs.F_OK)
       return true
-    } catch (e) {}
+    } catch (e) {
+      // it will return false either way
+    }
 
     return false
   }
