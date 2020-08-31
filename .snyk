@@ -1,0 +1,15 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.19.0
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  SNYK-JS-LODASH-567746:
+    - async > lodash:
+        patched: '2020-08-31T19:46:15.339Z'
+    - node-resque > async > lodash:
+        patched: '2020-08-31T19:46:15.339Z'
+  'npm:lodash:20180130':
+    - sails-memory > lodash:
+        patched: '2020-08-31T19:46:15.339Z'
+    - sails-memory > waterline-criteria > lodash:
+        patched: '2020-08-31T19:46:15.339Z'
