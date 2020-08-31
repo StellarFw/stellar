@@ -18,7 +18,7 @@
   "scripts": {
     "dev": "rm -rf ./dist && babel --watch --source-maps --out-dir ./dist/ ./src/",
     "build": "rm -rf ./dist && babel --out-dir ./dist/ ./src/",
-    "test": "npm run lint && node test.js",
+    "test": "yarn lint && node test.js",
     "test:travis": "NODE_ENV=test ./node_modules/istanbul/lib/cli.js cover ./node_modules/.bin/_mocha",
     "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "lint": "eslint src"
@@ -78,8 +78,8 @@
   },
   "homepage": "https://stellar-framework.com",
   "engines": {
-    "node": ">= 6.0.0",
-    "npm": ">= 3.0.0"
+    "node": ">= 10.0.0",
+    "npm": ">= 5.0.0"
   },
   "bin": {
     "stellar": "./bin/stellar"
