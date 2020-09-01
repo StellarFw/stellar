@@ -9,33 +9,22 @@ module.exports = [ {
     content: {required: true}
   },
 
-  run (api, action, next) {
+  async run (api, action) {
     const Post = api.models.get('post')
 
-    const newPost = new Post(action.params)
-
-    newPost.save(err => {
-      if (err) {
-        // return an error message to the client
-        next(new Error('We can create that resource!'))
-      } else {
-        // put the new post available to the response object
-        action.response.post = newPost
-
-        // finish the action execution
-        next()
-      }
-    })
+    try {
+      action.response.post = await Post.create(action.params).fetch()
+    } catch(_) {
+      throw 'We can\'t create that resource!'
+    }
   }
 }, {
   name: 'getPosts',
   description: 'Get all posts',
 
-  run (api, action, next) {
-    api.models.get('post').find({}, (err, posts) => {
-      action.response.posts = posts
-      next()
-    })
+  async run (api, action) {
+    const Post = api.models.get('post')
+    action.response.posts = await Post.find({})
   }
 },
   {
@@ -46,14 +35,8 @@ module.exports = [ {
       id: {required: true}
     },
 
-    run (api, action, next) {
-      // search for the request post on the DB
-      api.models.get('post').findById(action.params.id, (err, post) => {
-        // put post information in response object
-        action.response.post = post
-
-        // finish the action execution
-        next()
-      })
+    async run (api, action,) {
+      const Post = api.models.get('post')
+      action.response.post = await Post.findOne({ id: action.params.id }) || null
     }
   } ]

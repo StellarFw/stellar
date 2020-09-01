@@ -1,6 +1,7 @@
 import _async from 'async'
 import Waterline from 'waterline'
-import path from 'path'
+import path, {basename} from 'path'
+import { promisify } from "util";
 
 /**
  * Satellite to manage the models using Waterline ORM.
@@ -40,109 +41,117 @@ class Models {
    * Create a new Waterline instance.
    */
   async createNewInstance () {
-    this.waterline = new Waterline()
-  }
+    const adapters = this.processAdapters();
+    const datastores = this.api.config.models.datastores;
+    const models = await this.loadModels();
 
-  /**
-   * Initialize the Waterline instance.
-   *
-   * @param callback  Callback function.
-   */
-  initialize (callback) {
-    // initialize the Waterline system
-    this.waterline.initialize(this.api.config.models, (error, ontology) => {
-      // if an error occurred we need stop the execution
-      if (error) { return callback(error) }
+    const ormStart = promisify(Waterline.start);
 
-      // save the ontology for later
-      this.ontology = ontology
-
-      // yup, is just this! Now the models system is read to fly.
-      callback()
+    this.waterline = await ormStart({
+      adapters,
+      datastores,
+      models,
     })
   }
 
   /**
    * Finish the model system.
-   *
-   * @param callback  Callback function.
    */
-  finish (callback) {
-    this.waterline.teardown(callback)
+  async finish () {
+    const waterlineStop = promisify(Waterline.stop);
+    await waterlineStop(this.waterline);
   }
 
   /**
-   * Add a new model.
-   *
-   * @param name    Model name.
-   * @param model   Model instance.
+   * Preprocess the model.
+   * 
+   * @param modelName model base name
+   * @param modelOrig original model object
    */
-  async add (name, model) {
-    // the model definition can be a function, whether it happens we need pass
+  async preProcessModelData(modelName, modelOrig) {
+    // The model definition can be a function, whether it happens we need pass
     // the api reference.
-    if (typeof model === 'function') { model = model(this.api) }
-
-    // execute the add event to allow other modules modify this model before it
-    // gets compiled
-    const response = await this.api.events.fire(`core.models.add.${name}`, { model })
-
-    // when there is no identity property defined we use the file basename
-    if (!response.model.identity) { response.model.identity = name }
-
-    // if there is no connection set we use the default connection
-    if (!response.model.connection) {
-      response.model.connection = this.api.config.models.defaultConnection
+    if (typeof modelOrig === "function") {
+      modelOrig = modelOrig(this.api);
     }
 
-    // if there is a no schema property on set the model, we use the the default
-    // configuration
-    if (!response.model.schema) {
-      response.model.schema = this.api.config.models.schema
+    // Execute the `add` event to allow other modules modify this model before it
+    // gets compiled.
+    const { model } = await this.api.events.fire(
+      `core.models.add.${modelName}`,
+      {
+        model: modelOrig,
+      },
+    );
+
+    // When there is no identity property defined we use the file basename.
+    if (!model.identity) {
+      model.identity = modelName;
     }
 
-    // create a Waterline collection
-    const collection = Waterline.Collection.extend(response.model)
+    if (!model.datastore) {
+      model.datastore = this.api.config.models.defaultDatastore;
+    }
 
-    // load the connection into the waterline instance
-    this.waterline.loadCollection(collection)
+    if (!model.schema) {
+      model.schema = this.api.config.models.schema;
+    }
+
+    // when there is no primary key set we inject an id field and mark it as 
+    // primary
+    if (!model.primaryKey) {
+      if (!model.attributes.id) {
+        model.attributes.id = {
+          type: 'number',
+          autoMigrations: { autoIncrement: true }
+        }
+      }
+
+      model.primaryKey = 'id'
+    }
+
+    return model;
+  }
+
+  /**
+   * Load all models into the memory and preprocess them ot see if is valid 
+   * data.
+   * 
+   * @param models array of modules to be loaded
+   */
+  async processModelsFiles(models) {
+    const result = []
+
+    for (const modelFile of models) {
+      const modelBasename = basename(modelFile, '.js')
+      this._watchForChanges(modelFile)
+
+      try {
+        const model = await this.preProcessModelData(modelBasename, require(modelFile).default)
+        result.push(model)
+
+        this.api.log(`Model loaded: ${modelBasename}`, 'debug')
+      } catch(error) {
+        this.api.log(`Model error (${modelBasename}): ${error.message}`, 'error', error)
+      }
+    }
+
+    return result
   }
 
   /**
    * Load models from the modules.
    */
-  loadModels () {
-    return new Promise(resolve => {
-      const work = []
+  async loadModels () {
+    let allModels = [];
 
-      // read models files from the modules
-      this.api.modules.modulesPaths.forEach(modulePath => {
-        this.api.utils.recursiveDirectoryGlob(`${modulePath}/models`)
-          .forEach(moduleFile => {
-            // get file basename
-            let basename = path.basename(moduleFile, '.js')
+    for (const [_, modulePath] of this.api.modules.modulesPaths) {
+      const modelFiles = this.api.utils.recursiveDirectoryGlob(`${modulePath}/models`);
+      const processedModels = await this.processModelsFiles(modelFiles);
+      allModels = [...allModels, ...processedModels];
+    }
 
-            // start watching for changes on the model
-            this._watchForChanges(moduleFile)
-
-            // push a new work to the array
-            work.push(callback => {
-              // if there is a syntax error on the model file we catch them an show a well formatted error
-              try {
-                this.add(basename, require(moduleFile).default)
-                this.api.log(`model loaded: ${basename}`, 'debug')
-              } catch (e) {
-                this.api.log(`Model error (${basename}): ${e.message}`, 'error')
-              }
-
-              // the callback is always executed
-              callback()
-            })
-          })
-      })
-
-      // process the all work and resolve the promise at the end
-      _async.parallel(work, () => resolve())
-    })
+    return allModels.reduce((result, model) => ({...result, [model.identity]: model}), ({}))
   }
 
   /**
@@ -176,7 +185,9 @@ class Models {
    * @param modelName                 Model name to get.
    * @returns {WaterlineCollection}   Model object.
    */
-  get (modelName) { return this.ontology.collections[ modelName ] }
+  get (modelName) { 
+    return Waterline.getModel(modelName, this.waterline); 
+  }
 
   /**
    * Remove a model from the repository.
@@ -193,6 +204,10 @@ class Models {
     // here other wise the config system will break when the module isn't
     // installed
     for (const key in this.api.config.models.adapters) {
+      if (!this.api.utils.hasProp(key, this.api.config.models.adapters)) {
+        continue;
+      }
+
       // get module name
       const moduleName = this.api.config.models.adapters[ key ]
 
@@ -202,7 +217,12 @@ class Models {
 
       // replace the static value with the module instance
       this.api.config.models.adapters[ key ] = this.api.utils.require(moduleName)
+
+      // force all adapters to use the key specific by the user.
+      this.api.config.models.adapters[key].identity = key;
     }
+
+    return this.api.config.models.adapters;
   }
 }
 
@@ -252,11 +272,7 @@ export default class {
    * @param next  Callback function.
    */
   start (api, next) {
-    // load the models from the modules and then initialize the Waterline system
-    api.models.createNewInstance()
-      .then(_ => { api.models.loadModels() })
-      .then(_ => { api.models.processAdapters() })
-      .then(_ => { api.models.initialize(next) })
+    api.models.createNewInstance().then(next)
   }
 
   /**
@@ -266,7 +282,6 @@ export default class {
    * @param next  Callback function.
    */
   stop (api, next) {
-    // close connection
-    api.models.finish(next)
+    api.models.finish().then(next)
   }
 }

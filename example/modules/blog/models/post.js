@@ -1,6 +1,8 @@
 'use strict'
 
 exports.default = {
-  title: String,
-  content: String
+  attributes: {
+    title: { type: 'string' },
+    content: { type: 'string' }
+  }
 }
