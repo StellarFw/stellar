@@ -1,6 +1,5 @@
-import _async from 'async'
 import Waterline from 'waterline'
-import path, {basename} from 'path'
+import {basename} from 'path'
 import { promisify } from "util";
 
 /**
@@ -145,7 +144,7 @@ class Models {
   async loadModels () {
     let allModels = [];
 
-    for (const [_, modulePath] of this.api.modules.modulesPaths) {
+    for (const [, modulePath] of this.api.modules.modulesPaths) {
       const modelFiles = this.api.utils.recursiveDirectoryGlob(`${modulePath}/models`);
       const processedModels = await this.processModelsFiles(modelFiles);
       allModels = [...allModels, ...processedModels];
