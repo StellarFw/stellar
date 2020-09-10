@@ -28,6 +28,16 @@ export class Utils {
   constructor (api = null) { this.api = api }
 
   /**
+   * Check if object has key.
+   *
+   * @param {string} key key to be checked
+   * @param {object} object object to be check if has the key
+   */
+  hasProp(key, object) {
+    return Object.prototype.hasOwnProperty.call(object, key);
+  }
+
+  /**
    * Gets the filesystem stats for the given file.
    *
    * @param {string} file path for the file
