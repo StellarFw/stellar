@@ -28,7 +28,7 @@ if (process.platform === 'win32') {
 }
 
 let mocha = __dirname + path.sep + 'node_modules' + path.sep + '.bin' + path.sep + mochaExec
-let child = spawn(mocha, [ 'test' ], {
+let child = spawn(mocha, [ './test/**/*.js', '--exit' ], {
   cwd: __dirname,
   env: testEnv
 })
