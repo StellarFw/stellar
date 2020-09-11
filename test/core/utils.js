@@ -6,19 +6,15 @@ let engine = new EngineClass({ rootPath: process.cwd() + '/example' })
 
 let api = null
 
-describe.only('Core: Utils', () => {
+describe('Core: Utils', () => {
   before(done => {
-    // start a Stellar instance
     engine.start((_, a) => {
       api = a
       done()
     })
   })
 
-  after(done => {
-    // finish the Stellar instance execution
-    engine.stop(() => { done() })
-  })
+  after(done => engine.stop(done))
 
   describe('for randomStr', () => {
     it('the function must exist and the result be a string', () => {

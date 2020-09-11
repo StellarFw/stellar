@@ -16,22 +16,23 @@ export default {
       // Hash with model system adapters
       // -----------------------------------------------------------------------
       adapters: {
-        'memory': 'sails-memory'
+        'memory': 'sails-disk'
       },
 
       // -----------------------------------------------------------------------
-      // Hash with the active connections
+      // Hash with the active datastores
       // -----------------------------------------------------------------------
-      connections: {
+      datastores: {
         default: {
-          adapter: 'memory'
+          adapter: 'memory',
+          inMemoryOnly: true,
         }
       },
 
       // -----------------------------------------------------------------------
-      // Default connection
+      // Default datastore
       // -----------------------------------------------------------------------
-      defaultConnection: 'default',
+      defaultDatastore: 'default',
 
       // -----------------------------------------------------------------------
       // Use schemas

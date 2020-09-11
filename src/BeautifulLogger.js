@@ -125,11 +125,11 @@ export default class BeautifulLogger extends Transport {
           output += ` \n${util.inspect(meta, false, this.depth || null, this.colorize)}`
         } else if (
           Object.keys(meta).length &&
-            meta.prototype.hasOwnProperty.call(meta, 'date') &&
-            meta.prototype.hasOwnProperty.call(meta, 'process') &&
-            meta.prototype.hasOwnProperty.call(meta, 'os') &&
-            meta.prototype.hasOwnProperty.call(meta, 'trace') &&
-            meta.prototype.hasOwnProperty.call(meta, 'stack')) {
+            Object.prototype.hasOwnProperty.call(meta, 'date') &&
+            Object.prototype.hasOwnProperty.call(meta, 'process') &&
+            Object.prototype.hasOwnProperty.call(meta, 'os') &&
+            Object.prototype.hasOwnProperty.call(meta, 'trace') &&
+            Object.prototype.hasOwnProperty.call(meta, 'stack')) {
           // if meta carries unhandled exception data serialize the stack nicely
           const stack = meta.stack
           delete meta.stack
