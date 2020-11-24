@@ -1,6 +1,12 @@
 import Waterline from 'waterline'
 import {basename} from 'path'
 import { promisify } from "util";
+import { mergeDeepRight } from "ramda";
+
+const DEFAULT_PRIMARY_KEY = {
+  type: 'number',
+  autoMigrations: { autoIncrement: true }
+};
 
 /**
  * Satellite to manage the models using Waterline ORM.
@@ -63,7 +69,7 @@ class Models {
 
   /**
    * Preprocess the model.
-   * 
+   *
    * @param modelName model base name
    * @param modelOrig original model object
    */
@@ -74,12 +80,17 @@ class Models {
       modelOrig = modelOrig(this.api);
     }
 
+    const dataStoreToUse = modelOrig.datastore || this.api.config.models.defaultDatastore;
+
+    // cerate a new model objects to merge the model into the default model properties defied in the configurations file
+    const newModel = mergeDeepRight(this.api.config.models.defaultModelPropsForDatastore[dataStoreToUse], modelOrig);
+
     // Execute the `add` event to allow other modules modify this model before it
     // gets compiled.
     const { model } = await this.api.events.fire(
       `core.models.add.${modelName}`,
       {
-        model: modelOrig,
+        model: newModel,
       },
     );
 
@@ -88,34 +99,19 @@ class Models {
       model.identity = modelName;
     }
 
-    if (!model.datastore) {
-      model.datastore = this.api.config.models.defaultDatastore;
-    }
+    model.datastore = dataStoreToUse;
 
     if (!model.schema) {
       model.schema = this.api.config.models.schema;
-    }
-
-    // when there is no primary key set we inject an id field and mark it as 
-    // primary
-    if (!model.primaryKey) {
-      if (!model.attributes.id) {
-        model.attributes.id = {
-          type: 'number',
-          autoMigrations: { autoIncrement: true }
-        }
-      }
-
-      model.primaryKey = 'id'
     }
 
     return model;
   }
 
   /**
-   * Load all models into the memory and preprocess them ot see if is valid 
+   * Load all models into the memory and preprocess them ot see if is valid
    * data.
-   * 
+   *
    * @param models array of modules to be loaded
    */
   async processModelsFiles(models) {
@@ -184,8 +180,8 @@ class Models {
    * @param modelName                 Model name to get.
    * @returns {WaterlineCollection}   Model object.
    */
-  get (modelName) { 
-    return Waterline.getModel(modelName, this.waterline); 
+  get (modelName) {
+    return Waterline.getModel(modelName, this.waterline);
   }
 
   /**

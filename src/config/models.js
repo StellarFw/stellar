@@ -13,19 +13,40 @@ export default {
       '_toExpand': false,
 
       // -----------------------------------------------------------------------
-      // Hash with model system adapters
+      // Object with model system adapters
       // -----------------------------------------------------------------------
       adapters: {
         'memory': 'sails-disk'
       },
 
       // -----------------------------------------------------------------------
-      // Hash with the active datastores
+      // Object with the active datastores
       // -----------------------------------------------------------------------
       datastores: {
         default: {
           adapter: 'memory',
           inMemoryOnly: true,
+        }
+      },
+
+      // -----------------------------------------------------------------------
+      // Default models properties based on the Datastore
+      // -----------------------------------------------------------------------
+      // This allows to set default properties for the models. For example, this
+      // is useful when to defined the default primary key, as following.
+      // -----------------------------------------------------------------------
+      defaultModelPropsForDatastore: {
+        memory: {
+          attributes: {
+            id: {
+              type: 'number',
+              autoMigrations: {
+                unique: true,
+                autoIncrement: false,
+              }
+            }
+          },
+          primaryKey: 'id',
         }
       },
 

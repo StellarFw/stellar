@@ -1,5 +1,5 @@
 // Enable source map support
-import 'source-map-support/register'
+// import 'source-map-support/register'
 
 // Module Dependencies
 import path from 'path'

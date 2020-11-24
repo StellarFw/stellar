@@ -41,6 +41,7 @@
     "node-resque": "^4.0.7",
     "primus": "7.3.4",
     "qs": "^6.5.0",
+    "ramda": "^0.27.1",
     "sails-disk": "1.0.0-12",
     "should": "^13.0.0",
     "source-map-support": "^0.5.0",
@@ -49,7 +50,7 @@
     "then-fakeredis": "^2.0.1",
     "uglify-es": "^3.0.25",
     "uuid": "3.4.0",
-    "waterline": "0.13.6",
+    "waterline": "github:balderdashy/waterline#v0.14.0-5",
     "winston": "^2.1.1",
     "winston-daily-rotate-file": "^1.4.6",
     "ws": "^4.0.0"
