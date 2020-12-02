@@ -52,7 +52,7 @@
     "uuid": "3.4.0",
     "waterline": "github:balderdashy/waterline#v0.14.0-5",
     "winston": "^2.1.1",
-    "winston-daily-rotate-file": "^1.4.6",
+    "winston-daily-rotate-file": "^3.10.0",
     "ws": "^4.0.0"
   },
   "devDependencies": {
