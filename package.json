@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@babel/polyfill": "^7.0.0",
-    "async": "^2.5.0",
+    "async": "^3.2.0",
     "bcrypt": "5.0.0",
     "bluebird": "^3.5.0",
     "browser_fingerprint": "1.0.4",
