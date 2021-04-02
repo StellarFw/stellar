@@ -28,7 +28,7 @@
     "async": "^2.5.0",
     "bcrypt": "5.0.0",
     "bluebird": "^3.5.0",
-    "browser_fingerprint": "1.0.4",
+    "browser_fingerprint": "2.0.3",
     "chalk": "^2.0.1",
     "etag": "^1.7.0",
     "fakeredis": "^2.0.0",
