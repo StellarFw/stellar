@@ -1,8 +1,8 @@
 import { Satellite } from "@stellarfw/common/lib/satellite";
-import { GenericServer } from "@stellarfw/common/lib/generic-server";
 
 import * as UUID from "uuid";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
+import { GenericServer } from "@/base/generic-server";
 
 export class TestServer extends GenericServer {
   constructor(api, type, options) {
@@ -15,12 +15,12 @@ export class TestServer extends GenericServer {
       verbs: api.connections.allowedVerbs,
     };
 
-    this.on("connection", connection => {
+    this.on("connection", (connection) => {
       connection.messages = [];
       connection.actionCallbacks = {};
     });
 
-    this.on("actionComplete", data => {
+    this.on("actionComplete", (data) => {
       data.response.messageCount = data.messageCount;
       data.response.serverInformation = {
         serverName: api.configs.general.serverName,
@@ -35,7 +35,7 @@ export class TestServer extends GenericServer {
 
       if (data.response.error) {
         data.response.error = api.configs.errors.serializers.servers.helper(
-          data.response.error,
+          data.response.error
         );
       }
 
@@ -111,7 +111,7 @@ export default class HelpersSatellite extends Satellite {
    */
   public async runAction(
     actionName: string,
-    input: { [key: string]: any } = {},
+    input: { [key: string]: any } = {}
   ): Promise<any> {
     let connection;
 
@@ -125,7 +125,7 @@ export default class HelpersSatellite extends Satellite {
 
     connection.messageCount++;
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       connection.actionCallbacks[connection.messageCount] = resolve;
       this.api.servers.servers.testServer.processAction(connection);
     });

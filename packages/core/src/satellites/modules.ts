@@ -71,7 +71,7 @@ export default class ModulesSatellite extends Satellite {
       .getPreEmitDiagnostics(program)
       .concat(emitResult.diagnostics);
 
-    allDiagnostics.forEach(diagnostic => {
+    allDiagnostics.forEach((diagnostic) => {
       if (!diagnostic.file) {
         return;
       }
@@ -81,16 +81,15 @@ export default class ModulesSatellite extends Satellite {
       }
 
       const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(
-        diagnostic.start!,
+        diagnostic.start!
       );
       const message = ts.flattenDiagnosticMessageText(
         diagnostic.messageText,
-        "\n",
+        "\n"
       );
 
       console.log(
-        `${diagnostic.file.fileName} (${line + 1},${character +
-          1}): ${message}`,
+        `${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`
       );
     });
 
@@ -135,7 +134,7 @@ export default class ModulesSatellite extends Satellite {
         }
       } catch (e) {
         throw new Error(
-          `There is an invalid module active, named "${moduleName}", fix this to start Stellar normally. Usually this happens when the 'manifest.json' file doesn't exist.`,
+          `There is an invalid module active, named "${moduleName}", fix this to start Stellar normally. Usually this happens when the 'manifest.json' file doesn't exist.`
         );
       }
     }
@@ -166,8 +165,8 @@ export default class ModulesSatellite extends Satellite {
         "node_modules",
       ];
 
-      tempFilesLocations.forEach(e =>
-        this.api.utils.removePath(`${scope.rootPath}/${e}`),
+      tempFilesLocations.forEach((e) =>
+        this.api.utils.removePath(`${scope.rootPath}/${e}`)
       );
     }
 
@@ -182,14 +181,14 @@ export default class ModulesSatellite extends Satellite {
 
     let nodeDependencies = {};
 
-    this.activeModules.forEach(manifest => {
+    this.activeModules.forEach((manifest) => {
       if (manifest.nodeDependencies === undefined) {
         return;
       }
 
       nodeDependencies = this.api.utils.hashMerge(
         nodeDependencies,
-        manifest.nodeDependencies,
+        manifest.nodeDependencies
       );
     });
 
@@ -206,7 +205,7 @@ export default class ModulesSatellite extends Satellite {
     writeFileSync(
       packageJsonPath,
       JSON.stringify(projectJson, null, 2),
-      "utf8",
+      "utf8"
     );
 
     this.api.log("Updating Node dependencies", LogLevel.Info);
@@ -223,7 +222,7 @@ export default class ModulesSatellite extends Satellite {
       execSync(commandToRun);
     } catch (error) {
       throw new Error(
-        "An error occurred during the Node dependencies install command.",
+        "An error occurred during the Node dependencies install command."
       );
     }
 
@@ -238,7 +237,7 @@ export default class ModulesSatellite extends Satellite {
    */
   public regModuleAction(
     moduleName: string,
-    value: string | Array<string>,
+    value: string | Array<string>
   ): void {
     if (!this.moduleActions.has(moduleName)) {
       this.moduleActions.set(moduleName, []);
@@ -246,10 +245,10 @@ export default class ModulesSatellite extends Satellite {
 
     const arrayOfActions = this.moduleActions.get(moduleName);
 
-    if (Array.isArray(value)) {
+    if (arrayOfActions && Array.isArray(value)) {
       this.moduleActions.set(moduleName, arrayOfActions.concat(value));
-    } else if (this.api.utils.isNonEmptyString(value)) {
-      arrayOfActions.push(value);
+    } else if (arrayOfActions && this.api.utils.isNonEmptyString(value)) {
+      arrayOfActions.push(value as string);
     } else {
       throw new Error("Value got an invalid state.");
     }

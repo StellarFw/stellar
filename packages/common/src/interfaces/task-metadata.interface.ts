@@ -1,3 +1,15 @@
+/**
+ * Type for the task's inputs.
+ */
+export interface TaskInputMap {
+  [key: string]: any;
+}
+
+/**
+ * Type of the task handler function.
+ */
+export type TaskFn = (api: any, params: TaskInputMap, next: Function) => void;
+
 export interface ITaskMetadata {
   /**
    * Name of the task, which must be unique.
@@ -34,4 +46,9 @@ export interface ITaskMetadata {
    * This is an object with options for plugins.
    */
   pluginOptions: any;
+
+  /**
+   * Function handler for the task.
+   */
+  run: TaskFn;
 }

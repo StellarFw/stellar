@@ -19,13 +19,13 @@ export default class LoggerSatellite extends Satellite {
   }
 
   public async load(): Promise<void> {
-    const transports = [];
+    const transports: Array<any> = [];
 
     this.createLogsFolder();
 
     // load all transports
     if (this.api.configs.logger.transports) {
-      this.api.configs.logger.transports.forEach(transport => {
+      this.api.configs.logger.transports.forEach((transport) => {
         if (typeof transport === "function") {
           transports.push(transport(this.api, winston));
         } else {
@@ -53,7 +53,7 @@ export default class LoggerSatellite extends Satellite {
     this.api.log = (msg: any, level: LogLevel = LogLevel.Info) => {
       const args = [level, msg];
 
-      args.push.apply(args, Array.prototype.splice.call(arguments, 2));
+      args.push.apply(args, Array.prototype.splice.call(arguments, 2, 0));
       this.api.logger.log.apply(this.api.logger, args);
     };
 
@@ -62,7 +62,7 @@ export default class LoggerSatellite extends Satellite {
     this.api.log(
       "Logger loaded. Possible levels included:",
       LogLevel.Debug,
-      logLevels,
+      logLevels
     );
   }
 }

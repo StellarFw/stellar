@@ -17,7 +17,7 @@ export type ExceptionHandler = (
   type: ExceptionType,
   name: string,
   objects: any,
-  severity: LogLevel,
+  severity: LogLevel
 ) => void;
 
 export default class ExceptionsSatellite extends Satellite {
@@ -39,11 +39,11 @@ export default class ExceptionsSatellite extends Satellite {
     type: ExceptionType = ExceptionType.OTHER,
     name: string = "",
     objects: any = [],
-    severity: LogLevel = LogLevel.Error,
+    severity: LogLevel = LogLevel.Error
   ): void {
     let output = "";
-    let lines = [];
-    const extraMessages = [];
+    let lines: Array<string> = [];
+    const extraMessages: Array<string> = [];
 
     if (typeof err === "string") {
       err = new Error(err);
@@ -64,21 +64,19 @@ export default class ExceptionsSatellite extends Satellite {
         ) {
           extraMessages.push(
             `    ${detailName}: ${JSON.stringify(
-              objects.connection[detailName],
-            )}`,
+              objects.connection[detailName]
+            )}`
           );
         }
       }
       extraMessages.push("");
     } else if (type === ExceptionType.TASK) {
       extraMessages.push(
-        `Uncaught error from task: ${name} on queue ${objects.queue} (worker #${
-          objects.workerId
-        })\n`,
+        `Uncaught error from task: ${name} on queue ${objects.queue} (worker #${objects.workerId})\n`
       );
       try {
         extraMessages.push(
-          "    arguments: " + JSON.stringify(objects.task.args),
+          "    arguments: " + JSON.stringify(objects.task.args)
         );
       } catch (e) {}
     } else {
@@ -92,7 +90,9 @@ export default class ExceptionsSatellite extends Satellite {
     output += extraMessages.reduce((prev, item) => prev + `${item} \n`, "");
 
     // add the stack trace
-    lines = lines.concat(err.stack.split(EOL));
+    if (err.stack) {
+      lines = [...lines, ...err.stack.split(EOL)];
+    }
 
     // reduce the lines array into a single string
     output += lines.reduce((prev, item) => prev + `${item}\n`, "");
@@ -115,9 +115,9 @@ export default class ExceptionsSatellite extends Satellite {
     type: ExceptionType,
     name: string,
     objects: any,
-    severity = LogLevel.Error,
+    severity = LogLevel.Error
   ) {
-    this.reporters.forEach(reporter => {
+    this.reporters.forEach((reporter) => {
       reporter.call(this, err, type, name, objects, severity);
     });
   }
@@ -135,7 +135,7 @@ export default class ExceptionsSatellite extends Satellite {
       ExceptionType.LOADER,
       name,
       { fullFilePath },
-      LogLevel.Alert,
+      LogLevel.Alert
     );
   }
 
@@ -147,7 +147,7 @@ export default class ExceptionsSatellite extends Satellite {
    * @param next
    */
   public action(err: Error, data: any = {}) {
-    let simpleName: string = null;
+    let simpleName: string;
 
     // try get the action name. Sometimes this can be impossible so we use the
     // error message instead.
@@ -162,7 +162,7 @@ export default class ExceptionsSatellite extends Satellite {
       ExceptionType.ACTION,
       simpleName,
       { connection: data.connection },
-      LogLevel.Error,
+      LogLevel.Error
     );
     data.response = {};
   }
@@ -170,14 +170,15 @@ export default class ExceptionsSatellite extends Satellite {
   /**
    * Exception handler for tasks.
    *
+   * TODO: add task interface
+   *
    * @param error       Error object.
    * @param queue       Queue here the error occurs
    * @param task
    * @param workerId
    */
-  // TODO: add task interface
   public task(error: Error, queue: Array<string>, task: any, workerId: number) {
-    let simpleName: string = null;
+    let simpleName: string;
 
     try {
       simpleName = task.class;
@@ -194,7 +195,7 @@ export default class ExceptionsSatellite extends Satellite {
         queue,
         workerId,
       },
-      this.api.configs.tasks.workerLogging.failure,
+      this.api.configs.tasks.workerLogging.failure
     );
   }
 }

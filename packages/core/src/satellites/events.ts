@@ -51,7 +51,7 @@ export default class EventsSatellite extends Satellite {
     ) {
       this.api.log(
         "Invalid listener - missing run property or not a function",
-        LogLevel.Warning,
+        LogLevel.Warning
       );
       return false;
     }
@@ -73,9 +73,9 @@ export default class EventsSatellite extends Satellite {
         this.events.set(event, []);
       }
 
-      const listeners = this.events.get(event);
+      const listeners = this.events.get(event)!;
       listeners.push(listenerObj);
-      listeners.sort((l1, l2) => l1.priority - l2.priority);
+      listeners.sort((l1, l2) => l1.priority! - l2.priority!);
     }
 
     return true;
@@ -110,7 +110,7 @@ export default class EventsSatellite extends Satellite {
     }
 
     const responseData = _.cloneDeep(data);
-    const listeners = this.events.get(eventName);
+    const listeners = this.events.get(eventName)!;
 
     const context = {
       api: this.api,
@@ -131,14 +131,14 @@ export default class EventsSatellite extends Satellite {
    */
   private watchForChanges(path: string) {
     this.api.config.watchFileAndAct(path, () => {
-      this.fileListeners.get(path).forEach(listener => {
+      this.fileListeners.get(path)!.forEach((listener) => {
         const events =
           typeof listener.event === "string"
             ? [listener.event]
             : listener.event;
 
         for (const event of events) {
-          const listeners = this.events.get(event);
+          const listeners = this.events.get(event)!;
           const index = listeners.indexOf(listener);
           listeners.splice(index, 1);
         }
@@ -155,9 +155,9 @@ export default class EventsSatellite extends Satellite {
    * @param reload When set to true that means that is a reload.
    */
   public loadFile(path: string, reload: boolean = false) {
-    const loadMessage = listener => {
+    const loadMessage = (listener) => {
       const level = reload ? LogLevel.Info : LogLevel.Debug;
-      let msg = null;
+      let msg: string;
 
       if (reload) {
         msg = `listener (re)loaded: ${listener.event}, ${path}`;
@@ -168,13 +168,13 @@ export default class EventsSatellite extends Satellite {
       this.api.log(msg, level);
     };
 
-    const collection = require(path);
+    const collection = require(path) as Array<EventInterface>;
 
     if (!reload) {
       this.watchForChanges(path);
     }
 
-    const listeners = [];
+    const listeners: Array<EventInterface> = [];
 
     for (const key in collection) {
       if (!collection.hasOwnProperty(key)) {
@@ -195,7 +195,7 @@ export default class EventsSatellite extends Satellite {
    * Iterate over all active modules and loads al the listeners.
    */
   private loadListeners() {
-    this.api.modules.modulesPaths.forEach(modulePath => {
+    this.api.modules.modulesPaths.forEach((modulePath) => {
       const listenersFolderPath = `${modulePath}/listeners`;
 
       if (!this.api.utils.dirExists(listenersFolderPath)) {
@@ -204,7 +204,7 @@ export default class EventsSatellite extends Satellite {
 
       this.api.utils
         .recursiveDirSearch(listenersFolderPath, "js")
-        .forEach(listenerPath => this.loadFile(listenerPath));
+        .forEach((listenerPath) => this.loadFile(listenerPath));
     });
   }
 }

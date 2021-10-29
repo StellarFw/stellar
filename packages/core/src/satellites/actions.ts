@@ -1,11 +1,9 @@
 import {
+  Connection,
   Satellite,
-  IActionMetadata,
   Action,
   LogLevel,
-  Connection,
   MiddlewareInterface,
-  ActionMetadata,
 } from "@stellarfw/common/lib";
 import { ACTION_METADATA } from "@stellarfw/common/lib/constants";
 
@@ -24,13 +22,13 @@ const PROTECTED_KEYS = ["name"];
 /**
  * System action to show the server status.
  */
-@ActionMetadata({
-  name: "status",
-  description: "Is a system action to show the server status",
-})
-class StatusAction extends Action {
-  public async run() {}
-}
+// @ActionMetadata({
+//   name: "status",
+//   description: "Is a system action to show the server status",
+// })
+// class StatusAction extends Action {
+//   public async run() {}
+// }
 
 export default class ActionsSatellite extends Satellite {
   protected _name: string = "actions";
@@ -95,14 +93,14 @@ export default class ActionsSatellite extends Satellite {
       const actionProcessor = new ActionProcessor(
         this.api,
         connection,
-        data => {
+        (data) => {
           connection.destroy();
           if (data.response.error !== undefined) {
             return reject(data.response.error);
           }
 
           resolve(data.response);
-        },
+        }
       );
 
       actionProcessor.processAction();
@@ -117,10 +115,10 @@ export default class ActionsSatellite extends Satellite {
       return;
     }
 
-    this.versions.set("status", [1]);
-    this.actions.status = {
-      1: StatusAction,
-    };
+    // this.versions.set("status", [1]);
+    // this.actions.status = {
+    //   1: StatusAction,
+    // };
   }
 
   /**
@@ -130,26 +128,22 @@ export default class ActionsSatellite extends Satellite {
    * @param path Path to the action file.
    * @param reload Informs if this is a reload.
    */
-  private actionLoadMessage(
-    actionMetadata: IActionMetadata,
-    path: string,
-    reload: boolean = false,
-  ) {
-    const level: LogLevel = reload ? LogLevel.Info : LogLevel.Debug;
-    let msg = null;
+  // private actionLoadMessage(
+  //   actionMetadata: IActionMetadata,
+  //   path: string,
+  //   reload: boolean = false
+  // ) {
+  //   const level: LogLevel = reload ? LogLevel.Info : LogLevel.Debug;
+  //   let msg: string;
 
-    if (reload) {
-      msg = `action (re)loaded: ${actionMetadata.name} @ v${
-        actionMetadata.version
-      }, ${path}`;
-    } else {
-      msg = `action loaded: ${actionMetadata.name} @ v${
-        actionMetadata.version
-      }, ${path}`;
-    }
+  //   if (reload) {
+  //     msg = `action (re)loaded: ${actionMetadata.name} @ v${actionMetadata.version}, ${path}`;
+  //   } else {
+  //     msg = `action loaded: ${actionMetadata.name} @ v${actionMetadata.version}, ${path}`;
+  //   }
 
-    this.api.log(msg, level);
-  }
+  //   this.api.log(msg, level);
+  // }
 
   /**
    * Loads an action into memory.
@@ -160,7 +154,7 @@ export default class ActionsSatellite extends Satellite {
     action: Action,
     path: string,
     module: string,
-    reload: boolean = false,
+    reload: boolean = false
   ): void {
     // Ignore when the given "action" isn't an function. That
     // means the user isn't use an Class.
@@ -177,51 +171,51 @@ export default class ActionsSatellite extends Satellite {
       return;
     }
 
-    const metadata: IActionMetadata = Reflect.getMetadata(
-      ACTION_METADATA,
-      action,
-    );
+    // const metadata: IActionMetadata = Reflect.getMetadata(
+    //   ACTION_METADATA,
+    //   action
+    // );
 
-    // If the action not exists create a new entry on the hash map
-    if (
-      this.actions[metadata.name] === null ||
-      this.actions[metadata.name] === undefined
-    ) {
-      this.actions[metadata.name] = {};
-    }
+    // // If the action not exists create a new entry on the hash map
+    // if (
+    //   this.actions[metadata.name] === null ||
+    //   this.actions[metadata.name] === undefined
+    // ) {
+    //   this.actions[metadata.name] = {};
+    // }
 
-    // Protected actions can't be override by other modules.
-    if (
-      !reload &&
-      this.actions[metadata.name][metadata.version] &&
-      this.actions[metadata.name][metadata.version].protected
-    ) {
-      return;
-    }
+    // // Protected actions can't be override by other modules.
+    // if (
+    //   !reload &&
+    //   this.actions[metadata.name][metadata.version] &&
+    //   this.actions[metadata.name][metadata.version].protected
+    // ) {
+    //   return;
+    // }
 
-    if (!reload) {
-      // associate the action to the module (this must only be made once)
-      this.api.modules.regModuleAction(module, metadata.name);
-    } else {
-      // Groups: apply the necessary actions modifications (this is only
-      // made on the reload because on the loading we don't have the
-      // necessary information for this)
-      this.applyModificationsToAction(action);
-    }
+    // if (!reload) {
+    //   // associate the action to the module (this must only be made once)
+    //   this.api.modules.regModuleAction(module, metadata.name);
+    // } else {
+    //   // Groups: apply the necessary actions modifications (this is only
+    //   // made on the reload because on the loading we don't have the
+    //   // necessary information for this)
+    //   this.applyModificationsToAction(action);
+    // }
 
-    // Put the action on the correct version slot
-    this.actions[metadata.name][metadata.version] = action;
-    if (
-      this.versions[metadata.name] === null ||
-      this.versions[metadata.name] === undefined
-    ) {
-      this.versions[metadata.name] = [];
-    }
-    this.versions[metadata.name].push(metadata.version);
-    this.versions[metadata.name].sort();
+    // // Put the action on the correct version slot
+    // this.actions[metadata.name][metadata.version] = action;
+    // if (
+    //   this.versions[metadata.name] === null ||
+    //   this.versions[metadata.name] === undefined
+    // ) {
+    //   this.versions[metadata.name] = [];
+    // }
+    // this.versions[metadata.name].push(metadata.version);
+    // this.versions[metadata.name].sort();
 
-    this.validateAction(this.actions[metadata.name][metadata.version]);
-    this.actionLoadMessage(metadata, path);
+    // this.validateAction(this.actions[metadata.name][metadata.version]);
+    // this.actionLoadMessage(metadata, path);
   }
 
   /**
@@ -244,7 +238,7 @@ export default class ActionsSatellite extends Satellite {
       this.api.routes.loadRoutes();
     });
 
-    let action = null;
+    let action: Action;
 
     try {
       const collection = require(path);
@@ -254,14 +248,15 @@ export default class ActionsSatellite extends Satellite {
           continue;
         }
 
-        action = collection[key] as typeof Action;
+        // TODO: check if the object is a valid Action
+        action = collection[key] as Action;
         this.loadAction(action, path, module);
       }
     } catch (err) {
       try {
         this.api.exceptionHandlers.loader(path, err);
-        if (action) {
-          delete this.actions[action.id][action.version];
+        if (action!) {
+          delete this.actions[action.name][action.version!];
         }
       } catch (err2) {
         throw err;
@@ -277,7 +272,7 @@ export default class ActionsSatellite extends Satellite {
      */
     const loadMessage = (middleware: MiddlewareInterface) => {
       const level = reload ? "info" : "debug";
-      let msg = null;
+      let msg: string;
 
       if (reload) {
         msg = `middleware (re)loaded: ${middleware.name}, ${path}`;
@@ -290,7 +285,7 @@ export default class ActionsSatellite extends Satellite {
 
     // watch for changes on the middleware file
     this.api.configs.watchFileAndAct(path, () =>
-      this.loadMiddlewareFromFile(path, true),
+      this.loadMiddlewareFromFile(path, true)
     );
 
     try {
@@ -320,7 +315,7 @@ export default class ActionsSatellite extends Satellite {
     // the modifier is a hash that the keys correspond to group names
     const groups = Object.keys(modifier);
 
-    groups.forEach(groupName => {
+    groups.forEach((groupName) => {
       const group = modifier[groupName];
 
       // array to store the group's actions
@@ -333,9 +328,9 @@ export default class ActionsSatellite extends Satellite {
 
       // process the `modules` property
       if (Array.isArray(group.modules)) {
-        group.modules.forEach(modulesName => {
+        group.modules.forEach((modulesName) => {
           actions = actions.concat(
-            this.api.modules.moduleActions.get(modulesName) || [],
+            this.api.modules.moduleActions.get(modulesName) || []
           );
         });
       }
@@ -364,7 +359,7 @@ export default class ActionsSatellite extends Satellite {
       }
 
       // get the array of actions
-      const arrayOfActions = this.groupsActions.get(action.group);
+      const arrayOfActions = this.groupsActions.get(action.group)!;
 
       // to prevent duplicated entries, it's necessary check if the array
       // already exists on the array
@@ -377,8 +372,8 @@ export default class ActionsSatellite extends Satellite {
     const groupNames = this.checkWhatGroupsArePresent(action.id);
 
     // apply the changes of all founded groups
-    groupNames.forEach(groupName =>
-      this.applyGroupModToAction(groupName, action),
+    groupNames.forEach((groupName) =>
+      this.applyGroupModToAction(groupName, action)
     );
   }
 
@@ -419,7 +414,7 @@ export default class ActionsSatellite extends Satellite {
 
         // this needs to be an Array
         if (Array.isArray(action[key])) {
-          action[key] = action[key].filter(item => !value.includes(item));
+          action[key] = action[key].filter((item) => !value.includes(item));
         }
 
         continue;
@@ -442,7 +437,7 @@ export default class ActionsSatellite extends Satellite {
    */
   private checkWhatGroupsArePresent(actionName) {
     // this array will store the groups of which the action is part
-    const result = [];
+    const result: Array<string> = [];
 
     // iterate all groups
     this.groupsActions.forEach((actions, groupName) => {
@@ -459,12 +454,12 @@ export default class ActionsSatellite extends Satellite {
    */
   private applyGroupModifications() {
     // iterate all actions
-    Object.keys(this.actions).forEach(actionName => {
+    Object.keys(this.actions).forEach((actionName) => {
       // get all action versions
       const actionVersion = this.actions[actionName];
 
       // iterate all action versions
-      Object.keys(actionVersion).forEach(versionNumber => {
+      Object.keys(actionVersion).forEach((versionNumber) => {
         // apply the group modifications
         this.applyModificationsToAction(actionVersion[versionNumber]);
       });
@@ -479,13 +474,13 @@ export default class ActionsSatellite extends Satellite {
       // load modules middleware
       this.api.utils
         .recursiveDirSearch(`${modulePath}/middleware`)
-        .forEach(path => this.api.actions.loadMiddlewareFromFile(path));
+        .forEach((path) => this.api.actions.loadMiddlewareFromFile(path));
 
       // get all files from the module "actions" folder
       this.api.utils
         .recursiveDirSearch(`${modulePath}/actions`)
-        .forEach(actionFile =>
-          this.api.actions.loadFile(actionFile, moduleName),
+        .forEach((actionFile) =>
+          this.api.actions.loadFile(actionFile, moduleName)
         );
     });
   }
@@ -495,52 +490,53 @@ export default class ActionsSatellite extends Satellite {
    *
    * @param action  Action object to be validated.
    */
-  private validateAction(action: Action) {
-    const actionMetadata: IActionMetadata = Reflect.getMetadata(
-      ACTION_METADATA,
-      action,
-    );
-    const fail = msg => this.api.log(msg, LogLevel.Error);
+  private validateAction(_action: Action) {
+    return false;
+    // const actionMetadata:  = Reflect.getMetadata(
+    //   ACTION_METADATA,
+    //   action
+    // );
+    // const fail = (msg) => this.api.log(msg, LogLevel.Error);
 
-    // initialize inputs property
-    if (actionMetadata.inputs === undefined) {
-      actionMetadata.inputs = {};
-    }
+    // // initialize inputs property
+    // if (actionMetadata.inputs === undefined) {
+    //   actionMetadata.inputs = {};
+    // }
 
-    // initialize private property
-    if (actionMetadata.private === undefined) {
-      actionMetadata.private = false;
-    }
+    // // initialize private property
+    // if (actionMetadata.private === undefined) {
+    //   actionMetadata.private = false;
+    // }
 
-    // initialize protected property
-    if (actionMetadata.protected === undefined) {
-      actionMetadata.protected = false;
-    }
+    // // initialize protected property
+    // if (actionMetadata.protected === undefined) {
+    //   actionMetadata.protected = false;
+    // }
 
-    // the name, description, run properties are required
-    if (
-      typeof actionMetadata.name !== "string" ||
-      actionMetadata.name.length < 1
-    ) {
-      fail("an action is missing 'action.id'");
-      return false;
-    } else if (
-      typeof actionMetadata.description !== "string" ||
-      actionMetadata.description.length < 1
-    ) {
-      fail(`Action ${actionMetadata.name} is missing 'action.description'`);
-      return false;
-    } else if (
-      this.api.connections !== null &&
-      this.api.connections.allowedVerbs.indexOf(actionMetadata.name) >= 0
-    ) {
-      fail(
-        `${action.run} is a reserved verb for connections. Choose a new name`,
-      );
-      return false;
-    }
+    // // the name, description, run properties are required
+    // if (
+    //   typeof actionMetadata.name !== "string" ||
+    //   actionMetadata.name.length < 1
+    // ) {
+    //   fail("an action is missing 'action.id'");
+    //   return false;
+    // } else if (
+    //   typeof actionMetadata.description !== "string" ||
+    //   actionMetadata.description.length < 1
+    // ) {
+    //   fail(`Action ${actionMetadata.name} is missing 'action.description'`);
+    //   return false;
+    // } else if (
+    //   this.api.connections !== null &&
+    //   this.api.connections.allowedVerbs.indexOf(actionMetadata.name) >= 0
+    // ) {
+    //   fail(
+    //     `${action.run} is a reserved verb for connections. Choose a new name`
+    //   );
+    //   return false;
+    // }
 
-    return true;
+    // return true;
   }
 
   /**
@@ -575,7 +571,7 @@ export default class ActionsSatellite extends Satellite {
 
     // sort the global middleware array
     this.globalMiddleware.sort((a, b) => {
-      if (this.middleware[a].priority > this.middleware[b].priority) {
+      if (this.middleware[a].priority! > this.middleware[b].priority!) {
         return 1;
       }
 
@@ -584,7 +580,7 @@ export default class ActionsSatellite extends Satellite {
   }
 
   private loadModuleModifier() {
-    this.api.modules.modulesPaths.forEach(modulePath => {
+    this.api.modules.modulesPaths.forEach((modulePath) => {
       const modPath = `${modulePath}/mod.js`;
 
       if (this.api.utils.fileExists(modPath)) {
@@ -592,7 +588,7 @@ export default class ActionsSatellite extends Satellite {
 
         // when the modifier file changes we must reload the entire server
         this.api.config.watchFileAndAct(modPath, () =>
-          this.api.commands.restart(),
+          this.api.commands.restart()
         );
       }
     });
@@ -601,7 +597,8 @@ export default class ActionsSatellite extends Satellite {
   public async load(): Promise<void> {
     this.api.actions = this;
 
-    this.loadSystemActions();
+    // TODO: update this to make the new action syntax
+    // this.loadSystemActions();
     this.loadModuleActions();
 
     // Load the modules after the action in order to reduce the number of

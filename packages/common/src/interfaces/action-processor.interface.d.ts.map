@@ -1,1 +1,0 @@
-{"version":3,"file":"action-processor.interface.d.ts","sourceRoot":"","sources":["action-processor.interface.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,UAAU,EAAE,MAAM,eAAe,CAAC;AAE3C,MAAM,WAAW,gBAAgB;IAC/B,UAAU,EAAE,UAAU,CAAC;IACvB,QAAQ,EAAE,OAAO,CAAC;CACnB"}

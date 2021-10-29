@@ -95,3 +95,10 @@ export interface Action {
    */
   run: ActionRunFunction;
 }
+
+/**
+ * Type used while action is being processed.
+ */
+export interface ProcessingAction extends Action {
+  params: { [key: string]: any };
+}

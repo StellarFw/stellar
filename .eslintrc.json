@@ -5,7 +5,8 @@
     },
     "extends": [
         "eslint:recommended",
-        "plugin:@typescript-eslint/eslint-recommended"
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:prettier/recommended"
     ],
     "globals": {
         "jest": "readonly"
@@ -24,9 +25,10 @@
         "sourceType": "module"
     },
     "plugins": [
-        "@typescript-eslint"
+        "@typescript-eslint", "prettier"
     ],
     "rules": {
+        "prettier/prettier": "error",
         "indent": [
             "error",
             2

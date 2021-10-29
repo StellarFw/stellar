@@ -1,3 +1,0 @@
-interface ActionBuilder {
-  registerAction(): any;
-}

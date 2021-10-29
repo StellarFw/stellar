@@ -1,5 +1,5 @@
+import { Connection } from "@stellarfw/common/lib";
 import { Satellite } from "@stellarfw/common/lib/satellite";
-import { Connection } from "@stellarfw/common/lib/connection";
 
 export default class ConnectionSatellite extends Satellite {
   protected _name: string = "connection";
@@ -81,12 +81,16 @@ export default class ConnectionSatellite extends Satellite {
     return this.api.redis._doCluster(
       "connections.applyCatch",
       [connectionId, method, args],
-      connectionId,
+      connectionId
     );
   }
 
-  public async applyCatch(connectionId, method = null, args = null) {
-    const connection = this.connections.get(connectionId);
+  public async applyCatch(
+    connectionId,
+    method: string | null = null,
+    args = null
+  ) {
+    const connection = this.connections.get(connectionId)!;
 
     if (method && args) {
       if (method === "sendMessage" || method === "sendFile") {

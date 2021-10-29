@@ -18,15 +18,18 @@ export default class Engine {
   /**
    * List of all loaded Satellites.
    */
-  private satellites: Map<string, SatelliteInterface> = null;
+  private satellites: Map<string, SatelliteInterface> = new Map();
 
-  private satellitesLoadOrder: Map<number, Array<SatelliteInterface>> = null;
-  private satellitesStartOrder: Map<number, Array<SatelliteInterface>> = null;
-  private satellitesStopOrder: Map<number, Array<SatelliteInterface>> = null;
+  private satellitesLoadOrder: Map<number, Array<SatelliteInterface>> =
+    new Map();
+  private satellitesStartOrder: Map<number, Array<SatelliteInterface>> =
+    new Map();
+  private satellitesStopOrder: Map<number, Array<SatelliteInterface>> =
+    new Map();
 
-  private loadSatellites = null;
-  private startSatellites = null;
-  private stopSatellites = null;
+  private loadSatellites: Array<SatelliteInterface> = [];
+  private startSatellites: Array<SatelliteInterface> = [];
+  private stopSatellites: Array<SatelliteInterface> = [];
 
   private startCount: number = 0;
 
@@ -68,12 +71,12 @@ export default class Engine {
     }
 
     switch (level) {
-    case LogLevel.Emergency || LogLevel.Error:
-      console.log(`\x1b[31m[-] ${msg}\x1b[37m`);
-      break;
-    case LogLevel.Info:
-      console.log(`[!] ${msg}`);
-      break;
+      case LogLevel.Emergency || LogLevel.Error:
+        console.log(`\x1b[31m[-] ${msg}\x1b[37m`);
+        break;
+      case LogLevel.Info:
+        console.log(`[!] ${msg}`);
+        break;
     }
   }
 
@@ -92,7 +95,7 @@ export default class Engine {
     }
 
     this.log(`Error with satellite step: ${type}`, LogLevel.Emergency);
-    errors.forEach(error => console.error(error));
+    errors.forEach((error) => console.error(error));
 
     // stop process execution
     await this.stop();
@@ -122,7 +125,7 @@ export default class Engine {
 
       const SatelliteClass = require(file).default;
       const satelliteInstance: SatelliteInterface = new SatelliteClass(
-        this.api,
+        this.api
       );
 
       this.satellites[satelliteName] = satelliteInstance;
@@ -131,7 +134,7 @@ export default class Engine {
         this.satellitesLoadOrder[satelliteInstance.loadPriority] =
           this.satellitesLoadOrder[satelliteInstance.loadPriority] || [];
         this.satellitesLoadOrder[satelliteInstance.loadPriority].push(
-          satelliteInstance,
+          satelliteInstance
         );
       }
 
@@ -139,7 +142,7 @@ export default class Engine {
         this.satellitesStartOrder[satelliteInstance.startPriority] =
           this.satellitesStartOrder[satelliteInstance.startPriority] || [];
         this.satellitesStartOrder[satelliteInstance.startPriority].push(
-          satelliteInstance,
+          satelliteInstance
         );
       }
 
@@ -147,7 +150,7 @@ export default class Engine {
         this.satellitesStopOrder[satelliteInstance.stopPriority] =
           this.satellitesStopOrder[satelliteInstance.stopPriority] || [];
         this.satellitesStopOrder[satelliteInstance.stopPriority].push(
-          satelliteInstance,
+          satelliteInstance
         );
       }
     }
@@ -159,12 +162,12 @@ export default class Engine {
    * @param collection Collection of satellites to be ordered.
    */
   private flattenOrderedSatellites(collection) {
-    const output = [];
+    const output: Array<Satellite> = [];
 
     Object.keys(collection)
-      .map(k => parseInt(k, 10))
+      .map((k) => parseInt(k, 10))
       .sort((a, b) => a - b)
-      .forEach(k => collection[k].forEach(d => output.push(d)));
+      .forEach((k) => collection[k].forEach((d: Satellite) => output.push(d)));
 
     return output;
   }
@@ -186,30 +189,28 @@ export default class Engine {
 
     // load the core satellites
     this.loadArrayOfSatellites(
-      this.api.utils.getFiles(`${__dirname}/satellites`),
+      this.api.utils.getFiles(`${__dirname}/satellites`)
     );
 
     // load module satellites
-    this.api.configs.modules.forEach(moduleName => {
-      const moduleSatellitesPath = `${
-        this.api.scope.rootPath
-      }/modules/${moduleName}/satellites`;
+    this.api.configs.modules.forEach((moduleName) => {
+      const moduleSatellitesPath = `${this.api.scope.rootPath}/modules/${moduleName}/satellites`;
       if (this.api.utils.dirExists(moduleSatellitesPath)) {
         this.loadArrayOfSatellites(
-          this.api.utils.getFiles(moduleSatellitesPath),
+          this.api.utils.getFiles(moduleSatellitesPath)
         );
       }
     });
 
     // organize final array to match the satellites priorities
     this.loadSatellites = this.flattenOrderedSatellites(
-      this.satellitesLoadOrder,
+      this.satellitesLoadOrder
     );
     this.startSatellites = this.flattenOrderedSatellites(
-      this.satellitesStartOrder,
+      this.satellitesStartOrder
     );
     this.stopSatellites = this.flattenOrderedSatellites(
-      this.satellitesStopOrder,
+      this.satellitesStopOrder
     );
 
     try {
@@ -226,9 +227,9 @@ export default class Engine {
   private async stage2(): Promise<void> {
     try {
       for (const satelliteInstance of this.startSatellites) {
-        this.api.log(`> start: ${satelliteInstance.name}`, LogLevel.Debug);
-        await satelliteInstance.start();
-        this.api.log(`\tstarted: ${satelliteInstance.name}`, LogLevel.Debug);
+        this.api.log(`> start: ${satelliteInstance.name!}`, LogLevel.Debug);
+        await satelliteInstance.start!();
+        this.api.log(`\tstarted: ${satelliteInstance.name!}`, LogLevel.Debug);
       }
     } catch (error) {
       this.fatalError(error, "stage2");
@@ -276,7 +277,7 @@ export default class Engine {
       const fileName = file.replace(/^.*[\\\/]/, "");
       const satellite = fileName.split(".")[0];
 
-      const currentSatellite = new (require(file)).default(this.api);
+      const currentSatellite = new (require(file).default)(this.api);
       this.satellites[satellite] = currentSatellite;
 
       try {
@@ -334,14 +335,14 @@ export default class Engine {
       this.api.status = EngineStatus.Stopping;
       this.api.log(
         "Shutdown down open server and stopping task processing",
-        LogLevel.Alert,
+        LogLevel.Alert
       );
 
       try {
         for (const satelliteInstance of this.stopSatellites) {
-          this.api.log(`> stop: ${satelliteInstance.name}`, LogLevel.Debug);
-          await satelliteInstance.stop();
-          this.api.log(`\tstopped: ${satelliteInstance.name}`, LogLevel.Debug);
+          this.api.log(`> stop: ${satelliteInstance.name!}`, LogLevel.Debug);
+          await satelliteInstance.stop!();
+          this.api.log(`\tstopped: ${satelliteInstance.name!}`, LogLevel.Debug);
         }
       } catch (error) {
         this.fatalError(error, "stop");

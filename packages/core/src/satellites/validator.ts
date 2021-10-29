@@ -77,11 +77,11 @@ export default class ValidatorSatellite extends Satellite {
   private requireParameterCount(
     count: number,
     parameters: Array<any>,
-    rule: string,
+    rule: string
   ) {
     if (!parameters || parameters.length < count) {
       throw new InvalidArgumentException(
-        `Validation rule ${rule} requires at least ${count} parameters.`,
+        `Validation rule ${rule} requires at least ${count} parameters.`
       );
     }
   }
@@ -98,7 +98,7 @@ export default class ValidatorSatellite extends Satellite {
     message: string,
     attribute: string,
     _rule: string,
-    parameters: Array<any>,
+    parameters: Array<any>
   ) {
     message = message.replace(/:attribute/gi, attribute);
 
@@ -116,7 +116,7 @@ export default class ValidatorSatellite extends Satellite {
   private getMessage(attribute, rule) {
     // check if is a size rule
     if (this.sizeRules.indexOf(rule) > -1) {
-      let type = null;
+      let type: string;
 
       if (this.attributeHasRule(attribute, "numeric")) {
         type = "numeric";
@@ -152,7 +152,7 @@ export default class ValidatorSatellite extends Satellite {
     attribute: string,
     rule: string,
     parameters: Array<string>,
-    errors: Map<string, string>,
+    errors: Map<string, string>
   ) {
     // get the error message
     let message = this.getMessage(attribute, rule);
@@ -160,7 +160,7 @@ export default class ValidatorSatellite extends Satellite {
     // if there is no message for the validator throw an error
     if (message === undefined) {
       throw new Error(
-        `No error message was been specified for the '${rule}' validator`,
+        `No error message was been specified for the '${rule}' validator`
       );
     }
 
@@ -194,7 +194,7 @@ export default class ValidatorSatellite extends Satellite {
         field.function = [];
       } else {
         // iterate all validators of the current field
-        rules[fieldName].split("|").forEach(validatorS => {
+        rules[fieldName].split("|").forEach((validatorS) => {
           const parts = validatorS.split(":");
           const parameters = parts[1] ? parts[1].split(",") : [];
 
@@ -276,7 +276,7 @@ export default class ValidatorSatellite extends Satellite {
           } else if (funcResponse === false) {
             errors.set(
               fieldName,
-              `The ${fieldName} field do not match with the validator function.`,
+              `The ${fieldName} field do not match with the validator function.`
             );
           }
 
@@ -475,7 +475,7 @@ export default class ValidatorSatellite extends Satellite {
    */
   public validatorEmail(value) {
     return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-      value,
+      value
     );
   }
 
@@ -821,7 +821,7 @@ export default class ValidatorSatellite extends Satellite {
    */
   public validatorUrl(value: string): boolean {
     return /^(http|ftp|https):\/\/[\w-]+(\.[\w-]*)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?$/.test(
-      value,
+      value
     );
   }
 
@@ -839,7 +839,7 @@ export default class ValidatorSatellite extends Satellite {
    */
   public replaceBetween(message, attribute, rule, parameters) {
     const repl = { ":min": parameters[0], ":max": parameters[1] };
-    return message.replace(/:min|:max/gi, match => repl[match]);
+    return message.replace(/:min|:max/gi, (match) => repl[match]);
   }
 
   /**
@@ -871,7 +871,7 @@ export default class ValidatorSatellite extends Satellite {
     params.shift();
 
     const repl = { ":other": parameters[0], ":values": params.join(", ") };
-    return message.replace(/:other|:values/gi, match => repl[match]);
+    return message.replace(/:other|:values/gi, (match) => repl[match]);
   }
 
   /**
@@ -882,7 +882,7 @@ export default class ValidatorSatellite extends Satellite {
     params.shift();
 
     const repl = { ":other": parameters[0], ":values": params.join(", ") };
-    return message.replace(/:other|:values/gi, match => repl[match]);
+    return message.replace(/:other|:values/gi, (match) => repl[match]);
   }
 
   /**

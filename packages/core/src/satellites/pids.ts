@@ -4,22 +4,22 @@ import { isMaster } from "cluster";
 import { mkdirSync, writeFileSync, unlinkSync } from "fs";
 
 class Pids {
-  private api: any = null;
+  private api: any;
 
   /**
    * Process ID.
    */
-  public pid: number = null;
+  public pid!: number;
 
   /**
    * Pids folder.
    */
-  public path: string = null;
+  public path!: string;
 
   /**
    * Process title.
    */
-  public title: string = null;
+  public title!: string;
 
   constructor(api: any) {
     this.api = api;

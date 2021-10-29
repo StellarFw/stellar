@@ -15,22 +15,22 @@ export default class CacheSatellite extends Satellite {
   /**
    * Cache key prefix.
    */
-  private redisPrefix: string = null;
+  private redisPrefix!: string;
 
   /**
    * Lock key prefix.
    */
-  private lockPrefix: string = null;
+  private lockPrefix!: string;
 
   /**
    * Lock duration.
    */
-  private lockDuration: number = null;
+  private lockDuration!: number;
 
   /**
    * Lock name.
    */
-  private lockName: string = null;
+  private lockName!: string;
 
   /**
    * Lock interval to retry.
@@ -39,6 +39,8 @@ export default class CacheSatellite extends Satellite {
 
   /**
    * Redis client instance.
+   *
+   * TODO: assign a type for this property
    */
   private client: any = null;
 
@@ -79,7 +81,7 @@ export default class CacheSatellite extends Satellite {
     const jobs: Array<Promise<any>> = [];
 
     const keys = await this.keys();
-    keys.forEach(key => jobs.push(this.client.del(key)));
+    keys.forEach((key) => jobs.push(this.client.del(key)));
     return Promise.all(jobs);
   }
 
@@ -90,13 +92,12 @@ export default class CacheSatellite extends Satellite {
    * @param value         Value to associate with the key.
    * @param expireTimeMS  Expire time in milliseconds.
    */
-  public async set(key: string, value: any, expireTimeMS: number = null) {
-    let expireTimeSeconds: number = null;
-    let expireTimestamp: number = null;
+  public async set(key: string, value: any, expireTimeMS?: number) {
+    let expireTimeSeconds: number | null = null;
+    let expireTimestamp: number | undefined = undefined;
 
-    // if expireTimeMS is different than null we calculate the expire time in seconds and the
-    // expire timestamp.
-    if (expireTimeMS !== null) {
+    // if expireTimeMS is different than null we calculate the expire time in seconds and the expire timestamp.
+    if (expireTimeMS) {
       expireTimeSeconds = Math.ceil(expireTimeMS / 1000);
       expireTimestamp = new Date().getTime() + expireTimeMS;
     }
@@ -106,11 +107,10 @@ export default class CacheSatellite extends Satellite {
       value,
       expireTimestamp,
       createdAt: new Date().getTime(),
-      readAt: null,
     };
 
     // if the object is locked we throw an exception
-    const lockOk = await this.checkLock(key, null);
+    const lockOk = await this.checkLock(key, false);
     if (lockOk !== true) {
       throw new Error("Object locked");
     }
@@ -119,7 +119,7 @@ export default class CacheSatellite extends Satellite {
     const keyToSave = this.redisPrefix + key;
     await this.api.redis.clients.client.set(
       keyToSave,
-      JSON.stringify(cacheObj),
+      JSON.stringify(cacheObj)
     );
 
     // if the new cache entry has been saved define the expire date if needed
@@ -137,7 +137,7 @@ export default class CacheSatellite extends Satellite {
    * @param options   Call options.
    */
   public async get(key: string, options: any = {}): Promise<CacheObject> {
-    let cacheObj = null;
+    let cacheObj: any;
 
     try {
       // get the cache entry from redis server
@@ -173,7 +173,7 @@ export default class CacheSatellite extends Satellite {
           expireTimeSeconds = Math.ceil(options.expireTimeMS / 1000);
         } else {
           expireTimeSeconds = Math.floor(
-            (cacheObj.expireTimestamp - new Date().getTime()) / 1000,
+            (cacheObj.expireTimestamp - new Date().getTime()) / 1000
           );
         }
       }
@@ -218,7 +218,7 @@ export default class CacheSatellite extends Satellite {
     let lockOk = null;
 
     try {
-      lockOk = await this.checkLock(key, null);
+      lockOk = await this.checkLock(key, false);
     } catch (e) {
       throw new Error("Object locked");
     }
@@ -246,8 +246,8 @@ export default class CacheSatellite extends Satellite {
    */
   public async checkLock(
     key: string,
-    retry: boolean | number = null,
-    startTime: number = new Date().getTime(),
+    retry: boolean | number = false,
+    startTime: number = new Date().getTime()
   ) {
     const lockedBy = await this.client.get(this.lockPrefix + key);
 
@@ -260,7 +260,7 @@ export default class CacheSatellite extends Satellite {
     // Compute the time variation between the request and the response
     const delta = new Date().getTime() - startTime;
 
-    if (retry === null || retry === false || delta > retry) {
+    if (retry === false || delta > retry) {
       return false;
     }
 
@@ -283,7 +283,7 @@ export default class CacheSatellite extends Satellite {
    */
   public async lock(
     key: string,
-    expireTimeMS: number = null,
+    expireTimeMS: number | null = null
   ): Promise<boolean> {
     if (expireTimeMS === null) {
       expireTimeMS = this.lockDuration;
@@ -317,7 +317,7 @@ export default class CacheSatellite extends Satellite {
   public async unlock(key: string): Promise<boolean> {
     // check the lock state, if already unlocked returns.
     try {
-      await this.checkLock(key, null);
+      await this.checkLock(key, false);
     } catch (e) {
       return false;
     }

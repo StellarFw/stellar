@@ -5,10 +5,14 @@ declare function fetch(request: any): Promise<any>;
 import { callbackify } from "util";
 import { timingSafeEqual } from "crypto";
 
-const warn = msg => console.warn(`[Stellar warn]: ${msg}`);
-const error = msg => console.error(`[Stellar error]: ${msg}`);
-const isFunction = val => typeof val === "function";
-const isObject = obj => obj !== null && typeof obj === "object";
+import Primus from "primus";
+
+const warn = (msg) => console.warn(`[Stellar warn]: ${msg}`);
+const error = (msg) => console.error(`[Stellar error]: ${msg}`);
+const isFunction = (val) => typeof val === "function";
+const isObject = (obj) => obj !== null && typeof obj === "object";
+
+export type HandlerFn = (...args: any[]) => void;
 
 export interface ConnectionDetailsInterface {
   id: string;
@@ -92,9 +96,9 @@ export class BuildEvent {
    * @param data Data to send with the vent.
    */
   public emit(event: string, data: any): Promise<Array<void>> {
-    const work = [];
+    const work: Array<Promise<any>> = [];
 
-    this.rooms.forEach(room => {
+    this.rooms.forEach((room) => {
       work.push(
         this.client.send({
           event: "event",
@@ -103,7 +107,7 @@ export class BuildEvent {
             event,
             data,
           },
-        }),
+        })
       );
     });
 
@@ -126,7 +130,7 @@ export class BuildEvent {
    * @param handler Event handler.
    */
   public on(event: string, handler: () => void): BuildEvent {
-    this.rooms.forEach(room => {
+    this.rooms.forEach((room) => {
       this.client.on(`[${room}].${event}`, handler);
     });
 
@@ -134,7 +138,7 @@ export class BuildEvent {
   }
 
   public off(event: string, handler: () => void): BuildEvent {
-    this.rooms.forEach(room => {
+    this.rooms.forEach((room) => {
       this.client.removeListener(`[${room}].${event}`, handler);
     });
 
@@ -146,7 +150,7 @@ export default class Stellar extends Primus.EventEmitter {
   /**
    * Client identifier.
    */
-  public id: string = null;
+  public id!: string;
 
   /**
    * Client state.
@@ -181,14 +185,19 @@ export default class Stellar extends Primus.EventEmitter {
   /**
    * External client.
    */
-  private client = null;
+  private client;
 
   /**
    * Dictionary of callbacks.
    */
   private callbacks: any = [];
 
-  private fingerprint: string;
+  /**
+   * Client fingerprint.
+   *
+   * This is used to identify the client.
+   */
+  private fingerprint!: string;
 
   /**
    * Pending requests queue.
@@ -207,13 +216,20 @@ export default class Stellar extends Primus.EventEmitter {
    */
   private pendingRequestsCounter: number = 0;
 
+  protected welcomeMessage!: string;
+
+  /**
+   * This is for internal use only.
+   *
+   * Original Primus emit event.
+   */
+  private _emit;
+
   /**
    * Create a new Stellar client instance.
    *
-   * @param options Option to be passed to the new Stellar
-   *  client instance.
-   * @param client Optional client that can be given to be
-   *  used as a connection with the server.
+   * @param options Option to be passed to the new Stellar client instance.
+   * @param client Optional client that can be given to be used as a connection with the server.
    */
   constructor(options: any, client: any = null) {
     super();
@@ -237,7 +253,7 @@ export default class Stellar extends Primus.EventEmitter {
     // Print out an error when Promises aren't supported
     if (Promise === undefined || typeof Promise !== "function") {
       error(
-        "Th browser doesn't support Promises! You must load a polyfill before load Stellar client lib.",
+        "Th browser doesn't support Promises! You must load a polyfill before load Stellar client lib."
       );
     }
   }
@@ -262,7 +278,7 @@ export default class Stellar extends Primus.EventEmitter {
         this._emit("connected");
       });
 
-      this.client.on("error", err => {
+      this.client.on("error", (err) => {
         reject(err);
         this._emit("error", err);
       });
@@ -295,11 +311,14 @@ export default class Stellar extends Primus.EventEmitter {
     if (this.client && !this.useExternalClient) {
       this.client.end();
       this.client.removeAllListeners();
+      // TODO: seems that the connect method is no longer available on Primus
+      // @ts-ignore
       this.client = Primus.connect(this.options.url, this.options);
     } else if (this.client && this.useExternalClient) {
       this.client.end();
       this.client.open();
     } else {
+      // @ts-ignore
       this.client = Primus.connect(this.options.url, this.options);
     }
 
@@ -312,7 +331,7 @@ export default class Stellar extends Primus.EventEmitter {
    * @param data Data to be sent.
    */
   public send(data: any): Promise<any> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this.messageCount += 1;
       this.callbacks[this.messageCount] = resolve;
       this.client.write(data);
@@ -352,7 +371,9 @@ export default class Stellar extends Primus.EventEmitter {
 
   public async configure(): Promise<ConnectionDetailsInterface> {
     if (this.options.rooms) {
-      this.options.rooms.forEach(room => this.send({ event: "roomAdd", room }));
+      this.options.rooms.forEach((room) =>
+        this.send({ event: "roomAdd", room })
+      );
     }
 
     const details = await this.detailsView();
@@ -371,6 +392,7 @@ export default class Stellar extends Primus.EventEmitter {
    * @param event Event name.
    * @param data Data to send with the event. This can be optional.
    */
+  // @ts-ignore
   public emit(event: string, data: any = null): Promise<void> {
     const room = this.options.defaultRoom;
     return this.send({ event: "event", params: { event, room, data } });
@@ -380,9 +402,9 @@ export default class Stellar extends Primus.EventEmitter {
    * Request the details view.
    */
   public detailsView(): Promise<ConnectionDetailsResponse> {
-    return this.send({ event: "detailsView" }) as Promise<
-      ConnectionDetailsResponse
-    >;
+    return this.send({
+      event: "detailsView",
+    }) as Promise<ConnectionDetailsResponse>;
   }
 
   /**
@@ -394,8 +416,7 @@ export default class Stellar extends Primus.EventEmitter {
     }
 
     const requestFn = this.pendingRequestsQueue.shift();
-
-    requestFn();
+    requestFn!();
   }
 
   /**
@@ -422,7 +443,7 @@ export default class Stellar extends Primus.EventEmitter {
    * @param event Event name.
    * @param handler Listener to be removed.
    */
-  public off(event: string, handler: Function) {
+  public off(event: string, handler: HandlerFn) {
     return this.removeListener(event, handler);
   }
 
@@ -554,10 +575,8 @@ export default class Stellar extends Primus.EventEmitter {
   /**
    * Call an action.
    *
-   * If this client instance are connected though a WebSocket we use that
-   * connection to made the request, otherwise use a normal HTTP request,
-   * using the Fetch API. This makes possible call actions as soon as
-   * the lib is loaded.
+   * If this client instance are connected though a WebSocket we use that connection to made the request, otherwise use
+   * a normal HTTP request, using the Fetch API. This makes possible call actions as soon as the lib is loaded.
    *
    * @param action Name of the action to be called.
    * @param params Action parameters.
@@ -565,28 +584,28 @@ export default class Stellar extends Primus.EventEmitter {
   public action(action: string, params: any = {}): Promise<any> {
     return new Promise((resolve, reject) => {
       // contains the reference for the current handler
-      let handler = null;
+      let handler;
 
       // array with the request interceptor. We need to make a copy to keep the
       // original array intact
       const reqHandlers = this.interceptors.slice(0);
 
       // array with the response handlers. this is local to avoid repetition
-      const resHandlers = [];
+      const resHandlers: Array<any> = [];
 
       // sets the parameter action, in case of the action call be done over HTTP.
       params.action = action;
 
-      const next = (response: any = null, error: Error = null) => {
+      const next = (response: any = null, error?: Error) => {
         if (error !== undefined && error !== null) {
-          resHandlers.forEach(h => h.call(this, error));
+          resHandlers.forEach((h) => h.call(this, error));
           return reject(error);
         }
 
         if (isFunction(response)) {
           resHandlers.unshift(response);
         } else if (isObject(response)) {
-          resHandlers.forEach(h => h.call(this, response));
+          resHandlers.forEach((h) => h.call(this, response));
           return resolve(response);
         }
 
@@ -594,13 +613,11 @@ export default class Stellar extends Primus.EventEmitter {
       };
 
       const exec = () => {
-        // if there is no more request handlers to process we must perform the
-        // request
+        // if there is no more request handlers to process we must perform the request
         if (reqHandlers.length === 0) {
-          let method = null;
+          let method;
 
-          // If the client is connected the call should be done by WebSocket
-          // otherwise we use HTTP
+          // If the client is connected the call should be done by WebSocket otherwise we use HTTP
           if (this.state !== ClientState.Connected) {
             method = this._actionWeb;
           } else {
@@ -621,25 +638,27 @@ export default class Stellar extends Primus.EventEmitter {
             this.processNextPendingRequest();
           };
 
-          // if the number of pending request is bigger than the server
-          // limit, the request must be placed on the a queue to be
-          // processed later.
+          // if the number of pending request is bigger than the server limit, the request must be placed on the a queue
+          // to be processed later.
           if (this.pendingRequestsCounter >= this.options.simultaneousActions) {
-            return this.pendingRequestsQueue.push(processRequest);
+            this.pendingRequestsQueue.push(processRequest);
+            return;
           }
 
           return processRequest();
         }
 
         handler = reqHandlers.pop();
-        if (isFunction(handler)) {
+        if (handler && isFunction(handler)) {
           handler.call(this, params, next, reject);
         } else {
           warn(
-            `Invalid interceptor of type ${typeof handler}, must be a function`,
+            `Invalid interceptor of type ${typeof handler}, must be a function`
           );
           next();
         }
+
+        return;
       };
 
       // Start processing the interceptors

@@ -1,9 +1,10 @@
 import * as UUID from "uuid";
+import ConnectionDetails from "./interfaces/connection-details.interface";
 
 /**
  * This class represents an active connection.
  */
-export class Connection {
+export class Connection implements ConnectionDetails {
   /**
    * Api reference.
    */
@@ -12,12 +13,12 @@ export class Connection {
   /**
    * Unique client identifier.
    */
-  public id: string;
+  public id!: string;
 
   /**
    * Timestamp of the connection.
    */
-  public connectedAt: number;
+  public connectedAt!: number;
 
   /**
    * Rooms which the client belongs.
@@ -29,7 +30,7 @@ export class Connection {
   /**
    * Connection error.
    */
-  public error: Error = null;
+  public error?;
 
   /**
    * Connection parameters.
@@ -39,7 +40,7 @@ export class Connection {
   /**
    * Connection fingerprint.
    */
-  public fingerprint: string = null;
+  public fingerprint!: string;
 
   /**
    * Number of pending actions to be processed.
@@ -61,17 +62,17 @@ export class Connection {
    */
   public canChat: boolean = false;
 
-  public type: string = null;
+  public type!: string;
 
   /**
    * Connection remote port.
    */
-  public remotePort: number = null;
+  public remotePort!: number;
 
   /**
    * Remote IP address.
    */
-  public remoteIP: string = null;
+  public remoteIP!: string;
 
   /**
    * Raw connection.
@@ -103,7 +104,7 @@ export class Connection {
     this.api.connections.connections[this.id] = this;
 
     // execute the middleware
-    this.api.connections.globalMiddleware.forEach(middlewareName => {
+    this.api.connections.globalMiddleware.forEach((middlewareName) => {
       if (
         typeof this.api.connections.middleware[middlewareName].create ===
         "function"
@@ -129,7 +130,7 @@ export class Connection {
     this.connectedAt = new Date().getTime();
 
     const requiredFields = ["type", "rawConnection"];
-    requiredFields.forEach(req => {
+    requiredFields.forEach((req) => {
       if (data[req] === null || data[req] === undefined) {
         throw new Error(`${req} is required to create a new connection object`);
       }
@@ -138,11 +139,11 @@ export class Connection {
     });
 
     const enforcedConnectionProperties = ["remotePort", "remoteIP"];
-    enforcedConnectionProperties.forEach(req => {
+    enforcedConnectionProperties.forEach((req) => {
       if (data[req] === null || data[req] === undefined) {
         if (this.api.configs.general.enforceConnectionProperties === true) {
           throw new Error(
-            `${req} is required to create a new connection object`,
+            `${req} is required to create a new connection object`
           );
         } else {
           data[req] = 0; // TODO: could be a random uuid as well?
@@ -161,7 +162,7 @@ export class Connection {
    */
   public sendMessage(message: any) {
     throw new Error(
-      `I should be replaced with a connection-specific method [${message}]`,
+      `I should be replaced with a connection-specific method [${message}]`
     );
   }
 
@@ -172,7 +173,7 @@ export class Connection {
    */
   public sendFile(path: string) {
     throw new Error(
-      `I should be replaced with a connection-specific method [${path}]`,
+      `I should be replaced with a connection-specific method [${path}]`
     );
   }
 
@@ -189,7 +190,7 @@ export class Connection {
     this.destroyed = true;
 
     // execute the destroy middleware
-    this.api.connections.globalMiddleware.forEach(middlewareName => {
+    this.api.connections.globalMiddleware.forEach((middlewareName) => {
       if (
         typeof this.api.connections.middleware[middlewareName].destroy ===
         "function"
@@ -200,7 +201,7 @@ export class Connection {
 
     // remove the connection from all rooms
     if (this.canChat === true) {
-      this.rooms.forEach(room => this.api.chatRoom.leave(this.id, room));
+      this.rooms.forEach((room) => this.api.chatRoom.leave(this.id, room));
     }
 
     // get server instance
@@ -242,7 +243,7 @@ export class Connection {
    */
   public async verbs(
     verb: string,
-    words: string | Array<string> = [],
+    words: string | Array<string> = []
   ): Promise<any> {
     const server = this.api.servers.servers.get(this.type);
 

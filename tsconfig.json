@@ -1,8 +1,25 @@
 {
-  "files": [],
-  "references": [
-      { "path": "packages/cli" },
-      { "path": "packages/common" },
-      { "path": "packages/core" }
-  ]
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "CommonJS",
+    "lib": ["ESNext"],
+    "esModuleInterop": true,
+    // equivalent to package.json sideEffects: false
+    "isolatedModules": true,
+    "sourceMap": true,
+
+    "strict": true,
+    "noImplicitAny": false,
+    // TODO: remove in a second round of rewrite
+    "noUnusedLocals": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "useUnknownInCatchVariables": false,
+    "skipDefaultLibCheck": true,
+
+    "declaration": true,
+    "declarationMap": true
+  },
+  "include": ["**/*"],
+  "exclude": ["**/dist", "**/node_modules", "**/*.spec.ts"]
 }

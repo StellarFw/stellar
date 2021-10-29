@@ -38,7 +38,7 @@ Stellar is a web framework that makes it easy to build modular APIs. It is desig
 - Native support for HTTP, WebSocket and TCP connections
 - Powerful and simple to use [Validation system](https://stellar-framework.com/guide/validation.html)
 
-Note that Stellar only supports Node.js version 7 or upper.
+Note that Stellar only supports Node.js LTS version 14 or upper.
 
 ## Questions/Issues
 

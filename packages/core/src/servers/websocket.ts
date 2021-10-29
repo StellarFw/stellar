@@ -1,14 +1,17 @@
 import { normalize, sep } from "path";
-import { ReadStream, writeFileSync, writeFile, readFileSync } from "fs";
+import { ReadStream, writeFileSync, readFileSync } from "fs";
 import * as BrowserFingerprint from "browser_fingerprint";
-import * as Primus from "primus";
 import * as UglifyJS from "uglify-es";
 import WebServer from "./web";
 import { inspect } from "util";
 
-import { GenericServer } from "@stellarfw/common/lib/generic-server";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 import ConnectionDetails from "@stellarfw/common/lib/interfaces/connection-details.interface";
+
+import { GenericServer } from "../base/generic-server";
+import Primus from "primus";
+import { Server } from "http";
+import { Connection } from "@stellarfw/common/lib";
 
 export default class WebSocketServer extends GenericServer {
   protected static serverName: string = "websocket";
@@ -16,7 +19,7 @@ export default class WebSocketServer extends GenericServer {
   /**
    * Primus server instance.
    */
-  private server = null;
+  private server!: Primus;
 
   private fingerprinter: any = null;
 
@@ -43,12 +46,12 @@ export default class WebSocketServer extends GenericServer {
     this.on("actionComplete", this.handleActionComplete.bind(this));
 
     this.fingerprinter = new BrowserFingerprint(
-      this.api.configs.servers.web.fingerprintOptions,
+      this.api.configs.servers.web.fingerprintOptions
     );
   }
 
   private handleNewConnection(connection) {
-    connection.rawConnection.on("data", data => {
+    connection.rawConnection.on("data", (data) => {
       this.handleData(connection, data);
     });
   }
@@ -70,7 +73,7 @@ export default class WebSocketServer extends GenericServer {
    */
   private async handleData(
     connection: ConnectionDetails,
-    data: any,
+    data: any
   ): Promise<void> {
     const verb = data.event;
     delete data.event;
@@ -79,49 +82,49 @@ export default class WebSocketServer extends GenericServer {
     connection.params = {};
 
     switch (verb) {
-    case "action":
-      connection.params = {
-        ...connection.params,
-        ...data.params,
-      };
+      case "action":
+        connection.params = {
+          ...connection.params,
+          ...data.params,
+        };
 
-      connection.error = null;
-      connection.response = {};
-      this.processAction(connection);
-      break;
-    case "file":
-      connection.params = {
-        file: data.file,
-      };
+        connection.error = undefined;
+        connection.response = {};
+        this.processAction(connection);
+        break;
+      case "file":
+        connection.params = {
+          file: data.file,
+        };
 
-      this.processFile(connection);
-      break;
-    default:
-      const words = [];
-      let message;
+        this.processFile(connection);
+        break;
+      default:
+        let words: Array<any> = [];
+        let message;
 
-      if (data.room) {
-        words.push(data.room);
-        delete data.room;
-      }
-
-      // TODO: maybe convert this to a more ES7 way of doing things
-      for (const index in data) {
-        if (data.hasOwnProperty(index)) {
-          words.push(data[index]);
+        if (data.room) {
+          words = [...words, data.room];
+          delete data.room;
         }
-      }
 
-      try {
-        const response = await connection.verbs(verb, words);
-        message = { status: "OK", context: "response", data: response };
-      } catch (error) {
-        // TODO: check if we need the data object
-        message = { status: error, context: "response" };
-      }
+        // TODO: maybe convert this to a more ES7 way of doing things
+        for (const index in data) {
+          if (data.hasOwnProperty(index)) {
+            words = [...words, data[index]];
+          }
+        }
 
-      this.sendMessage(connection, message);
-      break;
+        try {
+          const response = await connection.verbs!(verb, words);
+          message = { status: "OK", context: "response", data: response };
+        } catch (error) {
+          // TODO: check if we need the data object
+          message = { status: error, context: "response" };
+        }
+
+        this.sendMessage(connection, message);
+        break;
     }
   }
 
@@ -169,8 +172,8 @@ export default class WebSocketServer extends GenericServer {
     const webServer: WebServer = this.api.servers.servers.get("web");
 
     this.server = new Primus(
-      webServer.server,
-      this.api.configs.servers.websocket.server,
+      webServer.server as Server,
+      this.api.configs.servers.websocket.server
     );
 
     // Define the necessary event handlers
@@ -179,9 +182,10 @@ export default class WebSocketServer extends GenericServer {
 
     this.api.log(
       `WebSocket bound to ${webServer.options.bindIP}:${webServer.options.port}`,
-      LogLevel.Debug,
+      LogLevel.Debug
     );
 
+    // @ts-ignore
     this.server.active = true;
 
     this.writeClientJS();
@@ -191,11 +195,12 @@ export default class WebSocketServer extends GenericServer {
    * Shutdown the websocket server.
    */
   public async stop(): Promise<void> {
+    // @ts-ignore
     this.server.active = false;
 
     if (this.api.configs.servers.websocket.destroyClientOnShutdown === true) {
-      this.connections().forEach((connection: ConnectionDetails) => {
-        connection.destroy();
+      this.connections().forEach((connection: Connection) => {
+        connection.destroy!();
       });
     }
   }
@@ -210,11 +215,11 @@ export default class WebSocketServer extends GenericServer {
   public sendMessage(
     connection: ConnectionDetails,
     message: any,
-    messageCount: number = null,
+    messageCount: number | null = null
   ) {
     if (message.error) {
       message.error = this.api.configs.errors.serializers.servers.websocket(
-        message.error,
+        message.error
       );
     }
 
@@ -254,16 +259,16 @@ export default class WebSocketServer extends GenericServer {
    */
   public async sendFile(
     connection: ConnectionDetails,
-    error: Error = null,
+    error: Error | null = null,
     fileStream: ReadStream,
     mime: string,
     length: number,
-    lastModified: Date,
+    lastModified: Date
   ): Promise<void> {
     let content = "";
     const response = {
       error,
-      content: null,
+      content: null as string | null,
       mime,
       length,
       lastModified,
@@ -271,23 +276,27 @@ export default class WebSocketServer extends GenericServer {
 
     try {
       if (!error) {
-        fileStream.on("data", d => {
+        fileStream.on("data", (d) => {
           content += d;
         });
 
         fileStream.on("end", () => {
           response.content = content;
+          // TODO: review this sendMessage method. Seems not to be present on Primus anymore
+          // @ts-ignore
           this.server.sendMessage(
             connection,
             response,
-            connection.messageCount,
+            connection.messageCount
           );
         });
       }
 
+      // @ts-ignore
       this.server.sendMessage(connection, response, connection.messageCount);
     } catch (e) {
       this.api.log(e, "warning");
+      // @ts-ignore
       this.server.sendMessage(connection, response, connection.messageCount);
     }
   }
@@ -297,7 +306,7 @@ export default class WebSocketServer extends GenericServer {
    */
   private compileClientJs(): string {
     let clientSource: string = readFileSync(
-      `${__dirname}/../client.js`,
+      `${__dirname}/../client.js`
     ).toString();
     const url: string = this.api.configs.servers.websocket.clientUrl;
 
@@ -313,7 +322,7 @@ export default class WebSocketServer extends GenericServer {
     let defaultsString: string = inspect(defaults);
     defaultsString = defaultsString.replace(
       "'window.location.origin'",
-      "window.location.origin",
+      "window.location.origin"
     );
     clientSource = clientSource.replace("'%%DEFAULTS%%'", defaultsString);
 
@@ -326,7 +335,7 @@ export default class WebSocketServer extends GenericServer {
    * @param minimize Should we enable minification?
    */
   private renderClientJs(minimize: boolean = false): string {
-    const libSource = this.server.library();
+    const libSource = this.server?.library();
     let clientSource = this.compileClientJs();
 
     clientSource = `
@@ -357,7 +366,7 @@ export default class WebSocketServer extends GenericServer {
       const base = normalize(
         this.api.configs.general.paths.public +
           sep +
-          this.api.configs.servers.websocket.clientJsName,
+          this.api.configs.servers.websocket.clientJsName
       );
 
       try {
@@ -368,7 +377,7 @@ export default class WebSocketServer extends GenericServer {
       } catch (e) {
         this.api.log(
           "Cannot write client-side JS for WebSocket server: ",
-          LogLevel.Warning,
+          LogLevel.Warning
         );
         this.api.log(e, LogLevel.Warning);
         throw e;

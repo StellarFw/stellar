@@ -41,7 +41,7 @@ export default class RedisSatellite extends Satellite {
 
   private init() {
     // subscription handlers
-    this.subscriptionHandlers.do = async message => {
+    this.subscriptionHandlers.do = async (message) => {
       if (
         !message.connectionId ||
         this.api.connections.connections.get(message.connectionId)
@@ -49,7 +49,7 @@ export default class RedisSatellite extends Satellite {
         const cmdParts = message.method.split(".");
         const method = this.api.utils.stringToHash(
           this.api,
-          cmdParts.join("."),
+          cmdParts.join(".")
         );
 
         let args = message.args;
@@ -67,7 +67,7 @@ export default class RedisSatellite extends Satellite {
         } else {
           this.api.log(
             `RP method '${cmdParts.join(".")}' not found`,
-            LogLevel.Warning,
+            LogLevel.Warning
           );
         }
       }
@@ -87,16 +87,16 @@ export default class RedisSatellite extends Satellite {
 
   private initializeClients() {
     const queuesToCreate = ["client", "subscriber", "tasks"];
-    const jobs = [];
+    const jobs: Array<Promise<void>> = [];
 
-    queuesToCreate.forEach(r => {
-      const newPromise = new Promise(resolve => {
+    queuesToCreate.forEach((r) => {
+      const newPromise = new Promise<void>((resolve) => {
         if (this.api.configs.redis[r].buildNew !== true) {
           this.clients[r] = this.api.configs.redis[r].constructor(
-            this.api.configs.redis[r].args,
+            this.api.configs.redis[r].args
           );
 
-          this.clients[r].on("error", error => {
+          this.clients[r].on("error", (error) => {
             this.api.log(`Redis connection ${r} error`, LogLevel.Error, error);
           });
           this.api.log(`Redis connection ${r} connected`, LogLevel.Info);
@@ -107,7 +107,7 @@ export default class RedisSatellite extends Satellite {
         const args = this.api.configs.redis[r].args;
 
         this.clients[r] = new this.api.configs.redis[r].constructor(args);
-        this.clients[r].on("error", error => {
+        this.clients[r].on("error", (error) => {
           this.api.log(`Redis connection ${r} error`, LogLevel.Error, error);
         });
 
@@ -121,7 +121,7 @@ export default class RedisSatellite extends Satellite {
     });
 
     if (!this.status.subscribed) {
-      const newPromise = new Promise(resolve => {
+      const newPromise = new Promise<void>((resolve) => {
         // ensures that clients subscribe the default channel
         this.clients.subscriber.subscribe(this.api.configs.general.channel);
         this.status.subscribed = true;
@@ -163,8 +163,8 @@ export default class RedisSatellite extends Satellite {
   public async doCluster(
     method: string,
     args: string | number | Array<any>,
-    connectionId: string = null,
-    waitForResponse: boolean = false,
+    connectionId?: string,
+    waitForResponse: boolean = false
   ) {
     const requestId = uuid.v4();
     const payload: ClusterPayload = {
@@ -194,7 +194,7 @@ export default class RedisSatellite extends Satellite {
             delete this.clusterCallbackTimeouts[requestId];
           },
           this.api.configs.general.rpcTimeout,
-          requestId,
+          requestId
         );
       });
     }
@@ -238,7 +238,7 @@ export default class RedisSatellite extends Satellite {
   public async start(): Promise<void> {
     await this.doCluster(
       "log",
-      `Stellar member ${this.api.id} has joined the cluster`,
+      `Stellar member ${this.api.id} has joined the cluster`
     );
   }
 

@@ -1,6 +1,6 @@
 import { Satellite } from "@stellarfw/common/lib/satellite";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
-import { TaskInterface } from "@stellarfw/common/lib/interfaces/task.interface";
+import { ITaskMetadata } from "@stellarfw/common/lib";
 
 export interface InternalJob {
   plugins: Array<any>;
@@ -18,7 +18,7 @@ export default class TasksSatellite extends Satellite {
   /**
    * List of loaded tasks.
    */
-  public tasks: { [key: string]: TaskInterface } = {};
+  public tasks: { [key: string]: ITaskMetadata } = {};
 
   /**
    * Wrapper the task in a job.
@@ -43,15 +43,18 @@ export default class TasksSatellite extends Satellite {
     const taskWrapper: InternalJob = {
       plugins,
       pluginsOptions: pluginOptions,
-      async perform() {
+      perform: async () => {
         const args = Array.prototype.slice.call(arguments);
 
         if (args.length === 0) {
           args.push({});
         }
 
-        const response = await task.run.apply({ api: this.api, task }, args);
-        await this.enqueueRecurrentJob(taskName);
+        const response = await task.run.apply(
+          { api: this.api, task },
+          args as any
+        );
+        await this.enqueueRecurrentTask(taskName);
         return response;
       },
     };
@@ -71,9 +74,9 @@ export default class TasksSatellite extends Satellite {
    *  - queue
    *  - run
    */
-  private validateTask(task: TaskInterface): boolean {
+  private validateTask(task: ITaskMetadata): boolean {
     // function to be executed in case of the task validation fails
-    const fail = msg => this.api.log(`${msg}; exiting`, LogLevel.Emergency);
+    const fail = (msg) => this.api.log(`${msg}; exiting`, LogLevel.Emergency);
 
     if (typeof task.name !== "string" || task.name.length < 1) {
       fail("a task is missing 'task.name'");
@@ -105,12 +108,12 @@ export default class TasksSatellite extends Satellite {
    * @param reload Set to true when it's a reloaded.
    */
   private loadFile(path: string, reload: boolean = false): void {
-    const loadMessage = loadedTasksName => {
+    const loadMessage = (loadedTasksName) => {
       const level = reload ? LogLevel.Info : LogLevel.Debug;
       const reloadWord = reload ? "(re)" : "";
       this.api.log(
         `task ${reloadWord}loaded: ${loadedTasksName}, ${path}`,
-        level,
+        level
       );
     };
 
@@ -118,7 +121,7 @@ export default class TasksSatellite extends Satellite {
     this.api.config.watchFileAndAct(path, () => this.loadFile(path, true));
 
     // temporary task info
-    let task = null;
+    let task!: ITaskMetadata;
 
     try {
       const collection = require(path);
@@ -149,6 +152,10 @@ export default class TasksSatellite extends Satellite {
 
       this.api.exceptionHandlers.loader(path, err);
 
+      if (!task) {
+        return;
+      }
+
       delete this.tasks[task.name];
       delete this.jobs[task.name];
     }
@@ -160,11 +167,11 @@ export default class TasksSatellite extends Satellite {
    * Iterate all active modules and load all tasks.
    */
   private loadModulesTasks(): void {
-    this.api.modules.modulesPaths.forEach(modulePath => {
+    this.api.modules.modulesPaths.forEach((modulePath) => {
       const tasksFolder = `${modulePath}/tasks`;
       this.api.utils
         .recursiveDirSearch(tasksFolder)
-        .forEach(f => this.loadFile(f));
+        .forEach((f) => this.loadFile(f));
     });
   }
 
@@ -178,7 +185,7 @@ export default class TasksSatellite extends Satellite {
   public enqueue(
     taskName: string,
     params: {} = {},
-    queue: string = null,
+    queue: string | null = null
   ): Promise<boolean> {
     if (!queue) {
       queue = this.tasks[taskName].queue;
@@ -199,7 +206,7 @@ export default class TasksSatellite extends Satellite {
     timestamp: number,
     taskName: string,
     params: {} = {},
-    queue: string = null,
+    queue: string | null = null
   ): Promise<void> {
     if (!queue) {
       queue = this.tasks[taskName].queue;
@@ -220,7 +227,7 @@ export default class TasksSatellite extends Satellite {
     time: number,
     taskName: string,
     params: {} = {},
-    queue: string = null,
+    queue: string | null = null
   ): Promise<any> {
     if (!queue) {
       queue = this.tasks[taskName].queue;
@@ -241,7 +248,7 @@ export default class TasksSatellite extends Satellite {
     queue: string,
     taskName: string,
     args: {} = {},
-    count: number = 0,
+    count: number = 0
   ): Promise<number> {
     return this.api.resque.queue.del(queue, taskName, args, count);
   }
@@ -256,7 +263,7 @@ export default class TasksSatellite extends Satellite {
   public delDelayed(
     queue: string,
     taskName: string,
-    args: {} = {},
+    args: {} = {}
   ): Promise<Array<any>> {
     return this.api.resque.queue.delDelayed(queue, taskName, args);
   }
@@ -271,7 +278,7 @@ export default class TasksSatellite extends Satellite {
   public scheduledAt(
     queue: string,
     taskName: string,
-    args: {} = {},
+    args: {} = {}
   ): Promise<void> {
     return this.api.resque.queue.scheduledAt(queue, taskName, args);
   }
@@ -429,7 +436,7 @@ export default class TasksSatellite extends Satellite {
     await this.enqueueIn(task.frequency, taskName);
     this.api.log(
       `re-enqueued recurrent job ${taskName}`,
-      this.api.configs.tasks.schedulerLogging.reEnqueue,
+      this.api.configs.tasks.schedulerLogging.reEnqueue
     );
   }
 
@@ -437,10 +444,10 @@ export default class TasksSatellite extends Satellite {
    * Enqueue all the recurrent jobs.
    */
   public enqueueAllRecurrentTasks() {
-    const jobs = [];
-    const loadedTasks = [];
+    const jobs: Array<Function> = [];
+    const loadedTasksNames: Array<string> = [];
 
-    Object.keys(this.tasks).forEach(taskName => {
+    Object.keys(this.tasks).forEach((taskName) => {
       const task = this.tasks[taskName];
 
       if (task.frequency <= 0) {
@@ -454,9 +461,9 @@ export default class TasksSatellite extends Satellite {
         }
         this.api.log(
           `enqueuing periodic task ${taskName}`,
-          this.api.config.tasks.schedulerLogging.enqueue,
+          this.api.config.tasks.schedulerLogging.enqueue
         );
-        loadedTasks.push(taskName);
+        loadedTasksNames.push(taskName);
       });
     });
 
@@ -472,7 +479,7 @@ export default class TasksSatellite extends Satellite {
     const task = this.tasks[taskName];
 
     if (task.frequency <= 0) {
-      return;
+      return 0;
     }
 
     // remove the task from the recurrent queue

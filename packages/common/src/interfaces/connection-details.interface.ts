@@ -14,7 +14,7 @@ export default interface ConnectionDetails {
    *
    * This is used to uniquely identify connections.
    */
-  fingerprint: string;
+  fingerprint?: string;
 
   /**
    * Remote connection port.
@@ -56,7 +56,7 @@ export default interface ConnectionDetails {
   /**
    * Dictionary with the request parameters.
    */
-  params?: { [key: string]: any };
+  params: { [key: string]: any };
 
   /**
    * Used file extension when doing file requests.

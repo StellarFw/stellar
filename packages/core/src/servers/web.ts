@@ -14,9 +14,10 @@ import * as etag from "etag";
 import * as zlib from "zlib";
 import { parse } from "url";
 
-import { GenericServer } from "@stellarfw/common/lib/generic-server";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 import ConnectionDetails from "@stellarfw/common/lib/interfaces/connection-details.interface";
+
+import { GenericServer } from "../base/generic-server";
 
 interface RequestInformation {
   id: string;
@@ -37,7 +38,7 @@ export default class WebServer extends GenericServer {
   /**
    * HTTP server.
    */
-  public server: HTTPServer | SecureServer;
+  public server!: HTTPServer | SecureServer;
 
   /**
    * BrowserFingerprint instance.
@@ -66,12 +67,12 @@ export default class WebServer extends GenericServer {
       !["api", "file"].includes(this.api.configs.servers.web.rootEndpointType)
     ) {
       throw new Error(
-        "api.configs.servers.web.rootEndpointType can only be 'api' or 'file'.",
+        "api.configs.servers.web.rootEndpointType can only be 'api' or 'file'."
       );
     }
 
     this.fingerprinter = new BrowserFingerprint(
-      this.api.configs.servers.web.fingerprintOptions,
+      this.api.configs.servers.web.fingerprintOptions
     );
 
     this.initializeEvents();
@@ -94,20 +95,20 @@ export default class WebServer extends GenericServer {
     const requestMode = await this.determineRequestParams(connection);
 
     switch (requestMode) {
-    case "api":
-      this.processAction(connection);
-      break;
-    case "file":
-      this.processFile(connection);
-      break;
-    case "options":
-      this.respondToOptions(connection);
-      break;
-    case "client-lib":
-      this.processClientLib(connection);
-      break;
-    case "trace":
-      this.respondToTrace(connection);
+      case "api":
+        this.processAction(connection);
+        break;
+      case "file":
+        this.processFile(connection);
+        break;
+      case "options":
+        this.respondToOptions(connection);
+        break;
+      case "client-lib":
+        this.processClientLib(connection);
+        break;
+      case "trace":
+        this.respondToTrace(connection);
     }
   }
 
@@ -124,19 +125,19 @@ export default class WebServer extends GenericServer {
         this.api.configs.servers.web.serverOptions,
         (req, res) => {
           this.handleRequest(req, res);
-        },
+        }
       );
     }
 
     let bootAttempts = 0;
 
-    this.server.on("error", e => {
+    this.server.on("error", (e) => {
       bootAttempts++;
 
       if (bootAttempts < this.api.configs.servers.web.bootAttempts) {
         this.log(
           `cannot boot web server; trying again [${String(e)}]`,
-          LogLevel.Error,
+          LogLevel.Error
         );
 
         if (bootAttempts === 1) {
@@ -145,17 +146,17 @@ export default class WebServer extends GenericServer {
 
         setTimeout(() => {
           this.log("attempting to boot again...", LogLevel.Info);
-          this.server.listen(this.options.port, this.options.bindIP);
+          this.server?.listen(this.options.port, this.options.bindIP);
         }, 1000);
       } else {
         throw new Error(
-          `Cannot start web server @ ${this.options.bindIP}:${this.options.port} => ${e.message}`,
+          `Cannot start web server @ ${this.options.bindIP}:${this.options.port} => ${e.message}`
         );
       }
     });
 
-    return new Promise(resolve => {
-      this.server.listen(this.options.port, this.options.bindIP, () => {
+    return new Promise((resolve) => {
+      this.server?.listen(this.options.port, this.options.bindIP, () => {
         this.chmodSocket(this.options.bindIP, this.options.port);
         resolve();
       });
@@ -168,7 +169,7 @@ export default class WebServer extends GenericServer {
    * @param next  Callback function.
    */
   public async stop(): Promise<void> {
-    this.server.close();
+    this.server?.close();
   }
 
   /**
@@ -195,7 +196,7 @@ export default class WebServer extends GenericServer {
     // get the response status code
     const responseHttpCode = parseInt(
       connection.rawConnection.responseHttpCode,
-      10,
+      10
     );
 
     // send the response to the client (use compression if active)
@@ -203,7 +204,7 @@ export default class WebServer extends GenericServer {
       connection,
       responseHttpCode,
       headers,
-      stringResponse,
+      stringResponse
     );
   }
 
@@ -223,14 +224,14 @@ export default class WebServer extends GenericServer {
     fileStream: ReadStream,
     mime: string,
     length: number,
-    lastModified: Date,
+    lastModified: Date
   ): Promise<void> {
     let foundCacheControl = false;
     let ifModifiedSince;
     let reqHeaders;
 
     // check if we should use cache mechanisms
-    connection.rawConnection.responseHeaders.forEach(pair => {
+    connection.rawConnection.responseHeaders.forEach((pair) => {
       if (pair[0].toLowerCase() === "cache-control") {
         foundCacheControl = true;
       }
@@ -273,7 +274,7 @@ export default class WebServer extends GenericServer {
       // parse the HTTP status code to int
       const responseHttpCode = parseInt(
         connection.rawConnection.responseHttpCode,
-        10,
+        10
       );
 
       if (error) {
@@ -283,7 +284,7 @@ export default class WebServer extends GenericServer {
           connection,
           responseHttpCode,
           headers,
-          errorString,
+          errorString
         );
       } else if (responseHttpCode !== 304) {
         this.sendWithCompression(
@@ -292,12 +293,12 @@ export default class WebServer extends GenericServer {
           headers,
           null,
           fileStream,
-          length,
+          length
         );
       } else {
         connection.rawConnection.res.writeHead(responseHttpCode, headers);
         connection.rawConnection.res.end();
-        connection.destroy();
+        connection.destroy!();
       }
     };
 
@@ -328,7 +329,7 @@ export default class WebServer extends GenericServer {
         if (error) {
           this.log(
             `Error receiving file statistics: ${String(error)}`,
-            LogLevel.Error,
+            LogLevel.Error
           );
           return sendRequestResult();
         }
@@ -355,8 +356,8 @@ export default class WebServer extends GenericServer {
         // if-none-match
         if (noneMatchHeader) {
           etagMatches = noneMatchHeader.some(
-            match =>
-              match === "*" || match === fileEtag || match === "W/" + fileEtag,
+            (match) =>
+              match === "*" || match === fileEtag || match === "W/" + fileEtag
           );
         }
 
@@ -387,9 +388,9 @@ export default class WebServer extends GenericServer {
     connection: ConnectionDetails,
     responseHttpCode: number,
     headers: Array<Array<string | number>>,
-    stringResponse: string,
-    fileStream = null,
-    fileLength = null,
+    stringResponse: string | null,
+    fileStream: ReadStream | null = null,
+    fileLength: number | null = null
   ) {
     let compressor, stringEncoder;
     const acceptEncoding =
@@ -412,12 +413,12 @@ export default class WebServer extends GenericServer {
 
     // the 'finish' event deontes a successful transfer
     connection.rawConnection.res.on("finish", () => {
-      connection.destroy();
+      connection.destroy!();
     });
 
     // the 'close' event deontes a failed transfer, but it is probably the client's fault
     connection.rawConnection.res.on("close", () => {
-      connection.destroy();
+      connection.destroy!();
     });
 
     if (fileStream) {
@@ -425,7 +426,7 @@ export default class WebServer extends GenericServer {
         connection.rawConnection.res.writeHead(responseHttpCode, headers);
         fileStream.pipe(compressor).pipe(connection.rawConnection.res);
       } else {
-        headers.push(["Content-Length", fileLength]);
+        headers.push(["Content-Length", String(fileLength)]);
         connection.rawConnection.res.writeHead(responseHttpCode, headers);
         fileStream.pipe(connection.rawConnection.res);
       }
@@ -437,7 +438,8 @@ export default class WebServer extends GenericServer {
           connection.rawConnection.res.end(zippedString);
         });
       } else {
-        headers.push(["Content-Length", Buffer.byteLength(stringResponse)]);
+        stringResponse &&
+          headers.push(["Content-Length", Buffer.byteLength(stringResponse)]);
         connection.rawConnection.res.writeHead(responseHttpCode, headers);
         connection.rawConnection.res.end(stringResponse);
       }
@@ -454,7 +456,7 @@ export default class WebServer extends GenericServer {
   private handleRequest(req, res) {
     const { fingerprint, headerHash } = this.fingerprinter.fingerprint(req);
 
-    const responseHeaders = [];
+    const responseHeaders: Array<any> = [];
     const cookies = this.api.utils.parseCookies(req);
     const responseHttpCode = 200;
     const method = req.method.toUpperCase();
@@ -563,7 +565,7 @@ export default class WebServer extends GenericServer {
    * @param connection Client connection object.
    */
   private async determineRequestParams(
-    connection: ConnectionDetails,
+    connection: ConnectionDetails
   ): Promise<string> {
     let requestMode: string = this.api.configs.servers.web.rootEndpointType;
     const pathname = connection.rawConnection.parsedURL.pathname;
@@ -603,8 +605,8 @@ export default class WebServer extends GenericServer {
       pathname.indexOf(this.api.configs.servers.web.urlPathForActions) === 0
     ) {
       requestMode = "api";
-      matcherLength = this.api.configs.servers.web.urlPathForActions.split("/")
-        .length;
+      matcherLength =
+        this.api.configs.servers.web.urlPathForActions.split("/").length;
       for (i = 0; i < matcherLength - 1; i++) {
         pathParts.shift();
       }
@@ -613,17 +615,16 @@ export default class WebServer extends GenericServer {
       pathname.indexOf(this.api.configs.servers.web.urlPathForFiles) === 0
     ) {
       requestMode = "file";
-      matcherLength = this.api.configs.servers.web.urlPathForFiles.split("/")
-        .length;
+      matcherLength =
+        this.api.configs.servers.web.urlPathForFiles.split("/").length;
       for (i = 0; i < matcherLength - 1; i++) {
         pathParts.shift();
       }
     }
 
     // split parsed URL by '.'
-    const extensionParts = connection.rawConnection.parsedURL.pathname.split(
-      ".",
-    );
+    const extensionParts =
+      connection.rawConnection.parsedURL.pathname.split(".");
 
     if (extensionParts.length > 1) {
       connection.extension = extensionParts[extensionParts.length - 1];
@@ -643,7 +644,7 @@ export default class WebServer extends GenericServer {
       const search = connection.rawConnection.parsedURL.search.slice(1);
       this.fillParamsFromWebRequest(
         connection,
-        qs.parse(search, this.api.configs.servers.web.queryParseOptions),
+        qs.parse(search, this.api.configs.servers.web.queryParseOptions)
       );
 
       connection.rawConnection.params.query =
@@ -662,22 +663,21 @@ export default class WebServer extends GenericServer {
             continue;
           }
 
-          connection.rawConnection.form[
-            i
-          ] = this.api.configs.servers.web.formOptions[i];
+          connection.rawConnection.form[i] =
+            this.api.configs.servers.web.formOptions[i];
         }
 
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
           connection.rawConnection.form.parse(
             connection.rawConnection.req,
             (error, fields, files) => {
               if (error) {
                 this.log(
                   `error processing form: ${String(error)}`,
-                  LogLevel.Error,
+                  LogLevel.Error
                 );
                 connection.error = new Error(
-                  "There was an error processing this form.",
+                  "There was an error processing this form."
                 );
               } else {
                 connection.rawConnection.params.body = fields;
@@ -694,7 +694,7 @@ export default class WebServer extends GenericServer {
               this.api.routes.processRoute(connection, pathParts);
 
               resolve(requestMode);
-            },
+            }
           );
         }) as Promise<string>;
       } else {
@@ -736,10 +736,10 @@ export default class WebServer extends GenericServer {
       this.api.configs.general.paths.public +
         sep +
         this.api.configs.servers.websocket.clientJsName +
-        ".js",
+        ".js"
     );
 
-    connection.params.file = file;
+    connection.params!.file = file;
     this.processFile(connection);
   }
 
@@ -752,7 +752,7 @@ export default class WebServer extends GenericServer {
    */
   private fillParamsFromWebRequest(
     connection: ConnectionDetails,
-    varsHash: {},
+    varsHash: {}
   ) {
     // helper for JSON parts
     const collapsedVarsHash = this.api.utils.collapseObjectToArray(varsHash);
@@ -795,7 +795,7 @@ export default class WebServer extends GenericServer {
     // check if is to use requester information
     if (this.api.configs.servers.web.metadataOptions.requesterInformation) {
       data.response.requesterInformation = this.buildRequesterInformation(
-        data.connection,
+        data.connection
       );
     }
 
@@ -834,18 +834,18 @@ export default class WebServer extends GenericServer {
     // if its an error response we need to serialize the error object
     if (data.response.error) {
       data.response.error = this.api.configs.errors.serializers.servers.web(
-        data.response.error,
+        data.response.error
       );
     }
 
     let stringResponse = "";
 
     // build the string response
-    if (this.extractHeader(data.connection, "Content-Type").match(/json/)) {
+    if (this.extractHeader(data.connection, "Content-Type")?.match(/json/)) {
       stringResponse = JSON.stringify(
         data.response,
         null,
-        this.api.configs.servers.web.padding,
+        this.api.configs.servers.web.padding
       );
       if (data.params.callback) {
         data.connection.rawConnection.responseHeaders.push([
@@ -872,7 +872,7 @@ export default class WebServer extends GenericServer {
    */
   private extractHeader(
     connection: ConnectionDetails,
-    match: string,
+    match: string
   ): string | null {
     let i = connection.rawConnection.responseHeaders.length - 1;
 
@@ -898,11 +898,11 @@ export default class WebServer extends GenericServer {
    * @private
    */
   private buildRequesterInformation(
-    connection: ConnectionDetails,
+    connection: ConnectionDetails
   ): RequestInformation {
     const requesterInformation: RequestInformation = {
       id: connection.id,
-      fingerprint: connection.fingerprint,
+      fingerprint: connection.fingerprint!,
       remoteIP: connection.remoteIP,
       receivedParams: {},
     };
@@ -927,8 +927,8 @@ export default class WebServer extends GenericServer {
   private cleanHeaders(connection: ConnectionDetails) {
     // make a copy of the original headers
     const originalHeaders = connection.rawConnection.responseHeaders.reverse();
-    const foundHeaders = [];
-    const cleanedHeaders = [];
+    const foundHeaders: Array<any> = [];
+    const cleanedHeaders: Array<any> = [];
 
     // iterate all headers and remove duplications and unnecessary headers
     for (const i in originalHeaders) {
@@ -936,7 +936,7 @@ export default class WebServer extends GenericServer {
         continue;
       }
 
-      const key = originalHeaders[i][0];
+      const key: string = originalHeaders[i][0];
       const value = originalHeaders[i][1];
 
       if (
@@ -963,7 +963,7 @@ export default class WebServer extends GenericServer {
    *
    * @param connection Connection object.
    */
-  private respondToOptions(connection: ConnectionDetails = null) {
+  private respondToOptions(connection: ConnectionDetails) {
     // inform the allowed methods
     if (
       !this.api.configs.servers.web.httpHeaders[
@@ -1008,7 +1008,7 @@ export default class WebServer extends GenericServer {
     const responseString = JSON.stringify(
       data,
       null,
-      this.api.configs.servers.web.padding,
+      this.api.configs.servers.web.padding
     );
     this.sendMessage(connection, responseString);
   }
@@ -1021,11 +1021,11 @@ export default class WebServer extends GenericServer {
    */
   private cleanSocket(bindIP: string, port: string) {
     if (!bindIP && port.indexOf("/") >= 0) {
-      unlink(port, error => {
+      unlink(port, (error) => {
         if (error) {
           this.log(
             `Cannot remove stale socket @${port}:${error}`,
-            LogLevel.Warning,
+            LogLevel.Warning
           );
         } else {
           this.log(`Removed stale unix socket @${port}`, LogLevel.Info);

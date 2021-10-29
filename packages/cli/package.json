@@ -24,6 +24,11 @@
   },
   "dependencies": {
     "@stellarfw/core": "^2.0.0",
+    "handlebars": "4.0.11",
+    "async": "^2.6.0",
+    "is-running": "^2.1.0",
+    "winston": "2.4.0",
+    "chalk": "^2.3.0",
     "sywac": "^1.2.0"
   },
   "scripts": {

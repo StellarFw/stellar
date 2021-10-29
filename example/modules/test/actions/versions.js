@@ -6,33 +6,34 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var common_1 = require("@stellarfw/common");
-let VersionedAction1 = class VersionedAction1 extends common_1.Action {
+exports.VersionedAction2 = exports.VersionedAction1 = void 0;
+const common_1 = require("@stellarfw/common");
+let VersionedAction1 = class VersionedAction1 extends Action {
     async run() { }
 };
 VersionedAction1 = __decorate([
-    common_1.ActionMetadata({
+    (0, common_1.ActionMetadata)({
         name: "versionedAction",
         description: "Is just a dummy action with a version property",
-        version: 1
+        version: 1,
     })
 ], VersionedAction1);
 exports.VersionedAction1 = VersionedAction1;
-let VersionedAction2 = class VersionedAction2 extends common_1.Action {
+let VersionedAction2 = class VersionedAction2 extends Action {
     async run() {
         return {
-            news: "new version"
+            news: "new version",
         };
     }
 };
 VersionedAction2 = __decorate([
-    common_1.ActionMetadata({
+    (0, common_1.ActionMetadata)({
         name: "versionedAction",
         description: "Is just a dummy action with a version property",
         version: 2,
         outputExample: {
-            news: "new version"
-        }
+            news: "new version",
+        },
     })
 ], VersionedAction2);
 exports.VersionedAction2 = VersionedAction2;

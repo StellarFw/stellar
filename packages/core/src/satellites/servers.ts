@@ -1,7 +1,9 @@
-import { Satellite } from "@stellarfw/common/lib/satellite";
-import { GenericServer } from "@stellarfw/common/lib/generic-server";
 import { resolve } from "path";
+
+import { Satellite } from "@stellarfw/common/lib/satellite";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
+
+import { GenericServer } from "@/base/generic-server";
 
 export default class ServersSatellite extends Satellite {
   public loadPriority = 550;
@@ -20,7 +22,7 @@ export default class ServersSatellite extends Satellite {
   private loadServers() {
     // Get all JS files
     const serversFiles = this.api.utils.recursiveDirSearch(
-      resolve(`${__dirname}/../servers`),
+      resolve(`${__dirname}/../servers`)
     );
 
     for (const file of serversFiles) {
@@ -42,7 +44,7 @@ export default class ServersSatellite extends Satellite {
     for (const serverName of this.servers.keys()) {
       const server = this.servers.get(serverName);
 
-      if (server.options.enable !== true) {
+      if (!server || server.options.enable !== true) {
         continue;
       }
 
@@ -71,7 +73,7 @@ export default class ServersSatellite extends Satellite {
     for (const serverName of this.servers.keys()) {
       const server = this.servers.get(serverName);
 
-      if (server.options.enable !== true) {
+      if (!server || server.options.enable !== true) {
         continue;
       }
 

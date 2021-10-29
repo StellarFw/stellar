@@ -54,7 +54,7 @@ export default class RoutesSatellite extends Satellite {
     path: string,
     action: string,
     actionVersion: number = 1,
-    matchTrailingPathParts: boolean = false,
+    matchTrailingPathParts: boolean = false
   ): void {
     const route: RouteInterface = {
       path,
@@ -77,7 +77,7 @@ export default class RoutesSatellite extends Satellite {
   private matchURL(
     pathParts: Array<string>,
     match: string,
-    matchTrailingPathParts: boolean = false,
+    matchTrailingPathParts: boolean = false
   ) {
     const response = { match: false, params: {} };
     const matchParts = match.split("/");
@@ -131,7 +131,7 @@ export default class RoutesSatellite extends Satellite {
         variable = matchPart.replace(":", "").split("(")[0];
         regexp = matchPart.substring(
           matchPart.indexOf("(") + 1,
-          matchPart.length - 1,
+          matchPart.length - 1
         );
         const matches = pathPart.match(new RegExp(regexp, "g"));
         if (matches) {
@@ -184,7 +184,7 @@ export default class RoutesSatellite extends Satellite {
         const match = this.matchURL(
           pathParts,
           route.path,
-          route.matchTrailingPathParts,
+          route.matchTrailingPathParts
         );
 
         if (match.match === true) {
@@ -202,7 +202,7 @@ export default class RoutesSatellite extends Satellite {
             try {
               const decodedName = decodeURIComponent(param.replace(/\+/g, " "));
               const decodedValue = decodeURIComponent(
-                match.params[param].replace(/\+g/, " "),
+                match.params[param].replace(/\+g/, " ")
               );
               connection.params[decodedName] = decodedValue;
             } catch (e) {
@@ -247,7 +247,7 @@ export default class RoutesSatellite extends Satellite {
               route.path,
               route.action,
               route.apiVersion,
-              route.matchTrailingPathParts,
+              route.matchTrailingPathParts
             );
           });
         } else {
@@ -256,7 +256,7 @@ export default class RoutesSatellite extends Satellite {
             route.path,
             route.action,
             route.apiVersion,
-            route.matchTrailingPathParts,
+            route.matchTrailingPathParts
           );
         }
 
@@ -266,7 +266,7 @@ export default class RoutesSatellite extends Satellite {
 
     // remove duplicated entries on postVariables
     this.api.params.postVariables = this.api.utils.arrayUniqueify(
-      this.api.params.postVariables,
+      this.api.params.postVariables
     );
 
     this.api.log(`${counter} routes loaded`, LogLevel.Debug);
@@ -275,7 +275,7 @@ export default class RoutesSatellite extends Satellite {
       this.api.configs.servers.web &&
       this.api.configs.servers.web.simpleRouting === true
     ) {
-      const simplePaths = [];
+      const simplePaths: Array<string> = [];
 
       for (const action in this.api.actions.actions) {
         if (!this.api.actions.actions.hasOwnProperty(action)) {
@@ -296,7 +296,7 @@ export default class RoutesSatellite extends Satellite {
       // log the number of simple routes loaded
       this.api.log(
         `${simplePaths.length} simple routes loaded from action names`,
-        LogLevel.Debug,
+        LogLevel.Debug
       );
       this.api.log("routes: ", LogLevel.Debug, this.routes);
     }

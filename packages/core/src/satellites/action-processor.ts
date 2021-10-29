@@ -1,10 +1,10 @@
-import { Connection } from "@stellarfw/common/lib/connection";
 import { EngineStatus } from "@stellarfw/common/lib/enums/engine-status.enum";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
-import { Action } from "@stellarfw/common/lib/interfaces/action.interface";
+import { Action, ProcessingAction } from "@stellarfw/common/lib";
 import { Satellite } from "@stellarfw/common/lib/satellite";
 import { UnknownActionException, IActionProcessor } from "@stellarfw/common";
 import { ACTION_METADATA } from "@stellarfw/common/lib/constants";
+import { Connection } from "@stellarfw/common/lib";
 
 type ActionProcessorCallback = (data: any) => void;
 
@@ -23,32 +23,32 @@ class ActionProcessor implements IActionProcessor {
   /**
    * API instance.
    */
-  private api: any = null;
+  private api: any;
 
   /**
    * Connection instance.
    */
-  public connection: Connection = null;
+  public connection!: Connection;
 
   /**
    * Action name
    */
-  private action: string = null;
+  private action!: string;
 
   /**
    * Action class.
    */
-  private actionInstance: Action = null;
+  private actionInstance!: ProcessingAction;
 
   /**
    * Action's metadata.
    */
-  private actionMetadata: Action = {};
+  private actionMetadata: Action = {} as Action;
 
   /**
    * Action status.
    */
-  private actionStatus: ActionStatus = null;
+  private actionStatus!: ActionStatus;
 
   private toProcess: boolean = true;
 
@@ -60,7 +60,7 @@ class ActionProcessor implements IActionProcessor {
   /**
    * Message identifier.
    */
-  private messageCount: number = null;
+  private messageCount!: number;
 
   /**
    * Action parameters.
@@ -75,7 +75,7 @@ class ActionProcessor implements IActionProcessor {
   /**
    * Timestamp when the action was started to be processed.
    */
-  private actionStartTime: number = null;
+  private actionStartTime!: number;
 
   /**
    * Informers when the action is being processed.
@@ -90,12 +90,12 @@ class ActionProcessor implements IActionProcessor {
   /**
    * Duration that the action took to be completed.
    */
-  private duration: number = null;
+  private duration!: number;
 
   /**
    * Timeout identifier.
    */
-  private timeoutTimer: NodeJS.Timer;
+  private timeoutTimer!: NodeJS.Timer;
 
   /**
    * To ensure that the action won't respond twice when an timeout error
@@ -103,7 +103,7 @@ class ActionProcessor implements IActionProcessor {
    */
   private errorRendered: boolean = false;
 
-  private callback: ActionProcessorCallback = null;
+  private callback: ActionProcessorCallback;
 
   /**
    * Create a new action processor instance.
@@ -114,7 +114,7 @@ class ActionProcessor implements IActionProcessor {
   constructor(
     api: {},
     connection: Connection,
-    callback?: ActionProcessorCallback,
+    callback: ActionProcessorCallback
   ) {
     this.api = api;
     this.connection = connection;
@@ -153,31 +153,31 @@ class ActionProcessor implements IActionProcessor {
    *
    * @param status Action status or an error.
    */
-  public completeAction(status?: ActionStatus, error: Error = null) {
+  public completeAction(status?: ActionStatus, error?: Error) {
     switch (status) {
-    case ActionStatus.SERVER_ERROR:
-      error = this.api.configs.errors.serverErrorMessage;
-      break;
-    case ActionStatus.SERVER_SHUTTING_DOWN:
-      error = this.api.configs.errors.serverShuttingDown;
-      break;
-    case ActionStatus.TOO_MANY_REQUESTS:
-      error = this.api.configs.errors.tooManyPendingActions();
-      break;
-    case ActionStatus.UNKNOWN_ACTION:
-      error = this.api.configs.errors.unknownAction(this.action);
-      break;
-    case ActionStatus.UNSUPPORTED_SERVER_TYPE:
-      error = this.api.configs.errors.unsupportedServerType(
-        this.connection.type,
-      );
-      break;
-    case ActionStatus.VALIDATOR_ERRORS:
-      error = this.api.configs.errors.invalidParams(this.validatorErrors);
-      break;
-    case ActionStatus.RESPONSE_TIMEOUT:
-      error = this.api.configs.errors.responseTimeout(this.action);
-      break;
+      case ActionStatus.SERVER_ERROR:
+        error = this.api.configs.errors.serverErrorMessage;
+        break;
+      case ActionStatus.SERVER_SHUTTING_DOWN:
+        error = this.api.configs.errors.serverShuttingDown;
+        break;
+      case ActionStatus.TOO_MANY_REQUESTS:
+        error = this.api.configs.errors.tooManyPendingActions();
+        break;
+      case ActionStatus.UNKNOWN_ACTION:
+        error = this.api.configs.errors.unknownAction(this.action);
+        break;
+      case ActionStatus.UNSUPPORTED_SERVER_TYPE:
+        error = this.api.configs.errors.unsupportedServerType(
+          this.connection.type
+        );
+        break;
+      case ActionStatus.VALIDATOR_ERRORS:
+        error = this.api.configs.errors.invalidParams(this.validatorErrors);
+        break;
+      case ActionStatus.RESPONSE_TIMEOUT:
+        error = this.api.configs.errors.responseTimeout(this.action);
+        break;
     }
 
     if (error && typeof error === "string") {
@@ -208,7 +208,7 @@ class ActionProcessor implements IActionProcessor {
    *
    * @param error Error that occurred during the action processing, if exists.
    */
-  private logAction(error: Error) {
+  private logAction(error?: Error) {
     let logLevel = LogLevel.Info;
 
     // check if the action have a specific log level
@@ -226,7 +226,7 @@ class ActionProcessor implements IActionProcessor {
       } else if (typeof this.params[i] === "string") {
         filteredParams[i] = this.params[i].substring(
           0,
-          this.api.configs.logger.maxLogStringLength,
+          this.api.configs.logger.maxLogStringLength
         );
       } else {
         filteredParams[i] = this.params[i];
@@ -238,7 +238,7 @@ class ActionProcessor implements IActionProcessor {
       action: this.action,
       params: JSON.stringify(filteredParams),
       duration: this.duration,
-      error: null,
+      error: "",
     };
 
     if (error) {
@@ -264,7 +264,7 @@ class ActionProcessor implements IActionProcessor {
       this.connection.type !== "internal"
     ) {
       throw new Error(
-        this.api.config.errors.privateActionCalled(this.actionMetadata.name),
+        this.api.config.errors.privateActionCalled(this.actionMetadata.name)
       );
     }
 
@@ -275,7 +275,7 @@ class ActionProcessor implements IActionProcessor {
 
     // get action processor names
     if (this.actionMetadata.middleware) {
-      this.actionMetadata.middleware.forEach(m => {
+      this.actionMetadata.middleware.forEach((m) => {
         processorsNames.push(m);
       });
     }
@@ -301,14 +301,14 @@ class ActionProcessor implements IActionProcessor {
   private instantiateAction() {
     if (this.api.actions.versions[this.action]) {
       if (!this.params.apiVersion) {
-        this.params.apiVersion = this.api.actions.versions[this.action][
-          this.api.actions.versions[this.action].length - 1
-        ];
+        this.params.apiVersion =
+          this.api.actions.versions[this.action][
+            this.api.actions.versions[this.action].length - 1
+          ];
       }
 
-      const actionClass = this.api.actions.actions[this.action][
-        this.params.apiVersion
-      ];
+      const actionClass =
+        this.api.actions.actions[this.action][this.params.apiVersion];
 
       this.actionMetadata = Reflect.getMetadata(ACTION_METADATA, actionClass);
       this.actionInstance = new actionClass(this.api, this);
@@ -386,7 +386,7 @@ class ActionProcessor implements IActionProcessor {
           this.params[key] = props.format.call(
             this.api,
             this.params[key],
-            this,
+            this
           );
         } else if (props.format === "integer") {
           this.params[key] = Number.parseInt(this.params[key]);
@@ -399,7 +399,7 @@ class ActionProcessor implements IActionProcessor {
         if (Number.isNaN(this.params[key])) {
           this.validatorErrors.set(
             key,
-            this.api.config.errors.paramInvalidType(key, props.format),
+            this.api.config.errors.paramInvalidType(key, props.format)
           );
         }
       }
@@ -439,7 +439,7 @@ class ActionProcessor implements IActionProcessor {
     const processorNames = this.api.actions.globalMiddleware.slice(0);
 
     if (this.actionMetadata.middleware) {
-      this.actionMetadata.middleware.forEach(m => {
+      this.actionMetadata.middleware.forEach((m) => {
         processorNames.push(m);
       });
     }
@@ -456,7 +456,7 @@ class ActionProcessor implements IActionProcessor {
     try {
       await this.preProcessAction();
     } catch (error) {
-      this.completeAction(null, error);
+      this.completeAction(undefined, error);
       return;
     }
 
@@ -480,14 +480,14 @@ class ActionProcessor implements IActionProcessor {
     // client.
     this.timeoutTimer = setTimeout(
       this.actionTimeout.bind(this),
-      this.api.configs.general.actionTimeout,
+      this.api.configs.general.actionTimeout
     );
 
     try {
       this.response = await this.actionInstance.run();
     } catch (error) {
       clearTimeout(this.timeoutTimer);
-      this.completeAction(null, error);
+      this.completeAction(undefined, error);
       return;
     }
 
@@ -509,7 +509,7 @@ class ActionProcessor implements IActionProcessor {
       await this.postProcessAction();
       this.completeAction();
     } catch (error) {
-      this.completeAction(null, error);
+      this.completeAction(undefined, error);
     }
   }
 }

@@ -6,13 +6,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var common_1 = require("@stellarfw/common");
-let StatusAction = class StatusAction extends common_1.Action {
+const common_1 = require("@stellarfw/common");
+let StatusAction = class StatusAction extends Action {
     async run() {
         return {
             id: this.api.id,
             stellarVersion: this.api.stellarVersion,
-            uptime: new Date().getTime() - this.api.bootTime
+            uptime: new Date().getTime() - this.api.bootTime,
         };
         // data.response.id = api.id
         // data.response.stellarVersion = api.stellarVersion
@@ -20,14 +20,14 @@ let StatusAction = class StatusAction extends common_1.Action {
     }
 };
 StatusAction = __decorate([
-    common_1.ActionMetadata({
+    (0, common_1.ActionMetadata)({
         name: "status",
         description: "This action returns some basic information about the API",
         outputExample: {
             id: "example",
             stellarVersion: "1.0.0",
-            uptime: 10030
-        }
+            uptime: 10030,
+        },
     })
 ], StatusAction);
 exports.default = StatusAction;

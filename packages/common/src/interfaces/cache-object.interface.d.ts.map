@@ -1,1 +1,0 @@
-{"version":3,"file":"cache-object.interface.d.ts","sourceRoot":"","sources":["cache-object.interface.ts"],"names":[],"mappings":"AAAA,MAAM,CAAC,OAAO,WAAW,WAAW;IAKlC,KAAK,EAAE,GAAG,CAAC;IAKX,eAAe,CAAC,EAAE,MAAM,CAAC;IAQzB,MAAM,CAAC,EAAE,MAAM,CAAC;IAKhB,SAAS,EAAE,MAAM,CAAC;CACnB"}

@@ -48,13 +48,13 @@ export default class BeautifulLogger extends Transport {
     this.align = options.align || false;
     this.stderrLevels = this.setStderrLevels(
       options.stderrLevels,
-      options.debugStdout,
+      options.debugStdout
     );
     this.eol = options.eol || EOL;
 
     if (this.json) {
       this.stringify =
-        options.stringify || (obj => JSON.stringify(obj, null, 2));
+        options.stringify || ((obj) => JSON.stringify(obj, null, 2));
     }
   }
 
@@ -171,7 +171,7 @@ export default class BeautifulLogger extends Transport {
             meta,
             false,
             this.depth || null,
-            this.colorize,
+            this.colorize
           )}`;
         } else if (
           Object.keys(meta).length &&
@@ -209,7 +209,7 @@ export default class BeautifulLogger extends Transport {
     callback(null, true);
   }
 
-  private serialize(obj, key = null) {
+  private serialize(obj, key?: string | symbol) {
     // symbols cannot be directly casted to strings
     if (typeof key === "symbol") {
       key = key.toString();

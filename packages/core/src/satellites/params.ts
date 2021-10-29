@@ -23,7 +23,7 @@ export default class ParamsSatellite extends Satellite {
    * Build a dictionary with all safe application params.
    */
   private buildPostVariables() {
-    const postVariables = [];
+    const postVariables: Array<string> = [];
 
     // Add global safe params.
     this.postVariables.concat(this.globalSafeParams);

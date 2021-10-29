@@ -6,8 +6,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var common_1 = require("@stellarfw/common");
-let SleepAction = class SleepAction extends common_1.Action {
+const common_1 = require("@stellarfw/common");
+let SleepAction = class SleepAction extends Action {
     async run() {
         const sleepDuration = this.params.sleepDuration;
         const sleepStarted = new Date().getTime();
@@ -19,28 +19,28 @@ let SleepAction = class SleepAction extends common_1.Action {
                     sleepStarted,
                     sleepEnded,
                     sleepDelta,
-                    sleepDuration
+                    sleepDuration,
                 });
             }, sleepDuration);
         });
     }
 };
 SleepAction = __decorate([
-    common_1.ActionMetadata({
+    (0, common_1.ActionMetadata)({
         name: "sleep",
         description: "This action sleep for a while and then return",
         inputs: {
             sleepDuration: {
                 required: true,
-                default: 1000
-            }
+                default: 1000,
+            },
         },
         outputExample: {
             sleepStarted: 1457265602,
             sleepEnded: 1457265615,
             sleepDelta: 13,
-            sleepDuration: 10
-        }
+            sleepDuration: 10,
+        },
     })
 ], SleepAction);
 exports.default = SleepAction;

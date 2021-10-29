@@ -3,9 +3,9 @@ import { Server, Socket, createServer } from "net";
 import { createServer as createSecureServer } from "tls";
 
 import ConnectionDetails from "@stellarfw/common/lib/interfaces/connection-details.interface";
-import { Connection } from "@stellarfw/common/lib/connection";
-import { GenericServer } from "@stellarfw/common/lib/generic-server";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
+import { GenericServer } from "../base/generic-server";
+import { Connection } from "@stellarfw/common/lib";
 
 export default class TCPServer extends GenericServer {
   protected static serverName: string = "TCP";
@@ -13,7 +13,7 @@ export default class TCPServer extends GenericServer {
   /**
    * TCP server object.
    */
-  private server: Server = null;
+  private server: Server | null = null;
 
   constructor(api, options) {
     super(api, "tcp", options);
@@ -137,7 +137,7 @@ export default class TCPServer extends GenericServer {
       if (bufferLen > this.api.configs.servers.tcp.maxDataLength) {
         const error = this.api.configs.errors.dataLengthTooLarge(
           this.api.configs.servers.tcp.maxDataLength,
-          bufferLen,
+          bufferLen
         );
         this.log(error, LogLevel.Error);
         return this.sendMessage(connection, {
@@ -171,10 +171,13 @@ export default class TCPServer extends GenericServer {
 
       while (index > -1) {
         const data = connection.rawConnection.socketDataString.slice(0, index);
-        connection.rawConnection.socketDataString = connection.rawConnection.socketDataString.slice(
-          index + delimiter.length,
-        );
-        data.split(delimiter).forEach(line => this.parseLine(connection, line));
+        connection.rawConnection.socketDataString =
+          connection.rawConnection.socketDataString.slice(
+            index + delimiter.length
+          );
+        data
+          .split(delimiter)
+          .forEach((line) => this.parseLine(connection, line));
 
         index = connection.rawConnection.socketDataString.indexOf(delimiter);
       }
@@ -204,12 +207,12 @@ export default class TCPServer extends GenericServer {
 
   private handleConnectionEvent(connection) {
     connection.params = {};
-    connection.rawConnection.on("data", data =>
-      this.handleData(connection, data),
+    connection.rawConnection.on("data", (data) =>
+      this.handleData(connection, data)
     );
     connection.rawConnection.on("end", () => this.handleEndEvent(connection));
-    connection.rawConnection.on("error", error =>
-      this.handleEventError(connection, error),
+    connection.rawConnection.on("error", (error) =>
+      this.handleEventError(connection, error)
     );
   }
 
@@ -242,16 +245,16 @@ export default class TCPServer extends GenericServer {
    * @param alreadyShutdown Informs of the server was already shutdown.
    */
   private innerStop(alreadyShutdown: boolean = false): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       // If the server isn't already shutdown do it now
       if (!alreadyShutdown) {
-        this.server.close();
+        this.server?.close();
       }
 
       let pendingConnections = 0;
 
       // Finish all pending connections
-      this.connections().forEach(connection => {
+      this.connections().forEach((connection) => {
         if (connection.pendingActions === 0) {
           connection.destroy();
           return;
@@ -269,7 +272,7 @@ export default class TCPServer extends GenericServer {
       if (pendingConnections > 0) {
         this.log(
           `waiting on shutdown, there are still ${pendingConnections} connected clients waiting on a response`,
-          LogLevel.Notice,
+          LogLevel.Notice
         );
         setTimeout(async () => {
           await this.innerStop(true);
@@ -308,11 +311,11 @@ export default class TCPServer extends GenericServer {
   public sendMessage(
     connection: ConnectionDetails,
     message: any,
-    messageCount: number = 0,
+    messageCount: number = 0
   ) {
     if (message.error) {
       message.error = this.api.configs.errors.serializers.servers.tcp(
-        message.error,
+        message.error
       );
     }
 
@@ -348,19 +351,16 @@ export default class TCPServer extends GenericServer {
    */
   public async sendFile(
     connection: ConnectionDetails,
-    error: Error = null,
+    error: Error | null = null,
     stream: Stream,
     mime: string,
     length: number,
-    lastModified: Date,
+    lastModified: Date
   ): Promise<void> {
     if (error) {
       this.sendMessage(connection, error, connection.messageCount);
     } else {
-      stream.pipe(
-        connection.rawConnection,
-        { end: false },
-      );
+      stream.pipe(connection.rawConnection, { end: false });
     }
   }
 
@@ -368,29 +368,27 @@ export default class TCPServer extends GenericServer {
     if (this.options.secure === false) {
       this.server = createServer(
         this.api.configs.servers.tcp.serverOptions,
-        rawConnection => {
+        (rawConnection) => {
           this.handleConnection(rawConnection);
-        },
+        }
       );
     } else {
       this.server = createSecureServer(
         this.api.configs.servers.tcp.serverOptions,
-        rawConnection => {
+        (rawConnection) => {
           this.handleConnection(rawConnection);
-        },
+        }
       );
     }
 
-    this.server.on("error", error => {
+    this.server.on("error", (error) => {
       throw new Error(
-        `Cannot start tcp server @ ${this.options.bindIP}:${
-          this.options.port
-        } => ${error.message}`,
+        `Cannot start tcp server @ ${this.options.bindIP}:${this.options.port} => ${error.message}`
       );
     });
 
-    await new Promise(resolve =>
-      this.server.listen(this.options.port, this.options.bindIP, resolve),
+    await new Promise((resolve) =>
+      this.server?.listen(this.options.port, this.options.bindIP, resolve)
     );
   }
 
@@ -409,10 +407,10 @@ export default class TCPServer extends GenericServer {
       connection.rawConnection.end(
         JSON.stringify({
           status: connection.localize(
-            this.api.configs.servers.tcp.goodbyeMessage,
+            this.api.configs.servers.tcp.goodbyeMessage
           ),
           context: "api",
-        }) + "\r\n",
+        }) + "\r\n"
       );
     } catch (error) {}
   }

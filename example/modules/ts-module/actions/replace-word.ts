@@ -22,7 +22,7 @@ export default class ReplaceWordsAction extends Action {
   public async run() {
     const newText = (this.params.text as string).replace(
       this.params.target,
-      this.params.replacement,
+      this.params.replacement
     );
 
     return {

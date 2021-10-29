@@ -1,9 +1,8 @@
 import { Satellite } from "@stellarfw/common/lib/satellite";
 import { readFileSync, writeFileSync } from "fs";
 import * as Handlebars from "handlebars";
-import { Action } from "@stellarfw/common/lib/action";
-import { IActionMetadata } from "@stellarfw/common";
 import { ACTION_METADATA } from "@stellarfw/common/lib/constants";
+import { Action } from "@stellarfw/common";
 
 export default class DocumentationSatellite extends Satellite {
   protected _name: string = "documentation";
@@ -53,9 +52,8 @@ export default class DocumentationSatellite extends Satellite {
           false
         ) {
           count++;
-          actions[actionName][versionNumber] = this.api.actions.actions[
-            actionName
-          ][versionNumber];
+          actions[actionName][versionNumber] =
+            this.api.actions.actions[actionName][versionNumber];
         }
       }
 
@@ -82,7 +80,7 @@ export default class DocumentationSatellite extends Satellite {
     };
 
     const templateBase = readFileSync(
-      `${this.templateFolder}/action.html`,
+      `${this.templateFolder}/action.html`
     ).toString();
 
     for (const actionName in actions) {
@@ -101,7 +99,7 @@ export default class DocumentationSatellite extends Satellite {
 
         const actionMetadata = Reflect.getMetadata(
           ACTION_METADATA,
-          actions[actionName][versionNumber],
+          actions[actionName][versionNumber]
         );
 
         const action = this.prepareActionToPrint(actionMetadata);
@@ -115,7 +113,7 @@ export default class DocumentationSatellite extends Satellite {
       writeFileSync(
         `${this.docsFolder}/action_${actionName}.html`,
         template(data),
-        "utf8",
+        "utf8"
       );
     }
 
@@ -128,10 +126,10 @@ export default class DocumentationSatellite extends Satellite {
    */
   private getTasksInformation(): Array<any> {
     // array to store all the tasks
-    const tasks = [];
+    const tasks: any = [];
 
     // iterate all registered tasks
-    Object.keys(this.api.tasks.tasks).forEach(key => {
+    Object.keys(this.api.tasks.tasks).forEach((key) => {
       const task = this.api.tasks.tasks[key];
       tasks.push({
         name: task.name,
@@ -158,7 +156,7 @@ export default class DocumentationSatellite extends Satellite {
     };
 
     const templateFile = readFileSync(
-      `${this.templateFolder}/index.html`,
+      `${this.templateFolder}/index.html`
     ).toString();
 
     const template = Handlebars.compile(templateFile);
@@ -172,15 +170,15 @@ export default class DocumentationSatellite extends Satellite {
   private copyResourceFiles() {
     this.api.utils.copyFile(
       `${this.templateFolder}/reset.css`,
-      `${this.docsFolder}/reset.css`,
+      `${this.docsFolder}/reset.css`
     );
     this.api.utils.copyFile(
       `${this.templateFolder}/style.css`,
-      `${this.docsFolder}/style.css`,
+      `${this.docsFolder}/style.css`
     );
     this.api.utils.copyFile(
       `${this.templateFolder}/highlight.js`,
-      `${this.docsFolder}/highlight.js`,
+      `${this.docsFolder}/highlight.js`
     );
   }
 
@@ -189,7 +187,7 @@ export default class DocumentationSatellite extends Satellite {
    *
    * @param action Action to be prepared
    */
-  private prepareActionToPrint(action: IActionMetadata): any {
+  private prepareActionToPrint(action: Action): any {
     // create a new object with the data prepared to be printed
     const output: any = {};
 
@@ -209,9 +207,9 @@ export default class DocumentationSatellite extends Satellite {
       output.inputs = [];
 
       // iterate all inputs
-      Object.keys(action.inputs).forEach(inputName => {
+      Object.keys(action.inputs).forEach((inputName) => {
         const newInput: any = {};
-        const input = action.inputs[inputName];
+        const input = action.inputs![inputName];
 
         newInput.name = inputName;
         newInput.description = input.description || "N/A";

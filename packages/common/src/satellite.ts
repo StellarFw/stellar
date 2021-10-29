@@ -6,7 +6,7 @@ export abstract class Satellite implements SatelliteInterface {
   public stopPriority: number = 100;
 
   protected api: any = null;
-  protected _name: string = null;
+  protected _name!: string;
 
   constructor(api: any) {
     this.api = api;

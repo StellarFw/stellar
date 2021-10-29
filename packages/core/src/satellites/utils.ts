@@ -36,7 +36,7 @@ class Utils {
    * resolved.
    */
   public delay(time: number): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       setTimeout(resolve, time);
     });
   }
@@ -47,9 +47,9 @@ class Utils {
    * @param dir Folder path to search.
    */
   public getFiles(dir: string): Array<string> {
-    const results = [];
+    const results: Array<any> = [];
 
-    readdirSync(dir).forEach(file => {
+    readdirSync(dir).forEach((file) => {
       file = `${dir}/${file}`;
       const stat = statSync(file);
 
@@ -71,16 +71,16 @@ class Utils {
    */
   public recursiveDirSearch(
     dir: string,
-    extensions: string | Array<String> = ["js"],
+    extensions: string | Array<String> = ["js"]
   ): Array<string> {
-    let results = [];
+    let results: Array<any> = [];
 
     const innerExtensions = Array.isArray(extensions)
       ? extensions
       : [extensions];
 
     // Remove dots from the extensions
-    innerExtensions.forEach(ext => ext.replace(".", ""));
+    innerExtensions.forEach((ext) => ext.replace(".", ""));
 
     if (dir[dir.length - 1] !== "/") {
       dir += "/";
@@ -90,7 +90,7 @@ class Utils {
       return results;
     }
 
-    readdirSync(dir).forEach(file => {
+    readdirSync(dir).forEach((file) => {
       const fullFilePath = normalize(dir + file);
 
       // ignore hidden files
@@ -149,7 +149,7 @@ class Utils {
       return;
     }
 
-    filesList.forEach(file => {
+    filesList.forEach((file) => {
       const filePath = `${path}/${file}`;
 
       if (statSync(filePath).isFile()) {
@@ -283,7 +283,7 @@ class Utils {
    */
   public hashMerge(a: object, b: object, args: any): object {
     const c = {};
-    let response = null;
+    let response;
 
     for (const i in a) {
       if (this.isPlainObject(a[i]) && Object.keys(a[i]).length > 0) {
@@ -331,8 +331,8 @@ class Utils {
     const ifaces = networkInterfaces();
     let ip: boolean | string = false;
 
-    Object.keys(ifaces).forEach(dev => {
-      ifaces[dev].forEach(details => {
+    Object.keys(ifaces).forEach((dev) => {
+      ifaces[dev].forEach((details) => {
         if (details.family === "IPv4" && details.address !== "127.0.0.1") {
           ip = details.address;
         }
@@ -391,7 +391,7 @@ class Utils {
    * @param {string} s String to be converted.
    */
   public snakeToCamel(s) {
-    return s.replace(/(\_\w)/g, m => m[1].toUpperCase());
+    return s.replace(/(\_\w)/g, (m) => m[1].toUpperCase());
   }
 
   /**
@@ -421,7 +421,7 @@ class Utils {
     let method = this.api;
 
     // Get the method reference
-    commandParts.forEach(identifier => {
+    commandParts.forEach((identifier) => {
       if (!hasContext) {
         context = method;
       }
@@ -442,7 +442,7 @@ class Utils {
   public parseCookies(req) {
     const cookies = {};
     if (req.headers.cookie) {
-      req.headers.cookie.split(";").forEach(cookie => {
+      req.headers.cookie.split(";").forEach((cookie) => {
         const parts = cookie.split("=");
         cookies[parts[0].trim()] = (parts[1] || "").trim();
       });
@@ -456,7 +456,9 @@ class Utils {
    * @param obj
    * @returns {*}
    */
-  public collapseObjectToArray(obj: any): Array<any> | boolean {
+  public collapseObjectToArray(obj: {
+    [key: string]: any;
+  }): Array<any> | boolean {
     try {
       const keys = Object.keys(obj);
       if (keys.length < 1) {
@@ -469,7 +471,7 @@ class Utils {
         return false;
       }
 
-      const arr = [];
+      const arr: Array<any> = [];
       for (const i in keys) {
         if (!keys.hasOwnProperty(i)) {
           continue;
