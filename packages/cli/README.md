@@ -1,6 +1,6 @@
 # Stellar CLI
 
-This is the command line for Stellar Framework.
+Command line tool for Stellar Framework.
 
 ## Usage
 
