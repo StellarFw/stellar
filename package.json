@@ -9,7 +9,7 @@
   "devDependencies": {
     "@commitlint/cli": "7.2.1",
     "@commitlint/config-conventional": "7.1.2",
-    "@types/jest": "^27.0.0",
+    "@types/jest": "^27.0.2",
     "@types/node": "^8.5.9",
     "@types/reflect-metadata": "0.1.0",
     "@typescript-eslint/eslint-plugin": "^5.2.0",
@@ -17,7 +17,7 @@
     "codacy-coverage": "3.0.0",
     "eslint": "^8.1.0",
     "eslint-plugin-prettier": "^4.0.0",
-    "jest": "27.0.0",
+    "jest": "^27.3.1",
     "lerna": "3.21.0",
     "prettier": "^2.4.1",
     "ts-jest": "^27.0.7",
@@ -35,7 +35,7 @@
     "bootstrap": "lerna bootstrap",
     "dev": "pnpm run dev -r --stream --parallel",
     "build": "rm -rf ./dist; lerna run build",
-    "test": "lerna run test",
+    "test": "jest --runInBand",
     "test:watch": "lerna run test:watch"
   }
 }

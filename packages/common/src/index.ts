@@ -1,5 +1,6 @@
 import "reflect-metadata";
 
+export * from "./fp";
 export * from "./connection";
 export * from "./enums";
 export * from "./exceptions";

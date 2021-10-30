@@ -6,7 +6,7 @@ importers:
     specifiers:
       '@commitlint/cli': 7.2.1
       '@commitlint/config-conventional': 7.1.2
-      '@types/jest': ^27.0.0
+      '@types/jest': ^27.0.2
       '@types/node': ^8.5.9
       '@types/reflect-metadata': 0.1.0
       '@typescript-eslint/eslint-plugin': ^5.2.0
@@ -14,7 +14,7 @@ importers:
       codacy-coverage: 3.0.0
       eslint: ^8.1.0
       eslint-plugin-prettier: ^4.0.0
-      jest: 27.0.0
+      jest: ^27.3.1
       lerna: 3.21.0
       prettier: ^2.4.1
       reflect-metadata: 0.1.12
@@ -35,10 +35,10 @@ importers:
       codacy-coverage: 3.0.0
       eslint: 8.1.0
       eslint-plugin-prettier: 4.0.0_eslint@8.1.0+prettier@2.4.1
-      jest: 27.0.0_ts-node@7.0.1
+      jest: 27.3.1_ts-node@7.0.1
       lerna: 3.21.0
       prettier: 2.4.1
-      ts-jest: 27.0.7_525477180aa14fc1811f978a5e455b35
+      ts-jest: 27.0.7_2c4ca6574207836d1023f54689cc81ac
       ts-node: 7.0.1
       typescript: 4.4.4
       yorkie: 2.0.0
@@ -47,15 +47,15 @@ importers:
     specifiers:
       '@stellarfw/core': ^2.0.0
       async: ^2.6.0
-      chalk: ^2.3.0
+      chalk: ^4.1.2
       handlebars: 4.0.11
       is-running: ^2.1.0
-      sywac: ^1.2.0
+      sywac: ^1.3.0
       winston: 2.4.0
     dependencies:
       '@stellarfw/core': link:../core
       async: 2.6.3
-      chalk: 2.4.2
+      chalk: 4.1.2
       handlebars: 4.0.11
       is-running: 2.1.0
       sywac: 1.3.0
@@ -93,7 +93,6 @@ importers:
       source-map-support: 0.5.4
       st-formidable: ^1.0.18
       then-fakeredis: ^2.0.1
-      tsc-alias: ^1.4.0
       typescript: ^4.4.4
       uglify-es: 3.3.9
       uuid: 3.2.1
@@ -134,7 +133,6 @@ importers:
       '@types/primus': 7.3.6
       '@types/winston': 2.3.7
       request: 2.88.2
-      tsc-alias: 1.4.0
 
 packages:
 
@@ -2178,7 +2176,6 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       color-convert: 2.0.1
-    dev: true
 
   /ansi-styles/5.2.0:
     resolution: {integrity: sha512-Cxwpt2SfTzTtXcfOlzGEee8O+c+MmUgGrNiBcXnuWxuFJHe6a5Hz7qwhwe5OgaSYI0IJvkLqWX1ASG+cJOkEiA==}
@@ -2478,11 +2475,6 @@ packages:
     resolution: {integrity: sha512-3pZEU3NT5BFUo/AD5ERPWOgQOCZITni6iavr5AUw5AUwQjMlI0kzu5btnyD39AF0gUEsDPwJT+oY1ORBJijPjQ==}
     dev: true
 
-  /binary-extensions/2.2.0:
-    resolution: {integrity: sha512-jDctJ/IVQbZoJykoeHbhXpOlNBqGNcwXJKJog42E5HDPUwQTSdjCHdihjj0DlnheQ7blbT6dHOafNAiS8ooQKA==}
-    engines: {node: '>=8'}
-    dev: true
-
   /binary-search-tree/0.2.5:
     resolution: {integrity: sha1-fbs7IQ/coIJFDa0jNMMErzm9x4Q=}
     dependencies:
@@ -2757,7 +2749,6 @@ packages:
     dependencies:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
-    dev: true
 
   /char-regex/1.0.2:
     resolution: {integrity: sha512-kWWXztvZ5SBQV+eRgKFeh8q5sLuZY2+8WUIzlxWVTg+oGwY14qylx1KbKzHd8P6ZYkAg0xyIDU9JMHhyJMZ1jw==}
@@ -2766,21 +2757,6 @@ packages:
 
   /chardet/0.7.0:
     resolution: {integrity: sha512-mT8iDcrh03qDGRRmoA2hmBJnxpllMR+0/0qlzjqZES6NdiWDcZkCNAk4rPFZ9Q85r27unkiNNg8ZOiwZXBHwcA==}
-    dev: true
-
-  /chokidar/3.5.2:
-    resolution: {integrity: sha512-ekGhOnNVPgT77r4K/U3GDhu+FQ2S8TnK/s2KbIGXi0SZWuwkZ2QNyfWdZW+TVfn84DpEP7rLeCt2UI6bJ8GwbQ==}
-    engines: {node: '>= 8.10.0'}
-    dependencies:
-      anymatch: 3.1.2
-      braces: 3.0.2
-      glob-parent: 5.1.2
-      is-binary-path: 2.1.0
-      is-glob: 4.0.3
-      normalize-path: 3.0.0
-      readdirp: 3.6.0
-    optionalDependencies:
-      fsevents: 2.3.2
     dev: true
 
   /chownr/1.1.4:
@@ -2914,7 +2890,6 @@ packages:
     engines: {node: '>=7.0.0'}
     dependencies:
       color-name: 1.1.4
-    dev: true
 
   /color-name/1.1.3:
     resolution: {integrity: sha1-p9BVi9icQveV3UIyj3QIMcpTvCU=}
@@ -2972,11 +2947,6 @@ packages:
 
   /commander/2.20.3:
     resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
-    dev: true
-
-  /commander/8.3.0:
-    resolution: {integrity: sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==}
-    engines: {node: '>= 12'}
     dev: true
 
   /compare-func/1.3.4:
@@ -3399,11 +3369,6 @@ packages:
 
   /deprecation/2.3.1:
     resolution: {integrity: sha512-xmHIy4F3scKVwMsQ4WnVaS8bHOx0DmVwRywosKhaILI0ywMDWPtBSku2HNxRvF7jtwDRsoEwYQSfbxj8b7RlJQ==}
-    dev: true
-
-  /detect-file/1.0.0:
-    resolution: {integrity: sha1-8NZtA2cqglyxtzvbP+YjEMjlUrc=}
-    engines: {node: '>=0.10.0'}
     dev: true
 
   /detect-indent/5.0.0:
@@ -3902,13 +3867,6 @@ packages:
       to-regex: 3.0.2
     dev: true
 
-  /expand-tilde/2.0.2:
-    resolution: {integrity: sha1-l+gBqgUt8CRU3kawK/YhZCzchQI=}
-    engines: {node: '>=0.10.0'}
-    dependencies:
-      homedir-polyfill: 1.0.3
-    dev: true
-
   /expect/27.3.1:
     resolution: {integrity: sha512-MrNXV2sL9iDRebWPGOGFdPQRl2eDQNu/uhxIMShjjx74T6kC6jFIkmQ6OqXDtevjGUkyB2IT56RzDBqXf/QPCg==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
@@ -4084,13 +4042,6 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /find-node-modules/2.1.2:
-    resolution: {integrity: sha512-x+3P4mbtRPlSiVE1Qco0Z4YLU8WFiFcuWTf3m75OV9Uzcfs2Bg+O9N+r/K0AnmINBW06KpfqKwYJbFlFq4qNug==}
-    dependencies:
-      findup-sync: 4.0.0
-      merge: 2.1.1
-    dev: true
-
   /find-up/1.1.2:
     resolution: {integrity: sha1-ay6YIrGizgpgq2TWEOzK1TyyTQ8=}
     engines: {node: '>=0.10.0'}
@@ -4119,16 +4070,6 @@ packages:
     dependencies:
       locate-path: 5.0.0
       path-exists: 4.0.0
-    dev: true
-
-  /findup-sync/4.0.0:
-    resolution: {integrity: sha512-6jvvn/12IC4quLBL1KNokxC7wWTvYncaVUYSoxWw7YykPLuRrnv4qdHcSOywOI5RpkOVGeQRtWM8/q+G6W6qfQ==}
-    engines: {node: '>= 8'}
-    dependencies:
-      detect-file: 1.0.0
-      is-glob: 4.0.3
-      micromatch: 4.0.4
-      resolve-dir: 1.0.1
     dev: true
 
   /flat-cache/3.0.4:
@@ -4480,26 +4421,6 @@ packages:
       ini: 1.3.8
     dev: true
 
-  /global-modules/1.0.0:
-    resolution: {integrity: sha512-sKzpEkf11GpOFuw0Zzjzmt4B4UZwjOcG757PPvrfhxcLFbq0wpsgpOqxpxtxFiCG4DtG93M6XRVbF2oGdev7bg==}
-    engines: {node: '>=0.10.0'}
-    dependencies:
-      global-prefix: 1.0.2
-      is-windows: 1.0.2
-      resolve-dir: 1.0.1
-    dev: true
-
-  /global-prefix/1.0.2:
-    resolution: {integrity: sha1-2/dDxsFJklk8ZVVoy2btMsASLr4=}
-    engines: {node: '>=0.10.0'}
-    dependencies:
-      expand-tilde: 2.0.2
-      homedir-polyfill: 1.0.3
-      ini: 1.3.8
-      is-windows: 1.0.2
-      which: 1.3.1
-    dev: true
-
   /globals/11.12.0:
     resolution: {integrity: sha512-WOBp/EEGUiIsJSp7wcv/y6MO+lV9UoncWqxuFfm8eBwzWNgyfBd6Gz+IeKQ9jCmyhoH99g15M3T+QaVHFjizVA==}
     engines: {node: '>=4'}
@@ -4596,7 +4517,6 @@ packages:
   /has-flag/4.0.0:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
     engines: {node: '>=8'}
-    dev: true
 
   /has-symbols/1.0.2:
     resolution: {integrity: sha512-chXa79rL/UC2KlX17jo3vRGz0azaWEx5tGqZg5pO3NUyEJVB17dMruQlzCCOfUvElghKcm5194+BCRvi2Rv/Gw==}
@@ -4664,13 +4584,6 @@ packages:
   /hoek/6.1.3:
     resolution: {integrity: sha512-YXXAAhmF9zpQbC7LEcREFtXfGq5K1fmd+4PHkBq8NUqmzW3G+Dq10bI/i0KucLRwss3YYFQ0fSfoxBZYiGUqtQ==}
     deprecated: This module has moved and is now available at @hapi/hoek. Please update your dependencies as this version is no longer maintained an may contain bugs and security issues.
-    dev: true
-
-  /homedir-polyfill/1.0.3:
-    resolution: {integrity: sha512-eSmmWE5bZTK2Nou4g0AI3zZ9rswp7GRKoKXS1BLUkvPviOqs4YTN1djQIqrXy9k5gEtdLPy86JjRwsNM9tnDcA==}
-    engines: {node: '>=0.10.0'}
-    dependencies:
-      parse-passwd: 1.0.0
     dev: true
 
   /hosted-git-info/2.8.9:
@@ -4978,13 +4891,6 @@ packages:
     resolution: {integrity: sha512-zB9CruMamjym81i2JZ3UMn54PKGsQzsJeo6xvN3HJJ4CAsQNB6iRutp2To77OfCNuoxspsIhzaPoO1zyCEhFOg==}
     dependencies:
       has-bigints: 1.0.1
-    dev: true
-
-  /is-binary-path/2.1.0:
-    resolution: {integrity: sha512-ZMERYes6pDydyuGidse7OsHxtbI7WVeUEozgR/g7rd0xUimYNlvZRE/K2MgZTjWy725IfelLeVcEM97mmtRGXw==}
-    engines: {node: '>=8'}
-    dependencies:
-      binary-extensions: 2.2.0
     dev: true
 
   /is-boolean-object/1.1.2:
@@ -5792,12 +5698,12 @@ packages:
       supports-color: 8.1.1
     dev: true
 
-  /jest/27.0.0_ts-node@7.0.1:
-    resolution: {integrity: sha512-rOVbFCiNh9i7qj4236yQNipFJ80GiqyzkHumQvyOYXDYkVy7E1Hn6nm1xNaqPs80plE8LohX+AEKKLAWo3C5CQ==}
+  /jest/27.3.1_ts-node@7.0.1:
+    resolution: {integrity: sha512-U2AX0AgQGd5EzMsiZpYt8HyZ+nSVIh5ujQ9CPp9EQZJMjXIiSZpJNweZl0swatKRoqHWgGKM3zaSwm4Zaz87ng==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
     hasBin: true
     peerDependencies:
-      node-notifier: ^8.0.1 || ^9.0.0
+      node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
     peerDependenciesMeta:
       node-notifier:
         optional: true
@@ -6543,10 +6449,6 @@ packages:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
     dev: true
 
-  /merge/2.1.1:
-    resolution: {integrity: sha512-jz+Cfrg9GWOZbQAnDQ4hlVnQky+341Yk5ru8bZSe6sIDTCIg8n9i/u7hSQGSVOF3C7lH6mGtqjkiT9G4wFLL0w==}
-    dev: true
-
   /merge2/1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
     engines: {node: '>= 8'}
@@ -6775,11 +6677,6 @@ packages:
 
   /mute-stream/0.0.8:
     resolution: {integrity: sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==}
-    dev: true
-
-  /mylas/2.1.4:
-    resolution: {integrity: sha512-XalyPwsXb/l8G8rmoBcHkDAnD9uQFyL9g59IMP3W4rC1h8Wtn4ZVuRGO31MqKMLefK0skzO0BlZ765QZdO6qhA==}
-    engines: {node: '>=12.0.0'}
     dev: true
 
   /mz/2.7.0:
@@ -7318,11 +7215,6 @@ packages:
       lines-and-columns: 1.1.6
     dev: true
 
-  /parse-passwd/1.0.0:
-    resolution: {integrity: sha1-bVuTSkVpk7I9N/QKOC1vFmao5cY=}
-    engines: {node: '>=0.10.0'}
-    dev: true
-
   /parse-path/4.0.3:
     resolution: {integrity: sha512-9Cepbp2asKnWTJ9x2kpw6Fe8y9JDbqwahGCTvklzd/cEq5C5JC59x2Xb0Kx+x0QZ8bvNquGO8/BWP0cwBHzSAA==}
     dependencies:
@@ -7784,13 +7676,6 @@ packages:
       once: 1.4.0
     dev: true
 
-  /readdirp/3.6.0:
-    resolution: {integrity: sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==}
-    engines: {node: '>=8.10.0'}
-    dependencies:
-      picomatch: 2.3.0
-    dev: true
-
   /redent/1.0.0:
     resolution: {integrity: sha1-z5Fqsf1fHxbfsggi3W7H9zDCr94=}
     engines: {node: '>=0.10.0'}
@@ -7950,14 +7835,6 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       resolve-from: 5.0.0
-    dev: true
-
-  /resolve-dir/1.0.1:
-    resolution: {integrity: sha1-eaQGRMNivoLybv/nOcm7U4IEb0M=}
-    engines: {node: '>=0.10.0'}
-    dependencies:
-      expand-tilde: 2.0.2
-      global-modules: 1.0.0
     dev: true
 
   /resolve-from/3.0.0:
@@ -8639,7 +8516,6 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       has-flag: 4.0.0
-    dev: true
 
   /supports-color/8.1.1:
     resolution: {integrity: sha512-MpUEN2OodtUzxvKQl72cUF7RQ5EiHsGvSsVG0ia9c5RbWGL2CI4C7EpPS8UTBIplnlzZiNuV56w+FuNxy3ty2Q==}
@@ -8888,7 +8764,7 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /ts-jest/27.0.7_525477180aa14fc1811f978a5e455b35:
+  /ts-jest/27.0.7_2c4ca6574207836d1023f54689cc81ac:
     resolution: {integrity: sha512-O41shibMqzdafpuP+CkrOL7ykbmLh+FqQrXEmV9CydQ5JBk0Sj0uAEF5TNNe94fZWKm3yYvWa/IbyV4Yg1zK2Q==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
     hasBin: true
@@ -8909,7 +8785,7 @@ packages:
       '@types/jest': 27.0.2
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
-      jest: 27.0.0_ts-node@7.0.1
+      jest: 27.3.1_ts-node@7.0.1
       jest-util: 27.3.1
       json5: 2.2.0
       lodash.memoize: 4.1.2
@@ -8932,18 +8808,6 @@ packages:
       mkdirp: 0.5.5
       source-map-support: 0.5.20
       yn: 2.0.0
-    dev: true
-
-  /tsc-alias/1.4.0:
-    resolution: {integrity: sha512-TKWQRw394mFpFkmMVRIC+1POZ/WJI07vf0HQmslbgT1s1eU+KlWuVihngqWBFaO66K3YK6XaqmfNsi4I6rE2nA==}
-    hasBin: true
-    dependencies:
-      chokidar: 3.5.2
-      commander: 8.3.0
-      find-node-modules: 2.1.2
-      globby: 11.0.4
-      mylas: 2.1.4
-      normalize-path: 3.0.0
     dev: true
 
   /tslib/1.14.1:
