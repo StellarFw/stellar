@@ -1,6 +1,21 @@
 import { Option } from "../option/option.interface";
 
 /**
+ * Define a contract to unwrap Option objects.
+ */
+export interface IResultPattern<T, E, O> {
+  /**
+   * Function to handle when is an Ok value.
+   */
+  ok(val: NonNullable<T>): O;
+
+  /**
+   * Function to handle when a value is an Err.
+   */
+  err(val: NonNullable<E>): O;
+}
+
+/**
  * Interface that describe a structure that handlers error and their propagation.
  */
 interface IResult<T, E> {
@@ -166,6 +181,21 @@ interface IResult<T, E> {
    * Panics if the value is an Ok, with a custom panic message provided by the Ok's value.
    */
   unwrapErr(): E;
+
+  /**
+   * Execute functions with side-effects.
+   */
+  tap(val: Partial<IResultPattern<T, E, void>>): void;
+
+  /**
+   * Execute a function with side-effects when Result is a Ok
+   */
+  tapOk(fn: (val: NonNullable<T>) => void): void;
+
+  /**
+   * Execute a function with side-effect when Result is a Err
+   */
+  tapErr(fn: (val: NonNullable<E>) => void): void;
 }
 
 export interface Ok<T, E> extends IResult<T, E> {

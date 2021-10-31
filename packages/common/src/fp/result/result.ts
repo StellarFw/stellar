@@ -1,6 +1,11 @@
 import { none, panic, some } from "..";
 import { Option } from "../option/option.interface";
-import { Err as IErr, Ok as IOk, Result } from "./result.interface";
+import {
+  Err as IErr,
+  IResultPattern,
+  Ok as IOk,
+  Result,
+} from "./result.interface";
 
 class Ok<T, E> implements IOk<T, E> {
   public readonly tag: "ok" = "ok";
@@ -92,6 +97,16 @@ class Ok<T, E> implements IOk<T, E> {
   isOk(): boolean {
     return true;
   }
+
+  tap(val: Partial<IResultPattern<T, E, void>>): void {
+    val.ok && val.ok(this.value as NonNullable<T>);
+  }
+
+  tapOk(fn: (val: NonNullable<T>) => void): void {
+    fn(this.value as NonNullable<T>);
+  }
+
+  tapErr(fn: (val: NonNullable<E>) => void): void {}
 }
 
 class Err<T, E> implements IErr<T, E> {
@@ -183,6 +198,16 @@ class Err<T, E> implements IErr<T, E> {
 
   isOk(): boolean {
     return false;
+  }
+
+  tap(val: Partial<IResultPattern<T, E, void>>): void {
+    val.err && val.err(this.value as NonNullable<E>);
+  }
+
+  tapOk(fn: (val: NonNullable<T>) => void): void {}
+
+  tapErr(fn: (val: NonNullable<E>) => void): void {
+    fn(this.value as NonNullable<E>);
   }
 }
 

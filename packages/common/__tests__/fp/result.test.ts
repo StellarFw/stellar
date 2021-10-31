@@ -334,4 +334,68 @@ describe("Result", () => {
     const x = err("emergency failure");
     expect(x.unwrapErr()).toBe("emergency failure");
   });
+
+  describe("tap", () => {
+    test("tap Ok executes some side-effect function", () => {
+      let controlBool = false;
+
+      const value = ok(1);
+      value.tap({
+        ok(val) {
+          controlBool = true;
+
+          expect(val).toBe(1);
+        },
+        err() {
+          fail("must execute the ok function");
+        },
+      });
+
+      expect(controlBool).toBeTruthy();
+    });
+
+    test("tap Err executes some side-effect function", () => {
+      let controlBool = false;
+
+      const value = err(1);
+      value.tap({
+        ok() {
+          fail("must execute the err function");
+        },
+        err(e) {
+          controlBool = true;
+
+          expect(e).toBe(1);
+        },
+      });
+
+      expect(controlBool).toBeTruthy();
+    });
+
+    test("tapErr on Ok doesn't execute", () => {
+      ok(1).tapErr(() => fail("Can't be executed when is a Ok value"));
+    });
+
+    test("tapErr on Err execute", () => {
+      let controlBool = false;
+      err(1).tapErr(() => {
+        controlBool = true;
+      });
+
+      expect(controlBool).toBeTruthy();
+    });
+
+    test("tapOk on Ok execute", () => {
+      let controlBool = false;
+
+      ok(1).tapOk(() => {
+        controlBool = true;
+      });
+      expect(controlBool).toBeTruthy();
+    });
+
+    test("tapOk on Err must not execute", () => {
+      err(1).tapOk(() => fail("must not execute"));
+    });
+  });
 });
