@@ -1,6 +1,6 @@
 import * as uuid from "uuid";
 
-import { Satellite } from "@stellarfw/common/lib/satellite";
+import { Satellite } from "@stellarfw/common/lib";
 import ClusterPayload from "@stellarfw/common/lib/interfaces/cluster-payload.interface";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 

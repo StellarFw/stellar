@@ -1,7 +1,7 @@
 import { EngineStatus } from "@stellarfw/common/lib/enums/engine-status.enum";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 import { Action, ProcessingAction } from "@stellarfw/common/lib";
-import { Satellite } from "@stellarfw/common/lib/satellite";
+import { Satellite } from "@stellarfw/common/lib";
 import { UnknownActionException, IActionProcessor } from "@stellarfw/common";
 import { ACTION_METADATA } from "@stellarfw/common/lib/constants";
 import { Connection } from "@stellarfw/common/lib";

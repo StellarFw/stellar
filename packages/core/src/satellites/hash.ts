@@ -1,6 +1,6 @@
 import * as bcrypt from "bcrypt";
 
-import { Satellite } from "@stellarfw/common/lib/satellite";
+import { Satellite } from "@stellarfw/common/lib";
 
 /**
  * This class is a wrapper for bcrypt library.
@@ -18,7 +18,7 @@ export default class HashManager extends Satellite {
    * @param rounds Number of rounds.
    */
   public generateSalt(
-    rounds: number = this.api.configs.general.saltRounds,
+    rounds: number = this.api.configs.general.saltRounds
   ): Promise<string> {
     return bcrypt.genSalt(rounds);
   }
@@ -57,7 +57,7 @@ export default class HashManager extends Satellite {
         saltRounds: this.api.configs.general.saltRounds,
         saltLength: this.api.configs.general.saltLength,
       },
-      configs,
+      configs
     );
   }
 

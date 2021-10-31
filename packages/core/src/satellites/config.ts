@@ -1,4 +1,4 @@
-import { Satellite } from "@stellarfw/common/lib/satellite";
+import { Satellite } from "@stellarfw/common/lib";
 import { EngineStatus } from "@stellarfw/common/lib/enums/engine-status.enum";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 import { normalize } from "path";
@@ -66,17 +66,17 @@ class ConfigManager {
     } catch (e) {
       this.api.log(
         "Project 'manifest.json' file does not exists.",
-        LogLevel.Emergency,
+        LogLevel.Emergency
       );
       process.exit(1);
     }
 
     this.loadConfigDirectory(`${__dirname}/../config`, false);
-    this.api.configs.modules.forEach(module =>
+    this.api.configs.modules.forEach((module) =>
       this.loadConfigDirectory(
         `${rootPath}/modules/${module}/config`,
-        isToWatch,
-      ),
+        isToWatch
+      )
     );
 
     this.loadConfigDirectory(`${rootPath}/config`, isToWatch);
@@ -89,9 +89,8 @@ class ConfigManager {
    * @param watch When `true` the engine reloads after a file change.
    */
   private loadConfigDirectory(configPath: string, watch: boolean = false) {
-    const configFiles: Array<string> = this.api.utils.recursiveDirSearch(
-      configPath,
-    );
+    const configFiles: Array<string> =
+      this.api.utils.recursiveDirSearch(configPath);
     let loadErrors = {};
     let loadRetries = 0;
 
@@ -105,7 +104,7 @@ class ConfigManager {
           this.api.configs = this.api.utils.hashMerge(
             this.api.configs,
             localConfig.default,
-            this.api,
+            this.api
           );
         }
 
@@ -114,7 +113,7 @@ class ConfigManager {
           this.api.configs = this.api.utils.hashMerge(
             this.api.configs,
             localConfig[this.api.env],
-            this.api,
+            this.api
           );
         }
 
@@ -132,8 +131,8 @@ class ConfigManager {
         if (++loadRetries === limit - index) {
           throw new Error(
             `Unable to load configuration, errors: ${JSON.stringify(
-              loadErrors,
-            )}`,
+              loadErrors
+            )}`
           );
         }
 
@@ -202,7 +201,7 @@ class ConfigManager {
   private rebootCallback(file: string) {
     this.api.log(
       `\r\n\r\n*** rebooting due to config change (${file}) ***\r\n\r\n`,
-      LogLevel.Info,
+      LogLevel.Info
     );
     delete require.cache[require.resolve(file)];
     this.api.commands.restart();
@@ -214,7 +213,7 @@ class ConfigManager {
    * TODO: Move this into de API namespace.
    */
   public unwatchAllFiles(): void {
-    this.watchedFiles.forEach(file => unwatchFile(file));
+    this.watchedFiles.forEach((file) => unwatchFile(file));
     this.watchedFiles = [];
   }
 }

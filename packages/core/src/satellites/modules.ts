@@ -1,10 +1,11 @@
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 import ModuleInterface from "@stellarfw/common/lib/interfaces/module.interface";
-import { Satellite } from "@stellarfw/common/lib/satellite";
+import { Satellite } from "@stellarfw/common/lib";
 import { execSync } from "child_process";
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import * as ts from "typescript";
+import { requireFile } from "@stellarfw/common/lib";
 
 export default class ModulesSatellite extends Satellite {
   protected _name: string = "modules";
@@ -103,7 +104,7 @@ export default class ModulesSatellite extends Satellite {
    * `activeModules` property.
    */
   private loadModules(): void {
-    const modules = this.api.configs.modules as Array<string>;
+    const modules = (this.api.configs.modules || []) as Array<string>;
 
     if (
       this.api.utils.dirExists(`${this.api.scope.rootPath}/modules/private`)
@@ -112,30 +113,48 @@ export default class ModulesSatellite extends Satellite {
     }
 
     if (modules.length === 0) {
-      throw new Error("At least one module needs to be active.");
+      this.api.log(
+        "At least one module needs to be active.",
+        LogLevel.Emergency
+      );
+
+      // NOTE: on this case there is no way to shutdown safely.
+      process.exit();
     }
 
     for (const moduleName of modules) {
-      const path = `${this.api.scope.rootPath}/modules/${moduleName}`;
+      const modulePath = `${this.api.scope.rootPath}/modules/${moduleName}`;
 
+      // Read module manifest file. This file is required in order for it to work. Otherwise we need to shutdown the
+      // engine with no change to recover.
+      const manifestFile = requireFile(`${modulePath}/manifest.json`).run();
+      manifestFile.tapErr(() => {
+        this.api.log(
+          `Impossible to load module(${moduleName}), fix this to start Stellar normally. Usually this means the module or the 'manifest.json' file doesn't exist.`,
+          LogLevel.Emergency
+        );
+        process.exit();
+      });
+
+      const manifest = manifestFile.unwrap();
+
+      this.activeModules.set(manifest.id, manifest);
+      this.modulesPaths.set(manifest.id, modulePath);
+
+      // TODO: maybe always run this?
+      // TODO: make this code secure
       try {
-        const manifest = require(`${path}/manifest.json`);
-        this.activeModules.set(manifest.id, manifest);
-        this.modulesPaths.set(manifest.id, path);
-
-        // TODO: maybe always run this?
         if (manifest.isTypescript === true) {
           // Load TS base configurations if isn't already loaded
           if (Object.keys(this.tsBaseConfigurations).length === 0) {
             this.loadBaseTsConfigs();
           }
 
-          this.buildModule(path);
+          this.buildModule(modulePath);
         }
       } catch (e) {
-        throw new Error(
-          `There is an invalid module active, named "${moduleName}", fix this to start Stellar normally. Usually this happens when the 'manifest.json' file doesn't exist.`
-        );
+        this.api.log(e, LogLevel.Emergency);
+        process.exit();
       }
     }
   }

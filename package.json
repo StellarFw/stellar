@@ -35,7 +35,8 @@
     "bootstrap": "lerna bootstrap",
     "dev": "pnpm run dev -r --stream --parallel",
     "build": "rm -rf ./dist; lerna run build",
-    "test": "jest --runInBand",
+    "test": "jest",
+    "test:ci": "jest --runInBand",
     "test:watch": "lerna run test:watch"
   }
 }

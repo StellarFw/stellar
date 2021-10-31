@@ -4,9 +4,6 @@
     "baseUrl": "./",
     "rootDir": "src",
     "outDir": "lib",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
   },
   "include": ["src/**/*.ts"]
 }

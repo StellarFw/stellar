@@ -1,4 +1,4 @@
-import { Satellite } from "@stellarfw/common/lib/satellite";
+import { Satellite } from "@stellarfw/common/lib";
 
 export default class ParamsSatellite extends Satellite {
   protected _name: string = "params";

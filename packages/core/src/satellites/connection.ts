@@ -1,5 +1,5 @@
 import { Connection } from "@stellarfw/common/lib";
-import { Satellite } from "@stellarfw/common/lib/satellite";
+import { Satellite } from "@stellarfw/common/lib";
 
 export default class ConnectionSatellite extends Satellite {
   protected _name: string = "connection";

@@ -3,7 +3,7 @@ import "reflect-metadata";
 
 import { resolve, normalize, basename } from "path";
 import { SatelliteInterface } from "@stellarfw/common/lib/interfaces/satellite.interface";
-import { Satellite } from "@stellarfw/common/lib/satellite";
+import { Satellite } from "@stellarfw/common/lib";
 import { EngineStatus } from "@stellarfw/common/lib/enums/engine-status.enum";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
@@ -75,7 +75,7 @@ export default class Engine {
         console.log(`\x1b[31m[-] ${msg}\x1b[37m`);
         break;
       case LogLevel.Info:
-        console.log(`[!] ${msg}`);
+        console.log("[!]", msg);
         break;
     }
   }
@@ -193,7 +193,8 @@ export default class Engine {
     );
 
     // load module satellites
-    this.api.configs.modules.forEach((moduleName) => {
+    const modulesToLoad = this.api.configs.modules || [];
+    modulesToLoad.forEach((moduleName) => {
       const moduleSatellitesPath = `${this.api.scope.rootPath}/modules/${moduleName}/satellites`;
       if (this.api.utils.dirExists(moduleSatellitesPath)) {
         this.loadArrayOfSatellites(

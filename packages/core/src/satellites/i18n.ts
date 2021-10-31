@@ -1,6 +1,6 @@
 import * as i18n from "i18n";
 
-import { Satellite } from "@stellarfw/common/lib/satellite";
+import { Satellite } from "@stellarfw/common/lib";
 
 export default class I18nSatellite extends Satellite {
   protected _name: string = "i18n";
@@ -18,9 +18,7 @@ export default class I18nSatellite extends Satellite {
 
     // iterate all modules
     for (const module of this.api.modules.activeModules.keys()) {
-      const moduleLocalePath = `${
-        this.api.scope.rootPath
-      }/modules/${module}/locale`;
+      const moduleLocalePath = `${this.api.scope.rootPath}/modules/${module}/locale`;
 
       // check if the folder exists
       if (this.api.utils.dirExists(moduleLocalePath)) {

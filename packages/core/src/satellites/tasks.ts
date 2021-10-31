@@ -1,4 +1,4 @@
-import { Satellite } from "@stellarfw/common/lib/satellite";
+import { Satellite } from "@stellarfw/common/lib";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 import { ITaskMetadata } from "@stellarfw/common/lib";
 

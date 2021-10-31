@@ -1,4 +1,4 @@
-import { Satellite } from "@stellarfw/common/lib/satellite";
+import { Satellite } from "@stellarfw/common/lib";
 import { normalize, isAbsolute } from "path";
 import ConnectionDetails from "@stellarfw/common/lib/interfaces/connection-details.interface";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
