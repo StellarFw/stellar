@@ -42,6 +42,7 @@
     "ioredis": "^3.2.2",
     "lodash": "4.17.10",
     "log": "^1.4.0",
+    "logform": "^2.3.0",
     "mime": "^2.3.1",
     "node-resque": "5.2.0",
     "primus": "^7.3.0",
@@ -55,13 +56,13 @@
     "uglify-es": "3.3.9",
     "uuid": "3.2.1",
     "waterline": "0.13.1",
-    "winston": "2.4.0",
-    "winston-daily-rotate-file": "1.7.2",
+    "winston": "^3.3.3",
+    "winston-daily-rotate-file": "^4.5.5",
+    "winston-transport": "^4.4.0",
     "ws": "^3.3.3"
   },
   "devDependencies": {
     "@types/primus": "^7.3.6",
-    "@types/winston": "2.3.7",
     "request": "^2.83.0"
   },
   "scripts": {

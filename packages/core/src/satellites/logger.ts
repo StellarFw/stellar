@@ -1,6 +1,6 @@
-import * as winston from "winston";
+import winston from "winston";
 
-import { Satellite } from "@stellarfw/common/lib";
+import { io, Satellite } from "@stellarfw/common/lib";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
 export default class LoggerSatellite extends Satellite {
@@ -8,41 +8,36 @@ export default class LoggerSatellite extends Satellite {
   public loadPriority: number = 120;
 
   /**
-   * Create the folder to store the log files.
+   * Container to create the folder where to store the log files.
    */
-  private createLogsFolder(): void {
+  private createLogsFolder = io(() => {
     const logsDir = this.api.configs.general.paths.log;
 
     if (!this.api.utils.dirExists(logsDir)) {
       this.api.utils.createDir(logsDir);
     }
-  }
+  });
 
   public async load(): Promise<void> {
-    const transports: Array<any> = [];
-
-    this.createLogsFolder();
+    // try to create the logs folder.
+    this.createLogsFolder.run().tapErr(() => {
+      this.api.log(
+        `Unable to create the logs directory(${this.api.configs.general.paths.log})`,
+        LogLevel.Emergency
+      );
+      this.api.commands.stop();
+    });
 
     // load all transports
-    if (this.api.configs.logger.transports) {
-      this.api.configs.logger.transports.forEach((transport) => {
-        if (typeof transport === "function") {
-          transports.push(transport(this.api, winston));
-        } else {
-          transports.push(transport);
-        }
-      });
-    }
+    const loggers = (this.api.configs.logger.loggers || []).map((logger) =>
+      typeof logger === "function" ? logger(this.api, winston) : logger
+    );
 
     // create the logger instance
-    this.api.logger = new winston.Logger({ transports });
-
-    // define the log level
-    if (this.api.configs.logger.levels) {
-      this.api.logger.setLevels(this.api.configs.logger.levels);
-    } else {
-      this.api.logger.setLevels(winston.config.syslog.levels);
-    }
+    this.api.logger = winston.createLogger({
+      transports: loggers,
+      levels: this.api.configs.logger.levels ?? winston.config.syslog.levels,
+    });
 
     // define log colors
     if (this.api.configs.logger.colors) {
