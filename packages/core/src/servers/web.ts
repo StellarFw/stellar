@@ -2,8 +2,8 @@ import { Server as HTTPServer, createServer } from "http";
 import { Server as SecureServer, createServer as createSecureServer } from "https";
 import { unlink, chmodSync, stat, ReadStream } from "fs";
 import { normalize, sep } from "path";
-import * as BrowserFingerprint from "browser_fingerprint";
 import * as formidable from "st-formidable";
+import { BrowserFingerprint } from "browser_fingerprint";
 import Mime from "mime";
 import * as qs from "qs";
 import * as uuid from "uuid";
@@ -30,7 +30,7 @@ export default class WebServer extends GenericServer {
   /**
    * Unique server identifier.
    */
-  protected static serverName: string = "web";
+  protected static serverName = "web";
 
   /**
    * HTTP server.
@@ -400,9 +400,9 @@ export default class WebServer extends GenericServer {
    * @private
    */
   private handleRequest(req, res) {
-    const { fingerprint, headerHash } = this.fingerprinter.fingerprint(req);
+    const { fingerprint, headersHash } = this.fingerprinter.fingerprint(req);
 
-    const responseHeaders: Array<any> = [];
+    const responseHeaders: Array<Array<string>> = [];
     const cookies = this.api.utils.parseCookies(req);
     const responseHttpCode = 200;
     const method = req.method.toUpperCase();
@@ -410,12 +410,12 @@ export default class WebServer extends GenericServer {
     let i;
 
     // push all cookies from the request to the response
-    for (const i in headerHash) {
-      if (!headerHash.hasOwnProperty(i)) {
+    for (const i in headersHash) {
+      if (!headersHash.hasOwnProperty(i)) {
         continue;
       }
 
-      responseHeaders.push([i, headerHash[i]]);
+      responseHeaders.push([i, headersHash[i]]);
     }
 
     // set content type to JSON

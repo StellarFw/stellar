@@ -1,6 +1,6 @@
 import { normalize, sep } from "path";
 import { ReadStream, writeFileSync, readFileSync } from "fs";
-import * as BrowserFingerprint from "browser_fingerprint";
+import { BrowserFingerprint } from "browser_fingerprint";
 import * as UglifyJS from "uglify-es";
 import WebServer from "./web";
 import { inspect } from "util";
@@ -14,7 +14,7 @@ import { Server } from "http";
 import { Connection } from "@stellarfw/common/lib";
 
 export default class WebSocketServer extends GenericServer {
-  protected static serverName: string = "websocket";
+  protected static serverName = "websocket";
 
   /**
    * Primus server instance.
@@ -295,7 +295,7 @@ export default class WebSocketServer extends GenericServer {
    *
    * @param minimize Should we enable minification?
    */
-  private renderClientJs(minimize: boolean = false): string {
+  private renderClientJs(minimize = false): string {
     const libSource = this.server?.library();
     let clientSource = this.compileClientJs();
 

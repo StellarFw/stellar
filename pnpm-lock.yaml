@@ -75,7 +75,7 @@ importers:
       '@types/primus': ^7.3.6
       bcrypt: 3.0.6
       bluebird: ^3.5.1
-      browser_fingerprint: 1.0.3
+      browser_fingerprint: 2.0.3
       chalk: ^2.3.0
       etag: 1.8.1
       fakeredis: 2.0.0
@@ -107,7 +107,7 @@ importers:
       '@stellarfw/common': link:../common
       bcrypt: 3.0.6
       bluebird: 3.7.2
-      browser_fingerprint: 1.0.3
+      browser_fingerprint: 2.0.3
       chalk: 2.4.2
       etag: 1.8.1
       fakeredis: 2.0.0
@@ -2530,8 +2530,8 @@ packages:
     resolution: {integrity: sha512-9o5UecI3GhkpM6DrXr69PblIuWxPKk9Y0jHBRhdocZ2y7YECBFCsHm79Pr3OyR2AvjhDkabFJaDJMYRazHgsow==}
     dev: true
 
-  /browser_fingerprint/1.0.3:
-    resolution: {integrity: sha512-GwYjD7c0Nx+/RrQ0EUF4pAKtsD/++JnIU4k2bjTKGQo81nO6ZVNpJNsqaB+TZD9v0pfh9WTW73d5iyZZzX6/Mw==}
+  /browser_fingerprint/2.0.3:
+    resolution: {integrity: sha512-1SofrDM9KRSgP7YK0FvJo7KgHFrJWwCvNPbYSSETAOlW59tOw+5rU0R0Agj/dH8ghTvb6embW7Y/hkI2C1PeXg==}
     engines: {node: '>=8.0.0'}
     dev: false
 
