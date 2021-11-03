@@ -1,49 +1,21 @@
 {
-    "env": {
-        "es6": true,
-        "node": true
-    },
-    "extends": [
-        "eslint:recommended",
-        "plugin:@typescript-eslint/eslint-recommended",
-        "plugin:prettier/recommended"
-    ],
-    "globals": {
-        "jest": "readonly"
-    },
+  "parser": "@typescript-eslint/parser",
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "extends": [
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "globals": {
+    "jest": "readonly"
+  },
 
-    "ignorePatterns": [
-        "**/node_modules",
-        "packages/**/lib",
-        "packages/**/test/coverage",
-        "packages/core/static-files"
-    ],
-
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-        "ecmaVersion": 11,
-        "sourceType": "module"
-    },
-    "plugins": [
-        "@typescript-eslint", "prettier"
-    ],
-    "rules": {
-        "prettier/prettier": "error",
-        "indent": [
-            "error",
-            2
-        ],
-        "linebreak-style": [
-            "error",
-            "unix"
-        ],
-        "quotes": [
-            "error",
-            "double"
-        ],
-        "semi": [
-            "error",
-            "always"
-        ]
-    }
+  "ignorePatterns": ["**/node_modules", "packages/**/lib", "packages/**/test/coverage", "packages/core/static-files"],
+  "plugins": ["@typescript-eslint", "prettier"],
+  "rules": {
+    "prettier/prettier": "error"
+  }
 }

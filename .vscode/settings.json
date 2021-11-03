@@ -1,5 +1,27 @@
 {
+  // Format
+  "editor.formatOnSave": true,
+
+  /// Disable format on save for JS and TS since it will be done by ESLint
+  "[javascript]": {
+    "editor.formatOnSave": false
+  },
+  "[typescript]": {
+    "editor.formatOnSave": false
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true
+  },
+
+  // TypeScript
   "typescript.preferences.quoteStyle": "double",
+
+  // File types
+  "files.associations": {
+    ".env*": "properties"
+  },
+
+  // Search
   "search.exclude": {
     "**/node_modules/**": true,
     "**/bower_components": true,
@@ -15,10 +37,5 @@
     "example/**/*.d.ts": true,
     "packages/**/*.js.map": true,
     "packages/**/*.d.ts": true
-  },
-
-  "editor.codeActionsOnSaveTimeout": 2000,
-  "editor.codeActionsOnSave": {
-    "source.fixAll": true
   }
 }
