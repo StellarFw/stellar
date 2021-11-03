@@ -38,13 +38,13 @@ function extraPropsSerializer(info: any) {
       return response;
     }
 
-    return ` ${response}${entryKey}=${value}`;
+    return `${response} ${entryKey}=${value}`;
   }, "");
 }
 
 function buildColorizeFormat() {
   return new (class Colorize {
-    transform(info: TransformableInfo, _opts?: any): TransformableInfo | boolean {
+    transform(info: TransformableInfo): TransformableInfo | boolean {
       // format log level
       if (info.level) {
         info.level = chalk[`bg${colors[info.level]}`].black(` ${info.level.toUpperCase()} `);
@@ -82,6 +82,7 @@ function buildFileLogger(api) {
   const logsDir = api.configs.general.paths.log;
 
   return winston.createLogger({
+    levels: winston.config.syslog.levels,
     transports: [
       new winston.transports.DailyRotateFile({
         filename: `${logsDir}/${api.pids.title}.log`,

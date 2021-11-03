@@ -4,8 +4,8 @@ import { io, Satellite } from "@stellarfw/common/lib";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
 export default class LoggerSatellite extends Satellite {
-  protected _name: string = "logger";
-  public loadPriority: number = 120;
+  protected _name = "logger";
+  public loadPriority = 120;
 
   /**
    * Container to create the folder where to store the log files.
@@ -42,11 +42,9 @@ export default class LoggerSatellite extends Satellite {
     }
 
     // replace the default engine log function
-    this.api.log = (msg: any, level: LogLevel = LogLevel.Info) => {
-      const args = [level, msg];
-
-      args.push.apply(args, Array.prototype.splice.call(arguments, 2, 0));
-      this.api.logger.log.apply(this.api.logger, args);
+    this.api.log = (msg: unknown, level: LogLevel = LogLevel.Info, ...extra: Array<unknown>) => {
+      const args = [level, msg, ...extra];
+      this.api.logger.log(...args);
     };
 
     const logLevels = Object.keys(this.api.logger.levels);
