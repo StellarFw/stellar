@@ -50,10 +50,7 @@ export default class TasksSatellite extends Satellite {
           args.push({});
         }
 
-        const response = await task.run.apply(
-          { api: this.api, task },
-          args as any
-        );
+        const response = await task.run.apply({ api: this.api, task }, args as any);
         await this.enqueueRecurrentTask(taskName);
         return response;
       },
@@ -81,10 +78,7 @@ export default class TasksSatellite extends Satellite {
     if (typeof task.name !== "string" || task.name.length < 1) {
       fail("a task is missing 'task.name'");
       return false;
-    } else if (
-      typeof task.description !== "string" ||
-      task.description.length < 1
-    ) {
+    } else if (typeof task.description !== "string" || task.description.length < 1) {
       fail(`Task ${task.name} is missing 'task.description'`);
       return false;
     } else if (typeof task.frequency !== "number") {
@@ -111,10 +105,7 @@ export default class TasksSatellite extends Satellite {
     const loadMessage = (loadedTasksName) => {
       const level = reload ? LogLevel.Info : LogLevel.Debug;
       const reloadWord = reload ? "(re)" : "";
-      this.api.log(
-        `task ${reloadWord}loaded: ${loadedTasksName}, ${path}`,
-        level
-      );
+      this.api.log(`task ${reloadWord}loaded: ${loadedTasksName}, ${path}`, level);
     };
 
     // start watch for file changes
@@ -169,9 +160,7 @@ export default class TasksSatellite extends Satellite {
   private loadModulesTasks(): void {
     this.api.modules.modulesPaths.forEach((modulePath) => {
       const tasksFolder = `${modulePath}/tasks`;
-      this.api.utils
-        .recursiveDirSearch(tasksFolder)
-        .forEach((f) => this.loadFile(f));
+      this.api.utils.recursiveDirSearch(tasksFolder).forEach((f) => this.loadFile(f));
     });
   }
 
@@ -182,11 +171,7 @@ export default class TasksSatellite extends Satellite {
    * @param params Parameters to be passed to the task
    * @param queue Queue where the task must be enqueued.
    */
-  public enqueue(
-    taskName: string,
-    params: {} = {},
-    queue: string | null = null
-  ): Promise<boolean> {
+  public enqueue(taskName: string, params: {} = {}, queue: string | null = null): Promise<boolean> {
     if (!queue) {
       queue = this.tasks[taskName].queue;
     }
@@ -202,12 +187,7 @@ export default class TasksSatellite extends Satellite {
    * @param params Parameters to be passed to the task.
    * @param queue Queue where the task must be enqueued.
    */
-  public enqueueAt(
-    timestamp: number,
-    taskName: string,
-    params: {} = {},
-    queue: string | null = null
-  ): Promise<void> {
+  public enqueueAt(timestamp: number, taskName: string, params: {} = {}, queue: string | null = null): Promise<void> {
     if (!queue) {
       queue = this.tasks[taskName].queue;
     }
@@ -223,12 +203,7 @@ export default class TasksSatellite extends Satellite {
    * @param params Parameters to be passed to the task.
    * @param queue Queue where the task must be enqueued.
    */
-  public enqueueIn(
-    time: number,
-    taskName: string,
-    params: {} = {},
-    queue: string | null = null
-  ): Promise<any> {
+  public enqueueIn(time: number, taskName: string, params: {} = {}, queue: string | null = null): Promise<any> {
     if (!queue) {
       queue = this.tasks[taskName].queue;
     }
@@ -244,12 +219,7 @@ export default class TasksSatellite extends Satellite {
    * @param args Arguments to pass to node-reques.
    * @param count Number of tasks entires to be removed.
    */
-  public del(
-    queue: string,
-    taskName: string,
-    args: {} = {},
-    count: number = 0
-  ): Promise<number> {
+  public del(queue: string, taskName: string, args: {} = {}, count: number = 0): Promise<number> {
     return this.api.resque.queue.del(queue, taskName, args, count);
   }
 
@@ -260,11 +230,7 @@ export default class TasksSatellite extends Satellite {
    * @param taskName Task unique identifier.
    * @param args Arguments to pass to node-resque.
    */
-  public delDelayed(
-    queue: string,
-    taskName: string,
-    args: {} = {}
-  ): Promise<Array<any>> {
+  public delDelayed(queue: string, taskName: string, args: {} = {}): Promise<Array<any>> {
     return this.api.resque.queue.delDelayed(queue, taskName, args);
   }
 
@@ -275,11 +241,7 @@ export default class TasksSatellite extends Satellite {
    * @param taskName Target task
    * @param args Arguments to pass to node-resque
    */
-  public scheduledAt(
-    queue: string,
-    taskName: string,
-    args: {} = {}
-  ): Promise<void> {
+  public scheduledAt(queue: string, taskName: string, args: {} = {}): Promise<void> {
     return this.api.resque.queue.scheduledAt(queue, taskName, args);
   }
 
@@ -434,10 +396,7 @@ export default class TasksSatellite extends Satellite {
     await this.del(task.queue, taskName);
     await this.delDelayed(task.queue, taskName);
     await this.enqueueIn(task.frequency, taskName);
-    this.api.log(
-      `re-enqueued recurrent job ${taskName}`,
-      this.api.configs.tasks.schedulerLogging.reEnqueue
-    );
+    this.api.log(`re-enqueued recurrent job ${taskName}`, this.api.configs.tasks.schedulerLogging.reEnqueue);
   }
 
   /**
@@ -459,10 +418,7 @@ export default class TasksSatellite extends Satellite {
         if (!toRun) {
           return;
         }
-        this.api.log(
-          `enqueuing periodic task ${taskName}`,
-          this.api.config.tasks.schedulerLogging.enqueue
-        );
+        this.api.log(`enqueuing periodic task ${taskName}`, this.api.config.tasks.schedulerLogging.enqueue);
         loadedTasksNames.push(taskName);
       });
     });

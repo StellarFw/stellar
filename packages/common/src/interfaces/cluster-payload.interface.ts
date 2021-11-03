@@ -35,4 +35,4 @@ export default interface ClusterPayload {
    * Optionally a response can be sent with the payload.
    */
   response?: any;
-}
+};;;;;;;;;;;;;;;;;;;;

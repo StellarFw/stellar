@@ -8,11 +8,10 @@ let Utils = require("../../utils");
 // ----------------------------------------------------------------------------- [Command]
 
 class MakeTask extends Command {
-
   /**
    * Create a new instance of this command.
    */
-  constructor () {
+  constructor() {
     // execute the super class constructor method
     super();
 
@@ -26,7 +25,7 @@ class MakeTask extends Command {
   /**
    * Execute the command
    */
-  exec () {
+  exec() {
     if (this.args.module.length === 0) {
       return this.printError("You need to specify the module where the task must be created");
     }
@@ -38,7 +37,9 @@ class MakeTask extends Command {
 
     // ensure the task folder exists
     let tasksFolder = `${Utils.getCurrentUniverse()}/modules/${this.args.module}/tasks`;
-    if (!Utils.exists(tasksFolder)) { Utils.createFolder(tasksFolder); }
+    if (!Utils.exists(tasksFolder)) {
+      Utils.createFolder(tasksFolder);
+    }
 
     // get task name
     const taskName = this.args.task_name;

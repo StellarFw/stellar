@@ -33,7 +33,7 @@
     "@stellarfw/common": "workspace:*",
     "bcrypt": "3.0.6",
     "bluebird": "^3.5.1",
-    "browser_fingerprint": "1.0.3",
+    "browser_fingerprint": "2.0.3",
     "chalk": "^2.3.0",
     "etag": "1.8.1",
     "fakeredis": "2.0.0",

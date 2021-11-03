@@ -117,10 +117,7 @@ export default class CacheSatellite extends Satellite {
 
     // save the new key and value
     const keyToSave = this.redisPrefix + key;
-    await this.api.redis.clients.client.set(
-      keyToSave,
-      JSON.stringify(cacheObj)
-    );
+    await this.api.redis.clients.client.set(keyToSave, JSON.stringify(cacheObj));
 
     // if the new cache entry has been saved define the expire date if needed
     if (expireTimeSeconds) {
@@ -155,10 +152,7 @@ export default class CacheSatellite extends Satellite {
       throw new Error("Object not found");
     }
 
-    if (
-      cacheObj.expireTimestamp >= new Date().getTime() ||
-      cacheObj.expireTimestamp === null
-    ) {
+    if (cacheObj.expireTimestamp >= new Date().getTime() || cacheObj.expireTimestamp === null) {
       const lastReadAt = cacheObj.readAt;
       let expireTimeSeconds;
 
@@ -168,13 +162,10 @@ export default class CacheSatellite extends Satellite {
       if (cacheObj.expireTimestamp) {
         // define the new expire time if requested
         if (options.expireTimeMS) {
-          cacheObj.expireTimestamp =
-            new Date().getTime() + options.expireTimeMS;
+          cacheObj.expireTimestamp = new Date().getTime() + options.expireTimeMS;
           expireTimeSeconds = Math.ceil(options.expireTimeMS / 1000);
         } else {
-          expireTimeSeconds = Math.floor(
-            (cacheObj.expireTimestamp - new Date().getTime()) / 1000
-          );
+          expireTimeSeconds = Math.floor((cacheObj.expireTimestamp - new Date().getTime()) / 1000);
         }
       }
 
@@ -244,11 +235,7 @@ export default class CacheSatellite extends Satellite {
    * @param retry If defined keep retrying until the lock is free to be re-obtained.
    * @param startTime This should not be used by the user.
    */
-  public async checkLock(
-    key: string,
-    retry: boolean | number = false,
-    startTime: number = new Date().getTime()
-  ) {
+  public async checkLock(key: string, retry: boolean | number = false, startTime: number = new Date().getTime()) {
     const lockedBy = await this.client.get(this.lockPrefix + key);
 
     // If the lock name is equals to this instance lock name, the resource
@@ -281,10 +268,7 @@ export default class CacheSatellite extends Satellite {
    * @param key           Key to lock.
    * @param expireTimeMS  Expire time (optional)
    */
-  public async lock(
-    key: string,
-    expireTimeMS: number | null = null
-  ): Promise<boolean> {
+  public async lock(key: string, expireTimeMS: number | null = null): Promise<boolean> {
     if (expireTimeMS === null) {
       expireTimeMS = this.lockDuration;
     }

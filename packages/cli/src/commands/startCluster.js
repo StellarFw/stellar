@@ -18,7 +18,6 @@ const Command = require("../Command");
  * This class represent a cluster Worker.
  */
 class Worker {
-
   /**
    * Constructor.
    *
@@ -26,7 +25,7 @@ class Worker {
    * @param id      Worker identifier.
    * @param env     Environment.
    */
-  constructor (parent, id, env) {
+  constructor(parent, id, env) {
     this.state = null;
     this.id = id;
     this.env = env;
@@ -38,7 +37,7 @@ class Worker {
    *
    * @returns {string}
    */
-  logPrefix () {
+  logPrefix() {
     let s = "";
 
     s += `[worker #${this.id}`;
@@ -55,7 +54,7 @@ class Worker {
   /**
    * Start the worker execution.
    */
-  start () {
+  start() {
     // create the worker
     this.worker = cluster.fork(this.env);
 
@@ -65,7 +64,7 @@ class Worker {
 
       // remove worker
       for (let i in this.parent.workers) {
-        if (this.parent.workers[ i ].id === this.id) {
+        if (this.parent.workers[i].id === this.id) {
           this.parent.workers.splice(i, 1);
           break;
         }
@@ -75,7 +74,7 @@ class Worker {
     });
 
     // some early exception are not catch
-    this.worker.process.stderr.on("data", chunk => {
+    this.worker.process.stderr.on("data", (chunk) => {
       // get message
       let message = String(chunk);
 
@@ -83,7 +82,7 @@ class Worker {
       this.parent.flapCount++;
     });
 
-    this.worker.on("message", message => {
+    this.worker.on("message", (message) => {
       // update the worker state if it exists in the message
       if (message.state) {
         this.state = message.state;
@@ -93,7 +92,7 @@ class Worker {
       // is a 'uncaughtException'
       if (message.uncaughtException) {
         this.parent.log(`uncaught exception => ${message.uncaughtException.message}`, "alert");
-        message.uncaughtException.state.forEach(line => this.parent.log(`${this.logPrefix()}   ${line}`, "alert"));
+        message.uncaughtException.state.forEach((line) => this.parent.log(`${this.logPrefix()}   ${line}`, "alert"));
         this.parent.flapCount++;
       }
 
@@ -110,13 +109,16 @@ class Worker {
   /**
    * Stop the worker execution.
    */
-  stop () { this.worker.send("stopProcess"); }
+  stop() {
+    this.worker.send("stopProcess");
+  }
 
   /**
    *
    */
-  restart () { this.worker.send("restart"); }
-
+  restart() {
+    this.worker.send("restart");
+  }
 }
 
 // ----------------------------------------------------------------------------- [Cluster Manager Class]
@@ -125,13 +127,12 @@ class Worker {
  * Cluster manager class.
  */
 class ClusterManager {
-
   /**
    * Class constructor.
    *
    * @param args Options
    */
-  constructor (args) {
+  constructor(args) {
     // class variables
     this.workers = [];
     this.workersToRestart = [];
@@ -142,8 +143,8 @@ class ClusterManager {
 
     // subscribe default options
     for (let i in this.options) {
-      if (args[ i ] !== null && args[ i ] !== undefined) {
-        this.options[ i ] = args[ i ];
+      if (args[i] !== null && args[i] !== undefined) {
+        this.options[i] = args[i];
       }
     }
 
@@ -151,22 +152,26 @@ class ClusterManager {
     let transports = [];
 
     // add a file logger by default
-    transports.push(new (winston.transports.File)({
-      filename: this.options.logPath + "/" + this.options.logFile
-    }));
+    transports.push(
+      new winston.transports.File({
+        filename: this.options.logPath + "/" + this.options.logFile,
+      }),
+    );
 
     // if this is the master process add a console transport
     if (cluster.isMaster && args.silent !== true) {
-      transports.push(new (winston.transports.Console)({
-        colorize: true,
-        timestamp: () => `${this.options.id} @ ${new Date().toISOString()}`
-      }));
+      transports.push(
+        new winston.transports.Console({
+          colorize: true,
+          timestamp: () => `${this.options.id} @ ${new Date().toISOString()}`,
+        }),
+      );
     }
 
     // init the logger
-    this.logger = new (winston.Logger)({
+    this.logger = new winston.Logger({
       levels: winston.config.syslog.levels,
-      transports: transports
+      transports: transports,
     });
   }
 
@@ -176,9 +181,11 @@ class ClusterManager {
    * @param path      Path to the directory to be created.
    * @param callback  Callback function.
    */
-  static configurePath (path, callback) {
+  static configurePath(path, callback) {
     // make the 'logs' folder if not exists
-    if (!fs.existsSync(path)) { fs.mkdirSync(path); }
+    if (!fs.existsSync(path)) {
+      fs.mkdirSync(path);
+    }
 
     // executes the callback function
     callback();
@@ -190,14 +197,16 @@ class ClusterManager {
    * @param message   Message to be logged.
    * @param severity  Severity of the message.
    */
-  log (message, severity) { this.logger.log(severity, message); }
+  log(message, severity) {
+    this.logger.log(severity, message);
+  }
 
   /**
    * Return the cluster default options.
    *
    * @returns {{stopTimeout: number, expectedWorkers: *, flapWindow: number, execPath: String, pidPath: string, logPath: string, workerTitlePrefix: string, args: string, buildEnv: null}}
    */
-  static defaults () {
+  static defaults() {
     return {
       id: "StellarCluster",
       stopTimeout: 1000,
@@ -211,7 +220,7 @@ class ClusterManager {
       logFile: "cluster.log",
       workerTitlePrefix: "stellar-worker-",
       args: "",
-      buildEnv: null
+      buildEnv: null,
     };
   }
 
@@ -221,12 +230,12 @@ class ClusterManager {
    * @param workerId  Worker identifier.
    * @returns {*}     Hash with the environment options.
    */
-  buildEnv (workerId) {
+  buildEnv(workerId) {
     if (typeof this.options.buildEnv === "function") {
       return this.options.buildEnv.call(this, workerId);
     } else {
       return {
-        title: this.options.workerTitlePrefix + workerId
+        title: this.options.workerTitlePrefix + workerId,
       };
     }
   }
@@ -236,7 +245,7 @@ class ClusterManager {
    *
    * @param callback  Callback function.
    */
-  writePidFile (callback) {
+  writePidFile(callback) {
     // build the pid file path
     let file = this.options.pidPath + "/" + this.options.pidFile;
 
@@ -245,7 +254,9 @@ class ClusterManager {
       // get the old pid saved on the pids file
       let oldPid = parseInt(fs.readFileSync(file));
 
-      if (isRunning(oldPid)) { return callback(new Error(`Stellar already running (pid ${oldPid})`)); }
+      if (isRunning(oldPid)) {
+        return callback(new Error(`Stellar already running (pid ${oldPid})`));
+      }
     }
 
     // write the new process pid
@@ -260,7 +271,7 @@ class ClusterManager {
    *
    * @param callback  Callback function.
    */
-  start (callback) {
+  start(callback) {
     let jobs = [];
 
     // log the options
@@ -270,7 +281,7 @@ class ClusterManager {
     cluster.setupMaster({
       exec: this.options.execPath,
       args: this.options.args.split(" "),
-      silent: true
+      silent: true,
     });
 
     // set 'SIGINT' event
@@ -289,7 +300,7 @@ class ClusterManager {
     process.on("SIGUSR2", () => {
       this.log("Signal: SIGUSR2", "info");
       this.log("swap out new workers one-by-one", "info");
-      this.workers.forEach(worker => this.workersToRestart.push(worker.id));
+      this.workers.forEach((worker) => this.workersToRestart.push(worker.id));
       this.work();
     });
 
@@ -297,7 +308,7 @@ class ClusterManager {
     process.on("SIGHUP", () => {
       this.log("Signal: SIGHUP", "info");
       this.log("reload all workers now", "info");
-      this.workers.forEach(worker => worker.restart());
+      this.workers.forEach((worker) => worker.restart());
     });
 
     // set 'SIGTTIN' event
@@ -317,18 +328,23 @@ class ClusterManager {
     });
 
     // push the initial job to the queue. This will print out a welcome message.
-    jobs.push(done => {
+    jobs.push((done) => {
       this.log("--- Starting Cluster ---", "notice");
       this.log(`pid: ${process.pid}`, "notice");
       process.nextTick(done);
     });
 
-    jobs.push(done => {
-      if (this.flapTimer) { clearInterval(this.flapTimer); }
+    jobs.push((done) => {
+      if (this.flapTimer) {
+        clearInterval(this.flapTimer);
+      }
 
       this.flapTimer = setInterval(() => {
-        if (this.flapCount > (this.options.expectedWorkers * 2)) {
-          this.log(`CLUSTER IS FLAPPING (${this.flapCount} crashes in ${this.options.flapWindow} ms). Stopping`, "emerg");
+        if (this.flapCount > this.options.expectedWorkers * 2) {
+          this.log(
+            `CLUSTER IS FLAPPING (${this.flapCount} crashes in ${this.options.flapWindow} ms). Stopping`,
+            "emerg",
+          );
           this.stop(process.exit);
         } else {
           this.flapCount = 0;
@@ -340,21 +356,31 @@ class ClusterManager {
     });
 
     // config some folders
-    jobs.push(done => { ClusterManager.configurePath(this.options.tempPath, done); });
-    jobs.push(done => { ClusterManager.configurePath(this.options.logPath, done); });
-    jobs.push(done => { ClusterManager.configurePath(this.options.pidPath, done); });
+    jobs.push((done) => {
+      ClusterManager.configurePath(this.options.tempPath, done);
+    });
+    jobs.push((done) => {
+      ClusterManager.configurePath(this.options.logPath, done);
+    });
+    jobs.push((done) => {
+      ClusterManager.configurePath(this.options.pidPath, done);
+    });
 
     // write workers pids
-    jobs.push(done => { this.writePidFile(done); });
+    jobs.push((done) => {
+      this.writePidFile(done);
+    });
 
     // execute the queued jobs
-    async.series(jobs, error => {
+    async.series(jobs, (error) => {
       if (error) {
         this.log(error, "error");
         process.exit(1);
       } else {
         this.work();
-        if (typeof callback === "function") { callback(); }
+        if (typeof callback === "function") {
+          callback();
+        }
       }
     });
   }
@@ -364,14 +390,16 @@ class ClusterManager {
    *
    * @param callback Function to be executed at the end.
    */
-  stop (callback) {
+  stop(callback) {
     // execute the callback when the number of works goes to zero
     if (this.workers.length === 0) {
       this.log("all workers stopped", "notice");
       callback();
     } else {
       this.log(`${this.workers.length} workers running, waiting on stop`, "info");
-      setTimeout(() => { this.stop(callback); }, this.options.stopTimeout);
+      setTimeout(() => {
+        this.stop(callback);
+      }, this.options.stopTimeout);
     }
 
     // prevent the creation of new workers
@@ -384,12 +412,14 @@ class ClusterManager {
   /**
    * Sort the workers.
    */
-  sortWorkers () { this.workers.sort((a, b) => (a.id - b.id)); }
+  sortWorkers() {
+    this.workers.sort((a, b) => a.id - b.id);
+  }
 
   /**
    * Check work to be done.
    */
-  work () {
+  work() {
     let self = this;
     let worker;
     let workerId;
@@ -400,20 +430,29 @@ class ClusterManager {
     let stateCounts = {};
 
     // group workers by their state
-    this.workers.forEach(worker => {
-      if (!stateCounts[ worker.state ]) { stateCounts[ worker.state ] = 0; }
-      stateCounts[ worker.state ]++;
+    this.workers.forEach((worker) => {
+      if (!stateCounts[worker.state]) {
+        stateCounts[worker.state] = 0;
+      }
+      stateCounts[worker.state]++;
     });
 
     // if the state changes log a message
-    if (this.options.expectedWorkers < this.workers.length && !stateCounts.stopping && !stateCounts.stopped && !stateCounts.restarting) {
-      worker = this.workers[ (this.workers.length - 1) ];
+    if (
+      this.options.expectedWorkers < this.workers.length &&
+      !stateCounts.stopping &&
+      !stateCounts.stopped &&
+      !stateCounts.restarting
+    ) {
+      worker = this.workers[this.workers.length - 1];
       this.log(`signaling worker #${worker.id} to stop`, "info");
       worker.stop();
     } else if (this.options.expectedWorkers > this.workers.length && !stateCounts.starting && !stateCounts.restarting) {
       workerId = 1;
-      this.workers.forEach(worker => {
-        if (worker.id === workerId) { workerId++; }
+      this.workers.forEach((worker) => {
+        if (worker.id === workerId) {
+          workerId++;
+        }
       });
 
       this.log(`starting worker #${workerId}`, "info");
@@ -430,11 +469,17 @@ class ClusterManager {
       // push the worker to the list of workers
       this.workers.push(worker);
     } else if (
-      this.workersToRestart.length > 0 && !stateCounts.starting && !stateCounts.stopping && !stateCounts.stopped && !stateCounts.restarting
+      this.workersToRestart.length > 0 &&
+      !stateCounts.starting &&
+      !stateCounts.stopping &&
+      !stateCounts.stopped &&
+      !stateCounts.restarting
     ) {
       workerId = this.workersToRestart.pop();
-      this.workers.forEach(worker => {
-        if (worker.id === workerId) { worker.stop(); }
+      this.workers.forEach((worker) => {
+        if (worker.id === workerId) {
+          worker.stop();
+        }
       });
     } else {
       if (stateCounts.started === this.workers.length) {
@@ -447,12 +492,11 @@ class ClusterManager {
 // ----------------------------------------------------------------------------- [Command]
 
 class RunClusterCommand extends Command {
-
-  constructor () {
+  constructor() {
     super();
   }
 
-  exec () {
+  exec() {
     // create the options object to pass to the cluster manager
     let options = {
       execPath: path.normalize(__dirname + "/../stellar"),
@@ -460,11 +504,13 @@ class RunClusterCommand extends Command {
       silent: this.args.silent,
       expectedWorkers: this.args.workers,
       id: this.args.id,
-      buildEnv: workerId => {
+      buildEnv: (workerId) => {
         let env = {};
 
         // configure the environment variables
-        for (let k in process.env) { env[ k ] = process.env[ k ]; }
+        for (let k in process.env) {
+          env[k] = process.env[k];
+        }
 
         // get the worker prefix
         let title = this.args.workerPrefix;
@@ -483,7 +529,7 @@ class RunClusterCommand extends Command {
         env.STELLAR_TITLE = title;
 
         return env;
-      }
+      },
     };
 
     // create a new cluster manager
@@ -494,7 +540,6 @@ class RunClusterCommand extends Command {
 
     return true;
   }
-
 }
 
 // export command

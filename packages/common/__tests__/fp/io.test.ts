@@ -8,7 +8,7 @@ describe("IO", () => {
       container
         .map((x) => x)
         .run()
-        .unwrap()
+        .unwrap(),
     ).toBe(container.run().unwrap());
   });
 
@@ -21,7 +21,7 @@ describe("IO", () => {
       container
         .map((x) => g(f(x)))
         .run()
-        .unwrap()
+        .unwrap(),
     );
   });
 });

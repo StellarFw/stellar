@@ -49,8 +49,7 @@ export default {
         httpHeaders: {
           "X-Powered-By": api.configs.general.serverName,
           "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods":
-            "HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS, TRACE",
+          "Access-Control-Allow-Methods": "HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS, TRACE",
           "Access-Control-Allow-Headers": "Content-Type",
         },
 

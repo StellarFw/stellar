@@ -69,15 +69,10 @@ class Utils {
    * @param extensions File extension filter. By default the filter is
    * 'js.
    */
-  public recursiveDirSearch(
-    dir: string,
-    extensions: string | Array<String> = ["js"]
-  ): Array<string> {
+  public recursiveDirSearch(dir: string, extensions: string | Array<String> = ["js"]): Array<string> {
     let results: Array<any> = [];
 
-    const innerExtensions = Array.isArray(extensions)
-      ? extensions
-      : [extensions];
+    const innerExtensions = Array.isArray(extensions) ? extensions : [extensions];
 
     // Remove dots from the extensions
     innerExtensions.forEach((ext) => ext.replace(".", ""));
@@ -221,16 +216,7 @@ class Utils {
    * @param o Object to be tested.
    */
   public isPlainObject(o: any = false): boolean {
-    const safeTypes = [
-      Boolean,
-      Number,
-      String,
-      Function,
-      Array,
-      Date,
-      RegExp,
-      Buffer,
-    ];
+    const safeTypes = [Boolean, Number, String, Function, Array, Date, RegExp, Buffer];
     const safeInstances = ["boolean", "number", "string", "function"];
     const expandPreventMatchKey = "_toExpand";
 
@@ -456,9 +442,7 @@ class Utils {
    * @param obj
    * @returns {*}
    */
-  public collapseObjectToArray(obj: {
-    [key: string]: any;
-  }): Array<any> | boolean {
+  public collapseObjectToArray(obj: { [key: string]: any }): Array<any> | boolean {
     try {
       const keys = Object.keys(obj);
       if (keys.length < 1) {
@@ -515,10 +499,7 @@ class Utils {
    * @param e Possible error object.
    */
   public isError(e: any) {
-    return (
-      this.isObject(e) &&
-      (this.objectToString(e) === "[object Error]" || e instanceof Error)
-    );
+    return this.isObject(e) && (this.objectToString(e) === "[object Error]" || e instanceof Error);
   }
 }
 

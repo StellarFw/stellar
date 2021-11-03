@@ -8,11 +8,10 @@ let Utils = require("../../utils");
 // ----------------------------------------------------------------------------- [Command]
 
 class MakeAction extends Command {
-
   /**
    * Create a new MakeAction instance.
    */
-  constructor () {
+  constructor() {
     // execute the super class constructor method
     super();
 
@@ -26,7 +25,7 @@ class MakeAction extends Command {
   /**
    * Execute the command
    */
-  exec () {
+  exec() {
     if (this.args.module.length === 0) {
       return this.printError("You need to specify the module where the action must be created");
     }
@@ -61,7 +60,7 @@ class MakeAction extends Command {
       // hash with the data to use on the template
       const data = {
         modelName: modelNameNormalized,
-        modelNameCapitalize: modelNameNormalized.charAt(0).toUpperCase() + modelNameNormalized.slice(1)
+        modelNameCapitalize: modelNameNormalized.charAt(0).toUpperCase() + modelNameNormalized.slice(1),
       };
 
       // process the template

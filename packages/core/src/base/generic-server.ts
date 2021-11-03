@@ -7,9 +7,7 @@ import ConnectionDetails from "@stellarfw/common/lib/interfaces/connection-detai
  * This function is called when the method is not implemented.
  */
 const methodNotDefined = () => {
-  throw new Error(
-    "The containing method should be defined for this server type"
-  );
+  throw new Error("The containing method should be defined for this server type");
 };
 
 /**
@@ -101,13 +99,9 @@ export abstract class GenericServer extends EventEmitter {
    */
   public processAction(connection) {
     const ActionProcessor = this.api.ActionProcessor;
-    const actionProcessor = new ActionProcessor(
-      this.api,
-      connection,
-      (data) => {
-        this.emit("actionComplete", data);
-      }
-    );
+    const actionProcessor = new ActionProcessor(this.api, connection, (data) => {
+      this.emit("actionComplete", data);
+    });
 
     actionProcessor.processAction();
   }
@@ -118,7 +112,7 @@ export abstract class GenericServer extends EventEmitter {
     stream: ReadStream,
     mime: string,
     length: number,
-    lastModified: Date
+    lastModified: Date,
   ): Promise<void> {
     throw new Error("Not implemented!");
   }
@@ -136,7 +130,7 @@ export abstract class GenericServer extends EventEmitter {
       response.fileStream,
       response.mime,
       response.length,
-      response.lastModified
+      response.lastModified,
     );
   }
 
@@ -232,11 +226,7 @@ export abstract class GenericServer extends EventEmitter {
    * @param connection  Connection object.
    * @param message     Message be sent back to the client.
    */
-  public sendMessage(
-    connection: ConnectionDetails,
-    message: string,
-    messageCount?: number
-  ) {
+  public sendMessage(connection: ConnectionDetails, message: string, messageCount?: number) {
     methodNotDefined();
   }
 

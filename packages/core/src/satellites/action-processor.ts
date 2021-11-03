@@ -111,11 +111,7 @@ class ActionProcessor implements IActionProcessor {
    * @param api API reference.
    * @param connection Connection object.
    */
-  constructor(
-    api: {},
-    connection: Connection,
-    callback: ActionProcessorCallback
-  ) {
+  constructor(api: {}, connection: Connection, callback: ActionProcessorCallback) {
     this.api = api;
     this.connection = connection;
     this.messageCount = connection.messageCount;
@@ -168,9 +164,7 @@ class ActionProcessor implements IActionProcessor {
         error = this.api.configs.errors.unknownAction(this.action);
         break;
       case ActionStatus.UNSUPPORTED_SERVER_TYPE:
-        error = this.api.configs.errors.unsupportedServerType(
-          this.connection.type
-        );
+        error = this.api.configs.errors.unsupportedServerType(this.connection.type);
         break;
       case ActionStatus.VALIDATOR_ERRORS:
         error = this.api.configs.errors.invalidParams(this.validatorErrors);
@@ -218,16 +212,10 @@ class ActionProcessor implements IActionProcessor {
 
     const filteredParams = {};
     for (const i in this.params) {
-      if (
-        this.api.configs.general.filteredParams &&
-        this.api.configs.general.filteredParams.indexOf(i) >= 0
-      ) {
+      if (this.api.configs.general.filteredParams && this.api.configs.general.filteredParams.indexOf(i) >= 0) {
         filteredParams[i] = "[FILTERED]";
       } else if (typeof this.params[i] === "string") {
-        filteredParams[i] = this.params[i].substring(
-          0,
-          this.api.configs.logger.maxLogStringLength
-        );
+        filteredParams[i] = this.params[i].substring(0, this.api.configs.logger.maxLogStringLength);
       } else {
         filteredParams[i] = this.params[i];
       }
@@ -259,13 +247,8 @@ class ActionProcessor implements IActionProcessor {
 
   private async preProcessAction() {
     // If the action is private this can only be executed internally
-    if (
-      this.actionMetadata.private === true &&
-      this.connection.type !== "internal"
-    ) {
-      throw new Error(
-        this.api.config.errors.privateActionCalled(this.actionMetadata.name)
-      );
+    if (this.actionMetadata.private === true && this.connection.type !== "internal") {
+      throw new Error(this.api.config.errors.privateActionCalled(this.actionMetadata.name));
     }
 
     // Copy call parameters into the action instance
@@ -287,9 +270,7 @@ class ActionProcessor implements IActionProcessor {
 
       const name = processorsNames[key];
 
-      if (
-        typeof this.api.actions.middleware[name].preProcessor === "function"
-      ) {
+      if (typeof this.api.actions.middleware[name].preProcessor === "function") {
         await this.api.actions.middleware[name].preProcessor(this);
       }
     }
@@ -302,13 +283,10 @@ class ActionProcessor implements IActionProcessor {
     if (this.api.actions.versions[this.action]) {
       if (!this.params.apiVersion) {
         this.params.apiVersion =
-          this.api.actions.versions[this.action][
-            this.api.actions.versions[this.action].length - 1
-          ];
+          this.api.actions.versions[this.action][this.api.actions.versions[this.action].length - 1];
       }
 
-      const actionClass =
-        this.api.actions.actions[this.action][this.params.apiVersion];
+      const actionClass = this.api.actions.actions[this.action][this.params.apiVersion];
 
       this.actionMetadata = Reflect.getMetadata(ACTION_METADATA, actionClass);
       this.actionInstance = new actionClass(this.api, this);
@@ -338,10 +316,7 @@ class ActionProcessor implements IActionProcessor {
 
     if (this.api.status !== EngineStatus.Running) {
       this.completeAction(ActionStatus.SERVER_SHUTTING_DOWN);
-    } else if (
-      this.getPendingActionCount() >
-      this.api.configs.general.simultaneousActions
-    ) {
+    } else if (this.getPendingActionCount() > this.api.configs.general.simultaneousActions) {
       this.completeAction(ActionStatus.TOO_MANY_REQUESTS);
     } else if (
       this.actionMetadata.blockedConnectionTypes &&
@@ -383,11 +358,7 @@ class ActionProcessor implements IActionProcessor {
       // Format the input to the requested type
       if (props.format && this.params[key]) {
         if (typeof props.format === "function") {
-          this.params[key] = props.format.call(
-            this.api,
-            this.params[key],
-            this
-          );
+          this.params[key] = props.format.call(this.api, this.params[key], this);
         } else if (props.format === "integer") {
           this.params[key] = Number.parseInt(this.params[key]);
         } else if (props.format === "float") {
@@ -397,10 +368,7 @@ class ActionProcessor implements IActionProcessor {
         }
 
         if (Number.isNaN(this.params[key])) {
-          this.validatorErrors.set(
-            key,
-            this.api.config.errors.paramInvalidType(key, props.format)
-          );
+          this.validatorErrors.set(key, this.api.config.errors.paramInvalidType(key, props.format));
         }
       }
 
@@ -408,9 +376,7 @@ class ActionProcessor implements IActionProcessor {
       // system
       if (props.required === true) {
         // FIXME: this will throw an error when the validator is a function
-        props.validator = !props.validator
-          ? "required"
-          : "required|" + props.validator;
+        props.validator = !props.validator ? "required" : "required|" + props.validator;
       }
 
       // add the field to the validation hash
@@ -478,10 +444,7 @@ class ActionProcessor implements IActionProcessor {
     // Create a time that will be used to timeout the action if needed,
     // When the timeout is reached an error is thrown and sent to the
     // client.
-    this.timeoutTimer = setTimeout(
-      this.actionTimeout.bind(this),
-      this.api.configs.general.actionTimeout
-    );
+    this.timeoutTimer = setTimeout(this.actionTimeout.bind(this), this.api.configs.general.actionTimeout);
 
     try {
       this.response = await this.actionInstance.run();

@@ -1,11 +1,6 @@
 import { none, panic, some } from "..";
 import { Option } from "../option/option.interface";
-import {
-  Err as IErr,
-  IResultPattern,
-  Ok as IOk,
-  Result,
-} from "./result.interface";
+import { Err as IErr, IResultPattern, Ok as IOk, Result } from "./result.interface";
 
 class Ok<T, E> implements IOk<T, E> {
   public readonly tag: "ok" = "ok";

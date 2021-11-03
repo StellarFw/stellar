@@ -1,10 +1,5 @@
 import { panic } from "..";
-import {
-  IOptionPattern,
-  None as INone,
-  Option,
-  Some as ISome,
-} from "./option.interface";
+import { IOptionPattern, None as INone, Option, Some as ISome } from "./option.interface";
 
 class Some<T> implements ISome<T> {
   public tag: "some" = "some";
@@ -34,9 +29,7 @@ class Some<T> implements ISome<T> {
     return this;
   }
   filter(fn: (t: T) => boolean): Option<T> {
-    return fn(this.value as NonNullable<T>)
-      ? some(this.value as NonNullable<T>)
-      : none<T>();
+    return fn(this.value as NonNullable<T>) ? some(this.value as NonNullable<T>) : none<T>();
   }
   andThen<U>(f: (val: NonNullable<T>) => Option<U>): Option<U> {
     return f(this.value as NonNullable<T>);
@@ -183,7 +176,5 @@ export function some<T>(value: NonNullable<T>): Option<NonNullable<T>> {
  * @param value value to be warped inside an Option.
  */
 export function option<T>(value?: T): Option<T> {
-  return typeof value === "undefined" || value === null
-    ? none<T>()
-    : some(value as NonNullable<T>);
+  return typeof value === "undefined" || value === null ? none<T>() : some(value as NonNullable<T>);
 }

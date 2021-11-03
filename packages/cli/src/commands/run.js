@@ -5,43 +5,45 @@ const cluster = require("cluster");
 const Command = require("../Command.js");
 
 class RunCommand extends Command {
-  constructor () {
+  constructor() {
     super(true);
 
     this.flags = "run";
     this.desc = "Start a new Stellar instance";
-    this.setup = sywac => {
+    this.setup = (sywac) => {
       sywac
         .boolean("--prod", { desc: "Enable production mode" })
         .number("--port <port>", {
           desc: "Port where the server will listening",
-          defaultValue: 8080
+          defaultValue: 8080,
         })
-        .boolean("--clean", { desc: "Remove all temporary files and node modules" })
+        .boolean("--clean", {
+          desc: "Remove all temporary files and node modules",
+        })
         .boolean("--update", { desc: "Update dependencies" })
         .boolean("--cluster", {
           group: "Cluster Options:",
-          desc: "Run Stellar as a cluster"
+          desc: "Run Stellar as a cluster",
         })
         .string("--id <cluster-id>", {
           group: "Cluster Options:",
           desc: "Cluster identifier",
-          defaultValue: "stellar-cluster"
+          defaultValue: "stellar-cluster",
         })
         .boolean("--silent", {
           group: "Cluster Options:",
-          desc: "No messages will be printed to the console"
+          desc: "No messages will be printed to the console",
         })
         .boolean("--yarn", {
-          desc: "Use Yarn instead of NPM to manage Node dependencies"
+          desc: "Use Yarn instead of NPM to manage Node dependencies",
         })
         .number("--workers <number>", {
           group: "Cluster Options:",
-          desc: "Number of workers"
+          desc: "Number of workers",
         })
         .string("--workerPrefix <prefix>", {
           group: "Cluster Options:",
-          desc: "Worker's name prefix. If the value is equals to 'hostname' the computer hostname will be used"
+          desc: "Worker's name prefix. If the value is equals to 'hostname' the computer hostname will be used",
         })
         .outputSettings({ maxWidth: 79 });
     };
@@ -51,7 +53,7 @@ class RunCommand extends Command {
     this.checkForInternalStopTimer = null;
   }
 
-  exec () {
+  exec() {
     // whether the `--cluster` options is defined we stop this command and load
     // the startCluster
     if (this.args.cluster === true) {
@@ -90,7 +92,7 @@ class RunCommand extends Command {
       });
 
       // define action to be performed on an 'uncaughtException' event
-      process.on("uncaughtException", error => {
+      process.on("uncaughtException", (error) => {
         let stack;
 
         try {
@@ -103,8 +105,8 @@ class RunCommand extends Command {
         process.send({
           uncaughtException: {
             message: error.message,
-            stack
-          }
+            stack,
+          },
         });
 
         // finish the process on the next tick
@@ -136,7 +138,7 @@ class RunCommand extends Command {
    *
    * @param callback Callback function.
    */
-  async startServer (callback) {
+  async startServer(callback) {
     this._updateServerState("starting");
 
     try {
@@ -157,7 +159,7 @@ class RunCommand extends Command {
   /**
    * Stop server.
    */
-  async stopServer () {
+  async stopServer() {
     this._updateServerState("stopping");
     await this.engine.stop();
     this._updateServerState("stopped");
@@ -166,7 +168,7 @@ class RunCommand extends Command {
   /**
    * Restart the server.
    */
-  async restartServer () {
+  async restartServer() {
     this._updateServerState("restarting");
     await this.engine.restart();
     this._updateServerState("started");
@@ -175,7 +177,7 @@ class RunCommand extends Command {
   /**
    * Stop the process.
    */
-  async stopProcess () {
+  async stopProcess() {
     // put a time limit to shutdown the server
     setTimeout(() => process.exit(1), this.shutdownTimeout);
 
@@ -188,15 +190,17 @@ class RunCommand extends Command {
    * Update the server state and notify the master if the current process is a
    * cluster worker.
    */
-  _updateServerState (newState) {
+  _updateServerState(newState) {
     this.state = newState;
-    if (cluster.isWorker) { process.send({ state: this.state }); }
+    if (cluster.isWorker) {
+      process.send({ state: this.state });
+    }
   }
 
   /**
    * Check if the engine stops.
    */
-  _checkForInternalStop () {
+  _checkForInternalStop() {
     clearTimeout(this.checkForInternalStopTimer);
 
     // if the engine executing stops finish the process
@@ -205,11 +209,11 @@ class RunCommand extends Command {
     }
 
     // create a new timeout
-    this.checkForInternalStopTimer = setTimeout(_ => {
+    this.checkForInternalStopTimer = setTimeout((_) => {
       this._checkForInternalStop();
     }, this.shutdownTimeout);
   }
 }
 
 // export the command instance
-module.exports = (new RunCommand());
+module.exports = new RunCommand();

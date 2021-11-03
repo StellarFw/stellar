@@ -1,8 +1,6 @@
 import { Satellite } from "@stellarfw/common/lib";
 import * as _ from "lodash";
-import EventInterface, {
-  EventHandler,
-} from "@stellarfw/common/lib/interfaces/event.interface";
+import EventInterface, { EventHandler } from "@stellarfw/common/lib/interfaces/event.interface";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
 /**
@@ -45,14 +43,8 @@ export default class EventsSatellite extends Satellite {
       return false;
     }
 
-    if (
-      listenerObj.run === undefined ||
-      typeof listenerObj.run !== "function"
-    ) {
-      this.api.log(
-        "Invalid listener - missing run property or not a function",
-        LogLevel.Warning
-      );
+    if (listenerObj.run === undefined || typeof listenerObj.run !== "function") {
+      this.api.log("Invalid listener - missing run property or not a function", LogLevel.Warning);
       return false;
     }
 
@@ -63,10 +55,7 @@ export default class EventsSatellite extends Satellite {
     // The event property can be an array, when the listener supports multiple
     // events, so we need to iterate it. When the event property is an string we
     // must convert it to an array in order to simplify the implementation.
-    const events =
-      typeof listenerObj.event === "string"
-        ? [listenerObj.event]
-        : listenerObj.event;
+    const events = typeof listenerObj.event === "string" ? [listenerObj.event] : listenerObj.event;
 
     for (const event of events) {
       if (!this.events.has(event)) {
@@ -132,10 +121,7 @@ export default class EventsSatellite extends Satellite {
   private watchForChanges(path: string) {
     this.api.config.watchFileAndAct(path, () => {
       this.fileListeners.get(path)!.forEach((listener) => {
-        const events =
-          typeof listener.event === "string"
-            ? [listener.event]
-            : listener.event;
+        const events = typeof listener.event === "string" ? [listener.event] : listener.event;
 
         for (const event of events) {
           const listeners = this.events.get(event)!;

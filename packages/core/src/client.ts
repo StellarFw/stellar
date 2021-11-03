@@ -107,7 +107,7 @@ export class BuildEvent {
             event,
             data,
           },
-        })
+        }),
       );
     });
 
@@ -252,9 +252,7 @@ export default class Stellar extends Primus.EventEmitter {
 
     // Print out an error when Promises aren't supported
     if (Promise === undefined || typeof Promise !== "function") {
-      error(
-        "Th browser doesn't support Promises! You must load a polyfill before load Stellar client lib."
-      );
+      error("Th browser doesn't support Promises! You must load a polyfill before load Stellar client lib.");
     }
   }
 
@@ -371,9 +369,7 @@ export default class Stellar extends Primus.EventEmitter {
 
   public async configure(): Promise<ConnectionDetailsInterface> {
     if (this.options.rooms) {
-      this.options.rooms.forEach((room) =>
-        this.send({ event: "roomAdd", room })
-      );
+      this.options.rooms.forEach((room) => this.send({ event: "roomAdd", room }));
     }
 
     const details = await this.detailsView();
@@ -521,9 +517,7 @@ export default class Stellar extends Primus.EventEmitter {
    */
   private async _actionWeb(params: any): Promise<any> {
     const method = ((params.httpMethod || "POST") as string).toUpperCase();
-    let url = `${this.options.url}${(this, this.options.apiPath)}?action=${
-      params.action
-    }`;
+    let url = `${this.options.url}${(this, this.options.apiPath)}?action=${params.action}`;
 
     // When it's a GET request we must append the params to the URL address
     if (method === "GET") {
@@ -652,9 +646,7 @@ export default class Stellar extends Primus.EventEmitter {
         if (handler && isFunction(handler)) {
           handler.call(this, params, next, reject);
         } else {
-          warn(
-            `Invalid interceptor of type ${typeof handler}, must be a function`
-          );
+          warn(`Invalid interceptor of type ${typeof handler}, must be a function`);
           next();
         }
 

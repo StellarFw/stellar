@@ -8,11 +8,10 @@ let Utils = require("../../utils");
 // ----------------------------------------------------------------------------- [Class]
 
 class MakeListener extends Command {
-
   /**
    * Create a new MakeListener class instance.
    */
-  constructor () {
+  constructor() {
     // execute the super class constructor methods
     super();
 
@@ -26,7 +25,7 @@ class MakeListener extends Command {
   /**
    * Execute the command.
    */
-  exec () {
+  exec() {
     if (this.args.module.length === 0) {
       return this.printError("You need to specify the module where the listener must be created");
     }
@@ -54,7 +53,6 @@ class MakeListener extends Command {
     // print a success message
     this.printSuccess(`The "${listenerName}" listener was created!`);
   }
-
 }
 
 // export command

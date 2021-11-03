@@ -21,9 +21,7 @@ export default class ServersSatellite extends Satellite {
    */
   private loadServers() {
     // Get all JS files
-    const serversFiles = this.api.utils.recursiveDirSearch(
-      resolve(`${__dirname}/../servers`)
-    );
+    const serversFiles = this.api.utils.recursiveDirSearch(resolve(`${__dirname}/../servers`));
 
     for (const file of serversFiles) {
       const ServerClass = require(file).default;

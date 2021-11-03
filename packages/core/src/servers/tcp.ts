@@ -135,10 +135,7 @@ export default class TCPServer extends GenericServer {
       const bufferLen = Buffer.byteLength(line, "utf8");
 
       if (bufferLen > this.api.configs.servers.tcp.maxDataLength) {
-        const error = this.api.configs.errors.dataLengthTooLarge(
-          this.api.configs.servers.tcp.maxDataLength,
-          bufferLen
-        );
+        const error = this.api.configs.errors.dataLengthTooLarge(this.api.configs.servers.tcp.maxDataLength, bufferLen);
         this.log(error, LogLevel.Error);
         return this.sendMessage(connection, {
           status: "error",
@@ -160,9 +157,7 @@ export default class TCPServer extends GenericServer {
     if (this.checkBreakChars(chunk)) {
       connection.destroy();
     } else {
-      connection.rawConnection.socketDataString += chunk
-        .toString("utf-8")
-        .replace(/\r/g, "\n");
+      connection.rawConnection.socketDataString += chunk.toString("utf-8").replace(/\r/g, "\n");
 
       // get delimiter
       const delimiter = String(this.api.configs.servers.tcp.delimiter);
@@ -171,13 +166,10 @@ export default class TCPServer extends GenericServer {
 
       while (index > -1) {
         const data = connection.rawConnection.socketDataString.slice(0, index);
-        connection.rawConnection.socketDataString =
-          connection.rawConnection.socketDataString.slice(
-            index + delimiter.length
-          );
-        data
-          .split(delimiter)
-          .forEach((line) => this.parseLine(connection, line));
+        connection.rawConnection.socketDataString = connection.rawConnection.socketDataString.slice(
+          index + delimiter.length,
+        );
+        data.split(delimiter).forEach((line) => this.parseLine(connection, line));
 
         index = connection.rawConnection.socketDataString.indexOf(delimiter);
       }
@@ -207,13 +199,9 @@ export default class TCPServer extends GenericServer {
 
   private handleConnectionEvent(connection) {
     connection.params = {};
-    connection.rawConnection.on("data", (data) =>
-      this.handleData(connection, data)
-    );
+    connection.rawConnection.on("data", (data) => this.handleData(connection, data));
     connection.rawConnection.on("end", () => this.handleEndEvent(connection));
-    connection.rawConnection.on("error", (error) =>
-      this.handleEventError(connection, error)
-    );
+    connection.rawConnection.on("error", (error) => this.handleEventError(connection, error));
   }
 
   /**
@@ -272,7 +260,7 @@ export default class TCPServer extends GenericServer {
       if (pendingConnections > 0) {
         this.log(
           `waiting on shutdown, there are still ${pendingConnections} connected clients waiting on a response`,
-          LogLevel.Notice
+          LogLevel.Notice,
         );
         setTimeout(async () => {
           await this.innerStop(true);
@@ -308,15 +296,9 @@ export default class TCPServer extends GenericServer {
    * @param message Message to be sent.
    * @param messageCount Number of messages already sent for this connection.
    */
-  public sendMessage(
-    connection: ConnectionDetails,
-    message: any,
-    messageCount: number = 0
-  ) {
+  public sendMessage(connection: ConnectionDetails, message: any, messageCount: number = 0) {
     if (message.error) {
-      message.error = this.api.configs.errors.serializers.servers.tcp(
-        message.error
-      );
+      message.error = this.api.configs.errors.serializers.servers.tcp(message.error);
     }
 
     // TODO: implement a message type
@@ -355,7 +337,7 @@ export default class TCPServer extends GenericServer {
     stream: Stream,
     mime: string,
     length: number,
-    lastModified: Date
+    lastModified: Date,
   ): Promise<void> {
     if (error) {
       this.sendMessage(connection, error, connection.messageCount);
@@ -366,30 +348,20 @@ export default class TCPServer extends GenericServer {
 
   public async start(): Promise<void> {
     if (this.options.secure === false) {
-      this.server = createServer(
-        this.api.configs.servers.tcp.serverOptions,
-        (rawConnection) => {
-          this.handleConnection(rawConnection);
-        }
-      );
+      this.server = createServer(this.api.configs.servers.tcp.serverOptions, (rawConnection) => {
+        this.handleConnection(rawConnection);
+      });
     } else {
-      this.server = createSecureServer(
-        this.api.configs.servers.tcp.serverOptions,
-        (rawConnection) => {
-          this.handleConnection(rawConnection);
-        }
-      );
+      this.server = createSecureServer(this.api.configs.servers.tcp.serverOptions, (rawConnection) => {
+        this.handleConnection(rawConnection);
+      });
     }
 
     this.server.on("error", (error) => {
-      throw new Error(
-        `Cannot start tcp server @ ${this.options.bindIP}:${this.options.port} => ${error.message}`
-      );
+      throw new Error(`Cannot start tcp server @ ${this.options.bindIP}:${this.options.port} => ${error.message}`);
     });
 
-    await new Promise((resolve) =>
-      this.server?.listen(this.options.port, this.options.bindIP, resolve)
-    );
+    await new Promise((resolve) => this.server?.listen(this.options.port, this.options.bindIP, resolve));
   }
 
   public async stop(): Promise<void> {
@@ -406,11 +378,9 @@ export default class TCPServer extends GenericServer {
     try {
       connection.rawConnection.end(
         JSON.stringify({
-          status: connection.localize(
-            this.api.configs.servers.tcp.goodbyeMessage
-          ),
+          status: connection.localize(this.api.configs.servers.tcp.goodbyeMessage),
           context: "api",
-        }) + "\r\n"
+        }) + "\r\n",
       );
     } catch (error) {}
   }

@@ -62,11 +62,7 @@ class Pids {
    * Get a sanitized pid name for this process.
    */
   private sanitizeId(): string {
-    return this.api.id
-      .replace(/:/g, "-")
-      .replace(/\s/g, "-")
-      .replace(/\r/g, "")
-      .replace(/\n/g, "");
+    return this.api.id.replace(/:/g, "-").replace(/\s/g, "-").replace(/\r/g, "").replace(/\n/g, "");
   }
 }
 

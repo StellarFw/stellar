@@ -78,18 +78,10 @@ export default class ConnectionSatellite extends Satellite {
   }
 
   public apply(connectionId, method = null, args = null) {
-    return this.api.redis._doCluster(
-      "connections.applyCatch",
-      [connectionId, method, args],
-      connectionId
-    );
+    return this.api.redis._doCluster("connections.applyCatch", [connectionId, method, args], connectionId);
   }
 
-  public async applyCatch(
-    connectionId,
-    method: string | null = null,
-    args = null
-  ) {
+  public async applyCatch(connectionId, method: string | null = null, args = null) {
     const connection = this.connections.get(connectionId)!;
 
     if (method && args) {

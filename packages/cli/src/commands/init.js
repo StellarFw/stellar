@@ -8,8 +8,7 @@ let Utils = require("../utils");
 // ----------------------------------------------------------------------------- [Command]
 
 class InitCommand extends Command {
-
-  constructor () {
+  constructor() {
     // execute the super class constructor method
     super();
 
@@ -18,19 +17,19 @@ class InitCommand extends Command {
     // this.flags = 'init [--name] <name>'
     this.desc = "Create a new Stellar project";
     // this.paramsDesc = 'Project name'
-    this.setup = sywac => {
+    this.setup = (sywac) => {
       sywac
         .string("--name <name>", {
           // group: 'Required:',
           desc: "Project name",
-          required: true
+          required: true,
         })
         .string("--version <version>", {
           desc: "Project version",
-          defaultValue: "1.0.0"
+          defaultValue: "1.0.0",
         })
         .boolean("--dockerIt", {
-          desc: "Create a dockerfile for the new project"
+          desc: "Create a dockerfile for the new project",
         });
     };
   }
@@ -43,7 +42,7 @@ class InitCommand extends Command {
    *  - /config
    *  - /manifest.json
    */
-  exec () {
+  exec() {
     // check if is a empty folder
     if (!Utils.folderIsEmpty(process.cwd())) {
       this.printError("This command can only be executed when the directory is empty");
@@ -51,10 +50,14 @@ class InitCommand extends Command {
     }
 
     // create manifest.json file
-    Utils.generateFileFromTemplate("manifest", {
-      projectName: this.args.name,
-      projectVersion: this.args.version
-    }, `${process.cwd()}/manifest.json`);
+    Utils.generateFileFromTemplate(
+      "manifest",
+      {
+        projectName: this.args.name,
+        projectVersion: this.args.version,
+      },
+      `${process.cwd()}/manifest.json`,
+    );
 
     // create .gitignore file
     Utils.generateFileFromTemplate("gitignore", {}, `${process.cwd()}/.gitignore`);

@@ -59,9 +59,7 @@ export default class I18nSatellite extends Satellite {
     }
 
     // execute method
-    const locale = this.api.utils.executeCommand(cmdParts.join("."), [
-      connection,
-    ]);
+    const locale = this.api.utils.executeCommand(cmdParts.join("."), [connection]);
 
     // set locale
     this.i18n.setLocale(connection, locale);

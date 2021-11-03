@@ -30,24 +30,13 @@ export default class WebSocketServer extends GenericServer {
       logConnections: true,
       logExists: true,
       sendWelcomeMessage: true,
-      verbs: [
-        "quit",
-        "exit",
-        "roomJoin",
-        "roomLeave",
-        "roomView",
-        "detailsView",
-        "say",
-        "event",
-      ],
+      verbs: ["quit", "exit", "roomJoin", "roomLeave", "roomView", "detailsView", "say", "event"],
     };
 
     this.on("connection", this.handleNewConnection.bind(this));
     this.on("actionComplete", this.handleActionComplete.bind(this));
 
-    this.fingerprinter = new BrowserFingerprint(
-      this.api.configs.servers.web.fingerprintOptions
-    );
+    this.fingerprinter = new BrowserFingerprint(this.api.configs.servers.web.fingerprintOptions);
   }
 
   private handleNewConnection(connection) {
@@ -71,10 +60,7 @@ export default class WebSocketServer extends GenericServer {
    * @param connection Client connection.
    * @param data Received data.
    */
-  private async handleData(
-    connection: ConnectionDetails,
-    data: any
-  ): Promise<void> {
+  private async handleData(connection: ConnectionDetails, data: any): Promise<void> {
     const verb = data.event;
     delete data.event;
 
@@ -135,8 +121,7 @@ export default class WebSocketServer extends GenericServer {
    */
   private handleConnection(rawConnection): void {
     const parsedCookies = this.fingerprinter.parseCookies(rawConnection);
-    const fingerprint =
-      parsedCookies[this.api.configs.servers.web.fingerprintOptions.cookieKey];
+    const fingerprint = parsedCookies[this.api.configs.servers.web.fingerprintOptions.cookieKey];
 
     this.buildConnection({
       rawConnection,
@@ -155,10 +140,7 @@ export default class WebSocketServer extends GenericServer {
     const connections = this.connections();
 
     for (const i in connections) {
-      if (
-        connections[i] &&
-        rawConnection.id === connections[i].rawConnection.id
-      ) {
+      if (connections[i] && rawConnection.id === connections[i].rawConnection.id) {
         connections[i].destroy();
         break;
       }
@@ -171,19 +153,13 @@ export default class WebSocketServer extends GenericServer {
   public async start(): Promise<void> {
     const webServer: WebServer = this.api.servers.servers.get("web");
 
-    this.server = new Primus(
-      webServer.server as Server,
-      this.api.configs.servers.websocket.server
-    );
+    this.server = new Primus(webServer.server as Server, this.api.configs.servers.websocket.server);
 
     // Define the necessary event handlers
     this.server.on("connection", this.handleConnection.bind(this));
     this.server.on("disconnection", this.handleDisconnection.bind(this));
 
-    this.api.log(
-      `WebSocket bound to ${webServer.options.bindIP}:${webServer.options.port}`,
-      LogLevel.Debug
-    );
+    this.api.log(`WebSocket bound to ${webServer.options.bindIP}:${webServer.options.port}`, LogLevel.Debug);
 
     // @ts-ignore
     this.server.active = true;
@@ -212,15 +188,9 @@ export default class WebSocketServer extends GenericServer {
    * @param message Message to be sent.
    * @param messageCount Message number.
    */
-  public sendMessage(
-    connection: ConnectionDetails,
-    message: any,
-    messageCount: number | null = null
-  ) {
+  public sendMessage(connection: ConnectionDetails, message: any, messageCount: number | null = null) {
     if (message.error) {
-      message.error = this.api.configs.errors.serializers.servers.websocket(
-        message.error
-      );
+      message.error = this.api.configs.errors.serializers.servers.websocket(message.error);
     }
 
     if (!message.context) {
@@ -263,7 +233,7 @@ export default class WebSocketServer extends GenericServer {
     fileStream: ReadStream,
     mime: string,
     length: number,
-    lastModified: Date
+    lastModified: Date,
   ): Promise<void> {
     let content = "";
     const response = {
@@ -284,11 +254,7 @@ export default class WebSocketServer extends GenericServer {
           response.content = content;
           // TODO: review this sendMessage method. Seems not to be present on Primus anymore
           // @ts-ignore
-          this.server.sendMessage(
-            connection,
-            response,
-            connection.messageCount
-          );
+          this.server.sendMessage(connection, response, connection.messageCount);
         });
       }
 
@@ -305,9 +271,7 @@ export default class WebSocketServer extends GenericServer {
    * Compile client JS.
    */
   private compileClientJs(): string {
-    let clientSource: string = readFileSync(
-      `${__dirname}/../client.js`
-    ).toString();
+    let clientSource: string = readFileSync(`${__dirname}/../client.js`).toString();
     const url: string = this.api.configs.servers.websocket.clientUrl;
 
     clientSource = clientSource.replace(/\'%%URL%%\'/g, url);
@@ -320,10 +284,7 @@ export default class WebSocketServer extends GenericServer {
     };
 
     let defaultsString: string = inspect(defaults);
-    defaultsString = defaultsString.replace(
-      "'window.location.origin'",
-      "window.location.origin"
-    );
+    defaultsString = defaultsString.replace("'window.location.origin'", "window.location.origin");
     clientSource = clientSource.replace("'%%DEFAULTS%%'", defaultsString);
 
     return clientSource;
@@ -364,9 +325,7 @@ export default class WebSocketServer extends GenericServer {
 
     if (this.api.configs.servers.websocket.clientJsName) {
       const base = normalize(
-        this.api.configs.general.paths.public +
-          sep +
-          this.api.configs.servers.websocket.clientJsName
+        this.api.configs.general.paths.public + sep + this.api.configs.servers.websocket.clientJsName,
       );
 
       try {
@@ -375,10 +334,7 @@ export default class WebSocketServer extends GenericServer {
         writeFileSync(`${base}.min.js`, this.renderClientJs(true));
         this.api.log(`wrote ${base}.min.js`, LogLevel.Debug);
       } catch (e) {
-        this.api.log(
-          "Cannot write client-side JS for WebSocket server: ",
-          LogLevel.Warning
-        );
+        this.api.log("Cannot write client-side JS for WebSocket server: ", LogLevel.Warning);
         this.api.log(e, LogLevel.Warning);
         throw e;
       }

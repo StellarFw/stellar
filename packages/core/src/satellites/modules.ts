@@ -52,9 +52,7 @@ export default class ModulesSatellite extends Satellite {
    * @param modulePath Module path that needs to be compiled.
    */
   private buildModule(modulePath: string): boolean {
-    const filesToCompile = this.api.utils.recursiveDirSearch(modulePath, [
-      "ts",
-    ]);
+    const filesToCompile = this.api.utils.recursiveDirSearch(modulePath, ["ts"]);
 
     // TODO: maybe this can be moved into the loadBaseTsConfigs methods
     const options: ts.CompilerOptions = {
@@ -68,9 +66,7 @@ export default class ModulesSatellite extends Satellite {
     const emitResult = program.emit();
 
     // Show any error that occurred
-    const allDiagnostics = ts
-      .getPreEmitDiagnostics(program)
-      .concat(emitResult.diagnostics);
+    const allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
 
     allDiagnostics.forEach((diagnostic) => {
       if (!diagnostic.file) {
@@ -81,17 +77,10 @@ export default class ModulesSatellite extends Satellite {
         return;
       }
 
-      const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(
-        diagnostic.start!
-      );
-      const message = ts.flattenDiagnosticMessageText(
-        diagnostic.messageText,
-        "\n"
-      );
+      const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start!);
+      const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n");
 
-      console.log(
-        `${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`
-      );
+      console.log(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
     });
 
     return emitResult.emitSkipped;
@@ -106,17 +95,12 @@ export default class ModulesSatellite extends Satellite {
   private loadModules(): void {
     const modules = (this.api.configs.modules || []) as Array<string>;
 
-    if (
-      this.api.utils.dirExists(`${this.api.scope.rootPath}/modules/private`)
-    ) {
+    if (this.api.utils.dirExists(`${this.api.scope.rootPath}/modules/private`)) {
       modules.push("private");
     }
 
     if (modules.length === 0) {
-      this.api.log(
-        "At least one module needs to be active.",
-        LogLevel.Emergency
-      );
+      this.api.log("At least one module needs to be active.", LogLevel.Emergency);
 
       // NOTE: on this case there is no way to shutdown safely.
       process.exit();
@@ -131,7 +115,7 @@ export default class ModulesSatellite extends Satellite {
       manifestFile.tapErr(() => {
         this.api.log(
           `Impossible to load module(${moduleName}), fix this to start Stellar normally. Usually this means the module or the 'manifest.json' file doesn't exist.`,
-          LogLevel.Emergency
+          LogLevel.Emergency,
         );
         process.exit();
       });
@@ -177,24 +161,14 @@ export default class ModulesSatellite extends Satellite {
     // Check if Stellar is starting in clean mode. If yes, we need remove all the
     // temporary files and process every thing again.
     if (scope.args.clean) {
-      const tempFilesLocations = [
-        "temp",
-        "package.json",
-        "package-lock.json",
-        "node_modules",
-      ];
+      const tempFilesLocations = ["temp", "package.json", "package-lock.json", "node_modules"];
 
-      tempFilesLocations.forEach((e) =>
-        this.api.utils.removePath(`${scope.rootPath}/${e}`)
-      );
+      tempFilesLocations.forEach((e) => this.api.utils.removePath(`${scope.rootPath}/${e}`));
     }
 
     // If the `package.json` file already exists and Stellar isn't starting with the
     // `update` flag, return now.
-    if (
-      this.api.utils.fileExists(`${scope.rootPath}/package.json`) &&
-      !scope.args.update
-    ) {
+    if (this.api.utils.fileExists(`${scope.rootPath}/package.json`) && !scope.args.update) {
       return;
     }
 
@@ -205,10 +179,7 @@ export default class ModulesSatellite extends Satellite {
         return;
       }
 
-      nodeDependencies = this.api.utils.hashMerge(
-        nodeDependencies,
-        manifest.nodeDependencies
-      );
+      nodeDependencies = this.api.utils.hashMerge(nodeDependencies, manifest.nodeDependencies);
     });
 
     const projectJson = {
@@ -221,11 +192,7 @@ export default class ModulesSatellite extends Satellite {
 
     const packageJsonPath = `${this.api.scope.rootPath}/package.json`;
     this.api.utils.removePath(packageJsonPath);
-    writeFileSync(
-      packageJsonPath,
-      JSON.stringify(projectJson, null, 2),
-      "utf8"
-    );
+    writeFileSync(packageJsonPath, JSON.stringify(projectJson, null, 2), "utf8");
 
     this.api.log("Updating Node dependencies", LogLevel.Info);
 
@@ -233,16 +200,12 @@ export default class ModulesSatellite extends Satellite {
     // By default NPM is used. To use Yarn instead, the argument
     // --yarn must be passed.
     const pkgManager = scope.args.yarn ? "yarn" : "npm";
-    const commandToRun = scope.args.update
-      ? `${pkgManager} update`
-      : `${pkgManager} install`;
+    const commandToRun = scope.args.update ? `${pkgManager} update` : `${pkgManager} install`;
 
     try {
       execSync(commandToRun);
     } catch (error) {
-      throw new Error(
-        "An error occurred during the Node dependencies install command."
-      );
+      throw new Error("An error occurred during the Node dependencies install command.");
     }
 
     this.api.log("Node dependencies updated!", LogLevel.Info);
@@ -254,10 +217,7 @@ export default class ModulesSatellite extends Satellite {
    * @param moduleName Module name.
    * @param value Array of actions name to be stores.
    */
-  public regModuleAction(
-    moduleName: string,
-    value: string | Array<string>
-  ): void {
+  public regModuleAction(moduleName: string, value: string | Array<string>): void {
     if (!this.moduleActions.has(moduleName)) {
       this.moduleActions.set(moduleName, []);
     }

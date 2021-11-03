@@ -5,28 +5,28 @@ export default {
 
       serializers: {
         servers: {
-          web: error => {
+          web: (error) => {
             if (api.utils.isError(error)) {
               return String(error.message);
             }
 
             return error;
           },
-          websocket: error => {
+          websocket: (error) => {
             if (api.utils.isError(error)) {
               return String(error.message);
             }
 
             return error;
           },
-          tcp: error => {
+          tcp: (error) => {
             if (api.utils.isError(error)) {
               return String(error.message);
             }
 
             return error;
           },
-          helper: error => {
+          helper: (error) => {
             if (api.utils.isError(error)) {
               return "Error: " + String(error.message);
             }
@@ -129,9 +129,7 @@ export default {
       dataLengthTooLarge(maxLength, receivedLength) {
         return {
           code: "008",
-          message: api.i18n.localize(
-            `Data length is too big (${maxLength} received/${receivedLength} max)`,
-          ),
+          message: api.i18n.localize(`Data length is too big (${maxLength} received/${receivedLength} max)`),
         };
       },
 
@@ -195,9 +193,7 @@ export default {
       verbNotAllowed(connection, verb) {
         return {
           code: "014",
-          message: connection.localize(
-            `Verb not found or not allowed (${verb})`,
-          ),
+          message: connection.localize(`Verb not found or not allowed (${verb})`),
         };
       },
 
@@ -218,9 +214,7 @@ export default {
       connectionNotInRoom(connection, room) {
         return {
           code: "016",
-          message: connection.localize(
-            `Connection (${connection.id}) not in room (${room})`,
-          ),
+          message: connection.localize(`Connection (${connection.id}) not in room (${room})`),
         };
       },
 
@@ -231,9 +225,7 @@ export default {
       connectionAlreadyInRoom(connection, room) {
         return {
           code: "017",
-          message: connection.localize(
-            `Connection (${connection.id}) already in room (${room})`,
-          ),
+          message: connection.localize(`Connection (${connection.id}) already in room (${room})`),
         };
       },
 

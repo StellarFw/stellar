@@ -7,12 +7,7 @@ export default class ParamsSatellite extends Satellite {
   /**
    * Special params.
    */
-  private globalSafeParams: Array<string> = [
-    "file",
-    "apiVersion",
-    "callback",
-    "action",
-  ];
+  private globalSafeParams: Array<string> = ["file", "apiVersion", "callback", "action"];
 
   /**
    * List with all save params.

@@ -33,9 +33,7 @@ describe("executor", () => {
       const testFn = () => {
         throw new Error("this is an error");
       };
-      expect(
-        (await unsafeAsync(testFn)).containsErr("this is an error")
-      ).toBeTruthy();
+      expect((await unsafeAsync(testFn)).containsErr("this is an error")).toBeTruthy();
     });
   });
 });

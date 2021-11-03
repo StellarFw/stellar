@@ -105,10 +105,7 @@ export class Connection implements ConnectionDetails {
 
     // execute the middleware
     this.api.connections.globalMiddleware.forEach((middlewareName) => {
-      if (
-        typeof this.api.connections.middleware[middlewareName].create ===
-        "function"
-      ) {
+      if (typeof this.api.connections.middleware[middlewareName].create === "function") {
         this.api.connections.middleware[middlewareName].create(this);
       }
     });
@@ -142,9 +139,7 @@ export class Connection implements ConnectionDetails {
     enforcedConnectionProperties.forEach((req) => {
       if (data[req] === null || data[req] === undefined) {
         if (this.api.configs.general.enforceConnectionProperties === true) {
-          throw new Error(
-            `${req} is required to create a new connection object`
-          );
+          throw new Error(`${req} is required to create a new connection object`);
         } else {
           data[req] = 0; // TODO: could be a random uuid as well?
         }
@@ -161,9 +156,7 @@ export class Connection implements ConnectionDetails {
    * @param message Message to be sent to the connection.
    */
   public sendMessage(message: any) {
-    throw new Error(
-      `I should be replaced with a connection-specific method [${message}]`
-    );
+    throw new Error(`I should be replaced with a connection-specific method [${message}]`);
   }
 
   /**
@@ -172,9 +165,7 @@ export class Connection implements ConnectionDetails {
    * @param path Path to the file that must be sent.
    */
   public sendFile(path: string) {
-    throw new Error(
-      `I should be replaced with a connection-specific method [${path}]`
-    );
+    throw new Error(`I should be replaced with a connection-specific method [${path}]`);
   }
 
   /**
@@ -191,10 +182,7 @@ export class Connection implements ConnectionDetails {
 
     // execute the destroy middleware
     this.api.connections.globalMiddleware.forEach((middlewareName) => {
-      if (
-        typeof this.api.connections.middleware[middlewareName].destroy ===
-        "function"
-      ) {
+      if (typeof this.api.connections.middleware[middlewareName].destroy === "function") {
         this.api.connections.middleware[middlewareName].destroy(this);
       }
     });
@@ -241,10 +229,7 @@ export class Connection implements ConnectionDetails {
    * @param verb      Verb to be executed.
    * @param words     Words are optional.
    */
-  public async verbs(
-    verb: string,
-    words: string | Array<string> = []
-  ): Promise<any> {
+  public async verbs(verb: string, words: string | Array<string> = []): Promise<any> {
     const server = this.api.servers.servers.get(this.type);
 
     let key;

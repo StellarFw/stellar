@@ -8,11 +8,10 @@ let Utils = require("../../utils");
 // ----------------------------------------------------------------------------- [Command]
 
 class MakeTest extends Command {
-
   /**
    * Create a new instance of this command.
    */
-  constructor () {
+  constructor() {
     // execute the super class constructor method
     super();
 
@@ -26,7 +25,7 @@ class MakeTest extends Command {
   /**
    * Execute the command.
    */
-  exec () {
+  exec() {
     // check if the module was specified
     if (this.args.module.length === 0) {
       return this.printError("You need to specify the module where the task must be created");
@@ -39,7 +38,9 @@ class MakeTest extends Command {
 
     // ensure the test folder exists
     const testFolder = `${Utils.getCurrentUniverse()}/modules/${this.args.module}/tests`;
-    if (!Utils.exists(testFolder)) { Utils.createFolder(testFolder); }
+    if (!Utils.exists(testFolder)) {
+      Utils.createFolder(testFolder);
+    }
 
     // get the file name
     const fileName = this.args.file_name;
@@ -53,12 +54,11 @@ class MakeTest extends Command {
     }
 
     // generate the new file
-    Utils.generateFileFromTemplate("test", { }, newFilePath);
+    Utils.generateFileFromTemplate("test", {}, newFilePath);
 
     // print a success message
     this.printSuccess(`The "${fileName}" test was created!`);
   }
-
 }
 
 // export command

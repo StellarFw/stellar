@@ -13,12 +13,14 @@ module.exports = class Utils {
    *
    * @returns {*|String}
    */
-  static getCurrentUniverse () { return process.cwd(); }
+  static getCurrentUniverse() {
+    return process.cwd();
+  }
 
   /**
    * read the manifest.json file to get the active modules and return them.
    */
-  static getAppModules () {
+  static getAppModules() {
     const manifest = Utils.fileContent(`${Utils.getCurrentUniverse()}/manifest.json`);
     return JSON.parse(manifest).modules || [];
   }
@@ -29,7 +31,7 @@ module.exports = class Utils {
    * @param path
    * @returns {boolean}
    */
-  static exists (path) {
+  static exists(path) {
     try {
       fs.accessSync(path, fs.F_OK);
       return true;
@@ -43,8 +45,10 @@ module.exports = class Utils {
    *
    * @param path Path to check.
    */
-  static createFolderIfNotExists (path) {
-    if (!Utils.exists(path)) { Utils.createFolder(path); }
+  static createFolderIfNotExists(path) {
+    if (!Utils.exists(path)) {
+      Utils.createFolder(path);
+    }
   }
 
   /**
@@ -52,14 +56,18 @@ module.exports = class Utils {
    *
    * @param path   Directory path.
    */
-  static removeDirectory (path) {
+  static removeDirectory(path) {
     let filesList;
 
     // get directory files
-    try { filesList = fs.readdirSync(path); } catch (e) { return; }
+    try {
+      filesList = fs.readdirSync(path);
+    } catch (e) {
+      return;
+    }
 
     // iterate all folders and files on the directory
-    filesList.forEach(file => {
+    filesList.forEach((file) => {
       // get full file path
       let filePath = `${path}/${file}`;
 
@@ -82,12 +90,16 @@ module.exports = class Utils {
    *
    * @param path  Path to be removed.
    */
-  static removePath (path) {
+  static removePath(path) {
     // if the path don't exists return
-    if (!Utils.exists(path)) { return; }
+    if (!Utils.exists(path)) {
+      return;
+    }
 
     // if the path is a file remote it and return
-    if (fs.statSync(path).isFile()) { return fs.unlinkSync(path); }
+    if (fs.statSync(path).isFile()) {
+      return fs.unlinkSync(path);
+    }
 
     // remove all the directory content
     Utils.removeDirectory(path);
@@ -99,7 +111,9 @@ module.exports = class Utils {
    * @param moduleName
    * @returns {boolean}
    */
-  static moduleExists (moduleName) { return this.exists(this.getCurrentUniverse() + `/modules/${moduleName}`); }
+  static moduleExists(moduleName) {
+    return this.exists(this.getCurrentUniverse() + `/modules/${moduleName}`);
+  }
 
   /**
    * Create a file and write some content that file.
@@ -108,7 +122,9 @@ module.exports = class Utils {
    * @param content   Content to be written.
    * @returns {*}
    */
-  static createFile (path, content) { return fs.writeFileSync(path, content, "utf8"); }
+  static createFile(path, content) {
+    return fs.writeFileSync(path, content, "utf8");
+  }
 
   /**
    * Read and return the file content.
@@ -116,7 +132,9 @@ module.exports = class Utils {
    * @param path    Path here the file must be read.
    * @returns {*}
    */
-  static fileContent (path) { return fs.readFileSync(path).toString();}
+  static fileContent(path) {
+    return fs.readFileSync(path).toString();
+  }
 
   /**
    * Get the template file content.
@@ -124,7 +142,7 @@ module.exports = class Utils {
    * @param name    Template name to get.
    * @returns {*}
    */
-  static getTemplate (name) {
+  static getTemplate(name) {
     // build the full template path
     let path = `${__dirname}/templates/${name}.txt`;
 
@@ -138,9 +156,9 @@ module.exports = class Utils {
    * @param path        Path of the folder to be validated.
    * @returns {boolean} True if the folder is empty, false otherwise.
    */
-  static folderIsEmpty (path) {
+  static folderIsEmpty(path) {
     let list = fs.readdirSync(path);
-    list = list.filter(item => !(/(^|\/)\.[^\/\.]/g).test(item));
+    list = list.filter((item) => !/(^|\/)\.[^\/\.]/g.test(item));
 
     return list.length <= 0;
   }
@@ -150,11 +168,13 @@ module.exports = class Utils {
    *
    * @param path
    */
-  static createFolder (path) {
+  static createFolder(path) {
     try {
       fs.mkdirSync(path);
     } catch (e) {
-      if (e.code !== "EEXIST") { throw e; }
+      if (e.code !== "EEXIST") {
+        throw e;
+      }
     }
   }
 
@@ -169,7 +189,7 @@ module.exports = class Utils {
    * @param data          Data to use in the template
    * @param outputPath    Output file path
    */
-  static generateFileFromTemplate (templateName, data, outputPath) {
+  static generateFileFromTemplate(templateName, data, outputPath) {
     // get template source
     let templateSource = Utils.getTemplate(templateName);
 

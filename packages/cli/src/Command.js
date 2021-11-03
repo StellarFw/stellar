@@ -16,7 +16,7 @@ module.exports = class {
    * @type {boolean} initialize When true Stellar will be initialized on the
    * run method execution.
    */
-  constructor (initialize = false) {
+  constructor(initialize = false) {
     // define console colors
     this.FgRed = "\x1b[31m";
     this.FgGreen = "\x1b[32m";
@@ -41,18 +41,18 @@ module.exports = class {
   /**
    * Build the scope to create a new Stellar instance.
    */
-  _buildScope () {
+  _buildScope() {
     return {
       rootPath: process.cwd(),
       stellarPackageJSON: pkg,
-      args: this.args
+      args: this.args,
     };
   }
 
   /**
    * Initialize a Stellar instance when requested.
    */
-  async _initializeStellar () {
+  async _initializeStellar() {
     // create a new engine instance and initialize it
     const scope = this._buildScope();
     this.engine = new Engine(scope);
@@ -66,7 +66,7 @@ module.exports = class {
   /**
    * Catch the sywac command call.
    */
-  run (args) {
+  run(args) {
     // store the args
     this.args = args;
 
@@ -75,25 +75,38 @@ module.exports = class {
       // create a new set of arguments removing the `--daemon` options
       const newArgs = process.argv.splice(2);
       for (const i in newArgs) {
-        if (newArgs[i].indexOf("--daemon") >= 0) { newArgs.splice(i, 1); }
+        if (newArgs[i].indexOf("--daemon") >= 0) {
+          newArgs.splice(i, 1);
+        }
       }
       newArgs.push("--isDaemon=true");
 
       const command = path.normalize(`${__dirname}/stellar`);
-      const child = spawn(command, newArgs, { detached: true, cwd: process.cwd(), env: process.env, stdio: "ignore" });
+      const child = spawn(command, newArgs, {
+        detached: true,
+        cwd: process.cwd(),
+        env: process.env,
+        stdio: "ignore",
+      });
       console.log(`${command} ${newArgs.join(" ")}`);
       console.log(`Spawned child process with pid ${child.pid}`);
 
       // finish the current process
-      process.nextTick(_ => { process.exit(0); });
+      process.nextTick((_) => {
+        process.exit(0);
+      });
       return;
     }
 
     // check if is to initialize the Engine
     if (this.isToInitialize) {
       return this._initializeStellar()
-        .then(_ => { this.exec(); })
-        .catch(error => { this.printError(error); });
+        .then((_) => {
+          this.exec();
+        })
+        .catch((error) => {
+          this.printError(error);
+        });
     }
 
     // run the command
@@ -105,20 +118,25 @@ module.exports = class {
    *
    * @param msg Message to be printed.
    */
-  printError (msg) { console.log(`${this.FontBold}${this.FgRed}Error: ${msg}${this.FgDefault}${this.FontNormal}`); }
+  printError(msg) {
+    console.log(`${this.FontBold}${this.FgRed}Error: ${msg}${this.FgDefault}${this.FontNormal}`);
+  }
 
   /**
    * Print an info message.
    *
    * @param msg Message to be printed.
    */
-  printInfo (msg) { console.log(`${this.FgBlue}Info: ${msg}${this.FgDefault}`); }
+  printInfo(msg) {
+    console.log(`${this.FgBlue}Info: ${msg}${this.FgDefault}`);
+  }
 
   /**
    * Print a success message.
    *
    * @param msg Message to be printed.
    */
-  printSuccess (msg) { console.log(`${this.FgGreen}Success: ${msg}${this.FgDefault}`); }
-
+  printSuccess(msg) {
+    console.log(`${this.FgGreen}Success: ${msg}${this.FgDefault}`);
+  }
 };

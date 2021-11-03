@@ -15,4 +15,4 @@ export default interface EventInterface {
   priority?: number;
 
   run: EventHandler;
-}
+};;;;;;;;;;;;;;;;;;;;

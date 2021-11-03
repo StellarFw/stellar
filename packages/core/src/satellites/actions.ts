@@ -1,10 +1,4 @@
-import {
-  Connection,
-  Satellite,
-  Action,
-  LogLevel,
-  MiddlewareInterface,
-} from "@stellarfw/common/lib";
+import { Connection, Satellite, Action, LogLevel, MiddlewareInterface } from "@stellarfw/common/lib";
 import { ACTION_METADATA } from "@stellarfw/common/lib/constants";
 
 export interface VersionActionMap {
@@ -90,18 +84,14 @@ export default class ActionsSatellite extends Satellite {
 
     const ActionProcessor = this.api.ActionProcessor;
     return new Promise((resolve, reject) => {
-      const actionProcessor = new ActionProcessor(
-        this.api,
-        connection,
-        (data) => {
-          connection.destroy();
-          if (data.response.error !== undefined) {
-            return reject(data.response.error);
-          }
-
-          resolve(data.response);
+      const actionProcessor = new ActionProcessor(this.api, connection, (data) => {
+        connection.destroy();
+        if (data.response.error !== undefined) {
+          return reject(data.response.error);
         }
-      );
+
+        resolve(data.response);
+      });
 
       actionProcessor.processAction();
     });
@@ -150,12 +140,7 @@ export default class ActionsSatellite extends Satellite {
    *
    * @param action Action to be loaded.
    */
-  private loadAction(
-    action: Action,
-    path: string,
-    module: string,
-    reload: boolean = false
-  ): void {
+  private loadAction(action: Action, path: string, module: string, reload: boolean = false): void {
     // Ignore when the given "action" isn't an function. That
     // means the user isn't use an Class.
     if (typeof action !== "function") {
@@ -284,9 +269,7 @@ export default class ActionsSatellite extends Satellite {
     };
 
     // watch for changes on the middleware file
-    this.api.configs.watchFileAndAct(path, () =>
-      this.loadMiddlewareFromFile(path, true)
-    );
+    this.api.configs.watchFileAndAct(path, () => this.loadMiddlewareFromFile(path, true));
 
     try {
       const collection = require(path);
@@ -329,9 +312,7 @@ export default class ActionsSatellite extends Satellite {
       // process the `modules` property
       if (Array.isArray(group.modules)) {
         group.modules.forEach((modulesName) => {
-          actions = actions.concat(
-            this.api.modules.moduleActions.get(modulesName) || []
-          );
+          actions = actions.concat(this.api.modules.moduleActions.get(modulesName) || []);
         });
       }
 
@@ -372,9 +353,7 @@ export default class ActionsSatellite extends Satellite {
     const groupNames = this.checkWhatGroupsArePresent(action.id);
 
     // apply the changes of all founded groups
-    groupNames.forEach((groupName) =>
-      this.applyGroupModToAction(groupName, action)
-    );
+    groupNames.forEach((groupName) => this.applyGroupModToAction(groupName, action));
   }
 
   /**
@@ -479,9 +458,7 @@ export default class ActionsSatellite extends Satellite {
       // get all files from the module "actions" folder
       this.api.utils
         .recursiveDirSearch(`${modulePath}/actions`)
-        .forEach((actionFile) =>
-          this.api.actions.loadFile(actionFile, moduleName)
-        );
+        .forEach((actionFile) => this.api.actions.loadFile(actionFile, moduleName));
     });
   }
 
@@ -587,9 +564,7 @@ export default class ActionsSatellite extends Satellite {
         this.loadModifier(require(modPath)(this.api).actions);
 
         // when the modifier file changes we must reload the entire server
-        this.api.config.watchFileAndAct(modPath, () =>
-          this.api.commands.restart()
-        );
+        this.api.config.watchFileAndAct(modPath, () => this.api.commands.restart());
       }
     });
   }

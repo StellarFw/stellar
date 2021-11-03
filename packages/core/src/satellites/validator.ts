@@ -74,15 +74,9 @@ export default class ValidatorSatellite extends Satellite {
    *
    * @throws InvalidArgumentException
    */
-  private requireParameterCount(
-    count: number,
-    parameters: Array<any>,
-    rule: string
-  ) {
+  private requireParameterCount(count: number, parameters: Array<any>, rule: string) {
     if (!parameters || parameters.length < count) {
-      throw new InvalidArgumentException(
-        `Validation rule ${rule} requires at least ${count} parameters.`
-      );
+      throw new InvalidArgumentException(`Validation rule ${rule} requires at least ${count} parameters.`);
     }
   }
 
@@ -94,12 +88,7 @@ export default class ValidatorSatellite extends Satellite {
    * @param String rule
    * @param Array parameters
    */
-  private doReplacements(
-    message: string,
-    attribute: string,
-    _rule: string,
-    parameters: Array<any>
-  ) {
+  private doReplacements(message: string, attribute: string, _rule: string, parameters: Array<any>) {
     message = message.replace(/:attribute/gi, attribute);
 
     const rule = this.normalizeRuleName(_rule);
@@ -148,20 +137,13 @@ export default class ValidatorSatellite extends Satellite {
    *
    * @todo add support for translation.
    */
-  private _addFailure(
-    attribute: string,
-    rule: string,
-    parameters: Array<string>,
-    errors: Map<string, string>
-  ) {
+  private _addFailure(attribute: string, rule: string, parameters: Array<string>, errors: Map<string, string>) {
     // get the error message
     let message = this.getMessage(attribute, rule);
 
     // if there is no message for the validator throw an error
     if (message === undefined) {
-      throw new Error(
-        `No error message was been specified for the '${rule}' validator`
-      );
+      throw new Error(`No error message was been specified for the '${rule}' validator`);
     }
 
     // replace the fields on the error message
@@ -254,10 +236,7 @@ export default class ValidatorSatellite extends Satellite {
         const ruleParameters = this.rules[fieldName][ruleName];
 
         // if the property has undefined only implicit validators can be applied
-        if (
-          value === undefined &&
-          this.implicitValidators.indexOf(ruleName) === -1
-        ) {
+        if (value === undefined && this.implicitValidators.indexOf(ruleName) === -1) {
           break;
         }
 
@@ -274,10 +253,7 @@ export default class ValidatorSatellite extends Satellite {
           if (typeof funcResponse === "string") {
             errors.set(fieldName, funcResponse);
           } else if (funcResponse === false) {
-            errors.set(
-              fieldName,
-              `The ${fieldName} field do not match with the validator function.`
-            );
+            errors.set(fieldName, `The ${fieldName} field do not match with the validator function.`);
           }
 
           continue;
@@ -294,9 +270,7 @@ export default class ValidatorSatellite extends Satellite {
         // execute the correspondent validator and if the response if `false` a
         // failure message will be added to the errors hash. The exec methods
         // also can return
-        if (
-          !this[`validator${ruleNormalized}`](value, ruleParameters, fieldName)
-        ) {
+        if (!this[`validator${ruleNormalized}`](value, ruleParameters, fieldName)) {
           this._addFailure(fieldName, ruleName, ruleParameters, errors);
           continue;
         }
@@ -475,7 +449,7 @@ export default class ValidatorSatellite extends Satellite {
    */
   public validatorEmail(value) {
     return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-      value
+      value,
     );
   }
 
@@ -820,9 +794,7 @@ export default class ValidatorSatellite extends Satellite {
    * @returns {boolean}
    */
   public validatorUrl(value: string): boolean {
-    return /^(http|ftp|https):\/\/[\w-]+(\.[\w-]*)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?$/.test(
-      value
-    );
+    return /^(http|ftp|https):\/\/[\w-]+(\.[\w-]*)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?$/.test(value);
   }
 
   // --------------------------------------------------------------------------- [Replacers]

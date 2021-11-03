@@ -47,13 +47,9 @@ export default class DocumentationSatellite extends Satellite {
       actions[actionName] = {};
 
       for (const versionNumber in this.api.actions.actions[actionName]) {
-        if (
-          this.api.actions.actions[actionName][versionNumber].toDocument !==
-          false
-        ) {
+        if (this.api.actions.actions[actionName][versionNumber].toDocument !== false) {
           count++;
-          actions[actionName][versionNumber] =
-            this.api.actions.actions[actionName][versionNumber];
+          actions[actionName][versionNumber] = this.api.actions.actions[actionName][versionNumber];
         }
       }
 
@@ -79,9 +75,7 @@ export default class DocumentationSatellite extends Satellite {
       actions: Object.keys(actions),
     };
 
-    const templateBase = readFileSync(
-      `${this.templateFolder}/action.html`
-    ).toString();
+    const templateBase = readFileSync(`${this.templateFolder}/action.html`).toString();
 
     for (const actionName in actions) {
       if (!actions.hasOwnProperty(actionName)) {
@@ -97,10 +91,7 @@ export default class DocumentationSatellite extends Satellite {
           continue;
         }
 
-        const actionMetadata = Reflect.getMetadata(
-          ACTION_METADATA,
-          actions[actionName][versionNumber]
-        );
+        const actionMetadata = Reflect.getMetadata(ACTION_METADATA, actions[actionName][versionNumber]);
 
         const action = this.prepareActionToPrint(actionMetadata);
 
@@ -110,11 +101,7 @@ export default class DocumentationSatellite extends Satellite {
 
       const template = Handlebars.compile(templateBase);
 
-      writeFileSync(
-        `${this.docsFolder}/action_${actionName}.html`,
-        template(data),
-        "utf8"
-      );
+      writeFileSync(`${this.docsFolder}/action_${actionName}.html`, template(data), "utf8");
     }
 
     this.buildIndexFile();
@@ -155,9 +142,7 @@ export default class DocumentationSatellite extends Satellite {
       tasks: this.getTasksInformation(),
     };
 
-    const templateFile = readFileSync(
-      `${this.templateFolder}/index.html`
-    ).toString();
+    const templateFile = readFileSync(`${this.templateFolder}/index.html`).toString();
 
     const template = Handlebars.compile(templateFile);
 
@@ -168,18 +153,9 @@ export default class DocumentationSatellite extends Satellite {
    * Copy resource files to final docs folder.
    */
   private copyResourceFiles() {
-    this.api.utils.copyFile(
-      `${this.templateFolder}/reset.css`,
-      `${this.docsFolder}/reset.css`
-    );
-    this.api.utils.copyFile(
-      `${this.templateFolder}/style.css`,
-      `${this.docsFolder}/style.css`
-    );
-    this.api.utils.copyFile(
-      `${this.templateFolder}/highlight.js`,
-      `${this.docsFolder}/highlight.js`
-    );
+    this.api.utils.copyFile(`${this.templateFolder}/reset.css`, `${this.docsFolder}/reset.css`);
+    this.api.utils.copyFile(`${this.templateFolder}/style.css`, `${this.docsFolder}/style.css`);
+    this.api.utils.copyFile(`${this.templateFolder}/highlight.js`, `${this.docsFolder}/highlight.js`);
   }
 
   /**

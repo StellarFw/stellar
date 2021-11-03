@@ -117,8 +117,8 @@ describe("Result", () => {
       expect(
         x.mapOrElse(
           () => k * 2,
-          (v) => v.length
-        )
+          (v) => v.length,
+        ),
       ).toBe(3);
     });
 
@@ -127,8 +127,8 @@ describe("Result", () => {
       expect(
         x.mapOrElse(
           () => k * 2,
-          (v) => v.length
-        )
+          (v) => v.length,
+        ),
       ).toBe(42);
     });
   });
@@ -183,9 +183,7 @@ describe("Result", () => {
     expect(ok(2).andThen(sq).andThen(sq).contains(16)).toBeTruthy();
     expect(ok(2).andThen(sq).andThen(error).containsErr(4)).toBeTruthy();
     expect(ok(2).andThen(error).andThen(sq).containsErr(2)).toBeTruthy();
-    expect(
-      err<number, number>(3).andThen(sq).andThen(sq).containsErr(3)
-    ).toBeTruthy();
+    expect(err<number, number>(3).andThen(sq).andThen(sq).containsErr(3)).toBeTruthy();
   });
 
   describe("or", () => {
@@ -221,18 +219,10 @@ describe("Result", () => {
     const sq = (x: number) => ok<number, number>(x * x);
     const error = (x: number) => err<number, number>(x);
 
-    expect(
-      ok<number, number>(2).orElse(sq).orElse(sq).contains(2)
-    ).toBeTruthy();
-    expect(
-      ok<number, number>(2).orElse(error).orElse(sq).contains(2)
-    ).toBeTruthy();
-    expect(
-      err<number, number>(3).orElse(sq).orElse(error).contains(9)
-    ).toBeTruthy();
-    expect(
-      err<number, number>(3).orElse(error).orElse(error).containsErr(3)
-    ).toBeTruthy();
+    expect(ok<number, number>(2).orElse(sq).orElse(sq).contains(2)).toBeTruthy();
+    expect(ok<number, number>(2).orElse(error).orElse(sq).contains(2)).toBeTruthy();
+    expect(err<number, number>(3).orElse(sq).orElse(error).contains(9)).toBeTruthy();
+    expect(err<number, number>(3).orElse(error).orElse(error).containsErr(3)).toBeTruthy();
   });
 
   describe("unwrapOr", () => {
@@ -274,9 +264,7 @@ describe("Result", () => {
         x.expect("Testing expect");
         fail("this should fail");
       } catch (e) {
-        expect(e.message).toBe(
-          "panics with `Testing expect: emergency failure`"
-        );
+        expect(e.message).toBe("panics with `Testing expect: emergency failure`");
       }
     });
   });

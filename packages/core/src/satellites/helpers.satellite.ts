@@ -34,9 +34,7 @@ export class TestServer extends GenericServer {
       };
 
       if (data.response.error) {
-        data.response.error = api.configs.errors.serializers.servers.helper(
-          data.response.error
-        );
+        data.response.error = api.configs.errors.serializers.servers.helper(data.response.error);
       }
 
       for (const k in data.params) {
@@ -109,10 +107,7 @@ export default class HelpersSatellite extends Satellite {
    * @param actionName  Action to be executed.
    * @param input       Action parameters.
    */
-  public async runAction(
-    actionName: string,
-    input: { [key: string]: any } = {}
-  ): Promise<any> {
+  public async runAction(actionName: string, input: { [key: string]: any } = {}): Promise<any> {
     let connection;
 
     if (input.id && input.type === "testServer") {

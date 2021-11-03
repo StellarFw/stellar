@@ -17,7 +17,7 @@ export type ExceptionHandler = (
   type: ExceptionType,
   name: string,
   objects: any,
-  severity: LogLevel
+  severity: LogLevel,
 ) => void;
 
 export default class ExceptionsSatellite extends Satellite {
@@ -39,7 +39,7 @@ export default class ExceptionsSatellite extends Satellite {
     type: ExceptionType = ExceptionType.OTHER,
     name: string = "",
     objects: any = [],
-    severity: LogLevel = LogLevel.Error
+    severity: LogLevel = LogLevel.Error,
   ): void {
     let output = "";
     let lines: Array<string> = [];
@@ -62,22 +62,14 @@ export default class ExceptionsSatellite extends Satellite {
           objects.connection[detailName] !== undefined &&
           typeof objects.connection[detailName] !== "function"
         ) {
-          extraMessages.push(
-            `    ${detailName}: ${JSON.stringify(
-              objects.connection[detailName]
-            )}`
-          );
+          extraMessages.push(`    ${detailName}: ${JSON.stringify(objects.connection[detailName])}`);
         }
       }
       extraMessages.push("");
     } else if (type === ExceptionType.TASK) {
-      extraMessages.push(
-        `Uncaught error from task: ${name} on queue ${objects.queue} (worker #${objects.workerId})\n`
-      );
+      extraMessages.push(`Uncaught error from task: ${name} on queue ${objects.queue} (worker #${objects.workerId})\n`);
       try {
-        extraMessages.push(
-          "    arguments: " + JSON.stringify(objects.task.args)
-        );
+        extraMessages.push("    arguments: " + JSON.stringify(objects.task.args));
       } catch (e) {}
     } else {
       extraMessages.push(`Error: ${err.message}\n`);
@@ -110,13 +102,7 @@ export default class ExceptionsSatellite extends Satellite {
    * @param objects
    * @param severity
    */
-  private report(
-    err: Error | string,
-    type: ExceptionType,
-    name: string,
-    objects: any,
-    severity = LogLevel.Error
-  ) {
+  private report(err: Error | string, type: ExceptionType, name: string, objects: any, severity = LogLevel.Error) {
     this.reporters.forEach((reporter) => {
       reporter.call(this, err, type, name, objects, severity);
     });
@@ -130,13 +116,7 @@ export default class ExceptionsSatellite extends Satellite {
    */
   public loader(fullFilePath: string, err: Error | string) {
     const name = `loader ${fullFilePath}`;
-    this.report(
-      err,
-      ExceptionType.LOADER,
-      name,
-      { fullFilePath },
-      LogLevel.Alert
-    );
+    this.report(err, ExceptionType.LOADER, name, { fullFilePath }, LogLevel.Alert);
   }
 
   /**
@@ -157,13 +137,7 @@ export default class ExceptionsSatellite extends Satellite {
       simpleName = err.message;
     }
 
-    this.report(
-      err,
-      ExceptionType.ACTION,
-      simpleName,
-      { connection: data.connection },
-      LogLevel.Error
-    );
+    this.report(err, ExceptionType.ACTION, simpleName, { connection: data.connection }, LogLevel.Error);
     data.response = {};
   }
 
@@ -195,7 +169,7 @@ export default class ExceptionsSatellite extends Satellite {
         queue,
         workerId,
       },
-      this.api.configs.tasks.workerLogging.failure
+      this.api.configs.tasks.workerLogging.failure,
     );
   }
 }

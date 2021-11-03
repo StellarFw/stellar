@@ -8,8 +8,7 @@ let Utils = require("../utils");
 // ----------------------------------------------------------------------------- [Command]
 
 class dockerItCommand extends Command {
-
-  constructor () {
+  constructor() {
     // execute the super class constructor method
     super(false);
 
@@ -21,7 +20,7 @@ class dockerItCommand extends Command {
   /**
    * Execute the command.
    */
-  exec () {
+  exec() {
     // see if a dockerfile already exists
     if (Utils.exists(process.cwd() + "/dockerfile")) {
       this.printError("A dockerfile already exists");
@@ -32,11 +31,13 @@ class dockerItCommand extends Command {
     Utils.generateFileFromTemplate("dockerfile", {}, `${process.cwd()}/dockerfile`);
 
     // print a success message
-    this.printSuccess("A dockerfile was created in the project root.\nCreate the image with: docker build -t <image_name> .\nCreate a container with: docker run -t -p 8080:8080 --name <container_name> <image_name>");
+    this.printSuccess(
+      "A dockerfile was created in the project root.\nCreate the image with: docker build -t <image_name> .\nCreate a container with: docker run -t -p 8080:8080 --name <container_name> <image_name>",
+    );
   }
 }
 
 // -----------------------------------------------------------------------------
 
 // export the command
-module.exports = (new dockerItCommand());
+module.exports = new dockerItCommand();

@@ -21,16 +21,13 @@ export default class LoggerSatellite extends Satellite {
   public async load(): Promise<void> {
     // try to create the logs folder.
     this.createLogsFolder.run().tapErr(() => {
-      this.api.log(
-        `Unable to create the logs directory(${this.api.configs.general.paths.log})`,
-        LogLevel.Emergency
-      );
+      this.api.log(`Unable to create the logs directory(${this.api.configs.general.paths.log})`, LogLevel.Emergency);
       this.api.commands.stop();
     });
 
     // load all transports
     const loggers = (this.api.configs.logger.loggers || []).map((logger) =>
-      typeof logger === "function" ? logger(this.api, winston) : logger
+      typeof logger === "function" ? logger(this.api, winston) : logger,
     );
 
     // create the logger instance
@@ -54,10 +51,6 @@ export default class LoggerSatellite extends Satellite {
 
     const logLevels = Object.keys(this.api.logger.levels);
     this.api.log("** starting Stellar **", LogLevel.Notice);
-    this.api.log(
-      "Logger loaded. Possible levels included:",
-      LogLevel.Debug,
-      logLevels
-    );
+    this.api.log("Logger loaded. Possible levels included:", LogLevel.Debug, logLevels);
   }
 }

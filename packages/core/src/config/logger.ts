@@ -44,15 +44,10 @@ function extraPropsSerializer(info: any) {
 
 function buildColorizeFormat() {
   return new (class Colorize {
-    transform(
-      info: TransformableInfo,
-      _opts?: any
-    ): TransformableInfo | boolean {
+    transform(info: TransformableInfo, _opts?: any): TransformableInfo | boolean {
       // format log level
       if (info.level) {
-        info.level = chalk[`bg${colors[info.level]}`].black(
-          ` ${info.level.toUpperCase()} `
-        );
+        info.level = chalk[`bg${colors[info.level]}`].black(` ${info.level.toUpperCase()} `);
       }
 
       // format timestamp
@@ -75,12 +70,7 @@ function buildConsoleLogger(level: LogLevel = LogLevel.Debug) {
     format: winston.format.combine(
       winston.format.timestamp(),
       buildColorizeFormat(),
-      winston.format.printf(
-        (info) =>
-          `${info.timestamp}${info.level} ${info.message}${extraPropsSerializer(
-            info
-          )}`
-      )
+      winston.format.printf((info) => `${info.timestamp}${info.level} ${info.message}${extraPropsSerializer(info)}`),
     ),
     level,
     levels: winston.config.syslog.levels,

@@ -1,8 +1,5 @@
 import { Server as HTTPServer, createServer } from "http";
-import {
-  Server as SecureServer,
-  createServer as createSecureServer,
-} from "https";
+import { Server as SecureServer, createServer as createSecureServer } from "https";
 import { unlink, chmodSync, stat, ReadStream } from "fs";
 import { normalize, sep } from "path";
 import * as BrowserFingerprint from "browser_fingerprint";
@@ -63,17 +60,11 @@ export default class WebServer extends GenericServer {
       ],
     };
 
-    if (
-      !["api", "file"].includes(this.api.configs.servers.web.rootEndpointType)
-    ) {
-      throw new Error(
-        "api.configs.servers.web.rootEndpointType can only be 'api' or 'file'."
-      );
+    if (!["api", "file"].includes(this.api.configs.servers.web.rootEndpointType)) {
+      throw new Error("api.configs.servers.web.rootEndpointType can only be 'api' or 'file'.");
     }
 
-    this.fingerprinter = new BrowserFingerprint(
-      this.api.configs.servers.web.fingerprintOptions
-    );
+    this.fingerprinter = new BrowserFingerprint(this.api.configs.servers.web.fingerprintOptions);
 
     this.initializeEvents();
   }
@@ -121,12 +112,9 @@ export default class WebServer extends GenericServer {
         this.handleRequest(req, res);
       });
     } else {
-      this.server = createSecureServer(
-        this.api.configs.servers.web.serverOptions,
-        (req, res) => {
-          this.handleRequest(req, res);
-        }
-      );
+      this.server = createSecureServer(this.api.configs.servers.web.serverOptions, (req, res) => {
+        this.handleRequest(req, res);
+      });
     }
 
     let bootAttempts = 0;
@@ -135,10 +123,7 @@ export default class WebServer extends GenericServer {
       bootAttempts++;
 
       if (bootAttempts < this.api.configs.servers.web.bootAttempts) {
-        this.log(
-          `cannot boot web server; trying again [${String(e)}]`,
-          LogLevel.Error
-        );
+        this.log(`cannot boot web server; trying again [${String(e)}]`, LogLevel.Error);
 
         if (bootAttempts === 1) {
           this.cleanSocket(this.options.bindIP, this.options.port);
@@ -149,9 +134,7 @@ export default class WebServer extends GenericServer {
           this.server?.listen(this.options.port, this.options.bindIP);
         }, 1000);
       } else {
-        throw new Error(
-          `Cannot start web server @ ${this.options.bindIP}:${this.options.port} => ${e.message}`
-        );
+        throw new Error(`Cannot start web server @ ${this.options.bindIP}:${this.options.port} => ${e.message}`);
       }
     });
 
@@ -194,18 +177,10 @@ export default class WebServer extends GenericServer {
     const headers = connection.rawConnection.responseHeaders;
 
     // get the response status code
-    const responseHttpCode = parseInt(
-      connection.rawConnection.responseHttpCode,
-      10
-    );
+    const responseHttpCode = parseInt(connection.rawConnection.responseHttpCode, 10);
 
     // send the response to the client (use compression if active)
-    this.sendWithCompression(
-      connection,
-      responseHttpCode,
-      headers,
-      stringResponse
-    );
+    this.sendWithCompression(connection, responseHttpCode, headers, stringResponse);
   }
 
   /**
@@ -224,7 +199,7 @@ export default class WebServer extends GenericServer {
     fileStream: ReadStream,
     mime: string,
     length: number,
-    lastModified: Date
+    lastModified: Date,
   ): Promise<void> {
     let foundCacheControl = false;
     let ifModifiedSince;
@@ -253,10 +228,7 @@ export default class WebServer extends GenericServer {
     // add a header to the response with the last modified timestamp
     if (fileStream && !this.api.configs.servers.web.enableEtag) {
       if (lastModified) {
-        connection.rawConnection.responseHeaders.push([
-          "Last-Modified",
-          new Date(lastModified).toUTCString(),
-        ]);
+        connection.rawConnection.responseHeaders.push(["Last-Modified", new Date(lastModified).toUTCString()]);
       }
     }
 
@@ -272,29 +244,13 @@ export default class WebServer extends GenericServer {
     // This function is used to send the response to the client.
     const sendRequestResult = () => {
       // parse the HTTP status code to int
-      const responseHttpCode = parseInt(
-        connection.rawConnection.responseHttpCode,
-        10
-      );
+      const responseHttpCode = parseInt(connection.rawConnection.responseHttpCode, 10);
 
       if (error) {
-        const errorString =
-          error instanceof Error ? String(error) : JSON.stringify(error);
-        this.sendWithCompression(
-          connection,
-          responseHttpCode,
-          headers,
-          errorString
-        );
+        const errorString = error instanceof Error ? String(error) : JSON.stringify(error);
+        this.sendWithCompression(connection, responseHttpCode, headers, errorString);
       } else if (responseHttpCode !== 304) {
-        this.sendWithCompression(
-          connection,
-          responseHttpCode,
-          headers,
-          null,
-          fileStream,
-          length
-        );
+        this.sendWithCompression(connection, responseHttpCode, headers, null, fileStream, length);
       } else {
         connection.rawConnection.res.writeHead(responseHttpCode, headers);
         connection.rawConnection.res.end();
@@ -319,18 +275,11 @@ export default class WebServer extends GenericServer {
     }
 
     // check if is to use ETag
-    if (
-      this.api.configs.servers.web.enableEtag &&
-      fileStream &&
-      fileStream.path
-    ) {
+    if (this.api.configs.servers.web.enableEtag && fileStream && fileStream.path) {
       // Get the file states in order to create the ETag header
       stat(fileStream.path, (error, filestats) => {
         if (error) {
-          this.log(
-            `Error receiving file statistics: ${String(error)}`,
-            LogLevel.Error
-          );
+          this.log(`Error receiving file statistics: ${String(error)}`, LogLevel.Error);
           return sendRequestResult();
         }
 
@@ -356,8 +305,7 @@ export default class WebServer extends GenericServer {
         // if-none-match
         if (noneMatchHeader) {
           etagMatches = noneMatchHeader.some(
-            (match) =>
-              match === "*" || match === fileEtag || match === "W/" + fileEtag
+            (match) => match === "*" || match === fileEtag || match === "W/" + fileEtag,
           );
         }
 
@@ -390,11 +338,10 @@ export default class WebServer extends GenericServer {
     headers: Array<Array<string | number>>,
     stringResponse: string | null,
     fileStream: ReadStream | null = null,
-    fileLength: number | null = null
+    fileLength: number | null = null,
   ) {
     let compressor, stringEncoder;
-    const acceptEncoding =
-      connection.rawConnection.req.headers["accept-encoding"];
+    const acceptEncoding = connection.rawConnection.req.headers["accept-encoding"];
 
     // Note: this is not a conformant accept-encoding parser.
     // https://nodejs.org/api/zlib.html#zlib_zlib_createinflate_options
@@ -438,8 +385,7 @@ export default class WebServer extends GenericServer {
           connection.rawConnection.res.end(zippedString);
         });
       } else {
-        stringResponse &&
-          headers.push(["Content-Length", Buffer.byteLength(stringResponse)]);
+        stringResponse && headers.push(["Content-Length", Buffer.byteLength(stringResponse)]);
         connection.rawConnection.res.writeHead(responseHttpCode, headers);
         connection.rawConnection.res.end(stringResponse);
       }
@@ -499,10 +445,7 @@ export default class WebServer extends GenericServer {
     if (req.headers["x-forwarded-for"]) {
       let parts;
       let forwardedIp = req.headers["x-forwarded-for"].split(",")[0];
-      if (
-        forwardedIp.indexOf(".") >= 0 ||
-        (forwardedIp.indexOf(".") < 0 && forwardedIp.indexOf(":") < 0)
-      ) {
+      if (forwardedIp.indexOf(".") >= 0 || (forwardedIp.indexOf(".") < 0 && forwardedIp.indexOf(":") < 0)) {
         // IPv4
         forwardedIp = forwardedIp.replace("::ffff:", ""); // remove any IPv6 information, ie: '::ffff:127.0.0.1'
         parts = forwardedIp.split(":");
@@ -564,9 +507,7 @@ export default class WebServer extends GenericServer {
    *
    * @param connection Client connection object.
    */
-  private async determineRequestParams(
-    connection: ConnectionDetails
-  ): Promise<string> {
+  private async determineRequestParams(connection: ConnectionDetails): Promise<string> {
     let requestMode: string = this.api.configs.servers.web.rootEndpointType;
     const pathname = connection.rawConnection.parsedURL.pathname;
     const pathParts = pathname.split("/");
@@ -582,49 +523,31 @@ export default class WebServer extends GenericServer {
       pathParts.pop();
     }
 
-    if (
-      pathParts[0] &&
-      pathParts[0] === this.api.configs.servers.web.urlPathForActions
-    ) {
+    if (pathParts[0] && pathParts[0] === this.api.configs.servers.web.urlPathForActions) {
       requestMode = "api";
       pathParts.shift();
-    } else if (
-      pathParts[0] &&
-      pathParts[0] === this.api.configs.servers.websocket.clientJsName
-    ) {
+    } else if (pathParts[0] && pathParts[0] === this.api.configs.servers.websocket.clientJsName) {
       requestMode = "client-lib";
       pathParts.shift();
-    } else if (
-      pathParts[0] &&
-      pathParts[0] === this.api.configs.servers.web.urlPathForFiles
-    ) {
+    } else if (pathParts[0] && pathParts[0] === this.api.configs.servers.web.urlPathForFiles) {
       requestMode = "file";
       pathParts.shift();
-    } else if (
-      pathParts[0] &&
-      pathname.indexOf(this.api.configs.servers.web.urlPathForActions) === 0
-    ) {
+    } else if (pathParts[0] && pathname.indexOf(this.api.configs.servers.web.urlPathForActions) === 0) {
       requestMode = "api";
-      matcherLength =
-        this.api.configs.servers.web.urlPathForActions.split("/").length;
+      matcherLength = this.api.configs.servers.web.urlPathForActions.split("/").length;
       for (i = 0; i < matcherLength - 1; i++) {
         pathParts.shift();
       }
-    } else if (
-      pathParts[0] &&
-      pathname.indexOf(this.api.configs.servers.web.urlPathForFiles) === 0
-    ) {
+    } else if (pathParts[0] && pathname.indexOf(this.api.configs.servers.web.urlPathForFiles) === 0) {
       requestMode = "file";
-      matcherLength =
-        this.api.configs.servers.web.urlPathForFiles.split("/").length;
+      matcherLength = this.api.configs.servers.web.urlPathForFiles.split("/").length;
       for (i = 0; i < matcherLength - 1; i++) {
         pathParts.shift();
       }
     }
 
     // split parsed URL by '.'
-    const extensionParts =
-      connection.rawConnection.parsedURL.pathname.split(".");
+    const extensionParts = connection.rawConnection.parsedURL.pathname.split(".");
 
     if (extensionParts.length > 1) {
       connection.extension = extensionParts[extensionParts.length - 1];
@@ -642,19 +565,14 @@ export default class WebServer extends GenericServer {
       }
 
       const search = connection.rawConnection.parsedURL.search.slice(1);
-      this.fillParamsFromWebRequest(
-        connection,
-        qs.parse(search, this.api.configs.servers.web.queryParseOptions)
-      );
+      this.fillParamsFromWebRequest(connection, qs.parse(search, this.api.configs.servers.web.queryParseOptions));
 
-      connection.rawConnection.params.query =
-        connection.rawConnection.parsedURL.query;
+      connection.rawConnection.params.query = connection.rawConnection.parsedURL.query;
 
       if (
         connection.rawConnection.method !== "GET" &&
         connection.rawConnection.method !== "HEAD" &&
-        (connection.rawConnection.req.headers["content-type"] ||
-          connection.rawConnection.req.headers["Content-Type"])
+        (connection.rawConnection.req.headers["content-type"] || connection.rawConnection.req.headers["Content-Type"])
       ) {
         connection.rawConnection.form = new formidable.IncomingForm();
 
@@ -663,39 +581,30 @@ export default class WebServer extends GenericServer {
             continue;
           }
 
-          connection.rawConnection.form[i] =
-            this.api.configs.servers.web.formOptions[i];
+          connection.rawConnection.form[i] = this.api.configs.servers.web.formOptions[i];
         }
 
         return new Promise((resolve) => {
-          connection.rawConnection.form.parse(
-            connection.rawConnection.req,
-            (error, fields, files) => {
-              if (error) {
-                this.log(
-                  `error processing form: ${String(error)}`,
-                  LogLevel.Error
-                );
-                connection.error = new Error(
-                  "There was an error processing this form."
-                );
-              } else {
-                connection.rawConnection.params.body = fields;
-                connection.rawConnection.params.files = files;
-                this.fillParamsFromWebRequest(connection, files);
-                this.fillParamsFromWebRequest(connection, fields);
-              }
-
-              if (this.api.configs.servers.web.queryRouting !== true) {
-                connection.params.action = null;
-              }
-
-              // process route
-              this.api.routes.processRoute(connection, pathParts);
-
-              resolve(requestMode);
+          connection.rawConnection.form.parse(connection.rawConnection.req, (error, fields, files) => {
+            if (error) {
+              this.log(`error processing form: ${String(error)}`, LogLevel.Error);
+              connection.error = new Error("There was an error processing this form.");
+            } else {
+              connection.rawConnection.params.body = fields;
+              connection.rawConnection.params.files = files;
+              this.fillParamsFromWebRequest(connection, files);
+              this.fillParamsFromWebRequest(connection, fields);
             }
-          );
+
+            if (this.api.configs.servers.web.queryRouting !== true) {
+              connection.params.action = null;
+            }
+
+            // process route
+            this.api.routes.processRoute(connection, pathParts);
+
+            resolve(requestMode);
+          });
         }) as Promise<string>;
       } else {
         if (this.api.configs.servers.web.queryRouting !== true) {
@@ -711,12 +620,8 @@ export default class WebServer extends GenericServer {
         connection.params.file = pathParts.join(sep);
       }
 
-      if (
-        connection.params.file === "" ||
-        connection.params.file[connection.params.file.length - 1] === "/"
-      ) {
-        connection.params.file =
-          connection.params.file + this.api.configs.general.directoryFileType;
+      if (connection.params.file === "" || connection.params.file[connection.params.file.length - 1] === "/") {
+        connection.params.file = connection.params.file + this.api.configs.general.directoryFileType;
       }
       return requestMode;
     } else if (requestMode === "client-lib") {
@@ -733,10 +638,7 @@ export default class WebServer extends GenericServer {
    */
   private processClientLib(connection: ConnectionDetails) {
     const file = normalize(
-      this.api.configs.general.paths.public +
-        sep +
-        this.api.configs.servers.websocket.clientJsName +
-        ".js"
+      this.api.configs.general.paths.public + sep + this.api.configs.servers.websocket.clientJsName + ".js",
     );
 
     connection.params!.file = file;
@@ -750,10 +652,7 @@ export default class WebServer extends GenericServer {
    * @param varsHash    Request params.
    * @private
    */
-  private fillParamsFromWebRequest(
-    connection: ConnectionDetails,
-    varsHash: {}
-  ) {
+  private fillParamsFromWebRequest(connection: ConnectionDetails, varsHash: {}) {
     // helper for JSON parts
     const collapsedVarsHash = this.api.utils.collapseObjectToArray(varsHash);
 
@@ -794,9 +693,7 @@ export default class WebServer extends GenericServer {
 
     // check if is to use requester information
     if (this.api.configs.servers.web.metadataOptions.requesterInformation) {
-      data.response.requesterInformation = this.buildRequesterInformation(
-        data.connection
-      );
+      data.response.requesterInformation = this.buildRequesterInformation(data.connection);
     }
 
     // is an error response?
@@ -821,39 +718,25 @@ export default class WebServer extends GenericServer {
       !data.response.error &&
       data.action &&
       data.params.apiVersion &&
-      this.api.actions.actions[data.params.action][data.params.apiVersion]
-        .matchExtensionMimeType === true &&
+      this.api.actions.actions[data.params.action][data.params.apiVersion].matchExtensionMimeType === true &&
       data.connection.extension
     ) {
-      data.connection.rawConnection.responseHeaders.push([
-        "Content-Type",
-        Mime.getType(data.connection.extension),
-      ]);
+      data.connection.rawConnection.responseHeaders.push(["Content-Type", Mime.getType(data.connection.extension)]);
     }
 
     // if its an error response we need to serialize the error object
     if (data.response.error) {
-      data.response.error = this.api.configs.errors.serializers.servers.web(
-        data.response.error
-      );
+      data.response.error = this.api.configs.errors.serializers.servers.web(data.response.error);
     }
 
     let stringResponse = "";
 
     // build the string response
     if (this.extractHeader(data.connection, "Content-Type")?.match(/json/)) {
-      stringResponse = JSON.stringify(
-        data.response,
-        null,
-        this.api.configs.servers.web.padding
-      );
+      stringResponse = JSON.stringify(data.response, null, this.api.configs.servers.web.padding);
       if (data.params.callback) {
-        data.connection.rawConnection.responseHeaders.push([
-          "Content-Type",
-          "application/javascript",
-        ]);
-        stringResponse =
-          data.connection.params.callback + "(" + stringResponse + ");";
+        data.connection.rawConnection.responseHeaders.push(["Content-Type", "application/javascript"]);
+        stringResponse = data.connection.params.callback + "(" + stringResponse + ");";
       }
     } else {
       stringResponse = data.response;
@@ -870,17 +753,11 @@ export default class WebServer extends GenericServer {
    * @param match       Header name.
    * @returns {*}       Null if not found, otherwise the header value.
    */
-  private extractHeader(
-    connection: ConnectionDetails,
-    match: string
-  ): string | null {
+  private extractHeader(connection: ConnectionDetails, match: string): string | null {
     let i = connection.rawConnection.responseHeaders.length - 1;
 
     while (i >= 0) {
-      if (
-        connection.rawConnection.responseHeaders[i][0].toLowerCase() ===
-        match.toLowerCase()
-      ) {
+      if (connection.rawConnection.responseHeaders[i][0].toLowerCase() === match.toLowerCase()) {
         return connection.rawConnection.responseHeaders[i][1];
       }
 
@@ -897,9 +774,7 @@ export default class WebServer extends GenericServer {
    * @returns {{id: number, fingerprint: (*|BrowserFingerprint.fingerprint|null), remoteIP: string, receivedParams: {}}}
    * @private
    */
-  private buildRequesterInformation(
-    connection: ConnectionDetails
-  ): RequestInformation {
+  private buildRequesterInformation(connection: ConnectionDetails): RequestInformation {
     const requesterInformation: RequestInformation = {
       id: connection.id,
       fingerprint: connection.fingerprint!,
@@ -939,15 +814,9 @@ export default class WebServer extends GenericServer {
       const key: string = originalHeaders[i][0];
       const value = originalHeaders[i][1];
 
-      if (
-        foundHeaders.indexOf(key.toLowerCase()) >= 0 &&
-        key.toLowerCase().indexOf("set-cookie") < 0
-      ) {
+      if (foundHeaders.indexOf(key.toLowerCase()) >= 0 && key.toLowerCase().indexOf("set-cookie") < 0) {
         // ignore, it's a duplicate
-      } else if (
-        connection.rawConnection.method === "HEAD" &&
-        key === "Transfer-Encoding"
-      ) {
+      } else if (connection.rawConnection.method === "HEAD" && key === "Transfer-Encoding") {
         // ignore, we can't send this header for HEAD requests
       } else {
         foundHeaders.push(key.toLowerCase());
@@ -966,30 +835,20 @@ export default class WebServer extends GenericServer {
   private respondToOptions(connection: ConnectionDetails) {
     // inform the allowed methods
     if (
-      !this.api.configs.servers.web.httpHeaders[
-        "Access-Control-Allow-Methods"
-      ] &&
+      !this.api.configs.servers.web.httpHeaders["Access-Control-Allow-Methods"] &&
       !this.extractHeader(connection, "Access-Control-Allow-Methods")
     ) {
       const methods = "HEAD, GET, POST, PUT, DELETE, OPTIONS, TRACE";
-      connection.rawConnection.responseHeaders.push([
-        "Access-Control-Allow-Methods",
-        methods,
-      ]);
+      connection.rawConnection.responseHeaders.push(["Access-Control-Allow-Methods", methods]);
     }
 
     // inform the allowed origins
     if (
-      !this.api.configs.servers.web.httpHeaders[
-        "Access-Control-Allow-Origin"
-      ] &&
+      !this.api.configs.servers.web.httpHeaders["Access-Control-Allow-Origin"] &&
       !this.extractHeader(connection, "Access-Control-Allow-Origin")
     ) {
       const origin = "*";
-      connection.rawConnection.responseHeaders.push([
-        "Access-Control-Allow-Origin",
-        origin,
-      ]);
+      connection.rawConnection.responseHeaders.push(["Access-Control-Allow-Origin", origin]);
     }
 
     // send the message to client
@@ -1005,11 +864,7 @@ export default class WebServer extends GenericServer {
     const data = this.buildRequesterInformation(connection);
 
     // Build the response string and sent it to the client
-    const responseString = JSON.stringify(
-      data,
-      null,
-      this.api.configs.servers.web.padding
-    );
+    const responseString = JSON.stringify(data, null, this.api.configs.servers.web.padding);
     this.sendMessage(connection, responseString);
   }
 
@@ -1023,10 +878,7 @@ export default class WebServer extends GenericServer {
     if (!bindIP && port.indexOf("/") >= 0) {
       unlink(port, (error) => {
         if (error) {
-          this.log(
-            `Cannot remove stale socket @${port}:${error}`,
-            LogLevel.Warning
-          );
+          this.log(`Cannot remove stale socket @${port}:${error}`, LogLevel.Warning);
         } else {
           this.log(`Removed stale unix socket @${port}`, LogLevel.Info);
         }

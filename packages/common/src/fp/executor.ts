@@ -34,9 +34,7 @@ export function unsafe<T>(f: () => T): Result<T, string> {
  *
  * @param f
  */
-export async function unsafeAsync<T>(
-  f: () => Promise<T>
-): Promise<Result<T, string>> {
+export async function unsafeAsync<T>(f: () => Promise<T>): Promise<Result<T, string>> {
   try {
     const result = await f();
     return ok(result);

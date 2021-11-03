@@ -8,11 +8,10 @@ let Utils = require("../../utils");
 // ----------------------------------------------------------------------------- [Command]
 
 class MakeModel extends Command {
-
   /**
    * Create a new MakeModel instance.
    */
-  constructor () {
+  constructor() {
     // execute the super class constructor method
     super();
 
@@ -21,11 +20,17 @@ class MakeModel extends Command {
     this.flags = "model <model_name>";
     this.desc = "Create a new Model";
     this.paramsDesc = "The name of the Model to create";
-    this.setup = sywac => {
+    this.setup = (sywac) => {
       sywac
-        .boolean("--crud", { desc: "Create a set of actions with the CRUD operations" })
-        .string("--actionName <action_name>", { desc: "Overwrite the action file name" })
-        .boolean("--rest", { desc: "Generate RESTfull URLs for the generated actions" })
+        .boolean("--crud", {
+          desc: "Create a set of actions with the CRUD operations",
+        })
+        .string("--actionName <action_name>", {
+          desc: "Overwrite the action file name",
+        })
+        .boolean("--rest", {
+          desc: "Generate RESTfull URLs for the generated actions",
+        })
         .outputSettings({ maxWidth: 99 });
     };
   }
@@ -33,7 +38,7 @@ class MakeModel extends Command {
   /**
    * Execute the command.
    */
-  exec () {
+  exec() {
     // we need the module name here the model must be created
     if (this.args.module.length === 0) {
       return this.printError("You need to specify the module where the model must be created");
@@ -67,7 +72,7 @@ class MakeModel extends Command {
       let data = {
         modelName: modelNameNormalized,
         modelNameCapitalize: modelNameCapitalize,
-        rest: (this.args.rest !== undefined)
+        rest: this.args.rest !== undefined,
       };
 
       // ensure the actions directory exists
@@ -91,18 +96,35 @@ class MakeModel extends Command {
         get: [],
         post: [],
         put: [],
-        delete: []
+        delete: [],
       };
 
       // if the routes.json file exists load it
-      if (Utils.exists(`${modulePath}/routes.json`)) { routes = require(`${modulePath}/routes.json`); }
+      if (Utils.exists(`${modulePath}/routes.json`)) {
+        routes = require(`${modulePath}/routes.json`);
+      }
 
       // add the new routes
-      routes.get.push({ path: `/${modelNameNormalized}`, action: `get${modelNameCapitalize}s` });
-      routes.get.push({ path: `/${modelNameNormalized}/:id`, action: `get${modelNameCapitalize}` });
-      routes.post.push({ path: `/${modelNameNormalized}`, action: `create${modelNameCapitalize}` });
-      routes.put.push({ path: `/${modelNameNormalized}/:id`, action: `edit${modelNameCapitalize}` });
-      routes.delete.push({ path: `/${modelNameNormalized}/:id`, action: `remove${modelNameCapitalize}` });
+      routes.get.push({
+        path: `/${modelNameNormalized}`,
+        action: `get${modelNameCapitalize}s`,
+      });
+      routes.get.push({
+        path: `/${modelNameNormalized}/:id`,
+        action: `get${modelNameCapitalize}`,
+      });
+      routes.post.push({
+        path: `/${modelNameNormalized}`,
+        action: `create${modelNameCapitalize}`,
+      });
+      routes.put.push({
+        path: `/${modelNameNormalized}/:id`,
+        action: `edit${modelNameCapitalize}`,
+      });
+      routes.delete.push({
+        path: `/${modelNameNormalized}/:id`,
+        action: `remove${modelNameCapitalize}`,
+      });
 
       // save the new file
       Utils.createFile(`${modulePath}/routes.json`, JSON.stringify(routes, null, 2));
@@ -111,7 +133,6 @@ class MakeModel extends Command {
       this.printSuccess(`The routes for the "${this.args.model_name}" model was created!`);
     }
   }
-
 }
 
 // export command

@@ -8,8 +8,7 @@ const REPL = require("repl");
 // ----------------------------------------------------------------------------- [Command]
 
 class ConsoleCommand extends Command {
-
-  constructor () {
+  constructor() {
     // request the engine initialization
     super(true);
 
@@ -18,7 +17,7 @@ class ConsoleCommand extends Command {
     this.desc = "Create a REPL connection with a Stellar instance";
   }
 
-  exec () {
+  exec() {
     // disable all the servers
     for (const index in this.api.configs.servers) {
       this.api.configs.servers[index].enabled = false;
@@ -36,16 +35,18 @@ class ConsoleCommand extends Command {
     // start the engine
     this.engine.start((error, api) => {
       // if an error occurs throw it
-      if (error) { throw error; }
+      if (error) {
+        throw error;
+      }
 
       // give some time the server goes up
-      setTimeout(_ => {
+      setTimeout((_) => {
         // create a REPL instance
         const repl = REPL.start({
           prompt: `${api.env}>`,
           input: process.stdin,
           output: process.stdout,
-          useGlobal: false
+          useGlobal: false,
         });
 
         // put the api into context
@@ -55,13 +56,14 @@ class ConsoleCommand extends Command {
         // otherwise we stop it first
         repl.on("exit", () => {
           if (api.status !== "stopped") {
-            this.engine.stop(() => { process.exit(0); });
+            this.engine.stop(() => {
+              process.exit(0);
+            });
           }
         });
       }, 500);
     });
   }
-
 }
 
 // export command

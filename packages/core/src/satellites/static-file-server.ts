@@ -28,10 +28,7 @@ export default class StaticFileServer extends Satellite {
    */
   private searchLocations: Array<string> = [];
 
-  public async sendFile(
-    file: string,
-    connection: ConnectionDetails
-  ): Promise<FileResponse> {
+  public async sendFile(file: string, connection: ConnectionDetails): Promise<FileResponse> {
     const fsStat = promisify(stat);
 
     try {
@@ -58,10 +55,7 @@ export default class StaticFileServer extends Satellite {
       };
       return response;
     } catch (error) {
-      return this.sendFileNotFound(
-        connection,
-        this.api.configs.errors.fileReadError(String(error))
-      );
+      return this.sendFileNotFound(connection, this.api.configs.errors.fileReadError(String(error)));
     }
   }
 
@@ -71,18 +65,12 @@ export default class StaticFileServer extends Satellite {
    * @param connection Client connection object.
    * @param errorMessage Error message to send.
    */
-  public sendFileNotFound(
-    connection: ConnectionDetails,
-    errorMessage: string
-  ): FileResponse {
+  public sendFileNotFound(connection: ConnectionDetails, errorMessage: string): FileResponse {
     connection.error = new Error(errorMessage);
     this.logRequest("{404: not found}", connection, null, null, false);
 
     const originalError = this.api.configs.errors.fileNotFound();
-    const error: string =
-      typeof originalError === "string"
-        ? originalError
-        : JSON.stringify(originalError);
+    const error: string = typeof originalError === "string" ? originalError : JSON.stringify(originalError);
 
     return {
       connection,
@@ -98,14 +86,8 @@ export default class StaticFileServer extends Satellite {
    * @param connection Client connection object.
    * @param counter Counter position
    */
-  private searchPath(
-    connection: ConnectionDetails,
-    counter: number = 0
-  ): null | string {
-    if (
-      this.searchLocations.length === 0 ||
-      counter >= this.searchLocations.length
-    ) {
+  private searchPath(connection: ConnectionDetails, counter: number = 0): null | string {
+    if (this.searchLocations.length === 0 || counter >= this.searchLocations.length) {
       return null;
     }
 
@@ -126,7 +108,7 @@ export default class StaticFileServer extends Satellite {
     connection: ConnectionDetails,
     length: number | null,
     duration: number | null,
-    success: boolean = true
+    success: boolean = true,
   ) {
     this.api.log(`[file @ ${connection.type}]`, LogLevel.Debug, {
       to: connection.remoteIP,
@@ -137,23 +119,15 @@ export default class StaticFileServer extends Satellite {
     });
   }
 
-  public async get(
-    connection: ConnectionDetails,
-    counter: number = 0
-  ): Promise<FileResponse> {
+  public async get(connection: ConnectionDetails, counter: number = 0): Promise<FileResponse> {
     if (!connection.params.file || !this.searchPath(connection, counter)) {
-      return this.sendFileNotFound(
-        connection,
-        this.api.configs.errors.fileNotFound()
-      );
+      return this.sendFileNotFound(connection, this.api.configs.errors.fileNotFound());
     }
 
     let file: string = connection.params.file;
 
     if (!isAbsolute(connection.params.file)) {
-      file = normalize(
-        this.searchPath(connection, counter) + "/" + connection.params.file
-      );
+      file = normalize(this.searchPath(connection, counter) + "/" + connection.params.file);
     }
 
     if (file.indexOf(normalize(this.searchPath(connection, counter)!)) !== 0) {
@@ -173,9 +147,7 @@ export default class StaticFileServer extends Satellite {
 
     // Load in the explicit public paths first
     if (this.api.configs.general.paths !== undefined) {
-      this.searchLocations.push(
-        normalize(this.api.configs.general.paths.public)
-      );
+      this.searchLocations.push(normalize(this.api.configs.general.paths.public));
     }
   }
 
