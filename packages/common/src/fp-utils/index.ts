@@ -1,3 +1,4 @@
+import { writeFileSync } from "fs";
 import { io } from "..";
 
 /**
@@ -7,3 +8,8 @@ import { io } from "..";
  * @returns io monad to contain the IO operation
  */
 export const requireFile = (path: string) => io(() => require(path));
+
+/**
+ * Safely write contents to a file.
+ */
+export const safeWriteFile = (path: string, data: unknown) => io(() => writeFileSync(path, data));

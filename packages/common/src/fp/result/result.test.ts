@@ -1,4 +1,4 @@
-import { ok, err } from "../..";
+import { ok, err } from ".";
 
 describe("Result", () => {
   describe("isOk", () => {
@@ -321,6 +321,42 @@ describe("Result", () => {
   test("with Err returns the contained value", () => {
     const x = err("emergency failure");
     expect(x.unwrapErr()).toBe("emergency failure");
+  });
+
+  describe("match", () => {
+    test("match Ok executes some side-effect function", () => {
+      let controlBool = false;
+      const testValue = "test-value";
+
+      const value = ok(testValue);
+      value.match({
+        ok(val: string) {
+          controlBool = true;
+          expect(val).toBe(testValue);
+        },
+        err() {
+          fail("must execute some function");
+        },
+      });
+
+      !controlBool && fail("must execute some function");
+    });
+
+    test("match Err executes none side-effect function", () => {
+      const testValue = 1000;
+      const value = err("invalid value");
+
+      const result = value.match<number>({
+        ok() {
+          fail("must execute none function");
+        },
+        err() {
+          return testValue;
+        },
+      });
+
+      expect(result).toBe(testValue);
+    });
   });
 
   describe("tap", () => {

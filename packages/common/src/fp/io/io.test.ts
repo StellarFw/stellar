@@ -1,4 +1,4 @@
-import { io } from "../..";
+import { io } from ".";
 
 describe("IO", () => {
   test("map identity", () => {

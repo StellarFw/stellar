@@ -24,23 +24,23 @@ class Ok<T, E> implements IOk<T, E> {
     return this.value;
   }
 
-  expect(_: string): T {
+  expect(): T {
     return this.value;
   }
 
-  unwrapOr(_: T): T {
+  unwrapOr(): T {
     return this.value;
   }
 
-  unwrapOrElse(_: (val: E) => T): T {
+  unwrapOrElse(): T {
     return this.value;
   }
 
-  or<F>(_: Result<T, F>): Result<T, F> {
+  or<F>(): Result<T, F> {
     return ok(this.value);
   }
 
-  orElse<F>(_: (val: E) => Result<T, F>): Result<T, F> {
+  orElse<F>(): Result<T, F> {
     return ok(this.value);
   }
 
@@ -52,7 +52,7 @@ class Ok<T, E> implements IOk<T, E> {
     return op(this.value);
   }
 
-  mapErr<F>(op: (val: E) => F): Result<T, F> {
+  mapErr<F>(): Result<T, F> {
     return ok<T, F>(this.value);
   }
 
@@ -76,7 +76,7 @@ class Ok<T, E> implements IOk<T, E> {
     return some(this.value as NonNullable<T>);
   }
 
-  containsErr(f: E): boolean {
+  containsErr(): boolean {
     return false;
   }
 
@@ -101,7 +101,13 @@ class Ok<T, E> implements IOk<T, E> {
     fn(this.value as NonNullable<T>);
   }
 
-  tapErr(fn: (val: NonNullable<E>) => void): void {}
+  tapErr(): void {
+    // don't do nothing when is an Ok value
+  }
+
+  match<R>(pattern: IResultPattern<T, E, R>): R {
+    return pattern.ok(this.value as NonNullable<T>);
+  }
 }
 
 class Err<T, E> implements IErr<T, E> {
@@ -118,7 +124,7 @@ class Err<T, E> implements IErr<T, E> {
     return this.value;
   }
 
-  expectErr(_: string): E {
+  expectErr(): E {
     return this.value;
   }
 
@@ -146,11 +152,11 @@ class Err<T, E> implements IErr<T, E> {
     return op(this.value);
   }
 
-  and<U>(_: Result<U, E>): Result<U, E> {
+  and<U>(): Result<U, E> {
     return err(this.value);
   }
 
-  andThen<U>(op: (val: T) => Result<U, E>): Result<U, E> {
+  andThen<U>(): Result<U, E> {
     return err(this.value);
   }
 
@@ -158,15 +164,15 @@ class Err<T, E> implements IErr<T, E> {
     return err(op(this.value));
   }
 
-  mapOrElse<U>(defaultF: (val: E) => U, _: (val: T) => U): U {
+  mapOrElse<U>(defaultF: (val: E) => U): U {
     return defaultF(this.value);
   }
 
-  mapOr<U>(defaultVal: U, _: (val: T) => U): U {
+  mapOr<U>(defaultVal: U): U {
     return defaultVal;
   }
 
-  map<U>(f: (val: T) => U): Result<U, E> {
+  map<U>(): Result<U, E> {
     return err<U, E>(this.value);
   }
 
@@ -183,7 +189,7 @@ class Err<T, E> implements IErr<T, E> {
     return this.value === f;
   }
 
-  contains(_: T): boolean {
+  contains(): boolean {
     return false;
   }
 
@@ -199,10 +205,16 @@ class Err<T, E> implements IErr<T, E> {
     val.err && val.err(this.value as NonNullable<E>);
   }
 
-  tapOk(fn: (val: NonNullable<T>) => void): void {}
+  tapOk(): void {
+    // Does nothing when is a Err value
+  }
 
   tapErr(fn: (val: NonNullable<E>) => void): void {
     fn(this.value as NonNullable<E>);
+  }
+
+  match<R>(pattern: IResultPattern<T, E, R>): R {
+    return pattern.err(this.value as NonNullable<E>);
   }
 }
 

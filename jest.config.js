@@ -11,6 +11,6 @@ module.exports = {
   },
 
   rootDir: __dirname,
-  testMatch: ["<rootDir>/packages/**/__tests__/**/*.test.[jt]s"],
+  testMatch: ["<rootDir>/packages/**/src/**/*.test.[jt]s"],
   testPathIgnorePatterns: ["/node_module/"],
 };

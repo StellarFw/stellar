@@ -196,6 +196,11 @@ interface IResult<T, E> {
    * Execute a function with side-effect when Result is a Err
    */
   tapErr(fn: (val: NonNullable<E>) => void): void;
+
+  /**
+   * Unwrap the result and apply a pattern function.
+   */
+  match<R>(pattern: IResultPattern<T, E, R>): R;
 }
 
 export interface Ok<T, E> extends IResult<T, E> {

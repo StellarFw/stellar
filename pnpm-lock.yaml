@@ -96,7 +96,7 @@ importers:
       st-formidable: ^1.0.18
       then-fakeredis: ^2.0.1
       typescript: ^4.4.4
-      uglify-es: 3.3.9
+      uglify-js: ^3.14.3
       uuid: 3.2.1
       waterline: 0.13.1
       winston: ^3.3.3
@@ -127,7 +127,7 @@ importers:
       st-formidable: 1.0.18
       then-fakeredis: 2.0.1_7443b2493ba5974dc888f8ca9c91cd11
       typescript: 4.4.4
-      uglify-es: 3.3.9
+      uglify-js: 3.14.3
       uuid: 3.2.1
       waterline: 0.13.1
       winston: 3.3.3
@@ -2954,10 +2954,6 @@ packages:
     dependencies:
       delayed-stream: 1.0.0
     dev: true
-
-  /commander/2.13.0:
-    resolution: {integrity: sha512-MVuS359B+YzaWqjCL/c+22gfryv+mCBPHAv3zyVI2GN8EY6IRP8VwtasXn8jyyhvvq84R4ImN1OKRtcbIasjYA==}
-    dev: false
 
   /commander/2.20.3:
     resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
@@ -8954,16 +8950,6 @@ packages:
     engines: {node: '>=4.2.0'}
     hasBin: true
 
-  /uglify-es/3.3.9:
-    resolution: {integrity: sha512-r+MU0rfv4L/0eeW3xZrd16t4NZfK8Ld4SWVglYBb7ez5uXFWHuVRs6xCTrf1yirs9a4j4Y27nn7SRfO6v67XsQ==}
-    engines: {node: '>=0.8.0'}
-    deprecated: support for ECMAScript is superseded by `uglify-js` as of v3.13.0
-    hasBin: true
-    dependencies:
-      commander: 2.13.0
-      source-map: 0.6.1
-    dev: false
-
   /uglify-js/2.8.29:
     resolution: {integrity: sha1-KcVzMUgFe7Th913zW3qcty5qWd0=}
     engines: {node: '>=0.8.0'}
@@ -8984,6 +8970,12 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /uglify-js/3.14.3:
+    resolution: {integrity: sha512-mic3aOdiq01DuSVx0TseaEzMIVqebMZ0Z3vaeDhFEh9bsc24hV1TFvN74reA2vs08D0ZWfNjAcJ3UbVLaBss+g==}
+    engines: {node: '>=0.8.0'}
+    hasBin: true
+    dev: false
 
   /uglify-to-browserify/1.0.2:
     resolution: {integrity: sha1-bgkk1r2mta/jSeOabWMoUKD4grc=}

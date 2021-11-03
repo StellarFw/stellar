@@ -1,4 +1,4 @@
-import { panic, unsafe, unsafeAsync } from "../..";
+import { panic, unsafe, unsafeAsync } from ".";
 
 describe("executor", () => {
   test("panic throws an exception", () => {

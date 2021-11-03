@@ -1,7 +1,7 @@
 import { normalize, sep } from "path";
-import { ReadStream, writeFileSync, readFileSync } from "fs";
+import { ReadStream, readFileSync } from "fs";
 import { BrowserFingerprint } from "browser_fingerprint";
-import * as UglifyJS from "uglify-es";
+import UglifyJS from "uglify-js";
 import WebServer from "./web";
 import { inspect } from "util";
 
@@ -11,7 +11,7 @@ import ConnectionDetails from "@stellarfw/common/lib/interfaces/connection-detai
 import { GenericServer } from "../base/generic-server";
 import Primus from "primus";
 import { Server } from "http";
-import { Connection } from "@stellarfw/common/lib";
+import { always, Connection, err, io, ok, Result, safeWriteFile, unsafe } from "@stellarfw/common/lib";
 
 export default class WebSocketServer extends GenericServer {
   protected static serverName = "websocket";
@@ -164,7 +164,7 @@ export default class WebSocketServer extends GenericServer {
     // @ts-ignore
     this.server.active = true;
 
-    this.writeClientJS();
+    this.writeClientJS().tapErr((errMsg) => this.api.log(errMsg, LogLevel.Warning));
   }
 
   /**
@@ -295,11 +295,11 @@ export default class WebSocketServer extends GenericServer {
    *
    * @param minimize Should we enable minification?
    */
-  private renderClientJs(minimize = false): string {
+  private renderClientJs(minimize = false): Result<string, string> {
     const libSource = this.server?.library();
-    let clientSource = this.compileClientJs();
+    const clientSource = this.compileClientJs();
 
-    clientSource = `
+    const wrappedSource = `
       ;;;\r\n
       (function (exports){ \r\n
         ${clientSource} \r\n
@@ -308,16 +308,16 @@ export default class WebSocketServer extends GenericServer {
     `;
 
     if (minimize) {
-      return UglifyJS.minify(`${libSource}\r\n\r\n\r\n${clientSource}`).code;
+      return io<string>(() => UglifyJS.minify(`${libSource}\r\n\r\n\r\n${wrappedSource}`).code).run();
     }
 
-    return `${libSource}\r\n\r\n\r\n${clientSource}`;
+    return ok(`${libSource}\r\n\r\n\r\n${wrappedSource}`);
   }
 
   /**
    * Write client JS code.
    */
-  private writeClientJS(): void {
+  private writeClientJS(): Result<unknown, string> {
     // Ensure the public folder exists
     if (!this.api.utils.dirExists(`${this.api.configs.general.paths.public}`)) {
       this.api.utils.createDir(`${this.api.configs.general.paths.public}`);
@@ -328,16 +328,29 @@ export default class WebSocketServer extends GenericServer {
         this.api.configs.general.paths.public + sep + this.api.configs.servers.websocket.clientJsName,
       );
 
-      try {
-        writeFileSync(`${base}.js`, this.renderClientJs(false));
-        this.api.log(`write ${base}.js`, LogLevel.Debug);
-        writeFileSync(`${base}.min.js`, this.renderClientJs(true));
-        this.api.log(`wrote ${base}.min.js`, LogLevel.Debug);
-      } catch (e) {
-        this.api.log("Cannot write client-side JS for WebSocket server: ", LogLevel.Warning);
-        this.api.log(e, LogLevel.Warning);
-        throw e;
+      // write uncompressed library
+      const uncompressedResult = this.renderClientJs(false)
+        .mapErr(always("Cannot write uncompressed client-side library"))
+        .andThen((code) => safeWriteFile(`${base}.js`, code).run())
+        .andThen(() => {
+          this.api.log(`write ${base}.js`, LogLevel.Debug);
+          return ok(null);
+        });
+
+      if (uncompressedResult.isErr()) {
+        return uncompressedResult;
       }
+
+      // write compressed library
+      return this.renderClientJs(true)
+        .mapErr(always("Cannot write compressed client-side library"))
+        .andThen((code) => safeWriteFile(`${base}.min.js`, code).run())
+        .andThen(() => {
+          this.api.log(`wrote ${base}.min.js`, LogLevel.Debug);
+          return ok(null);
+        });
     }
+
+    return ok("the library is not to be generated");
   }
 }
