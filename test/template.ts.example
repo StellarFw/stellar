@@ -1,0 +1,14 @@
+import { buildEngine } from "./test-utils";
+
+describe("Core", () => {
+  const engine = buildEngine();
+
+  beforeAll(() => engine.start());
+  afterAll(() => engine.stop());
+
+  describe("Module", () => {
+    test("some test", () => {
+      expect(1).toBe(1);
+    });
+  });
+});

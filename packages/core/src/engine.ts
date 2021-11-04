@@ -1,7 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import "source-map-support/register";
 import "reflect-metadata";
 
 import { resolve, normalize, basename } from "path";
+
+// @ts-ignore
+import stellarPackageJSON from "../package.json";
+
 import { SatelliteInterface } from "@stellarfw/common/lib/interfaces/satellite.interface";
 import { Satellite } from "@stellarfw/common/lib";
 import { EngineStatus } from "@stellarfw/common/lib/enums/engine-status.enum";
@@ -14,7 +19,7 @@ import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
  * Each satellite load new features to the Engine instance and could perform
  * a set of instructions to accomplish a certain goal.
  */
-export default class Engine {
+export class Engine {
   /**
    * List of all loaded Satellites.
    */
@@ -28,7 +33,7 @@ export default class Engine {
   private startSatellites: Array<SatelliteInterface> = [];
   private stopSatellites: Array<SatelliteInterface> = [];
 
-  private startCount: number = 0;
+  private startCount = 0;
 
   /**
    * API object.
@@ -57,11 +62,12 @@ export default class Engine {
 
     this.api.scope = {
       ...this.api.scope,
-      args: scope.args,
+      args: scope.args ?? {},
+      stellarPackageJSON,
     };
   }
 
-  private log(msg: any, level: LogLevel = LogLevel.Info) {
+  private log(msg: unknown, level: LogLevel = LogLevel.Info) {
     // when it's running on a test environment the logs are disabled
     if (process.env.NODE_ENV === "test") {
       return;
@@ -234,8 +240,6 @@ export default class Engine {
    * Satellites.
    */
   public async initialize(): Promise<Engine> {
-    const satellitesToLoad: SatelliteInterface[] = [];
-
     if (this.api.status !== EngineStatus.Stopped) {
       throw new Error("Invalid Engine state, it must be stopped first.");
     }
@@ -271,8 +275,9 @@ export default class Engine {
   }
 
   public async start(): Promise<Engine> {
+    // when the Engine isn't initialized just do it now. This usually happens with tests.
     if (this.api.status !== EngineStatus.Stage0) {
-      throw new Error("Invalid Engine state");
+      await this.initialize();
     }
 
     this.startCount = 0;
@@ -343,5 +348,4 @@ export default class Engine {
   }
 }
 
-// Inject some types globally
-(global as any).Satellite = Satellite;
+export default Engine;

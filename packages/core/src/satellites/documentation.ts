@@ -5,8 +5,8 @@ import { ACTION_METADATA } from "@stellarfw/common/lib/constants";
 import { Action } from "@stellarfw/common";
 
 export default class DocumentationSatellite extends Satellite {
-  protected _name: string = "documentation";
-  public loadPriority: number = 710;
+  protected _name = "documentation";
+  public loadPriority = 710;
 
   /**
    * Docs folder path.

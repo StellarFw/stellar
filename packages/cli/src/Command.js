@@ -1,8 +1,7 @@
 "use strict";
 
-const Engine = require("@stellarfw/core/lib/engine").default;
+const { Engine } = require("@stellarfw/core/lib/engine");
 const path = require("path");
-const pkg = require("../package.json");
 const spawn = require("child_process").spawn;
 
 /**
@@ -44,7 +43,6 @@ module.exports = class {
   _buildScope() {
     return {
       rootPath: process.cwd(),
-      stellarPackageJSON: pkg,
       args: this.args,
     };
   }

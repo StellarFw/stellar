@@ -7,6 +7,7 @@
     "reflect-metadata": "0.1.12"
   },
   "devDependencies": {
+    "@stellarfw/core": "workspace:*",
     "@commitlint/cli": "7.2.1",
     "@commitlint/config-conventional": "7.1.2",
     "@types/jest": "^27.0.2",
@@ -38,6 +39,6 @@
     "build": "rm -rf ./dist; lerna run build",
     "test": "jest",
     "test:ci": "jest --runInBand",
-    "test:watch": "lerna run test:watch"
+    "test:watch": "jest --watch"
   }
 }

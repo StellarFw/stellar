@@ -1,4 +1,4 @@
-import { option, some, none } from "../..";
+import { option, some, none } from ".";
 
 describe("Option", () => {
   describe("Factory", () => {

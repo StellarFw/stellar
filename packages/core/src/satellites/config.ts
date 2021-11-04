@@ -82,7 +82,7 @@ class ConfigManager {
    * @param configPath Path of the directory where the configs must be loaded from.
    * @param watch When `true` the engine reloads after a file change.
    */
-  private loadConfigDirectory(configPath: string, watch: boolean = false) {
+  private loadConfigDirectory(configPath: string, watch = false) {
     const configFiles: Array<string> = this.api.utils.recursiveDirSearch(configPath);
     let loadErrors = {};
     let loadRetries = 0;
@@ -191,8 +191,8 @@ class ConfigManager {
 }
 
 export default class ConfigSatellite extends Satellite {
-  public loadPriority: number = 0;
-  protected _name: string = "config";
+  public loadPriority = 0;
+  protected _name = "config";
 
   public async load(): Promise<void> {
     this.api.config = new ConfigManager(this.api);

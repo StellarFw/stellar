@@ -118,7 +118,7 @@ export default {
 export const test = {
   logger() {
     return {
-      loggers: [],
+      loggers: [buildConsoleLogger(LogLevel.Emergency)],
     };
   },
 };
