@@ -1,15 +1,67 @@
+import { API } from ".";
+import { Result } from "..";
 import { LogLevel } from "../enums/log-level.enum";
+
+export type InputType = "string" | "number" | "object" | "array";
+
+/**
+ * Default available formats.
+ */
+export enum ActionFormat {
+  Integer,
+  Float,
+  String,
+}
+
+/**
+ * Structure of a format function.
+ */
+export type FormatFn<T> = <R>(x: T, api: API) => R;
+
+/**
+ * Action input.
+ */
+export interface ActionInput<T> {
+  /**
+   * Type of the input data.
+   * TODO: see how to implement this
+   */
+  // type: InputType;
+
+  /**
+   * Input default value when there is no provided.
+   */
+  default?: T;
+
+  /**
+   * When set to true Stellar will force the param to exist.
+   */
+  required?: boolean;
+
+  /**
+   * Format function allows to format a parameter.
+   */
+  format?: ActionFormat | FormatFn<T>;
+
+  /**
+   * Allows to specify constraints to the input value.
+   */
+  validator?: string;
+}
 
 /**
  * Type for the inputs property.
  */
 export interface ActionInputMap {
-  [key: string]: any;
+  [key: string]: ActionInput<unknown>;
 }
 
-export type ActionRunFunction = () => Promise<any>;
+/**
+ * Action behaviour.
+ */
+export type ActionRunFunction<R, I, E = string> = (params: I) => Promise<Result<R, E>>;
 
-export interface Action {
+export interface Action<R, I, E = string> {
   /**
    * A unique action identifier.
    *
@@ -38,7 +90,7 @@ export interface Action {
    *
    * You can also apply restrictions to allowed inputted values.
    */
-  inputs?: ActionInputMap;
+  inputs: ActionInputMap;
 
   /**
    * Group which this action is part of.
@@ -93,12 +145,12 @@ export interface Action {
   /**
    * Action logic.
    */
-  run: ActionRunFunction;
+  run: ActionRunFunction<R, I, E>;
 }
 
 /**
  * Type used while action is being processed.
  */
-export interface ProcessingAction extends Action {
-  params: { [key: string]: any };
+export interface ProcessingAction<R, E> extends Action<R, E> {
+  params: { [key: string]: unknown };
 }
