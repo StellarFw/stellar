@@ -8,7 +8,7 @@ import { resolve, normalize, basename } from "path";
 import stellarPackageJSON from "../package.json";
 
 import { SatelliteInterface } from "@stellarfw/common/lib/interfaces/satellite.interface";
-import { Satellite } from "@stellarfw/common/lib";
+import { API, Satellite } from "@stellarfw/common/lib";
 import { EngineStatus } from "@stellarfw/common/lib/enums/engine-status.enum";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
@@ -41,8 +41,8 @@ export class Engine {
    * This object contains all the logic shared across all platform. It's here
    * Satellites will load logic and developers access the functions.
    */
-  public api: any = {
-    bootTime: null,
+  public api: API = {
+    bootTime: 0,
     status: EngineStatus.Stopped,
     log: null,
     scope: {},

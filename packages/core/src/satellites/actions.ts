@@ -25,8 +25,8 @@ const PROTECTED_KEYS = ["name"];
 // }
 
 export default class ActionsSatellite extends Satellite {
-  protected _name: string = "actions";
-  public loadPriority: number = 410;
+  protected _name = "actions";
+  public loadPriority = 410;
 
   /**
    * Dictionary with the registered actions.
@@ -140,7 +140,7 @@ export default class ActionsSatellite extends Satellite {
    *
    * @param action Action to be loaded.
    */
-  private loadAction(action: Action, path: string, module: string, reload: boolean = false): void {
+  private loadAction(action: Action, path: string, module: string, reload = false): void {
     // Ignore when the given "action" isn't an function. That
     // means the user isn't use an Class.
     if (typeof action !== "function") {
@@ -210,7 +210,7 @@ export default class ActionsSatellite extends Satellite {
    * @param module Module name
    * @param reload Set to `true` when it's a reload.
    */
-  private loadFile(path: string, module: string, reload: boolean = false) {
+  private loadFile(path: string, module: string, reload = false) {
     // watch for changes on the action file
     this.api.config.watchFileAndAct(path, () => {
       // reload file

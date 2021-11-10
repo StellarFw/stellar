@@ -50,12 +50,12 @@ class ActionProcessor implements IActionProcessor {
    */
   private actionStatus!: ActionStatus;
 
-  private toProcess: boolean = true;
+  private toProcess = true;
 
   /**
    * Inform if the action response must be rendered.
    */
-  public toRender: boolean = true;
+  public toRender = true;
 
   /**
    * Message identifier.
@@ -80,7 +80,7 @@ class ActionProcessor implements IActionProcessor {
   /**
    * Informers when the action is being processed.
    */
-  private working: boolean = false;
+  private working = false;
 
   /**
    * Action response.
@@ -101,7 +101,7 @@ class ActionProcessor implements IActionProcessor {
    * To ensure that the action won't respond twice when an timeout error
    * is thrown.
    */
-  private errorRendered: boolean = false;
+  private errorRendered = false;
 
   private callback: ActionProcessorCallback;
 
@@ -124,7 +124,7 @@ class ActionProcessor implements IActionProcessor {
    *
    * @param count
    */
-  public incrementPendingActions(count: number = 1): void {
+  public incrementPendingActions(count = 1): void {
     this.connection.pendingActions += count;
   }
 
@@ -133,7 +133,7 @@ class ActionProcessor implements IActionProcessor {
    *
    * @param count
    */
-  private incrementTotalActions(count: number = 1): void {
+  private incrementTotalActions(count = 1): void {
     this.connection.totalActions += count;
   }
 
@@ -248,7 +248,7 @@ class ActionProcessor implements IActionProcessor {
   private async preProcessAction() {
     // If the action is private this can only be executed internally
     if (this.actionMetadata.private === true && this.connection.type !== "internal") {
-      throw new Error(this.api.config.errors.privateActionCalled(this.actionMetadata.name));
+      throw new Error(this.api.config.errors.privateActionCalled(this.actionMetadata.ActionInput));
     }
 
     // Copy call parameters into the action instance
