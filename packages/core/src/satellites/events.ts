@@ -11,8 +11,8 @@ import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
  * listeners must be stored in <moduleName>/listeners.
  */
 export default class EventsSatellite extends Satellite {
-  protected _name: string = "events";
-  public loadPriority: number = 300;
+  protected _name = "events";
+  public loadPriority = 300;
 
   /**
    * Map with all registered events and listeners.
@@ -26,6 +26,8 @@ export default class EventsSatellite extends Satellite {
 
   public async load(): Promise<void> {
     this.api.events = this;
+
+    // load listeners form the active project modules
     this.loadListeners();
   }
 
@@ -77,7 +79,7 @@ export default class EventsSatellite extends Satellite {
    * @param fn Listener handler.
    * @param priority Priority.
    */
-  public listener(event: string, fn: EventHandler, priority: number = 100) {
+  public listener(event: string, fn: EventHandler, priority = 100) {
     const listener = {
       event,
       run: fn,
@@ -85,6 +87,15 @@ export default class EventsSatellite extends Satellite {
     } as EventInterface;
 
     this.listenerObj(listener);
+  }
+
+  /**
+   * Remove all listeners of the given event.
+   *
+   * @param event name of the event
+   */
+  public removeAll(event: string) {
+    this.events.delete(event);
   }
 
   /**
@@ -140,7 +151,7 @@ export default class EventsSatellite extends Satellite {
    * @param path Path listener.
    * @param reload When set to true that means that is a reload.
    */
-  public loadFile(path: string, reload: boolean = false) {
+  public loadFile(path: string, reload = false) {
     const loadMessage = (listener) => {
       const level = reload ? LogLevel.Info : LogLevel.Debug;
       let msg: string;
