@@ -32,17 +32,21 @@ describe("Core", () => {
     });
 
     test("listeners need an event name and a run function", () => {
-      expect(engine.api.events.listenerObj({})).toBeFalsy();
+      expect(engine.api.events.listenerObj({}).isErr()).toBeTruthy();
       expect(
-        engine.api.events.listenerObj({
-          event: "example",
-        }),
-      ).toBeFalsy();
+        engine.api.events
+          .listenerObj({
+            event: "example",
+          })
+          .isErr(),
+      ).toBeTruthy();
       expect(
-        engine.api.events.listenerObj({
-          event: "example",
-          run: identity,
-        }),
+        engine.api.events
+          .listenerObj({
+            event: "example",
+            run: identity,
+          })
+          .isOk(),
       ).toBeTruthy();
     });
 
@@ -61,17 +65,17 @@ describe("Core", () => {
     test("listeners are executed in order", async () => {
       engine.api.events.listener(
         "prog",
-        (params) => {
-          params.value += "1";
-        },
+        (params) => ({
+          value: params.value + "1",
+        }),
         10,
       );
 
       engine.api.events.listener(
         "prog",
-        (params) => {
-          params.value += "0";
-        },
+        (params) => ({
+          value: params.value + "0",
+        }),
         5,
       );
 

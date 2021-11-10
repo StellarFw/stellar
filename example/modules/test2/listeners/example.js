@@ -5,7 +5,8 @@
  */
 exports.example = {
   event: "example",
+
   async run(params) {
-    params.value = "thisIsATest";
+    return { ...params, value: "thisIsATest" };
   },
 };

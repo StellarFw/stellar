@@ -8,6 +8,9 @@ exports.default = {
   description: `This event is used to test the multiple event support`,
 
   async run(params) {
-    params.value += "_mod";
+    return {
+      ...params,
+      value: `${params.value}_mod`,
+    };
   },
 };
