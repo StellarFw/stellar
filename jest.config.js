@@ -12,11 +12,14 @@ module.exports = {
 
   rootDir: __dirname,
   testMatch: ["<rootDir>/packages/**/src/**/*.test.[jt]s", "<rootDir>/test/**/*.test.ts"],
-  testPathIgnorePatterns: ["/node_module/"],
+  testPathIgnorePatterns: ["/node_module/", "example"],
+
+  // Watch settings
+  watchPathIgnorePatterns: ["/node_module/", "/example/"],
 
   // coverage configurations
   collectCoverage: true,
   coverageReporters: ["lcov", "text-summary"],
   coverageDirectory: "<rootDir>/test/coverage",
-  collectCoverageFrom: ["packages/**/src/**/*.ts", "!**/node_modules/**"],
+  collectCoverageFrom: ["packages/**/lib/**/*.js", "!**/node_modules/**"],
 };
