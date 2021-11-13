@@ -368,4 +368,18 @@ describe("Option", () => {
       expect(none().flatten().isNone()).toBeTruthy();
     });
   });
+
+  describe("contains", () => {
+    test("when is a Some and container the same value returns true", () => {
+      expect(some(2).contains(2)).toBeTruthy();
+    });
+
+    test("when is a Some and container a different value returns false", () => {
+      expect(some(2).contains(3)).toBeFalsy();
+    });
+
+    test("when is a None returns false", () => {
+      expect(none().contains(2)).toBeFalsy();
+    });
+  });
 });

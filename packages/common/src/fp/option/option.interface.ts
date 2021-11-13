@@ -124,6 +124,11 @@ export interface IOption<T> {
    * Return true if value is empty
    */
   isNone(): boolean;
+
+  /**
+   * Returns `true` if the Option is a Some value containing the given value.
+   */
+  contains(x: T): boolean;
 }
 
 export interface Some<T> extends IOption<T> {

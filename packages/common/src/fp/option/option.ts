@@ -79,18 +79,24 @@ class Some<T> implements ISome<T> {
   isNone(): boolean {
     return false;
   }
+
+  contains(x: T): boolean {
+    return this.value === x;
+  }
 }
 
 class None<T> implements INone<T> {
   public tag: "none" = "none";
 
-  constructor() {}
+  contains(): boolean {
+    return false;
+  }
 
   flatten(): Option<T> {
     return this;
   }
 
-  zip<U>(_: Option<U>): Option<[T, U]> {
+  zip<U>(): Option<[T, U]> {
     return none<[T, U]>();
   }
   orElse(f: () => Option<T>): Option<T> {
@@ -101,15 +107,15 @@ class None<T> implements INone<T> {
     return optb;
   }
 
-  filter(_: (t: T) => boolean): Option<T> {
+  filter(): Option<T> {
     return none<T>();
   }
 
-  andThen<U>(f: (val: NonNullable<T>) => Option<U>): Option<U> {
+  andThen<U>(): Option<U> {
     return none<U>();
   }
 
-  and<U>(_: Option<U>): Option<U> {
+  and<U>(): Option<U> {
     return none<U>();
   }
 
@@ -133,7 +139,7 @@ class None<T> implements INone<T> {
     fn();
   }
 
-  tapSome(fn: (val: NonNullable<T>) => void): void {
+  tapSome(): void {
     // do nothing
   }
 
@@ -141,7 +147,7 @@ class None<T> implements INone<T> {
     return pattern.none();
   }
 
-  map<R>(fn: (t: NonNullable<T>) => NonNullable<R>): Option<R> {
+  map<R>(): Option<R> {
     return none<R>();
   }
 
