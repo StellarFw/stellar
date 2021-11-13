@@ -1,5 +1,3 @@
-import { unsafe } from "..";
-import { Result } from "../result";
 import { IO } from "./io.interface";
 
 class IOImpl<T> implements IO<T> {
@@ -9,8 +7,8 @@ class IOImpl<T> implements IO<T> {
     return io(() => fn(this.containerFn()));
   }
 
-  run(): Result<T, string> {
-    return unsafe(this.containerFn);
+  run(): T {
+    return this.containerFn();
   }
 }
 

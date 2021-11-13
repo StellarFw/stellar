@@ -11,7 +11,7 @@ import ConnectionDetails from "@stellarfw/common/lib/interfaces/connection-detai
 import { GenericServer } from "../base/generic-server";
 import Primus from "primus";
 import { Server } from "http";
-import { always, Connection, err, io, ok, Result, safeWriteFile, unsafe } from "@stellarfw/common/lib";
+import { always, Connection, io, ok, Result, safeWriteFile, unsafe } from "@stellarfw/common/lib";
 
 export default class WebSocketServer extends GenericServer {
   protected static serverName = "websocket";
@@ -308,7 +308,7 @@ export default class WebSocketServer extends GenericServer {
     `;
 
     if (minimize) {
-      return io<string>(() => UglifyJS.minify(`${libSource}\r\n\r\n\r\n${wrappedSource}`).code).run();
+      return io(() => unsafe<string>(() => UglifyJS.minify(`${libSource}\r\n\r\n\r\n${wrappedSource}`).code)).run();
     }
 
     return ok(`${libSource}\r\n\r\n\r\n${wrappedSource}`);
@@ -331,7 +331,7 @@ export default class WebSocketServer extends GenericServer {
       // write uncompressed library
       const uncompressedResult = this.renderClientJs(false)
         .mapErr(always("Cannot write uncompressed client-side library"))
-        .andThen((code) => safeWriteFile(`${base}.js`, code).run())
+        .map((code) => safeWriteFile(`${base}.js`, code).run())
         .andThen(() => {
           this.api.log(`write ${base}.js`, LogLevel.Debug);
           return ok(null);
@@ -344,7 +344,7 @@ export default class WebSocketServer extends GenericServer {
       // write compressed library
       return this.renderClientJs(true)
         .mapErr(always("Cannot write compressed client-side library"))
-        .andThen((code) => safeWriteFile(`${base}.min.js`, code).run())
+        .map((code) => safeWriteFile(`${base}.min.js`, code).run())
         .andThen(() => {
           this.api.log(`wrote ${base}.min.js`, LogLevel.Debug);
           return ok(null);

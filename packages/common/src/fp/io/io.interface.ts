@@ -1,5 +1,3 @@
-import { Result } from "..";
-
 /**
  * IO represents a call to IO.
  *
@@ -18,8 +16,8 @@ export interface IO<T> {
   /**
    * Execute the function.
    *
-   * From this point there code becomes impure. For containing possible execution errors this function is executed
-   * inside a container and results as a `Result`.
+   * From this point there code becomes impure. This doesn't mean runtime errors are catch while executing the IO
+   * container. If your code isn't secure wrap it around with the `unsafe` function.
    */
-  run(): Result<T, string>;
+  run(): T;
 }
