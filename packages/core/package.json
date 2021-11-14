@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@stellarfw/common": "workspace:*",
-    "bcrypt": "3.0.6",
+    "bcrypt": "5.0.1",
     "bluebird": "^3.5.1",
     "browser_fingerprint": "2.0.3",
     "chalk": "^2.3.0",
