@@ -1,6 +1,6 @@
 import winston from "winston";
 
-import { io, Satellite } from "@stellarfw/common/lib";
+import { io, Satellite, unsafe } from "@stellarfw/common/lib";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
 export default class LoggerSatellite extends Satellite {
@@ -9,14 +9,18 @@ export default class LoggerSatellite extends Satellite {
 
   /**
    * Container to create the folder where to store the log files.
+   *
+   * TODO: change when move the utils function to the IO Monad
    */
-  private createLogsFolder = io(() => {
-    const logsDir = this.api.configs.general.paths.log;
+  private createLogsFolder = io(() =>
+    unsafe(() => {
+      const logsDir = this.api.configs.general.paths.log;
 
-    if (!this.api.utils.dirExists(logsDir)) {
-      this.api.utils.createDir(logsDir);
-    }
-  });
+      if (!this.api.utils.dirExists(logsDir)) {
+        this.api.utils.createDir(logsDir);
+      }
+    }),
+  );
 
   public async load(): Promise<void> {
     // try to create the logs folder.

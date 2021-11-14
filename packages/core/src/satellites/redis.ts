@@ -7,10 +7,10 @@ import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 // export type RedisCallback = (error, message) =>
 
 export default class RedisSatellite extends Satellite {
-  protected _name: string = "redis";
-  public loadPriority: number = 200;
-  public startPriority: number = 101;
-  public stopPriority: number = 99999;
+  protected _name = "redis";
+  public loadPriority = 200;
+  public startPriority = 101;
+  public stopPriority = 99999;
 
   /**
    * Dictionary with all instantiate clients.
@@ -153,7 +153,7 @@ export default class RedisSatellite extends Satellite {
     method: string,
     args: string | number | Array<any>,
     connectionId?: string,
-    waitForResponse: boolean = false,
+    waitForResponse = false,
   ) {
     const requestId = uuid.v4();
     const payload: ClusterPayload = {

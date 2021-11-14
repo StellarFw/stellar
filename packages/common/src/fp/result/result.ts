@@ -13,7 +13,7 @@ class Ok<T, E> implements IOk<T, E> {
   public constructor(private readonly value: T) {}
 
   unwrapErr(): E {
-    panic(`panics with \`${this.value}\``);
+    panic(`panics with \`${JSON.stringify(this.value)}\``);
   }
 
   expectErr(msg: string): E {

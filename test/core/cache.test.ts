@@ -22,20 +22,25 @@ describe("Core", () => {
     test("set creates a new cache entry", () =>
       api.cache.set("testKey", "test123", none()).then((res) => expect(res).toBeTruthy()));
 
-    test("get allows to get a cache entry", () =>
-      api.cache.get("testKey", none()).then((res) => expect(res.unwrap().unwrap().value).toBe("test123")));
+    test("get allows to get a cache entry", async () => {
+      const res = await api.cache.get("testKey", none());
+      expect(res.unwrap().value).toBe("test123");
+    });
 
-    test("get fails when the cache key doesn't exist", () =>
-      api.cache.get("thisNotExists", none()).then((res) => expect(res).rejects.toBe("Object not found")));
+    test("get returns an Err when the cache key doesn't exist", async () => {
+      const res = await api.cache.get("thisNotExists", none());
+      expect(res.isErr()).toBeTruthy();
+      expect(res.unwrapErr()).toBe(CacheErrors.notFound);
+    });
 
     test("delete remove a cache entry", () => api.cache.delete("testKey").then((res) => expect(res).toBeTruthy()));
 
-    test("cache.destroy failure", () => expect(api.cache.delete("testKey")).resolves.toBeFalsy());
+    test("delete failure", async () => expect((await api.cache.delete("testKey")).unwrap()).toBe(false));
 
-    test("cache.save with expire time", async () =>
+    test("set with expire time", async () =>
       api.cache.set("testKey", "test123", some(10)).then((res) => expect(res.isOk()).toBeTruthy()));
 
-    test("cache.load with expired items should not return them", async () => {
+    test("get with expired items should not return them", async () => {
       const saveRes = await api.cache.set("testKeyWait", "test123", some(10));
 
       expect(saveRes.isOk()).toBeTruthy();
@@ -46,35 +51,34 @@ describe("Core", () => {
       expect(getRes.containsErr(CacheErrors.expired)).toBeTruthy();
     });
 
-    test("cache.load with negative expire times will never load", async () => {
+    test("get with negative expire times will never load", async () => {
       await api.cache.set("testKeyInThePast", "test123", some(-1));
 
       const res = await api.cache.get("testKeyInThePast", none());
       expect(res.containsErr(CacheErrors.expired));
     });
 
-    test("cache.save does not need to pass expireTime", async () => {
+    test("set does not need to pass expireTime", async () => {
       await api.cache.set("testKeyForNullExpireTime", "test123", none());
 
       const res = (await api.cache.get<string>("testKeyForNullExpireTime", none())).unwrap();
-      expect(res.isSome()).toBeTruthy();
-      expect(res.unwrap().value).toBe("test123");
+      expect(res.value).toBe("test123");
     });
 
-    test("cache.load without changing the expireTime will re-apply the redis expire", async () => {
+    test("get without changing the expireTime will re-apply the redis expire", async () => {
       const key = "testKey";
 
       await api.cache.set(key, "val", some(1000));
       const res = await api.cache.get(key, none());
-      expect(res.isOk());
-      expect(res.unwrap().unwrap().value).toBe("val");
+      expect(res.isOk()).toBeTruthy();
+      expect(res.unwrap().value).toBe("val");
 
       await api.utils.delay(1001);
-      const getRes = await api.cache.get(key, none());
-      expect(getRes.containsErr(CacheErrors.expired)).toBeTruthy();
+      const res2 = await api.cache.get(key, none());
+      expect(res2.containsErr(CacheErrors.notFound)).toBeTruthy();
     });
 
-    test("cache.load with options that extending expireTime should return cached item", async () => {
+    test("get with options that extending expireTime should return cached item", async () => {
       const timeout = 200;
       const expireTime = 400;
       const value = "test123";
@@ -87,28 +91,27 @@ describe("Core", () => {
       await api.utils.delay(timeout);
       const resGet = await api.cache.get(key, some({ expireTimeMS: some(expireTime), retry: false }));
       expect(resGet.isOk()).toBeTruthy();
-      expect(resGet.unwrap().isSome()).toBeTruthy();
-      expect(resGet.unwrap().unwrap().value).toBe(value);
+      expect(resGet.unwrap().value).toBe(value);
 
       // wait another `timeout` and load the key again without an extended expire time
       await api.utils.delay(timeout);
       const laterRes = await api.cache.get(key, none());
-      expect(laterRes.unwrap().unwrap().value).toBe(value);
+      expect(laterRes.unwrap().value).toBe(value);
 
       // wait another `timeout` and the key load should fail without the extended time
       await api.utils.delay(timeout);
       expect((await api.cache.get(key, none())).containsErr(CacheErrors.notFound)).toBeTruthy();
     });
 
-    test("cache.save works with arrays", async () => {
+    test("set works with arrays", async () => {
       (await api.cache.set("arrayKey", [1, 2, 3], none())).unwrap();
 
-      const loadRes = (await api.cache.get("arrayKey", none())).unwrap().unwrap().value;
+      const loadRes = (await api.cache.get<Array<number>>("arrayKey", none())).unwrap().value;
 
-      expect(loadRes).toBe([1, 2, 3]);
+      expect(loadRes).toStrictEqual([1, 2, 3]);
     });
 
-    test("cache.save works with objects", async () => {
+    test("set works with objects", async () => {
       const key = "objectKey";
       const data = {
         oneThing: "someData",
@@ -117,13 +120,10 @@ describe("Core", () => {
 
       await api.cache.set(key, data, none());
 
-      const loadRes = (await api.cache.get<typeof data>(key, none()))
-        .unwrap()
-        .map((e) => e.value)
-        .unwrap();
+      const loadRes = (await api.cache.get<typeof data>(key, none())).map((e) => e.value).unwrap();
 
       expect(loadRes.oneThing).toBe(data.oneThing);
-      expect(loadRes.otherThing).toBe(data.otherThing);
+      expect(loadRes.otherThing).toStrictEqual(data.otherThing);
     });
 
     test("can clear the cache entirely", async () => {
@@ -143,8 +143,8 @@ describe("Core", () => {
         await api.cache.push("testListKey", { look: "an object" });
 
         expect((await api.cache.pop("testListKey")).unwrap()).toBe("a string");
-        expect(await api.cache.pop("testListKey")).toBe(["an array"]);
-        expect(await api.cache.pop("testListKey")).toBe({ look: "an object" });
+        expect((await api.cache.pop("testListKey")).unwrap()).toStrictEqual(["an array"]);
+        expect((await api.cache.pop("testListKey")).unwrap()).toStrictEqual({ look: "an object" });
       });
 
       test("will return null if the list is empty", async () =>
@@ -153,11 +153,11 @@ describe("Core", () => {
       test("can get the length of an array when full", async () => {
         await api.cache.push("testListKeyTwo", "a string");
 
-        expect(api.cache.listLength("testListKeyTwo")).toBe(1);
+        expect(await api.cache.listLength("testListKeyTwo")).toBe(1);
       });
 
       test("will return 0 length when the key does not exist", async () =>
-        expect(api.cache.listLength("testListKeyNotExists")).toBe(0));
+        expect(await api.cache.listLength("testListKeyNotExists")).toBe(0));
     });
 
     describe("locks", function () {
@@ -179,7 +179,7 @@ describe("Core", () => {
         expect(await api.cache.checkLock(key, false, none())).toBeTruthy();
 
         // lock the key
-        expect((await api.cache.unlock(key)).isOk()).toBeTruthy();
+        expect(await api.cache.unlock(key)).toBeTruthy();
       });
 
       test("locks have a TTL and the default will be assumed from config", async () => {

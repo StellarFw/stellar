@@ -11,3 +11,5 @@ export * from "./module.interface";
 export * from "./route.interface";
 export * from "./satellite.interface";
 export * from "./task-metadata.interface";
+export * from "./cache-object.interface";
+export * from "./cache-satellite.interface";

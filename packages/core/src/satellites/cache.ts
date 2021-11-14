@@ -1,16 +1,30 @@
-import { Satellite } from "@stellarfw/common/lib";
-import CacheObject from "@stellarfw/common/lib/interfaces/cache-object.interface";
-import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
+import {
+  Satellite,
+  LogLevel,
+  ICacheSatellite,
+  Option,
+  Result,
+  CacheErrors,
+  some,
+  none,
+  err,
+  ok,
+  CacheGetOptions,
+  CacheObject,
+  unsafeAsync,
+  unsafe,
+  always,
+  identity,
+} from "@stellarfw/common/lib";
 
 /**
  * Satellite to manage the cache.
  *
- * This Satellite provides an easy way for developers to make use of
- * a cache system.
+ * This Satellite provides an easy way for developers to make use of a cache system.
  */
-export default class CacheSatellite extends Satellite {
-  protected _name: string = "cache";
-  public loadPriority: number = 300;
+export default class CacheSatellite extends Satellite implements ICacheSatellite {
+  protected _name = "cache";
+  public loadPriority = 300;
 
   /**
    * Cache key prefix.
@@ -35,14 +49,16 @@ export default class CacheSatellite extends Satellite {
   /**
    * Lock interval to retry.
    */
-  private lockRetry: number = 100;
+  private lockRetry = 100;
 
   /**
    * Redis client instance.
    *
    * TODO: assign a type for this property
    */
-  private client: any = null;
+  private get client() {
+    return this.api.redis.clients.client;
+  }
 
   public async load(): Promise<void> {
     this.api.cache = this;
@@ -53,36 +69,43 @@ export default class CacheSatellite extends Satellite {
     this.lockName = this.api.id;
   }
 
+  private parseCacheObject<T>(cacheEntry: Result<string | null, string>): Result<CacheObject<T>, string> {
+    // TODO: extract to a util function or event to the Options namespace
+    const convertToOption = (raw: { tag: "some" | "nome"; value: unknown }) =>
+      raw.tag === "some" ? some(raw.value) : none();
+
+    return cacheEntry.andThen((entry) => {
+      if (entry === null) {
+        return err("the value doesn't exist");
+      }
+
+      return unsafe(() => JSON.parse(entry)).map((val) => ({
+        ...val,
+        expireTimestamp: convertToOption(val.expireTimestamp),
+        readAt: convertToOption(val.readAt),
+      }));
+    });
+  }
+
   /**
    * Get all cached keys.
    */
   public async keys(): Promise<Array<string>> {
-    return this.client.keys(`${this.redisPrefix}*`);
+    return this.client.keys(`${this.redisPrefix}*`) ?? [];
   }
 
   /**
    * Get the total number of cached items.
    */
   public async size(): Promise<number> {
-    let length = 0;
-
-    const keys = await this.keys();
-    if (keys) {
-      length = keys.length;
-    }
-
-    return length;
+    return (await this.keys()).length;
   }
 
   /**
    * Remove all cached items.
    */
-  public async clear(): Promise<Array<any>> {
-    const jobs: Array<Promise<any>> = [];
-
-    const keys = await this.keys();
-    keys.forEach((key) => jobs.push(this.client.del(key)));
-    return Promise.all(jobs);
+  public async clear<T>(): Promise<Array<T>> {
+    return Promise.all((await this.keys()).map((key) => this.client.del(key)));
   }
 
   /**
@@ -92,27 +115,28 @@ export default class CacheSatellite extends Satellite {
    * @param value         Value to associate with the key.
    * @param expireTimeMS  Expire time in milliseconds.
    */
-  public async set(key: string, value: any, expireTimeMS?: number) {
-    let expireTimeSeconds: number | null = null;
-    let expireTimestamp: number | undefined = undefined;
-
-    // if expireTimeMS is different than null we calculate the expire time in seconds and the expire timestamp.
-    if (expireTimeMS) {
-      expireTimeSeconds = Math.ceil(expireTimeMS / 1000);
-      expireTimestamp = new Date().getTime() + expireTimeMS;
-    }
+  public async set<T>(key: string, value: T, expireTimeMS: Option<number>): Promise<Result<boolean, CacheErrors>> {
+    // if expireTimeMS is some we calculate the expire time in seconds and the expire timestamp.
+    const expireData = expireTimeMS.match({
+      some: (val) => ({
+        expireTimeSeconds: some(Math.ceil(val / 1000)),
+        expireTimestamp: some(new Date().getTime() + val),
+      }),
+      none: () => ({ expireTimeSeconds: none<number>(), expireTimestamp: none<number>() }),
+    });
 
     // build the cache object
-    const cacheObj: CacheObject = {
+    const cacheObj: CacheObject<T> = {
       value,
-      expireTimestamp,
+      expireTimestamp: expireData.expireTimestamp,
+      readAt: none(),
       createdAt: new Date().getTime(),
     };
 
     // if the object is locked we throw an exception
     const lockOk = await this.checkLock(key, false);
     if (lockOk !== true) {
-      throw new Error("Object locked");
+      return err(CacheErrors.locked);
     }
 
     // save the new key and value
@@ -120,11 +144,9 @@ export default class CacheSatellite extends Satellite {
     await this.api.redis.clients.client.set(keyToSave, JSON.stringify(cacheObj));
 
     // if the new cache entry has been saved define the expire date if needed
-    if (expireTimeSeconds) {
-      await this.client.expire(keyToSave, expireTimeSeconds);
-    }
+    expireData.expireTimeSeconds.tapSome(async (val) => await this.client.expire(keyToSave, val));
 
-    return true;
+    return ok(true);
   }
 
   /**
@@ -133,99 +155,115 @@ export default class CacheSatellite extends Satellite {
    * @param key       Key to search.
    * @param options   Call options.
    */
-  public async get(key: string, options: any = {}): Promise<CacheObject> {
-    let cacheObj: any;
+  public async get<T>(
+    key: string,
+    optionsParam: Option<CacheGetOptions>,
+  ): Promise<Result<CacheObject<T>, CacheErrors>> {
+    const options = optionsParam.match({
+      some: identity,
+      none: always<CacheGetOptions>({ expireTimeMS: none(), retry: false }),
+    });
 
-    try {
-      // get the cache entry from redis server
-      cacheObj = await this.client.get(this.redisPrefix + key);
-    } catch (e) {
-      this.api.log(e, LogLevel.Error);
+    // get the cache entry from redis server
+    const rawEntryResult = await unsafeAsync<string | null>(() => this.client.get(this.redisPrefix + key));
+    if (rawEntryResult.isErr()) {
+      this.api.log(rawEntryResult.unwrapErr(), LogLevel.Error);
+      return err(CacheErrors.other);
     }
-
-    try {
-      cacheObj = JSON.parse(cacheObj);
-    } catch (e) {}
 
     // check if the object exist
-    if (!cacheObj) {
-      throw new Error("Object not found");
+    const cacheObjResult = this.parseCacheObject<T>(rawEntryResult);
+    if (cacheObjResult.isErr()) {
+      return err(CacheErrors.notFound);
     }
 
-    if (cacheObj.expireTimestamp >= new Date().getTime() || cacheObj.expireTimestamp === null) {
-      const lastReadAt = cacheObj.readAt;
-      let expireTimeSeconds;
+    const origCacheObj: CacheObject<T> = cacheObjResult.unwrap();
 
-      // update the readAt property
-      cacheObj.readAt = new Date().getTime();
-
-      if (cacheObj.expireTimestamp) {
-        // define the new expire time if requested
-        if (options.expireTimeMS) {
-          cacheObj.expireTimestamp = new Date().getTime() + options.expireTimeMS;
-          expireTimeSeconds = Math.ceil(options.expireTimeMS / 1000);
-        } else {
-          expireTimeSeconds = Math.floor((cacheObj.expireTimestamp - new Date().getTime()) / 1000);
-        }
-      }
-
-      // check entry lock
-      let lockOk = null;
-      try {
-        lockOk = await this.checkLock(key, options.retry);
-      } catch (e) {
-        throw new Error("Object locked");
-      }
-
-      if (lockOk !== true) {
-        throw new Error("Object locked");
-      }
-
-      await this.client.set(this.redisPrefix + key, JSON.stringify(cacheObj));
-
-      if (typeof expireTimeSeconds === "number") {
-        await this.client.expire(this.redisPrefix + key, expireTimeSeconds);
-      }
-
-      // Return an object with the last time that the resource was
-      // read and they content.
-      return {
-        value: cacheObj.value,
-        expireTimestamp: cacheObj.expireTimestamp,
-        createdAt: cacheObj.createdAt,
-        lastReadAt,
-      } as CacheObject;
+    // check if the cache was expired
+    if (origCacheObj.expireTimestamp.isSome() && origCacheObj.expireTimestamp.unwrap() < new Date().getTime()) {
+      return err(CacheErrors.expired);
     }
 
-    throw new Error("Object expired");
+    // check if the value is locked
+    if ((await this.checkLock(key, options.retry)) === false) {
+      return err(CacheErrors.locked);
+    }
+
+    // update the read time
+    const updatedCacheObj: CacheObject<T> = {
+      ...origCacheObj,
+      readAt: some(new Date().getTime()),
+    };
+
+    // compute the expire time
+    const expireTimeSeconds = origCacheObj.expireTimestamp.match<Option<number>>({
+      none: none,
+      some: (expireTimestamp) =>
+        options.expireTimeMS.match({
+          none: () => some(Math.floor((expireTimestamp - new Date().getTime()) / 1000)),
+          some: (expireTimeMS) => {
+            updatedCacheObj.expireTimestamp = some(new Date().getTime() + expireTimeMS);
+            return some(Math.ceil(expireTimeMS / 1000));
+          },
+        }),
+    });
+
+    // update the cache entry with the updated readAt value
+    await this.client.set(this.redisPrefix + key, JSON.stringify(updatedCacheObj));
+
+    await expireTimeSeconds.map((expireTime) => this.client.expire(this.redisPrefix + key, expireTime));
+
+    // Return an object with the last time that the resource was read and they content.
+    return ok({
+      ...updatedCacheObj,
+      readAt: origCacheObj.readAt,
+    });
+
+    // if (cacheObj.expireTimestamp >= new Date().getTime() || cacheObj.expireTimestamp === null) {
+    //   const lastReadAt = cacheObj.readAt;
+    //   let expireTimeSeconds;
+
+    //   // update the readAt property
+    //   cacheObj.readAt = new Date().getTime();
+
+    //   if (cacheObj.expireTimestamp) {
+    //     // define the new expire time if requested
+    //     if (options.expireTimeMS) {
+    //       cacheObj.expireTimestamp = new Date().getTime() + options.expireTimeMS;
+    //       expireTimeSeconds = Math.ceil(options.expireTimeMS / 1000);
+    //     } else {
+    //       expireTimeSeconds = Math.floor((cacheObj.expireTimestamp - new Date().getTime()) / 1000);
+    //     }
+    //   }
+
+    //   await this.client.set(this.redisPrefix + key, JSON.stringify(cacheObj));
+
+    //   if (typeof expireTimeSeconds === "number") {
+    //     await this.client.expire(this.redisPrefix + key, expireTimeSeconds);
+    //   }
+    // }
   }
 
   /**
    * Destroy a cache entry.
    *
    * @param key   Key to destroy.
+   * @returns Ok with true when the key is delete, or false otherwise. Err is only returned when something went wrong.
    */
-  public async delete(key: string): Promise<boolean> {
-    let lockOk = null;
+  public async delete(key: string): Promise<Result<boolean, CacheErrors>> {
+    const lockOk = await this.checkLock(key, false);
 
-    try {
-      lockOk = await this.checkLock(key, false);
-    } catch (e) {
-      throw new Error("Object locked");
+    if (!lockOk) {
+      return err(CacheErrors.locked);
     }
 
-    if (lockOk !== true) {
-      throw new Error("Object locked");
-    }
-
-    let count = null;
-    try {
-      count = await this.api.redis.clients.client.del(this.redisPrefix + key);
-    } catch (e) {
-      this.api.log(e, LogLevel.Error);
-    }
-
-    return count === 1;
+    return (await unsafeAsync<number>(() => this.api.redis.clients.client.del(this.redisPrefix + key))).match({
+      err: (e) => {
+        this.api.log(e, LogLevel.Error);
+        return err(CacheErrors.other);
+      },
+      ok: (count) => ok(count === 1),
+    });
   }
 
   /**
@@ -235,31 +273,37 @@ export default class CacheSatellite extends Satellite {
    * @param retry If defined keep retrying until the lock is free to be re-obtained.
    * @param startTime This should not be used by the user.
    */
-  public async checkLock(key: string, retry: boolean | number = false, startTime: number = new Date().getTime()) {
+  public async checkLock(
+    key: string,
+    retry: false | number,
+    startTimeParam: Option<number> = none(),
+  ): Promise<boolean> {
+    // when is the first call to the function this is a None, so we must to assign the current timestamp
+    const startTime = startTimeParam.orElse(() => some(new Date().getTime()));
+
     const lockedBy = await this.client.get(this.lockPrefix + key);
 
-    // If the lock name is equals to this instance lock name, the resource
-    // can be used
+    // If the lock name is equals to this instance lock name, the resource can be used
     if (lockedBy === this.lockName || lockedBy === null) {
       return true;
     }
 
     // Compute the time variation between the request and the response
-    const delta = new Date().getTime() - startTime;
+    const delta = startTime.map((val) => new Date().getTime() - val);
 
-    if (retry === false || delta > retry) {
+    if (retry === false || delta.unwrap() > retry) {
       return false;
     }
 
-    await this.api.utils.deplay(this.lockRetry);
+    await this.api.utils.delay(this.lockRetry);
     return this.checkLock(key, retry, startTime);
   }
 
   /**
    * Get all existing locks.
    */
-  public locks() {
-    return this.api.redis.clients.client.keys(`${this.lockPrefix}*`);
+  public locks(): Promise<Array<string>> {
+    return this.api.redis.clients.client.keys(`${this.lockPrefix}*`) ?? [];
   }
 
   /**
@@ -268,15 +312,14 @@ export default class CacheSatellite extends Satellite {
    * @param key           Key to lock.
    * @param expireTimeMS  Expire time (optional)
    */
-  public async lock(key: string, expireTimeMS: number | null = null): Promise<boolean> {
-    if (expireTimeMS === null) {
-      expireTimeMS = this.lockDuration;
-    }
+  public async lock(key: string, expireTimeMSParam: Option<number>): Promise<Result<boolean, CacheErrors>> {
+    // when the expire time isn't given we use the default one
+    const expireTimeMS = expireTimeMSParam.orElse(() => some(this.lockDuration)).unwrap();
 
-    // when the resource is locked we can change the lock
-    const lockOk = await this.checkLock(key);
+    // when the resource is locked we can't do nothing
+    const lockOk = await this.checkLock(key, false);
     if (!lockOk) {
-      return false;
+      return ok(false);
     }
 
     // create a new lock
@@ -284,13 +327,12 @@ export default class CacheSatellite extends Satellite {
     await this.client.setnx(lockKey, this.lockName);
 
     // set an expire date for the lock
-    try {
-      await this.client.expire(lockKey, Math.ceil(expireTimeMS / 1000));
-    } catch (e) {
-      return false;
-    }
-
-    return true;
+    return (await unsafeAsync(() => this.client.expire(lockKey, Math.ceil(expireTimeMS / 1000)))).match<
+      Result<boolean, CacheErrors>
+    >({
+      err: () => err(CacheErrors.other),
+      ok: () => ok(true),
+    });
   }
 
   /**
@@ -300,19 +342,16 @@ export default class CacheSatellite extends Satellite {
    */
   public async unlock(key: string): Promise<boolean> {
     // check the lock state, if already unlocked returns.
-    try {
-      await this.checkLock(key, false);
-    } catch (e) {
+    const hasLock = await this.checkLock(key, false);
+    if (!hasLock) {
       return false;
     }
 
-    try {
-      await this.client.del(this.lockPrefix + key);
-    } catch (e) {
-      return false;
-    }
-
-    return true;
+    // remove the lock
+    return (await unsafeAsync(() => this.client.del(this.lockPrefix + key))).match({
+      err: always(false),
+      ok: always(true),
+    });
   }
 
   /**
@@ -321,9 +360,9 @@ export default class CacheSatellite extends Satellite {
    * @param key       List key.
    * @param item      Item to cache.
    */
-  public push(key: string, item: any): Promise<void> {
+  public push<T>(key: string, item: T): Promise<void> {
     const object = JSON.stringify({ data: item });
-    return this.api.client.rpush(this.redisPrefix + key, object);
+    return this.client.rpush(this.redisPrefix + key, object);
   }
 
   /**
@@ -333,15 +372,15 @@ export default class CacheSatellite extends Satellite {
    *
    * @param key       Key to search for.
    */
-  public async pop(key: string): Promise<any> {
+  public async pop<T>(key: string): Promise<Option<T>> {
     const object = await this.client.lpop(this.redisPrefix + key);
 
     if (!object) {
-      return null;
+      return none();
     }
 
     const item = JSON.parse(object);
-    return item.data;
+    return some(item.data);
   }
 
   /**
@@ -349,7 +388,7 @@ export default class CacheSatellite extends Satellite {
    *
    * @param key       Key to search for.
    */
-  public listLength(key: string) {
+  public listLength(key: string): Promise<number> {
     return this.client.llen(this.redisPrefix + key);
   }
 }

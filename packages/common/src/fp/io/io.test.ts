@@ -28,7 +28,11 @@ describe("IO", () => {
   });
 
   test("doing an unsafe operation", () => {
-    const container = io(() => unsafe(() => 1 / 0));
+    const container = io(() =>
+      unsafe(() => {
+        throw new Error("something wrong");
+      }),
+    );
 
     expect(container.run().isErr()).toBeTruthy();
   });

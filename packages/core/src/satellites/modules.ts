@@ -8,8 +8,8 @@ import * as ts from "typescript";
 import { requireFile } from "@stellarfw/common/lib";
 
 export default class ModulesSatellite extends Satellite {
-  protected _name: string = "modules";
-  public loadPriority: number = 1;
+  protected _name = "modules";
+  public loadPriority = 1;
 
   /**
    * Map with the active modules.
