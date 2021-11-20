@@ -13,3 +13,4 @@ export * from "./satellite.interface";
 export * from "./task-metadata.interface";
 export * from "./cache-object.interface";
 export * from "./cache-satellite.interface";
+export * from "./validator-satellite.interface";

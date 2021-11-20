@@ -1,18 +1,65 @@
-import { Satellite } from "@stellarfw/common/lib";
+import {
+  API,
+  err,
+  IValidatorSatellite,
+  ok,
+  panic,
+  Result,
+  Satellite,
+  ValidatorErrors,
+  ValidatorFunction,
+  ValidatorRules,
+  ParsedRules,
+} from "@stellarfw/common/lib";
 
-const Messages = require("../../static-files/validator-messages.json");
+import * as Messages from "../base/validator-messages.json";
 
 /**
- * This class is used to describe an invalid argument exceptions.
+ * Require a certain number of parameters to be present.
+ *
+ * @param Number int
+ * @param Array parameters
+ * @param String rule
  */
-export class InvalidArgumentException extends Error {
-  public name = "InvalidArgumentException";
+const requireParameterCount = <T>(count: number, parameters: Array<T>, rule: string): Result<true, string> =>
+  !parameters || parameters.length < count
+    ? err(`Validation rule ${rule} requires at least ${count} parameters.`)
+    : ok(true);
 
-  constructor(message) {
-    super();
-    this.message = message;
-  }
-}
+/**
+ * Parse the rules and return a structured hash with all information.
+ */
+const parseRules = (rules: ValidatorRules): ParsedRules =>
+  Object.keys(rules).reduce((result, fieldName) => {
+    const fieldRule = rules[fieldName];
+
+    // when the validator is a function
+    if (typeof fieldRule === "function") {
+      return { ...result, [fieldName]: { function: [] } };
+    }
+
+    // when the validator is a regular expression
+    if (fieldRule instanceof RegExp) {
+      return { ...result, [fieldName]: { regex: [fieldRule.source, fieldRule.flags] } };
+    }
+
+    // each validator is separated by a pipe, split by it and process each one of them individually
+    const fieldParsedRules = fieldRule.split("|").reduce((rules, validatorEntry) => {
+      // some validators have arguments, those arguments are passed after a ":" char. If the validator has multiple
+      // arguments they can be specified by using a comma
+      const parts = validatorEntry.split(":");
+      return parts[1] ? { ...rules, [parts[0]]: parts[1].split(",") } : { ...rules, [parts[0]]: [] };
+    }, {});
+    return { ...result, [fieldName]: fieldParsedRules };
+  }, {});
+
+/**
+ * Normalize a rule name.
+ */
+const normalizeRuleName = (ruleName: string, api: API): string => {
+  const camelCase = api.utils.snakeToCamel(ruleName);
+  return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
+};
 
 /**
  * This class allow developers testes values against a set of validators.
@@ -25,19 +72,9 @@ export class InvalidArgumentException extends Error {
  *   api.validator.validate(validatorString, params, keyToValidate)
  * </code>
  */
-export default class ValidatorSatellite extends Satellite {
-  protected _name: string = "validator";
-  public loadPriority: number = 400;
-
-  /**
-   * Request parameters.
-   */
-  public params: {} = {};
-
-  /**
-   * Request rules.
-   */
-  public rules: {} = {};
+export default class ValidatorSatellite extends Satellite implements IValidatorSatellite {
+  protected _name = "validator";
+  public loadPriority = 400;
 
   /**
    * Array with the implicit validators.
@@ -61,23 +98,8 @@ export default class ValidatorSatellite extends Satellite {
   /**
    * Check if it is a valid validator.
    */
-  private isAValidator(validator) {
-    return this[`validator${validator}`] !== undefined;
-  }
-
-  /**
-   * Require a certain number of parameters to be present.
-   *
-   * @param Number int
-   * @param Array parameters
-   * @param String rule
-   *
-   * @throws InvalidArgumentException
-   */
-  private requireParameterCount(count: number, parameters: Array<any>, rule: string) {
-    if (!parameters || parameters.length < count) {
-      throw new InvalidArgumentException(`Validation rule ${rule} requires at least ${count} parameters.`);
-    }
+  isValidator(name: string): boolean {
+    return this[`validator${name}`] !== undefined;
   }
 
   /**
@@ -91,7 +113,7 @@ export default class ValidatorSatellite extends Satellite {
   private doReplacements(message: string, attribute: string, _rule: string, parameters: Array<any>) {
     message = message.replace(/:attribute/gi, attribute);
 
-    const rule = this.normalizeRuleName(_rule);
+    const rule = normalizeRuleName(_rule, this.api);
 
     // check if there is a specific replacer for this type of rule
     const replacerMethod = `replace${rule}`;
@@ -102,14 +124,14 @@ export default class ValidatorSatellite extends Satellite {
     return message;
   }
 
-  private getMessage(attribute, rule) {
+  private getMessage(rules: ParsedRules, attribute, rule) {
     // check if is a size rule
     if (this.sizeRules.indexOf(rule) > -1) {
       let type: string;
 
-      if (this.attributeHasRule(attribute, "numeric")) {
+      if (this.attributeHasRule(rules, attribute, "numeric")) {
         type = "numeric";
-      } else if (this.attributeHasRule(attribute, "array")) {
+      } else if (this.attributeHasRule(rules, attribute, "array")) {
         type = "array";
       } else {
         type = "string";
@@ -124,79 +146,34 @@ export default class ValidatorSatellite extends Satellite {
   /**
    * This check if one attribute has a specific rule.
    */
-  private attributeHasRule(attribute: string, rule: string) {
-    if (!this.rules[attribute]) {
-      return false;
-    }
-
-    return this.rules[attribute][rule] !== undefined;
+  private attributeHasRule(rules: ParsedRules, attribute: string, rule: string) {
+    return rules[attribute]?.[rule] ?? false;
   }
 
   /**
    * Add an error message to the errors hash.
    *
-   * @todo add support for translation.
+   * TODO: add support for translation.
    */
-  private _addFailure(attribute: string, rule: string, parameters: Array<string>, errors: Map<string, string>) {
-    // get the error message
-    let message = this.getMessage(attribute, rule);
+  private addFailure(
+    errors: Array<string>,
+    rules: ParsedRules,
+    attribute: string,
+    rule: string,
+    parameters: Array<string>,
+  ): Array<string> {
+    // get the error message from the default error message catalog
+    let message = this.getMessage(rules, attribute, rule);
 
     // if there is no message for the validator throw an error
     if (message === undefined) {
-      throw new Error(`No error message was been specified for the '${rule}' validator`);
+      panic(`No error message was been specified for the '${rule}' validator`);
     }
 
     // replace the fields on the error message
     message = this.doReplacements(message, attribute, rule, parameters);
 
-    // set the error message on the errors hash
-    errors.set(attribute, message);
-  }
-
-  /**
-   * Parse the rules and return a structured hash with all information.
-   */
-  private parseRules(rules) {
-    const result = {};
-
-    // iterate all fields
-    for (const fieldName in rules) {
-      if (!rules.hasOwnProperty(fieldName)) {
-        continue;
-      }
-
-      const field: any = {};
-
-      // some fields can be a RegExp instance, so we need convert them into a
-      // regular validator
-      if (rules[fieldName] instanceof RegExp) {
-        const reg = rules[fieldName];
-        field.regex = [reg.source, reg.flags];
-      } else if (typeof rules[fieldName] === "function") {
-        field.function = [];
-      } else {
-        // iterate all validators of the current field
-        rules[fieldName].split("|").forEach((validatorS) => {
-          const parts = validatorS.split(":");
-          const parameters = parts[1] ? parts[1].split(",") : [];
-
-          field[parts[0]] = parameters;
-        });
-      }
-
-      // add the field to the result hash
-      result[fieldName] = field;
-    }
-
-    return result;
-  }
-
-  /**
-   * Normalize a rule name.
-   */
-  private normalizeRuleName(ruleName: string) {
-    const camelCase = this.api.utils.snakeToCamel(ruleName);
-    return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
+    return [...errors, message];
   }
 
   /**
@@ -206,80 +183,52 @@ export default class ValidatorSatellite extends Satellite {
    * @param Object rules  Hash with the rules who the data will be validated
    *                      against with.
    */
-  private validate(data: {}, rules: {}) {
-    // hash with all founded errors
-    const errors = new Map();
+  public validate<T>(data: T, paramRules: ValidatorRules): Result<true, ValidatorErrors> {
+    // parse rules to make it easier to work with them
+    const rules = parseRules(paramRules);
 
-    // save the parameters on the validator instance. Some validators needs to
-    // access other parameters.
-    this.params = data;
+    const finalErrors = Object.keys(rules).reduce((errors: ValidatorErrors, fieldName) => {
+      // iterate all the rules associated with the current field
+      const fieldRules = rules[fieldName];
 
-    // parse all given rules and save them to use later
-    this.rules = this.parseRules(rules);
-
-    // iterate through the fields under validation
-    for (const fieldName in this.rules) {
-      if (!this.rules.hasOwnProperty(fieldName)) {
-        continue;
-      }
-
-      // get the data value for the current fields
-      const value = data[fieldName];
-
-      // iterate the rules applied to the current field
-      for (const ruleName in this.rules[fieldName]) {
-        if (!this.rules[fieldName].hasOwnProperty(ruleName)) {
-          continue;
-        }
-
-        // get the rules parameters
-        const ruleParameters = this.rules[fieldName][ruleName];
-
-        // if the property has undefined only implicit validators can be applied
-        if (value === undefined && this.implicitValidators.indexOf(ruleName) === -1) {
-          break;
-        }
-
-        // the validation can be a function. We must do all the validation here
-        // and we must `continue` at the end
+      const fieldErrors = Object.keys(fieldRules).reduce((fieldErrors: Array<string>, ruleName: string) => {
+        // the validation can be a function. We must do all the validation here.
         if (ruleName === "function") {
-          let funcResponse = null;
-
-          // execute the function. The API context and the param value must be
-          // passed. If the response is a string that means the validations
-          // fails, that string will be used as a error message.
-          funcResponse = rules[fieldName].call(this.api, data[fieldName]);
-
-          if (typeof funcResponse === "string") {
-            errors.set(fieldName, funcResponse);
-          } else if (funcResponse === false) {
-            errors.set(fieldName, `The ${fieldName} field do not match with the validator function.`);
-          }
-
-          continue;
+          return (paramRules.function as ValidatorFunction)(data[fieldName]).match({
+            err: (errorMsg) => [...fieldErrors, errorMsg],
+            // when a validation function returns Ok, doesn't mean the value is valid. If it returns `false`, we must
+            // add an error message.
+            ok: (validationResult) =>
+              !validationResult
+                ? [...fieldErrors, `The ${fieldName} field do not match with the validator function.`]
+                : fieldErrors,
+          });
         }
 
-        // convert the rule to camel case
-        const ruleNormalized = this.normalizeRuleName(ruleName);
+        const ruleNameNormalized = normalizeRuleName(ruleName, this.api);
 
         // before continue we check if the validator exists
-        if (!this.isAValidator(ruleNormalized)) {
-          throw new Error(`The is no validator named '${ruleName}'`);
+        if (!this.isValidator(ruleNameNormalized)) {
+          panic(`The is no validator named '${ruleName}'`);
         }
 
-        // execute the correspondent validator and if the response if `false` a
-        // failure message will be added to the errors hash. The exec methods
-        // also can return
-        if (!this[`validator${ruleNormalized}`](value, ruleParameters, fieldName)) {
-          this._addFailure(fieldName, ruleName, ruleParameters, errors);
-          continue;
-        }
-      }
-    }
+        // execute the correspondent validator and if the response if `false` or `Err` a  failure message will be added
+        // to the errors object.
+        const value = data[fieldName];
+        const ruleArgs = fieldRules[ruleName];
 
-    // it was found no errors is returned true, otherwise a hash with all the
-    // errors is returned
-    return errors.size === 0 ? true : errors;
+        return (
+          this[`validator${ruleNameNormalized}`](value, ruleArgs, fieldName, data, rules) as Result<boolean, string>
+        ).match({
+          err: (errorMsg) => [...fieldErrors, errorMsg],
+          ok: (v) => (v === false ? this.addFailure(fieldErrors, rules, fieldName, ruleName, ruleArgs) : fieldErrors),
+        });
+      }, []);
+
+      return fieldErrors.length === 0 ? errors : { ...errors, [fieldName]: fieldErrors };
+    }, {});
+
+    return Object.keys(finalErrors).length === 0 ? ok(true) : err(finalErrors);
   }
 
   // --------------------------------------------------------------------------- [Validators]
@@ -290,8 +239,8 @@ export default class ValidatorSatellite extends Satellite {
    * @param value
    * @returns {boolean}
    */
-  public validatorAlpha(value) {
-    return typeof value === "string" && /^[a-zA-Z]*$/.test(value);
+  public validatorAlpha(value): Result<boolean, string> {
+    return ok(typeof value === "string" && /^[a-zA-Z]*$/.test(value));
   }
 
   /**
@@ -300,8 +249,8 @@ export default class ValidatorSatellite extends Satellite {
    * @param value
    * @returns {boolean}
    */
-  public validatorAlphaNum(value) {
-    return /^[a-zA-Z0-9]*$/.test(value);
+  public validatorAlphaNum(value): Result<boolean, string> {
+    return ok(/^[a-zA-Z0-9]*$/.test(value));
   }
 
   /**
@@ -310,8 +259,8 @@ export default class ValidatorSatellite extends Satellite {
    * @param value
    * @returns {boolean}
    */
-  public validatorAlphaDash(value) {
-    return /^[a-zA-Z0-9-_]*$/.test(value);
+  public validatorAlphaDash(value): Result<boolean, string> {
+    return ok(/^[a-zA-Z0-9-_]*$/.test(value));
   }
 
   /**
@@ -320,8 +269,8 @@ export default class ValidatorSatellite extends Satellite {
    * @param value
    * @returns {boolean}
    */
-  public validatorArray(value) {
-    return Array.isArray(value);
+  public validatorArray(value): Result<boolean, string> {
+    return ok(Array.isArray(value));
   }
 
   /**
@@ -331,33 +280,44 @@ export default class ValidatorSatellite extends Satellite {
    * @param args
    * @returns {*}
    */
-  public validatorBefore(value, args) {
-    this.requireParameterCount(1, args, "before");
+  public validatorBefore(value, args): Result<boolean, string> {
+    const paramRes = requireParameterCount(1, args, "before");
+    if (paramRes.isErr()) {
+      return paramRes;
+    }
 
     // check if the argument are valid
-    if (isNaN(Date.parse(args))) {
-      throw new Error("the specified argument is not a valid date");
+    if (isNaN(Date.parse(args[0]))) {
+      return err("The specified argument is not a valid date");
     }
 
     // check if the value if a date
     if (isNaN(Date.parse(value))) {
-      return false;
+      return ok(false);
     }
 
     // check if the specified date is less than the required date
-    return Date.parse(value) < Date.parse(args);
+    return ok(Date.parse(value) < Date.parse(args));
   }
 
-  public validatorAfter(value, args) {
-    this.requireParameterCount(1, args, "after");
+  public validatorAfter(value, args): Result<boolean, string> {
+    const paramRes = requireParameterCount(1, args, "after");
+    if (paramRes.isErr()) {
+      return paramRes;
+    }
+
+    // check if the argument are valid
+    if (isNaN(Date.parse(args[0]))) {
+      return err("The specified argument is not a valid date");
+    }
 
     // check if the argument are valid
     if (isNaN(Date.parse(args))) {
-      return false;
+      return ok(false);
     }
 
     // check if the specified date is greater than the required date
-    return Date.parse(value) > Date.parse(args);
+    return ok(Date.parse(value) > Date.parse(args));
   }
 
   /**
@@ -367,17 +327,20 @@ export default class ValidatorSatellite extends Satellite {
    * @param args
    * @returns {*}
    */
-  public validatorBetween(value, args) {
-    this.requireParameterCount(2, args, "between");
+  public validatorBetween(value, args): Result<boolean, string> {
+    const paramsRes = requireParameterCount(2, args, "between");
+    if (paramsRes.isErr()) {
+      return paramsRes;
+    }
 
     // check if the value is valid
     if (typeof value === "string") {
-      return value.length >= args[0] && value.length <= args[1];
+      return ok(value.length >= args[0] && value.length <= args[1]);
     } else if (typeof value === "number") {
-      return value >= args[0] && value <= args[1];
+      return ok(value >= args[0] && value <= args[1]);
     }
 
-    return false;
+    return ok(false);
   }
 
   /**
@@ -386,8 +349,8 @@ export default class ValidatorSatellite extends Satellite {
    * @param value
    * @returns {boolean}
    */
-  public validatorBoolean(value) {
-    return typeof value === "boolean";
+  public validatorBoolean(value): Result<boolean, string> {
+    return ok(typeof value === "boolean");
   }
 
   /**
@@ -398,21 +361,21 @@ export default class ValidatorSatellite extends Satellite {
    * @param key
    * @returns {*}
    */
-  public validatorConfirmed(value, args, key) {
+  public validatorConfirmed<T, D>(value: T, _: unknown, field: string, data: D): Result<boolean, string> {
     // build the confirmation field name
-    const confirmationFieldName = `${key}_confirmation`;
+    const confirmationFieldName = `${field}_confirmation`;
 
     // check if the confirmation field are not present
-    if (this.params[confirmationFieldName] === undefined) {
-      return false;
+    if (data[confirmationFieldName] === undefined) {
+      return ok(false);
     }
 
     // check if the values of two fields match
-    if (this.params[confirmationFieldName] !== value) {
-      return false;
+    if (data[confirmationFieldName] !== value) {
+      return ok(false);
     }
 
-    return true;
+    return ok(true);
   }
 
   /**
@@ -421,11 +384,8 @@ export default class ValidatorSatellite extends Satellite {
    * @param value
    * @returns {*}
    */
-  public validatorDate(value) {
-    if (isNaN(Date.parse(value))) {
-      return false;
-    }
-    return true;
+  public validatorDate(value): Result<boolean, string> {
+    return ok(!isNaN(Date.parse(value)));
   }
 
   /**
@@ -435,10 +395,13 @@ export default class ValidatorSatellite extends Satellite {
    * @param args
    * @returns {*}
    */
-  public validatorDifferent(value, args) {
-    this.requireParameterCount(1, args, "different");
+  public validatorDifferent<T, D>(value: T, args: [string], _: unknown, data: D): Result<boolean, string> {
+    const paramsRes = requireParameterCount(1, args, "different");
+    if (paramsRes.isErr()) {
+      return paramsRes;
+    }
 
-    return value !== this.params[args[0]];
+    return ok(value !== data[args[0]]);
   }
 
   /**
@@ -447,9 +410,11 @@ export default class ValidatorSatellite extends Satellite {
    * @param value
    * @returns {boolean}
    */
-  public validatorEmail(value) {
-    return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-      value,
+  public validatorEmail(value): Result<boolean, string> {
+    return ok(
+      /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
+        value,
+      ),
     );
   }
 
@@ -459,8 +424,8 @@ export default class ValidatorSatellite extends Satellite {
    * @param value
    * @returns {boolean}
    */
-  public validatorFilled(value) {
-    return value !== undefined && value !== null && value !== "";
+  public validatorFilled(value): Result<boolean, string> {
+    return ok(value !== undefined && value !== null && value !== "");
   }
 
   /**
@@ -470,14 +435,13 @@ export default class ValidatorSatellite extends Satellite {
    * @param args
    * @returns {*}
    */
-  public validatorIn(value, args) {
-    // check if the validator have a name
+  public validatorIn(value, args): Result<boolean, string> {
     if (args.length === 0) {
-      throw new Error("validator needs an array");
+      return err("validator needs an array");
     }
 
     // check if the array contains the value
-    return args.indexOf(String(value)) > -1;
+    return ok(args.indexOf(String(value)) > -1);
   }
 
   /**
@@ -487,14 +451,13 @@ export default class ValidatorSatellite extends Satellite {
    * @param args
    * @returns {*}
    */
-  public validatorNotIn(value, args) {
-    // check if the validator have a name
+  public validatorNotIn(value, args): Result<boolean, string> {
     if (args.length === 0) {
-      throw new Error("validator needs an array");
+      return err("validator needs an array");
     }
 
     // check if the array not contains the value
-    return args.indexOf(String(value)) === -1;
+    return ok(args.indexOf(String(value)) === -1);
   }
 
   /**
@@ -503,12 +466,12 @@ export default class ValidatorSatellite extends Satellite {
    * @param value
    * @returns {boolean}
    */
-  public validatorInteger(value) {
+  public validatorInteger(value): Result<boolean, string> {
     // try parse to pin
     const parsedValue = Number.parseInt(value);
 
     // check if is a number
-    return Number.isInteger(parsedValue);
+    return ok(Number.isInteger(parsedValue));
   }
 
   /**
@@ -517,8 +480,8 @@ export default class ValidatorSatellite extends Satellite {
    * @param value
    * @returns {boolean}
    */
-  public validatorIp(value) {
-    return /^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/.test(value);
+  public validatorIp(value): Result<boolean, string> {
+    return ok(/^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/.test(value));
   }
 
   /**
@@ -527,16 +490,16 @@ export default class ValidatorSatellite extends Satellite {
    * @param value
    * @returns {boolean}
    */
-  public validatorJson(value) {
+  public validatorJson(value): Result<boolean, string> {
     try {
       const o = JSON.parse(value);
 
       if (o && typeof o === "object" && o !== null) {
-        return true;
+        return ok(true);
       }
     } catch (e) {}
 
-    return false;
+    return ok(false);
   }
 
   /**
@@ -546,16 +509,18 @@ export default class ValidatorSatellite extends Satellite {
    * @param args
    * @returns {*}
    */
-  public validatorMax(value, args) {
-    this.requireParameterCount(1, args, "max");
+  public validatorMax(value, args): Result<boolean, string> {
+    const paramsRes = requireParameterCount(1, args, "max");
+    if (paramsRes.isErr()) {
+      return paramsRes;
+    }
 
     if (typeof value === "string" || value instanceof Array) {
-      return value.length <= args[0];
+      return ok(value.length <= args[0]);
     } else if (typeof value === "number") {
-      return value <= args[0];
-    } else {
-      return false;
+      return ok(value <= args[0]);
     }
+    return ok(false);
   }
 
   /**
@@ -565,16 +530,19 @@ export default class ValidatorSatellite extends Satellite {
    * @param args
    * @returns {*}
    */
-  public validatorMin(value, args) {
-    this.requireParameterCount(1, args, "min");
-
-    if (typeof value === "string" || value instanceof Array) {
-      return value.length >= args[0];
-    } else if (typeof value === "number") {
-      return value >= args[0];
+  public validatorMin(value, args): Result<boolean, string> {
+    const paramsRes = requireParameterCount(1, args, "min");
+    if (paramsRes.isErr()) {
+      return paramsRes;
     }
 
-    return false;
+    if (typeof value === "string" || value instanceof Array) {
+      return ok(value.length >= args[0]);
+    } else if (typeof value === "number") {
+      return ok(value >= args[0]);
+    }
+
+    return ok(false);
   }
 
   /**
@@ -583,8 +551,8 @@ export default class ValidatorSatellite extends Satellite {
    * @param value
    * @returns {boolean}
    */
-  public validatorRequired(value) {
-    return value !== undefined;
+  public validatorRequired(value): Result<boolean, string> {
+    return ok(value !== undefined);
   }
 
   /**
@@ -593,12 +561,15 @@ export default class ValidatorSatellite extends Satellite {
    * @param Mixed value
    * @param Array parameters
    */
-  public validatorRegex(value, parameters) {
-    this.requireParameterCount(1, parameters, "regex");
+  public validatorRegex(value, parameters): Result<boolean, string> {
+    const paramsRes = requireParameterCount(1, parameters, "regex");
+    if (paramsRes.isErr()) {
+      return paramsRes;
+    }
 
     // create an RegEx instance and validate
     const regex = new RegExp(parameters[0], parameters[1] || "");
-    return regex.test(value);
+    return ok(regex.test(value));
   }
 
   /**
@@ -607,8 +578,8 @@ export default class ValidatorSatellite extends Satellite {
    * @param value
    * @returns {boolean}
    */
-  public validatorNumeric(value) {
-    return typeof value === "number";
+  public validatorNumeric(value): Result<boolean, string> {
+    return ok(typeof value === "number");
   }
 
   /**
@@ -618,34 +589,39 @@ export default class ValidatorSatellite extends Satellite {
    * @param args
    * @returns {*}
    */
-  public validatorRequiredIf(value, args) {
-    this.requireParameterCount(2, args, "required_if");
+  public validatorRequiredIf<T, D>(value: T, args: [string], _: unknown, data: D): Result<boolean, string> {
+    const paramsRes = requireParameterCount(2, args, "required_if");
+    if (paramsRes.isErr()) {
+      return paramsRes;
+    }
 
     // if the args[0] param value is present in the values array the value is required
-    if (args.indexOf(String(this.params[args[0]])) > -1) {
+    if (args.indexOf(String(data[args[0]])) > -1) {
       return this.validatorFilled(value);
     }
 
-    return true;
+    return ok(true);
   }
 
   /**
-   * The field under validation must be present unless the args[0] is equal to
-   * any value.
+   * The field under validation must be present unless the args[0] is equal to any value.
    *
    * @param value
    * @param args
    * @returns {*}
    */
-  public validatorRequiredUnless(value, args) {
-    this.requireParameterCount(2, args, "required_unless");
+  public validatorRequiredUnless<T, D>(value: T, args: [string], _: unknown, data: D): Result<boolean, string> {
+    const paramsRes = requireParameterCount(2, args, "required_unless");
+    if (paramsRes.isErr()) {
+      return paramsRes;
+    }
 
     // if the parameter not have a valid value the current parameter is required
-    if (args.indexOf(String(this.params[args[0]])) === -1) {
+    if (args.indexOf(String(data[args[0]])) === -1) {
       return this.validatorFilled(value);
     }
 
-    return true;
+    return ok(true);
   }
 
   /**
@@ -656,8 +632,11 @@ export default class ValidatorSatellite extends Satellite {
    * @param args
    * @returns {*}
    */
-  public validatorRequiredWith(value, args) {
-    this.requireParameterCount(1, args, "required_with");
+  public validatorRequiredWith<T, D>(value: T, args: Array<string>, _: unknown, data: D): Result<boolean, string> {
+    const paramsRes = requireParameterCount(1, args, "required_with");
+    if (paramsRes.isErr()) {
+      return paramsRes;
+    }
 
     // check if one of the parameters are present
     for (const index in args) {
@@ -666,12 +645,12 @@ export default class ValidatorSatellite extends Satellite {
       }
 
       const paramName = args[index];
-      if (this.params[paramName] !== undefined) {
+      if (data[paramName] !== undefined) {
         return this.validatorFilled(value);
       }
     }
 
-    return true;
+    return ok(true);
   }
 
   /**
@@ -682,8 +661,11 @@ export default class ValidatorSatellite extends Satellite {
    * @param args
    * @returns {*}
    */
-  public validatorRequiredWithAll(value, args) {
-    this.requireParameterCount(2, args, "required_with_all");
+  public validatorRequiredWithAll<T, D>(value: T, args: Array<string>, _: unknown, data: D): Result<boolean, string> {
+    const paramsRes = requireParameterCount(2, args, "required_with_all");
+    if (paramsRes.isErr()) {
+      return paramsRes;
+    }
 
     // check if all the parameters are present
     for (const index in args) {
@@ -692,8 +674,8 @@ export default class ValidatorSatellite extends Satellite {
       }
 
       const paramName = args[index];
-      if (this.params[paramName] === undefined) {
-        return true;
+      if (data[paramName] === undefined) {
+        return ok(true);
       }
     }
 
@@ -709,8 +691,11 @@ export default class ValidatorSatellite extends Satellite {
    * @param args
    * @returns {*}
    */
-  public validatorRequiredWithout(value, args) {
-    this.requireParameterCount(1, args, "required_without");
+  public validatorRequiredWithout<T, D>(value: T, args: Array<string>, _: unknown, data: D): Result<boolean, string> {
+    const paramsRes = requireParameterCount(1, args, "required_without");
+    if (paramsRes.isErr()) {
+      return paramsRes;
+    }
 
     // if one of the fields are not present the field under validation is required
     for (const index in args) {
@@ -719,12 +704,12 @@ export default class ValidatorSatellite extends Satellite {
       }
 
       const paramName = args[index];
-      if (this.params[paramName] === undefined) {
+      if (data[paramName] === undefined) {
         return this.validatorFilled(value);
       }
     }
 
-    return true;
+    return ok(true);
   }
 
   /**
@@ -735,8 +720,16 @@ export default class ValidatorSatellite extends Satellite {
    * @param args
    * @returns {*}
    */
-  public validatorRequiredWithoutAll(value, args) {
-    this.requireParameterCount(2, args, "required_without_all");
+  public validatorRequiredWithoutAll<T, D>(
+    value: T,
+    args: Array<string>,
+    _: unknown,
+    data: D,
+  ): Result<boolean, string> {
+    const paramsRes = requireParameterCount(2, args, "required_without_all");
+    if (paramsRes.isErr()) {
+      return paramsRes;
+    }
 
     for (const index in args) {
       if (!args.hasOwnProperty(index)) {
@@ -746,8 +739,8 @@ export default class ValidatorSatellite extends Satellite {
       const paramName = args[index];
 
       // if one of the fields are not present we can stop right here
-      if (this.params[paramName] !== undefined) {
-        return true;
+      if (data[paramName] !== undefined) {
+        return ok(true);
       }
     }
 
@@ -761,10 +754,13 @@ export default class ValidatorSatellite extends Satellite {
    * @param args
    * @returns {*}
    */
-  public validatorSame(value, args) {
-    this.requireParameterCount(1, args, "same");
+  public validatorSame<T, D>(value: T, args: [string], _: unknown, data: D): Result<boolean, string> {
+    const paramsRes = requireParameterCount(1, args, "same");
+    if (paramsRes.isErr()) {
+      return paramsRes;
+    }
 
-    return this.params[args[0]] === value;
+    return ok(data[args[0]] === value);
   }
 
   /**
@@ -773,18 +769,21 @@ export default class ValidatorSatellite extends Satellite {
    * @param value
    * @param args
    */
-  public validatorSize(value, args: Array<any>) {
-    this.requireParameterCount(1, args, "size");
+  public validatorSize(value, args: Array<any>): Result<boolean, string> {
+    const paramsRes = requireParameterCount(1, args, "size");
+    if (paramsRes.isErr()) {
+      return paramsRes;
+    }
 
     const length = parseInt(args[0], 10);
 
     if (typeof value === "string" || value instanceof Array) {
-      return value.length === length;
+      return ok(value.length === length);
     } else if (typeof value === "number") {
-      return value === length;
-    } else {
-      return false;
+      return ok(value === length);
     }
+
+    return ok(false);
   }
 
   /**
@@ -793,8 +792,8 @@ export default class ValidatorSatellite extends Satellite {
    * @param value
    * @returns {boolean}
    */
-  public validatorUrl(value: string): boolean {
-    return /^(http|ftp|https):\/\/[\w-]+(\.[\w-]*)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?$/.test(value);
+  public validatorUrl(value: string): Result<boolean, string> {
+    return ok(/^(http|ftp|https):\/\/[\w-]+(\.[\w-]*)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?$/.test(value));
   }
 
   // --------------------------------------------------------------------------- [Replacers]

@@ -1,5 +1,5 @@
+import { ICacheSatellite, IValidatorSatellite } from ".";
 import { EngineStatus } from "..";
-import { ICacheSatellite } from "./cache-satellite.interface";
 
 export interface API {
   /**
@@ -16,6 +16,11 @@ export interface API {
    * Cache satellite.
    */
   cache: ICacheSatellite;
+
+  /**
+   * Validator satellite.
+   */
+  validator: IValidatorSatellite;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
