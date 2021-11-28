@@ -1,14 +1,15 @@
+import { API, panic } from ".";
 import { SatelliteInterface } from "./interfaces/satellite.interface";
 
 export abstract class Satellite implements SatelliteInterface {
-  public loadPriority: number = 100;
-  public startPriority: number = 100;
-  public stopPriority: number = 100;
+  public loadPriority = 100;
+  public startPriority = 100;
+  public stopPriority = 100;
 
-  protected api: any = null;
+  protected api!: API;
   protected _name!: string;
 
-  constructor(api: any) {
+  constructor(api) {
     this.api = api;
   }
 
@@ -17,6 +18,6 @@ export abstract class Satellite implements SatelliteInterface {
   }
 
   public load(): Promise<void> {
-    throw new Error("Method not implemented.");
+    panic("Method not implemented.");
   }
 }

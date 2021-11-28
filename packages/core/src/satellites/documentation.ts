@@ -1,7 +1,6 @@
 import { Satellite } from "@stellarfw/common/lib";
 import { readFileSync, writeFileSync } from "fs";
 import * as Handlebars from "handlebars";
-import { ACTION_METADATA } from "@stellarfw/common/lib/constants";
 import { Action } from "@stellarfw/common";
 
 export default class DocumentationSatellite extends Satellite {
@@ -91,8 +90,7 @@ export default class DocumentationSatellite extends Satellite {
           continue;
         }
 
-        const actionMetadata = Reflect.getMetadata(ACTION_METADATA, actions[actionName][versionNumber]);
-
+        const actionMetadata = actions[actionName][versionNumber];
         const action = this.prepareActionToPrint(actionMetadata);
 
         action.version = versionNumber;

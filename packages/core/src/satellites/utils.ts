@@ -3,7 +3,6 @@ import { setTimeout } from "timers";
 import {
   readdirSync,
   statSync,
-  Stats,
   existsSync,
   readlinkSync,
   unlinkSync,
@@ -12,7 +11,6 @@ import {
   createReadStream,
   createWriteStream,
   accessSync,
-  unlink,
 } from "fs";
 import { normalize, dirname } from "path";
 import { F_OK } from "constants";
@@ -69,8 +67,8 @@ class Utils {
    * @param extensions File extension filter. By default the filter is
    * 'js.
    */
-  public recursiveDirSearch(dir: string, extensions: string | Array<String> = ["js"]): Array<string> {
-    let results: Array<any> = [];
+  public recursiveDirSearch(dir: string, extensions: string | Array<string> = ["js", "mjs"]): Array<string> {
+    let results: Array<string> = [];
 
     const innerExtensions = Array.isArray(extensions) ? extensions : [extensions];
 
@@ -119,7 +117,7 @@ class Utils {
    *
    * @param path Path where the directory must be created.
    */
-  public createDir(path: string, mode: number = 0o777): void {
+  public createDir(path: string, mode = 0o777): void {
     try {
       mkdirSync(path, mode);
     } catch (e) {
@@ -504,8 +502,8 @@ class Utils {
 }
 
 export default class UtilsSatellite extends Satellite {
-  public loadPriority: number = 0;
-  protected _name: string = "Utils";
+  public loadPriority = 0;
+  protected _name = "Utils";
 
   public async load(): Promise<void> {
     this.api.utils = new Utils(this.api);

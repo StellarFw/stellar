@@ -1,6 +1,6 @@
 export type MiddlewareHandler = () => void;
 
-export interface MiddlewareInterface {
+export interface IMiddleware {
   /**
    * Name of the Middleware.
    */

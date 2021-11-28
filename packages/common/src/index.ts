@@ -1,5 +1,3 @@
-import "reflect-metadata";
-
 export * from "./fp";
 export * from "./fp-utils";
 

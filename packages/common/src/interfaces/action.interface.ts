@@ -1,5 +1,5 @@
 import { API } from ".";
-import { Result } from "..";
+import { Option, Result } from "..";
 import { LogLevel } from "../enums/log-level.enum";
 
 export type InputType = "string" | "number" | "object" | "array";
@@ -59,7 +59,7 @@ export interface ActionInputMap {
 /**
  * Action behaviour.
  */
-export type ActionRunFunction<R, I, E = string> = (params: I) => Promise<Result<R, E>>;
+export type ActionRunFunction<R, I, E = string> = (params: I, api: API) => Promise<Result<R, E>>;
 
 export interface Action<R, I, E = string> {
   /**
@@ -109,6 +109,7 @@ export interface Action<R, I, E = string> {
    *
    * This example will be used in automatic documentation.
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   outputExample?: any;
 
   /**
@@ -146,6 +147,16 @@ export interface Action<R, I, E = string> {
    * Action logic.
    */
   run: ActionRunFunction<R, I, E>;
+
+  // -- Internal properties
+
+  /**
+   * Path to the action.
+   *
+   * This is only used internally to know the origen of the action. This should not be used by the end user, and this
+   * will be overwritten by the the core itself.
+   */
+  path?: Option<string>;
 }
 
 /**

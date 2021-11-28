@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import "source-map-support/register";
-import "reflect-metadata";
 
 import { resolve, normalize, basename } from "path";
 
