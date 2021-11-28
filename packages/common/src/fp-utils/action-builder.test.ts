@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Action, asyncAlways, ok, pipeInto } from "..";
-import { behaviour, createAction, input } from "./action-builder";
+import { behavior, createAction, input } from "./action-builder";
 
 describe("Common", () => {
   describe("Action Builder", () => {
@@ -9,7 +10,7 @@ describe("Common", () => {
 
         expect(action.name).toBe("example");
         expect(action.description).toBeUndefined();
-        expect((await action.run({})).isErr()).toBeTruthy();
+        expect((await action.run({}, {} as any)).isErr()).toBeTruthy();
       });
 
       test("when the second argument is given define the action description", () => {
@@ -27,10 +28,10 @@ describe("Common", () => {
       expect(action.inputs.a.required).toBeTruthy();
     });
 
-    test("behaviour generate an unary function to set the action behaviour", async () => {
-      const action: Action<number, unknown> = pipeInto(createAction("test"), behaviour(asyncAlways(ok(1))));
+    test("behavior generate an unary function to set the action behavior", async () => {
+      const action: Action<number, unknown> = pipeInto(createAction("test"), behavior(asyncAlways(ok(1))));
 
-      expect((await action.run({})).contains(1)).toBeTruthy();
+      expect((await action.run({}, {} as any)).contains(1)).toBeTruthy();
     });
 
     test("test whole action build syntax", async () => {
@@ -43,10 +44,10 @@ describe("Common", () => {
         createAction("sum", "sum two numbers"),
         input("a", { required: true }),
         input("b", { required: true }),
-        behaviour(async (params: ActionInputs) => ok(params.a + params.b)),
+        behavior(async (params: ActionInputs) => ok(params.a + params.b)),
       );
 
-      expect((await action.run({ a: 100, b: 100 })).contains(200)).toBeTruthy();
+      expect((await action.run({ a: 100, b: 100 }, {} as any)).contains(200)).toBeTruthy();
     });
   });
 });

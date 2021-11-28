@@ -25,9 +25,9 @@ export function input<T>(name: string, meta: ActionInput<T>) {
 /**
  * Allows to define the behaviour of an action.
  */
-export function behaviour<R, I, E>(actionBehaviour: ActionRunFunction<R, I, E>) {
-  return (action: Action<R, I, E>): Action<R, I, E> => ({
+export function behavior<actionBehavior, I, E>(actionBehavior: ActionRunFunction<actionBehavior, I, E>) {
+  return (action: Action<actionBehavior, I, E>): Action<actionBehavior, I, E> => ({
     ...action,
-    run: actionBehaviour as ActionRunFunction<R, I, E>,
+    run: actionBehavior as ActionRunFunction<actionBehavior, I, E>,
   });
 }
