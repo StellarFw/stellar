@@ -1,10 +1,9 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "CommonJS",
+    "module": "node12",
     "lib": ["ESNext"],
     "esModuleInterop": true,
-    "resolveJsonModule": true,
     // equivalent to package.json sideEffects: false
     "isolatedModules": true,
     "sourceMap": true,

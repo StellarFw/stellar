@@ -1,13 +1,9 @@
 "use strict";
 
-// ---------------------------------------------------------------------------- [Imports]
+import fs, { readFileSync } from "fs";
+import Handlebars from "handlebars";
 
-let fs = require("fs");
-let Handlebars = require("handlebars");
-
-// ---------------------------------------------------------------------------- [Class]
-
-module.exports = class Utils {
+export class Utils {
   /**
    * Get the current universe.
    *
@@ -199,4 +195,9 @@ module.exports = class Utils {
     // output the result to the outputPath
     Utils.createFile(outputPath, template(data));
   }
-};
+}
+
+/**
+ * Stellar package.json content.
+ */
+export const pkgMetadata = JSON.parse(readFileSync("../package.json"));

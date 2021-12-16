@@ -8,6 +8,7 @@
   "author": "Gil Mendes <gil00mendes@gmail.com>",
   "homepage": "https://stellar-framework.com/",
   "license": "MIT",
+  "type": "module",
   "main": "lib/cli.js",
   "directories": {
     "lib": "lib"

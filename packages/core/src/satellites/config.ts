@@ -1,11 +1,11 @@
-import { Satellite } from "@stellarfw/common/lib";
+import { API, Satellite } from "@stellarfw/common/lib";
 import { EngineStatus } from "@stellarfw/common/lib/enums/engine-status.enum";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 import { normalize } from "path";
 import { existsSync, watchFile, unwatchFile } from "fs";
 
 class ConfigManager {
-  private api: any = null;
+  private api!: API;
 
   /**
    * Files to watch for changes.
@@ -18,7 +18,7 @@ class ConfigManager {
 
   public async execute(): Promise<void> {
     this.setupEnvironment();
-    this.loadConfigs();
+    await this.loadConfigs();
     this.createTempFolder();
   }
 
@@ -52,7 +52,7 @@ class ConfigManager {
     }
   }
 
-  private loadConfigs() {
+  private async loadConfigs() {
     const rootPath = this.api.scope.rootPath;
 
     this.api.configs = {};
@@ -68,12 +68,14 @@ class ConfigManager {
       process.exit(1);
     }
 
-    this.loadConfigDirectory(`${__dirname}/../config`, false);
-    this.api.configs.modules.forEach((module) =>
-      this.loadConfigDirectory(`${rootPath}/modules/${module}/config`, isToWatch),
+    await this.loadConfigDirectory(`${__dirname}/../config`, false);
+    await Promise.all(
+      this.api.configs.modules.map((module) =>
+        this.loadConfigDirectory(`${rootPath}/modules/${module}/config`, isToWatch),
+      ),
     );
 
-    this.loadConfigDirectory(`${rootPath}/config`, isToWatch);
+    await this.loadConfigDirectory(`${rootPath}/config`, isToWatch);
   }
 
   /**
@@ -82,7 +84,7 @@ class ConfigManager {
    * @param configPath Path of the directory where the configs must be loaded from.
    * @param watch When `true` the engine reloads after a file change.
    */
-  private loadConfigDirectory(configPath: string, watch = false) {
+  private async loadConfigDirectory(configPath: string, _watch = false) {
     const configFiles: Array<string> = this.api.utils.recursiveDirSearch(configPath);
     let loadErrors = {};
     let loadRetries = 0;
@@ -91,11 +93,8 @@ class ConfigManager {
       const file = configFiles[index];
 
       try {
-        const localConfig = require(file);
-        // Load general configurations
-        if (localConfig.default) {
-          this.api.configs = this.api.utils.hashMerge(this.api.configs, localConfig.default, this.api);
-        }
+        console.log(">>>", file);
+        const localConfig = await import(file);
 
         // load configurations specific for the current environment
         if (localConfig[this.api.env]) {
@@ -105,9 +104,10 @@ class ConfigManager {
         loadRetries = 0;
         loadErrors = {};
 
-        if (watch) {
-          this.watchFileAndAct(file, this.rebootCallback.bind(this));
-        }
+        // TODO: solve cache issue with ESModules. With ESM we don't have a standard way to invalidate cache, we need to find a hack.
+        // if (watch) {
+        //   this.watchFileAndAct(file, this.rebootCallback.bind(this));
+        // }
       } catch (error) {
         // error loading configuration, abort if all remaining configuration
         // files have been tried and failed indicating inability to progress
@@ -196,7 +196,7 @@ export default class ConfigSatellite extends Satellite {
 
   public async load(): Promise<void> {
     this.api.config = new ConfigManager(this.api);
-    this.api.config.execute();
+    await this.api.config.execute();
   }
 
   public async start(): Promise<void> {

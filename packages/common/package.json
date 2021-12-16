@@ -5,6 +5,7 @@
   "repository": "https://github.com/StellarFw/stellar",
   "author": "Gil Mendes <gil00mendes@gmail.com>",
   "license": "MIT",
+  "type": "module",
   "main": "./lib/",
   "types": "lib/",
   "directories": {

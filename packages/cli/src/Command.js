@@ -1,8 +1,8 @@
 "use strict";
 
-const { Engine } = require("@stellarfw/core/lib/engine");
-const path = require("path");
-const spawn = require("child_process").spawn;
+import { Engine } from "@stellarfw/core";
+import path from "path";
+import { spawn } from "child_process";
 
 /**
  * All command extends this class in order to initialize Stellar and

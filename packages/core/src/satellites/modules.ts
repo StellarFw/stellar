@@ -1,5 +1,5 @@
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
-import { Satellite, ModuleInterface, importFile, IModuleSatellite, Result, ok, err } from "@stellarfw/common/lib";
+import { Satellite, ModuleInterface, importFile, IModuleSatellite, ok, err, Result } from "@stellarfw/common/lib";
 import { execSync } from "child_process";
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
@@ -118,7 +118,7 @@ export default class ModulesSatellite extends Satellite implements IModuleSatell
         process.exit();
       });
 
-      const manifest = manifestFile.unwrap();
+      const manifest = await manifestFile.unwrap();
 
       this.activeModules.set(manifest.id, manifest);
       this.modulesPaths.set(manifest.id, modulePath);
@@ -186,6 +186,7 @@ export default class ModulesSatellite extends Satellite implements IModuleSatell
       name: "stellar-dependencies",
       version: "1.0.0",
       description: "This was automatically generated don't edit manually.",
+      type: "module",
       dependencies: nodeDependencies,
     };
 
@@ -217,19 +218,16 @@ export default class ModulesSatellite extends Satellite implements IModuleSatell
    * @param value Array of actions name to be stores.
    */
   public regModuleAction(moduleName: string, value: string | Array<string>): Result<true, string> {
-    if (!this.moduleActions.has(moduleName)) {
-      this.moduleActions.set(moduleName, []);
+    const arrayOfActions = this.moduleActions.get(moduleName) ?? [];
+    const newValues = Array.isArray(value) ? value : [value];
+
+    // if any of the new values is a empty string return an error
+    const hasEmptyString = newValues.some((value) => !this.api.utils.isNonEmptyString(value));
+    if (hasEmptyString) {
+      return err("Action name got an invalid state.");
     }
 
-    const arrayOfActions = this.moduleActions.get(moduleName);
-
-    if (arrayOfActions && Array.isArray(value)) {
-      this.moduleActions.set(moduleName, arrayOfActions.concat(value));
-    } else if (arrayOfActions && this.api.utils.isNonEmptyString(value)) {
-      arrayOfActions.push(value as string);
-    } else {
-      return err("Value got an invalid state.");
-    }
+    this.moduleActions.set(moduleName, [...arrayOfActions, ...newValues]);
 
     return ok(true);
   }
@@ -237,7 +235,7 @@ export default class ModulesSatellite extends Satellite implements IModuleSatell
   public async load(): Promise<void> {
     this.api.modules = this;
 
-    this.loadModules();
+    await this.loadModules();
     this.processNodeDependencies();
   }
 }

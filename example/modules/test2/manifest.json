@@ -3,5 +3,8 @@
   "name": "Test Module 2",
   "version": "1.0.0",
   "description": "This is just another test module.",
-  "author": "Gil Mendes <gil00mendes@gmail.com>"
+  "author": "Gil Mendes <gil00mendes@gmail.com>",
+  "nodeDependencies": {
+    "@stellarfw/common": "../core/packages/common"
+  }
 }

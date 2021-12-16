@@ -24,6 +24,7 @@
     "task",
     "websocket"
   ],
+  "type": "module",
   "main": "lib/",
   "typings": "lib/",
   "directories": {
