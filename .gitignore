@@ -39,6 +39,7 @@ nbproject
 # tests
 ############################
 test/coverage/
+packages/*/test/coverage/
 
 ############################
 # Project
