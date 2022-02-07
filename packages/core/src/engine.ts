@@ -43,6 +43,7 @@ export class Engine {
   public api: API = {
     bootTime: 0,
     status: EngineStatus.Stopped,
+    // @ts-ignore
     log: null,
     scope: {},
   };

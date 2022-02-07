@@ -1,11 +1,9 @@
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
-import ModuleInterface from "@stellarfw/common/lib/interfaces/module.interface";
-import { Satellite } from "@stellarfw/common/lib";
+import { Satellite, ModuleInterface, importFile } from "@stellarfw/common/lib";
 import { execSync } from "child_process";
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import * as ts from "typescript";
-import { requireFile } from "@stellarfw/common/lib";
 
 export default class ModulesSatellite extends Satellite {
   protected _name = "modules";
@@ -92,7 +90,7 @@ export default class ModulesSatellite extends Satellite {
    * The private module is always loaded even if not present on the
    * `activeModules` property.
    */
-  private loadModules(): void {
+  private async loadModules(): Promise<void> {
     const modules = (this.api.configs.modules || []) as Array<string>;
 
     if (this.api.utils.dirExists(`${this.api.scope.rootPath}/modules/private`)) {
@@ -111,7 +109,7 @@ export default class ModulesSatellite extends Satellite {
 
       // Read module manifest file. This file is required in order for it to work. Otherwise we need to shutdown the
       // engine with no change to recover.
-      const manifestFile = requireFile(`${modulePath}/manifest.json`).run();
+      const manifestFile = await importFile<ModuleInterface>(`${modulePath}/manifest.json`).run();
       manifestFile.tapErr(() => {
         this.api.log(
           `Impossible to load module(${moduleName}), fix this to start Stellar normally. Usually this means the module or the 'manifest.json' file doesn't exist.`,
@@ -128,6 +126,7 @@ export default class ModulesSatellite extends Satellite {
       // TODO: maybe always run this?
       // TODO: make this code secure
       try {
+        // @ts-ignore
         if (manifest.isTypescript === true) {
           // Load TS base configurations if isn't already loaded
           if (Object.keys(this.tsBaseConfigurations).length === 0) {

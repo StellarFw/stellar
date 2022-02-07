@@ -4,7 +4,7 @@ import * as NodeResque from "node-resque";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
 export default class ResqueSatellite extends Satellite {
-  protected _name: string = "resque";
+  protected _name = "resque";
   public loadPriority = 600;
   public startPriority = 200;
   public stopPriority = 100;
@@ -168,7 +168,7 @@ export default class ResqueSatellite extends Satellite {
       await this.multiWorker.stop();
       this.multiWorker = null;
 
-      this.api.log("Task workers stopped");
+      this.api.log("Task workers stopped", LogLevel.Debug);
     }
   }
 

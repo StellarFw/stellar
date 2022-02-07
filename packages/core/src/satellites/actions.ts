@@ -10,6 +10,8 @@ import {
   err,
   some,
   always,
+  ActionsStore,
+  importFile,
 } from "@stellarfw/common/lib";
 import { statusAction } from "../base/system-actions";
 
@@ -18,15 +20,6 @@ import { statusAction } from "../base/system-actions";
  */
 export interface VersionActionMap {
   [key: number]: Action<unknown, unknown>;
-}
-
-/**
- * All actions with store organized by version number.
- */
-export interface ActionsStore {
-  [action: string]: {
-    [version: number]: Action<unknown, unknown>;
-  };
 }
 
 /**
@@ -225,7 +218,6 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
 
     try {
       const collection = await import(path);
-      console.log("🚀 ~ file: actions.ts ~ line 228 ~ ActionsSatellite ~ loadFile ~ collection", collection);
 
       for (const key in collection) {
         if (!collection.hasOwnProperty(key)) {
@@ -251,14 +243,14 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
     return ok(true);
   }
 
-  public loadMiddlewareFromFile(path, reload = false) {
+  public async loadMiddlewareFromFile(path: string, reload = false): Promise<Result<true, string>> {
     /**
      * Function to log the load ou reload message
      *
      * @param middleware  Middleware object
      */
     const loadMessage = (middleware: IMiddleware) => {
-      const level = reload ? "info" : "debug";
+      const level = reload ? LogLevel.Info : LogLevel.Debug;
       let msg: string;
 
       if (reload) {
@@ -273,22 +265,35 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
     // watch for changes on the middleware file
     this.api.configs.watchFileAndAct(path, () => this.loadMiddlewareFromFile(path, true));
 
-    try {
-      const collection = require(path);
+    return err("TODO");
 
-      // iterate all collection definitions
-      for (const key in Object.keys(collection)) {
-        if (!collection.hasOwnProperty(key)) {
-          continue;
-        }
+    // TODO: implement middleware loading using the new safe type system
+    // return await importFile(path)
+    //   .map(async (wrapper) =>
+    //     (
+    //       await wrapper
+    //     ).match<Result<true, string>>({
+    //       err: (error) => {
+    //         this.api.exceptionHandlers.loader(path, error);
+    //         return err("TODO error");
+    //       },
+    //       ok: (collection) => {
+    //         // iterate all collection definitions
+    //         for (const key in Object.keys(collection)) {
+    //           if (!collection.hasOwnProperty(key)) {
+    //             continue;
+    //           }
 
-        const middleware = collection[key];
-        this.addMiddleware(middleware);
-        loadMessage(middleware);
-      }
-    } catch (error) {
-      this.api.exceptionHandlers.loader(path, error);
-    }
+    //           const middleware = collection[key];
+    //           this.addMiddleware(middleware);
+    //           loadMessage(middleware);
+    //         }
+
+    //         return ok(true);
+    //       },
+    //     }),
+    //   )
+    //   .run();
   }
 
   /**
@@ -487,10 +492,10 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
    *
    * @param data  Middleware to be added.
    */
-  public addMiddleware(data: IMiddleware) {
+  public addMiddleware(data: IMiddleware): Result<true, string> {
     // middleware require a name
     if (!data.name) {
-      throw new Error("middleware.name is required");
+      return err("middleware.name is required");
     }
 
     // if there is no defined priority use the default
@@ -506,7 +511,7 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
 
     // if this is a local middleware return now
     if (data.global !== true) {
-      return;
+      return ok(true);
     }
 
     // push the new middleware to the global list
@@ -520,6 +525,8 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
 
       return -1;
     });
+
+    return ok(true);
   }
 
   private loadModuleModifier() {
@@ -527,7 +534,7 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
       const modPath = `${modulePath}/mod.js`;
 
       if (this.api.utils.fileExists(modPath)) {
-        this.loadModifier(require(modPath)(this.api).actions);
+        this.applyModifier(require(modPath)(this.api).actions);
 
         // when the modifier file changes we must reload the entire server
         this.api.config.watchFileAndAct(modPath, () => this.api.commands.restart());

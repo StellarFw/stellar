@@ -161,7 +161,7 @@ export default class DocumentationSatellite extends Satellite {
    *
    * @param action Action to be prepared
    */
-  private prepareActionToPrint(action: Action): any {
+  private prepareActionToPrint(action: Action<unknown, unknown>): any {
     // create a new object with the data prepared to be printed
     const output: any = {};
 

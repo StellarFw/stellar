@@ -1,6 +1,6 @@
 import { EngineStatus } from "@stellarfw/common/lib/enums/engine-status.enum";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
-import { Action, ProcessingAction } from "@stellarfw/common/lib";
+import { Action, ActionFormat, ProcessingAction } from "@stellarfw/common/lib";
 import { Satellite } from "@stellarfw/common/lib";
 import { UnknownActionException, IActionProcessor } from "@stellarfw/common";
 import { Connection } from "@stellarfw/common/lib";
@@ -37,12 +37,12 @@ class ActionProcessor implements IActionProcessor {
   /**
    * Action class.
    */
-  private actionInstance!: ProcessingAction;
+  private actionInstance!: ProcessingAction<unknown, unknown>;
 
   /**
    * Action's metadata.
    */
-  private actionMetadata: Action = {} as Action;
+  private actionMetadata: Action<unknown, unknown, unknown> = {} as Action<unknown, unknown, unknown>;
 
   /**
    * Action status.
@@ -247,7 +247,7 @@ class ActionProcessor implements IActionProcessor {
   private async preProcessAction() {
     // If the action is private this can only be executed internally
     if (this.actionMetadata.private === true && this.connection.type !== "internal") {
-      throw new Error(this.api.config.errors.privateActionCalled(this.actionMetadata.ActionInput));
+      throw new Error(this.api.config.errors.privateActionCalled(this.actionMetadata.name));
     }
 
     // Copy call parameters into the action instance
@@ -287,7 +287,8 @@ class ActionProcessor implements IActionProcessor {
 
       const actionClass = this.api.actions.actions[this.action][this.params.apiVersion];
 
-      this.actionMetadata = Reflect.getMetadata(ACTION_METADATA, actionClass);
+      // FIXME: this needs to be adapted for the new version
+      // this.actionMetadata = Reflect.getMetadata(ACTION_METADATA, actionClass);
       this.actionInstance = new actionClass(this.api, this);
       return;
     }
@@ -357,7 +358,7 @@ class ActionProcessor implements IActionProcessor {
       // Format the input to the requested type
       if (props.format && this.params[key]) {
         if (typeof props.format === "function") {
-          this.params[key] = props.format.call(this.api, this.params[key], this);
+          this.params[key] = props.format.call(this.api, this.params[key], this.api);
         } else if (props.format === "integer") {
           this.params[key] = Number.parseInt(this.params[key]);
         } else if (props.format === "float") {
@@ -371,8 +372,7 @@ class ActionProcessor implements IActionProcessor {
         }
       }
 
-      // convert the required property to a validator to unify the validation
-      // system
+      // convert the required property to a validator to unify the validation system
       if (props.required === true) {
         // FIXME: this will throw an error when the validator is a function
         props.validator = !props.validator ? "required" : "required|" + props.validator;
@@ -384,8 +384,8 @@ class ActionProcessor implements IActionProcessor {
       }
     }
 
-    // Execute all validators. If there is found some error on the validations,
-    // the error map must be attributed to `validatorErrors`
+    // Execute all validators. If there is found some error on the validations, the error map must be attributed to
+    // `validatorErrors`;
     const response = this.api.validator.validate(this.params, toValidate);
     if (response !== true) {
       this.validatorErrors = response;
@@ -446,7 +446,7 @@ class ActionProcessor implements IActionProcessor {
     this.timeoutTimer = setTimeout(this.actionTimeout.bind(this), this.api.configs.general.actionTimeout);
 
     try {
-      this.response = await this.actionInstance.run();
+      this.response = await this.actionInstance.run(this.params, this.api);
     } catch (error) {
       clearTimeout(this.timeoutTimer);
       this.completeAction(undefined, error);

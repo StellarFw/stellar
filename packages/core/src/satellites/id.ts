@@ -12,10 +12,10 @@ import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
  *  - or one can be generated automatically using the server's external IP.
  */
 export default class IDSatellite extends Satellite {
-  protected _name: string = "ID";
+  protected _name = "ID";
 
-  public loadPriority: number = 100;
-  public startPriority: number = 2;
+  public loadPriority = 100;
+  public startPriority = 2;
 
   public async load(): Promise<void> {
     this.defineEngineName();
@@ -42,7 +42,7 @@ export default class IDSatellite extends Satellite {
       const externalIP = this.api.utils.getExternalIPAddress();
 
       if (externalIP === false) {
-        this.api.log(" * Error fetching this host external IP address; setting id base to 'stellar'");
+        this.api.log(" * Error fetching this host external IP address; setting id base to 'stellar'", LogLevel.Error);
         this.api.id = "stellar";
         return;
       }
