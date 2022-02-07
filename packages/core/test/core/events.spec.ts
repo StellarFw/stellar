@@ -1,7 +1,7 @@
 import { startEngine } from "../utils";
 import Engine from "../../lib/engine";
 
-let engine: Engine = null;
+let engine: Engine;
 let api: any = null;
 
 describe("Core: Events", () => {
@@ -58,7 +58,7 @@ describe("Core: Events", () => {
   test("listeners are executed in order", async () => {
     api.events.listener(
       "prog",
-      params => {
+      (params) => {
         params.value += "1";
       },
       10,
@@ -66,7 +66,7 @@ describe("Core: Events", () => {
 
     api.events.listener(
       "prog",
-      params => {
+      (params) => {
         params.value += "0";
       },
       5,

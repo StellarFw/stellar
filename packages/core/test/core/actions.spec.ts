@@ -1,7 +1,7 @@
 import { startEngine } from "../utils";
 import Engine from "../../lib/engine";
 
-let engine: Engine = null;
+let engine: Engine;
 let api: any = null;
 
 describe("Core: Actions", () => {
@@ -18,9 +18,7 @@ describe("Core: Actions", () => {
     });
 
     test("normally", () => {
-      expect(api.actions.call("formattedSum", { a: 3, b: 3 })).resolves.toEqual(
-        { formatted: "3 + 3 = 6" },
-      );
+      expect(api.actions.call("formattedSum", { a: 3, b: 3 })).resolves.toEqual({ formatted: "3 + 3 = 6" });
     });
   });
 

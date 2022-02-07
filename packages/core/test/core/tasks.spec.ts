@@ -1,7 +1,7 @@
 import { startEngine } from "../utils";
 import Engine from "../../lib/engine";
 
-let engine: Engine = null;
+let engine: Engine;
 let api: any = null;
 
 describe("Core: Tasks", () => {

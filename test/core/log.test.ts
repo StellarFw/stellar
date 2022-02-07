@@ -1,3 +1,4 @@
+import { LogLevel } from "@stellarfw/common/lib";
 import { buildEngine } from "../test-utils";
 
 describe("Core", () => {
@@ -8,7 +9,7 @@ describe("Core", () => {
 
   describe("Log", () => {
     test("the log method should work", () => {
-      engine.api.log("hello, world");
+      engine.api.log("hello, world", LogLevel.Info);
     });
 
     test("the winston loggers are available via the loggers satellite", () => {

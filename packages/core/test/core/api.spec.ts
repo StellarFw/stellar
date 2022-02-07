@@ -1,7 +1,7 @@
 import { startEngine } from "../utils";
 import Engine from "../../lib/engine";
 
-let engine: Engine = null;
+let engine: Engine;
 let api: any = null;
 
 describe("Actions", () => {
@@ -150,9 +150,7 @@ describe("Actions", () => {
       expect(response.error).toBeUndefined();
 
       response = await api.helpers.runAction("testAction", {});
-      expect(response.error.requiredParam).toBe(
-        "The requiredParam field is required.",
-      );
+      expect(response.error.requiredParam).toBe("The requiredParam field is required.");
     });
 
     test("correct params respect config options", async () => {
@@ -181,9 +179,7 @@ describe("Actions", () => {
         requiredParam: true,
         fancyParam: 123,
       });
-      expect(response.error.fancyParam).toBe(
-        "fancyParam should be 'test123'. so says test-server",
-      );
+      expect(response.error.fancyParam).toBe("fancyParam should be 'test123'. so says test-server");
     });
   });
 });

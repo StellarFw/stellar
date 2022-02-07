@@ -1,13 +1,12 @@
 import { startEngine } from "../utils";
 import Engine from "../../lib/engine";
 
-let engine: Engine = null;
+let engine: Engine;
 let api: any = null;
 
 const SALT = "$2a$10$8Ux95eQglaUMSn75J7MAXO";
 const TEST_PASSWORD = "MY_GREAT_PASSWORD";
-const TEST_PASSWORD_HASHED =
-  "$2a$10$8Ux95eQglaUMSn75J7MAXOrHISe8xlR596kiYoVs2shRznjzD5CGC";
+const TEST_PASSWORD_HASHED = "$2a$10$8Ux95eQglaUMSn75J7MAXOrHISe8xlR596kiYoVs2shRznjzD5CGC";
 
 describe("Core: Hash", () => {
   beforeAll(async () => {
@@ -51,9 +50,7 @@ describe("Core: Hash", () => {
       return;
     }
 
-    throw new Error(
-      "Using an invalid salt for hashing must result in a failure",
-    );
+    throw new Error("Using an invalid salt for hashing must result in a failure");
   });
 
   test("compare plain data with hash", async () => {
