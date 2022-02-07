@@ -7,11 +7,7 @@ export type InputType = "string" | "number" | "object" | "array";
 /**
  * Default available formats.
  */
-export enum ActionFormat {
-  Integer,
-  Float,
-  String,
-}
+export type ActionFormat = "integer" | "float" | "string";
 
 /**
  * Structure of a format function.
@@ -27,6 +23,11 @@ export interface ActionInput<T> {
    * TODO: see how to implement this
    */
   // type: InputType;
+
+  /**
+   * Description of the input field.
+   */
+  description?: string;
 
   /**
    * Input default value when there is no provided.
@@ -46,7 +47,7 @@ export interface ActionInput<T> {
   /**
    * Allows to specify constraints to the input value.
    */
-  validator?: string;
+  validator?: string | RegExp;
 }
 
 /**

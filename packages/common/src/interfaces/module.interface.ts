@@ -1,4 +1,9 @@
-export default interface ModuleInterface {
+/**
+ * Interface that represent a module.
+ *
+ * This is basically the information that a manifest file can contain.
+ */
+export interface ModuleInterface {
   /**
    * Module unique identifier.
    */
@@ -17,10 +22,15 @@ export default interface ModuleInterface {
   /**
    * Module's version.
    */
-  version: number;
+  version: string;
+
+  /**
+   * Module's author.
+   */
+  author: string;
 
   /**
    * Module's Node dependencies.
    */
-  nodeDependencies?: any;
-};;;;;;;;;;;;;;;;;;;;;
+  nodeDependencies?: { [key: string]: string };
+}

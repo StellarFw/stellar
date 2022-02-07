@@ -1,17 +1,34 @@
 import { Action, IMiddleware } from ".";
 import { Result } from "..";
 
+/**
+ * Possible modifiers for the action's group
+ */
 export type GroupModifiers<Prop extends string = string> = `+${Prop}` | `-${Prop}`;
 
 export interface IGroupMetadata {
   [prop: GroupModifiers]: Exclude<Action<unknown, unknown, unknown>, "name">;
 }
 
+/**
+ * All actions with store organized by version number.
+ */
+export interface ActionsStore {
+  [action: string]: {
+    [version: number]: Action<unknown, unknown>;
+  };
+}
+
 export interface IActionSatellite {
+  /**
+   * Dictionary with the registered actions.
+   */
+  actions: ActionsStore;
+
   /**
    * Separate actions by version.
    */
-  version: Map<string, Array<number>>;
+  versions: Map<string, Array<number>>;
 
   /**
    * This map contains all the metadata changes to be applied to actions.
@@ -46,7 +63,7 @@ export interface IActionSatellite {
    * @param path Path of the middleware file to be loaded.
    * @param reload This is for internal use.
    */
-  loadMiddlewareFromFile(path: string, reload?: boolean): Result<true, string>;
+  loadMiddlewareFromFile(path: string, reload?: boolean): Promise<Result<true, string>>;
 
   /**
    * Load the modifier and apply it to all already loaded actions.
