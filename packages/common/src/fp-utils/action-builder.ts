@@ -7,6 +7,7 @@ export function createAction<R, I extends ActionInputMap>(name: string, descript
   return {
     name,
     description,
+    version: 1,
     inputs: {} as I,
     run: asyncAlways(err("Action body not defined!")),
   } as Action<R, I>;

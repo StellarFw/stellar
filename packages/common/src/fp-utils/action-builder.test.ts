@@ -10,6 +10,7 @@ describe("Common", () => {
 
         expect(action.name).toBe("example");
         expect(action.description).toBeUndefined();
+        expect(action.version).toBe(1);
         expect((await action.run({}, {} as any)).isErr()).toBeTruthy();
       });
 
