@@ -1,11 +1,11 @@
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
-import { Satellite, ModuleInterface, importFile } from "@stellarfw/common/lib";
+import { Satellite, ModuleInterface, importFile, IModuleSatellite, Result, ok, err } from "@stellarfw/common/lib";
 import { execSync } from "child_process";
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import * as ts from "typescript";
 
-export default class ModulesSatellite extends Satellite {
+export default class ModulesSatellite extends Satellite implements IModuleSatellite {
   protected _name = "modules";
   public loadPriority = 1;
 
@@ -216,7 +216,7 @@ export default class ModulesSatellite extends Satellite {
    * @param moduleName Module name.
    * @param value Array of actions name to be stores.
    */
-  public regModuleAction(moduleName: string, value: string | Array<string>): void {
+  public regModuleAction(moduleName: string, value: string | Array<string>): Result<true, string> {
     if (!this.moduleActions.has(moduleName)) {
       this.moduleActions.set(moduleName, []);
     }
@@ -228,8 +228,10 @@ export default class ModulesSatellite extends Satellite {
     } else if (arrayOfActions && this.api.utils.isNonEmptyString(value)) {
       arrayOfActions.push(value as string);
     } else {
-      throw new Error("Value got an invalid state.");
+      return err("Value got an invalid state.");
     }
+
+    return ok(true);
   }
 
   public async load(): Promise<void> {

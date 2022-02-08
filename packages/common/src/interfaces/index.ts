@@ -15,3 +15,4 @@ export * from "./cache-object.interface";
 export * from "./cache-satellite.interface";
 export * from "./validator-satellite.interface";
 export * from "./action-satellite.interface";
+export * from "./module-satellite.interface";

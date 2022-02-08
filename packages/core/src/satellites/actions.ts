@@ -106,8 +106,8 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
    * Load some system actions.
    */
   private loadSystemActions() {
-    // when the system actions are disabled via configs we can return here
-    if (this.api.configs.enableSystemActions !== true) {
+    // there `general.enableSystemActions` configuration parameter allows disabling system actions.
+    if (this.api.configs.general.enableSystemActions !== true) {
       return;
     }
 
