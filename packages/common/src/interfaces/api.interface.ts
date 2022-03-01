@@ -1,5 +1,6 @@
 import { IActionSatellite, ICacheSatellite, IValidatorSatellite } from ".";
 import { EngineStatus, LogLevel } from "..";
+import { IUtilsSatellite } from "./utils.interface.js";
 
 export interface API {
   /**
@@ -37,6 +38,17 @@ export interface API {
    * Allows to manage middleware and actions in the system, as well to call them.
    */
   actions: IActionSatellite;
+
+  /**
+   * Utility functions that are used by both core and application.
+   */
+  utils: IUtilsSatellite;
+
+  /**
+   * Runtime configurations.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  configs: { [key: string]: any };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;

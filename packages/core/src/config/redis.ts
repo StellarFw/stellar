@@ -12,7 +12,7 @@ const password = process.env.REDIS_PASS || null;
  * buildNew     - is to use the `new` keyword on the the constructor?
  */
 export default {
-  redis(api) {
+  async redis(api) {
     if (process.env.FAKEREDIS === "false" || process.env.REDIS_HOST !== undefined) {
       return {
         _toExpand: false,
@@ -37,17 +37,17 @@ export default {
     return {
       _toExpand: false,
       client: {
-        constructor: require("then-fakeredis").createClient,
+        constructor: (await import("then-fakeredis")).createClient,
         args: { port, host, fast: true },
         buildNew: false,
       },
       subscriber: {
-        constructor: require("then-fakeredis").createClient,
+        constructor: (await import("then-fakeredis")).createClient,
         args: { port, host, fast: true },
         buildNew: false,
       },
       tasks: {
-        constructor: require("then-fakeredis").createClient,
+        constructor: (await import("then-fakeredis")).createClient,
         args: { port, host, fast: true },
         buildNew: false,
       },

@@ -1,4 +1,5 @@
-import { writeFileSync } from "fs";
+import { PathLike, writeFileSync } from "fs";
+import { FileHandle, readFile } from "fs/promises";
 import { io, unsafeAsync } from "../index.js";
 
 export * from "./action-builder.js";
@@ -16,3 +17,11 @@ export const importFile = <T = unknown>(path: string) => io(() => unsafeAsync<T>
  */
 export const safeWriteFile = (path: string, data: string | NodeJS.ArrayBufferView) =>
   io(() => writeFileSync(path, data));
+
+/**
+ * Read the content of a file.
+ *
+ * @param path file to be read.
+ * @returns
+ */
+export const safeReadFile = (path: PathLike | FileHandle) => io(() => unsafeAsync(() => readFile(path)));

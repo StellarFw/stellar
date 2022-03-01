@@ -1,4 +1,4 @@
-import { Satellite } from "@stellarfw/common/lib/index.js";
+import { Satellite, IO, safeReadFile, Result } from "@stellarfw/common/lib/index.js";
 import { setTimeout } from "timers";
 import {
   readdirSync,
@@ -11,10 +11,12 @@ import {
   createReadStream,
   createWriteStream,
   accessSync,
+  PathLike,
 } from "fs";
 import { normalize, dirname } from "path";
 import { F_OK } from "constants";
 import { networkInterfaces } from "os";
+import { FileHandle } from "fs/promises";
 
 class Utils {
   private api: any = null;
@@ -60,8 +62,7 @@ class Utils {
   }
 
   /**
-   * Get all files of a given extensions inside a directory and its
-   * subdirectories.
+   * Get all files of a given extensions inside a directory and its subdirectories.
    *
    * @param dir Root directory to be searched.
    * @param extensions File extension filter. By default the filter is
@@ -184,6 +185,16 @@ class Utils {
   }
 
   /**
+   * Read the given file contents.
+   *
+   * @param path
+   * @returns
+   */
+  public readFile(path: PathLike | FileHandle): IO<Promise<Result<Buffer, string>>> {
+    return safeReadFile(path);
+  }
+
+  /**
    * Copy a file.
    *
    * @param source Source path.
@@ -265,19 +276,19 @@ class Utils {
    * @param b Second hash.
    * @param args Additional arguments.
    */
-  public hashMerge(a: object, b: object, args: any): object {
+  public async hashMerge<T>(a: object, b: object, args: T): Promise<object> {
     const c = {};
     let response;
 
     for (const i in a) {
       if (this.isPlainObject(a[i]) && Object.keys(a[i]).length > 0) {
-        c[i] = this.hashMerge(c[i], a[i], args);
+        c[i] = await this.hashMerge(c[i], a[i], args);
       } else {
         if (typeof a[i] === "function") {
-          response = a[i](args);
+          response = await a[i](args);
 
           if (this.isPlainObject(response)) {
-            c[i] = this.hashMerge(c[i], response, args);
+            c[i] = await this.hashMerge(c[i], response, args);
           } else {
             c[i] = response;
           }
@@ -289,13 +300,13 @@ class Utils {
 
     for (const i in b) {
       if (this.isPlainObject(b[i]) && Object.keys(b[i]).length > 0) {
-        c[i] = this.hashMerge(c[i], b[i], args);
+        c[i] = await this.hashMerge(c[i], b[i], args);
       } else {
         if (typeof b[i] === "function") {
-          response = b[i](args);
+          response = await b[i](args);
 
           if (this.isPlainObject(response)) {
-            c[i] = this.hashMerge(c[i], response, args);
+            c[i] = await this.hashMerge(c[i], response, args);
           } else {
             c[i] = response;
           }

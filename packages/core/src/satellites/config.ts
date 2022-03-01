@@ -1,6 +1,7 @@
 import { EngineStatus, API, Satellite, LogLevel } from "@stellarfw/common/lib/index.js";
 import { normalize } from "path";
 import { existsSync, watchFile, unwatchFile } from "fs";
+import { stellarPkgPath } from "../engine.js";
 
 class ConfigManager {
   private api!: API;
@@ -59,14 +60,22 @@ class ConfigManager {
     const isToWatch = this.api.status === EngineStatus.Stage0;
 
     // load manifest file into the API
-    try {
-      this.api.configs = require(`${rootPath}/manifest.json`);
-    } catch (e) {
-      this.api.log("Project 'manifest.json' file does not exists.", LogLevel.Emergency);
-      process.exit(1);
-    }
+    const manifestFileContainer = await this.api.utils
+      .readFile(`${rootPath}/manifest.json`)
+      .map(async (content) => (await content).map((val) => JSON.parse(val.toString())))
+      .run();
 
-    await this.loadConfigDirectory(`${__dirname}/../config`, false);
+    manifestFileContainer.tap({
+      ok: (configs) => {
+        this.api.configs = configs;
+      },
+      err: () => {
+        this.api.log("Project 'manifest.json' file does not exists.", LogLevel.Emergency);
+        process.exit(1);
+      },
+    });
+
+    await this.loadConfigDirectory(`${stellarPkgPath}/config`, false);
     await Promise.all(
       this.api.configs.modules.map((module) =>
         this.loadConfigDirectory(`${rootPath}/modules/${module}/config`, isToWatch),
@@ -91,12 +100,16 @@ class ConfigManager {
       const file = configFiles[index];
 
       try {
-        console.log(">>>", file);
         const localConfig = await import(file);
+
+        // load the base configurations that are independent from the environment that we are run in.
+        if (localConfig.default) {
+          this.api.configs = await this.api.utils.hashMerge(this.api.configs, localConfig.default, this.api);
+        }
 
         // load configurations specific for the current environment
         if (localConfig[this.api.env]) {
-          this.api.configs = this.api.utils.hashMerge(this.api.configs, localConfig[this.api.env], this.api);
+          this.api.configs = await this.api.utils.hashMerge(this.api.configs, localConfig[this.api.env], this.api);
         }
 
         loadRetries = 0;

@@ -10,12 +10,12 @@ import { readFileSync } from "fs";
 /**
  * Path of the code package.
  */
-export const pkgPath = dirname(fileURLToPath(import.meta.url));
+export const stellarPkgPath = dirname(fileURLToPath(import.meta.url));
 
 /**
  * Package.json parsed contents.
  */
-const stellarPackageJSON = JSON.parse(readFileSync(resolve(pkgPath, "../package.json")).toString());
+const stellarPackageJSON = JSON.parse(readFileSync(resolve(stellarPkgPath, "../package.json")).toString());
 
 /**
  * Main entry point for the Stellar code.
@@ -189,7 +189,7 @@ export class Engine {
     this.satellitesStopOrder = new Map();
 
     // load the core satellites
-    this.loadArrayOfSatellites(this.api.utils.getFiles(`${pkgPath}/satellites`));
+    this.loadArrayOfSatellites(this.api.utils.getFiles(`${stellarPkgPath}/satellites`));
 
     // load module satellites
     const modulesToLoad = this.api.configs.modules || [];
@@ -258,7 +258,10 @@ export class Engine {
     // the `utils` and `config` Satellites needs to be loaded
     // first. They contains some functions that are needed
     // durning the startup process.
-    const initialSatellites = [resolve(`${pkgPath}/satellites/utils.js`), resolve(`${pkgPath}/satellites/config.js`)];
+    const initialSatellites = [
+      resolve(`${stellarPkgPath}/satellites/utils.js`),
+      resolve(`${stellarPkgPath}/satellites/config.js`),
+    ];
 
     for (const file of initialSatellites) {
       const fileName = file.replace(/^.*[\\\/]/, "");
