@@ -1,5 +1,13 @@
-import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
-import { Satellite, ModuleInterface, importFile, IModuleSatellite, ok, err, Result } from "@stellarfw/common/lib/index.js";
+import {
+  LogLevel,
+  Satellite,
+  ModuleInterface,
+  importFile,
+  IModuleSatellite,
+  ok,
+  err,
+  Result,
+} from "@stellarfw/common/lib/index.js";
 import { execSync } from "child_process";
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";

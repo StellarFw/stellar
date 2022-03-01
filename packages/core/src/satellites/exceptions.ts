@@ -1,5 +1,4 @@
-import { Satellite } from "@stellarfw/common/lib/index.js";
-import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
+import { Satellite, LogLevel } from "@stellarfw/common/lib/index.js";
 import { EOL } from "os";
 
 export enum ExceptionType {
@@ -21,8 +20,8 @@ export type ExceptionHandler = (
 ) => void;
 
 export default class ExceptionsSatellite extends Satellite {
-  protected _name: string = "exceptions";
-  public loadPriority: number = 130;
+  protected _name = "exceptions";
+  public loadPriority = 130;
 
   /**
    * Array with the exceptions reporters.
@@ -37,7 +36,7 @@ export default class ExceptionsSatellite extends Satellite {
   private defaultConsoleHandler(
     err: Error | string,
     type: ExceptionType = ExceptionType.OTHER,
-    name: string = "",
+    name = "",
     objects: any = [],
     severity: LogLevel = LogLevel.Error,
   ): void {

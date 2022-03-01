@@ -1,6 +1,5 @@
-import { Satellite } from "@stellarfw/common/lib/index.js";
+import { Satellite, LogLevel } from "@stellarfw/common/lib/index.js";
 import cluster from "cluster";
-import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
 /**
  * Setup the server ID.

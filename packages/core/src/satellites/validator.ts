@@ -10,9 +10,19 @@ import {
   ValidatorFunction,
   ValidatorRules,
   ParsedRules,
+  safeReadFile,
 } from "@stellarfw/common/lib/index.js";
 
-import * as Messages from "../base/validator-messages.json";
+import { stellarPkgPath } from "../engine.js";
+
+/**
+ * Base error messages for each validator.
+ */
+const Messages = (
+  await safeReadFile(`${stellarPkgPath}/base/validator-messages.json`)
+    .map((wrapper) => wrapper.then((result) => result.map((content) => JSON.parse(content.toString()))))
+    .run()
+).unwrap();
 
 /**
  * Require a certain number of parameters to be present.

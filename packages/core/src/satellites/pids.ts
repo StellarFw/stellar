@@ -1,5 +1,4 @@
-import { Satellite } from "@stellarfw/common/lib/index.js";
-import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
+import { Satellite, LogLevel } from "@stellarfw/common/lib/index.js";
 import cluster from "cluster";
 import { mkdirSync, writeFileSync, unlinkSync } from "fs";
 

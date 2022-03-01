@@ -1,7 +1,6 @@
-import { Satellite } from "@stellarfw/common/lib/index.js";
+import { Satellite, LogLevel } from "@stellarfw/common/lib/index.js";
 
 import * as NodeResque from "node-resque";
-import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
 export default class ResqueSatellite extends Satellite {
   protected _name = "resque";

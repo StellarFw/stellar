@@ -121,7 +121,7 @@ export class Engine {
    *
    * @param satellitesFiles Array of paths.
    */
-  private loadArrayOfSatellites(satellitesFiles): void {
+  private async loadArrayOfSatellites(satellitesFiles): Promise<void> {
     for (const path of satellitesFiles) {
       const file = normalize(path);
       const satelliteName = basename(file).split(".")[0];
@@ -132,7 +132,7 @@ export class Engine {
         continue;
       }
 
-      const SatelliteClass = require(file).default;
+      const SatelliteClass = (await import(file)).default;
       const satelliteInstance: SatelliteInterface = new SatelliteClass(this.api);
 
       this.satellites[satelliteName] = satelliteInstance;
@@ -189,14 +189,14 @@ export class Engine {
     this.satellitesStopOrder = new Map();
 
     // load the core satellites
-    this.loadArrayOfSatellites(this.api.utils.getFiles(`${stellarPkgPath}/satellites`));
+    await this.loadArrayOfSatellites(this.api.utils.getFiles(`${stellarPkgPath}/satellites`));
 
     // load module satellites
     const modulesToLoad = this.api.configs.modules || [];
-    modulesToLoad.forEach((moduleName) => {
+    modulesToLoad.forEach(async (moduleName) => {
       const moduleSatellitesPath = `${this.api.scope.rootPath}/modules/${moduleName}/satellites`;
       if (this.api.utils.dirExists(moduleSatellitesPath)) {
-        this.loadArrayOfSatellites(this.api.utils.getFiles(moduleSatellitesPath));
+        await this.loadArrayOfSatellites(this.api.utils.getFiles(moduleSatellitesPath));
       }
     });
 

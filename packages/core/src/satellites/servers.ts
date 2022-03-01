@@ -1,9 +1,8 @@
 import { resolve } from "path";
 
-import { Satellite } from "@stellarfw/common/lib/index.js";
-import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
+import { Satellite, LogLevel } from "@stellarfw/common/lib/index.js";
 
-import { GenericServer } from "../base/generic-server";
+import { GenericServer } from "../base/generic-server.js";
 
 export default class ServersSatellite extends Satellite {
   public loadPriority = 550;
