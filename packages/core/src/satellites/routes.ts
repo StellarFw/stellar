@@ -1,7 +1,4 @@
-import { Satellite } from "@stellarfw/common/lib";
-import { RouteInterface } from "@stellarfw/common/lib/interfaces/route.interface";
-import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
-import ConnectionDetails from "@stellarfw/common/lib/interfaces/connection-details.interface";
+import { Satellite, RouteInterface, LogLevel, ConnectionDetails } from "@stellarfw/common/lib";
 
 interface RouterDictionary {
   GET: Array<RouteInterface>;
@@ -26,8 +23,8 @@ enum Verbs {
 }
 
 export default class RoutesSatellite extends Satellite {
-  public _name: string = "Routes";
-  public loadPriority: number = 500;
+  public _name = "Routes";
+  public loadPriority = 500;
 
   /**
    * Map with the registered routes.
@@ -53,8 +50,8 @@ export default class RoutesSatellite extends Satellite {
     method: Verbs,
     path: string,
     action: string,
-    actionVersion: number = 1,
-    matchTrailingPathParts: boolean = false,
+    actionVersion = 1,
+    matchTrailingPathParts = false,
   ): void {
     const route: RouteInterface = {
       path,
@@ -74,7 +71,7 @@ export default class RoutesSatellite extends Satellite {
    * @param matchTrailingPathParts  Check the existence of the path in any part of the URL.
    * @returns {{match: boolean, params: {}}}
    */
-  private matchURL(pathParts: Array<string>, match: string, matchTrailingPathParts: boolean = false) {
+  private matchURL(pathParts: Array<string>, match: string, matchTrailingPathParts = false) {
     const response = { match: false, params: {} };
     const matchParts = match.split("/");
     let regexp = "";
@@ -197,7 +194,7 @@ export default class RoutesSatellite extends Satellite {
    * @param routes Routes to be processed
    */
   private loadRoutes(routes: RouterDictionary): void {
-    let counter: number = 0;
+    let counter = 0;
 
     for (const i in routes) {
       if (!routes.hasOwnProperty(i)) {

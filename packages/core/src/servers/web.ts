@@ -11,10 +11,8 @@ import * as etag from "etag";
 import * as zlib from "zlib";
 import { parse } from "url";
 
-import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
-import ConnectionDetails from "@stellarfw/common/lib/interfaces/connection-details.interface";
-
 import { GenericServer } from "../base/generic-server";
+import { ConnectionDetails, LogLevel } from "@stellarfw/common/lib";
 
 interface RequestInformation {
   id: string;

@@ -1,5 +1,5 @@
 import * as UUID from "uuid";
-import ConnectionDetails from "./interfaces/connection-details.interface";
+import { ConnectionDetails } from "./index.js";
 
 /**
  * This class represents an active connection.
@@ -45,22 +45,22 @@ export class Connection implements ConnectionDetails {
   /**
    * Number of pending actions to be processed.
    */
-  public pendingActions: number = 0;
+  public pendingActions = 0;
 
   /**
    * Total of actions that were processed for this connection.
    */
-  public totalActions: number = 0;
+  public totalActions = 0;
 
   /**
    * Number of messages sent by this connection.
    */
-  public messageCount: number = 0;
+  public messageCount = 0;
 
   /**
    * Informs if this connection supports chat.
    */
-  public canChat: boolean = false;
+  public canChat = false;
 
   public type!: string;
 
@@ -82,7 +82,7 @@ export class Connection implements ConnectionDetails {
   /**
    * Is used to mark the connection as destroyed.
    */
-  public destroyed: boolean = false;
+  public destroyed = false;
 
   /**
    * Create a new connection object.

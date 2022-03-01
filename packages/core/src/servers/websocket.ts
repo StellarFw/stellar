@@ -6,12 +6,11 @@ import WebServer from "./web";
 import { inspect } from "util";
 
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
-import ConnectionDetails from "@stellarfw/common/lib/interfaces/connection-details.interface";
 
 import { GenericServer } from "../base/generic-server";
 import Primus from "primus";
 import { Server } from "http";
-import { always, Connection, io, ok, Result, safeWriteFile, unsafe } from "@stellarfw/common/lib";
+import { always, Connection, io, ok, Result, safeWriteFile, unsafe, ConnectionDetails } from "@stellarfw/common";
 
 export default class WebSocketServer extends GenericServer {
   protected static serverName = "websocket";

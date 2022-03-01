@@ -1,10 +1,6 @@
 import * as uuid from "uuid";
 
-import { Satellite } from "@stellarfw/common/lib";
-import ClusterPayload from "@stellarfw/common/lib/interfaces/cluster-payload.interface";
-import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
-
-// export type RedisCallback = (error, message) =>
+import { Satellite, ClusterPayload, LogLevel } from "@stellarfw/common/lib";
 
 export default class RedisSatellite extends Satellite {
   protected _name = "redis";
@@ -173,18 +169,14 @@ export default class RedisSatellite extends Satellite {
       new Promise((resolve, reject) => {
         this.clusterCallbacks[requestId] = resolve;
 
-        this.clusterCallbackTimeouts[requestId] = setTimeout(
-          () => {
-            if (typeof this.clusterCallbacks[requestId] === "function") {
-              reject(new Error("RPC Timeout"));
-            }
+        this.clusterCallbackTimeouts[requestId] = setTimeout(() => {
+          if (typeof this.clusterCallbacks[requestId] === "function") {
+            reject(new Error("RPC Timeout"));
+          }
 
-            delete this.clusterCallbacks[requestId];
-            delete this.clusterCallbackTimeouts[requestId];
-          },
-          this.api.configs.general.rpcTimeout,
-          requestId,
-        );
+          delete this.clusterCallbacks[requestId];
+          delete this.clusterCallbackTimeouts[requestId];
+        }, this.api.configs.general.rpcTimeout);
       });
     }
   }

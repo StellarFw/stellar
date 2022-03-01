@@ -1,5 +1,5 @@
 import { Satellite } from "@stellarfw/common/lib";
-import { isWorker } from "cluster";
+import cluster from "cluster";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
 /**
@@ -49,7 +49,7 @@ export default class IDSatellite extends Satellite {
 
       this.api.id = externalIP;
 
-      if (isWorker) {
+      if (cluster.isWorker) {
         this.api.id += `:${process.pid}`;
       }
     }

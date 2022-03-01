@@ -1,4 +1,4 @@
-export default interface ConnectionDetails {
+export interface ConnectionDetails {
   /**
    * Connection type.
    */
@@ -77,4 +77,4 @@ export default interface ConnectionDetails {
    * Execute a verb for this connection.
    */
   verbs?: (verb: string, words: Array<string>) => Promise<any>;
-};;;;;;;;;;;;;;;;;;;;
+}

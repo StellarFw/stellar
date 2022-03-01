@@ -1,4 +1,4 @@
-import { Connection } from "..";
+import { Connection } from "../connection.js";
 
 export interface IActionProcessor {
   connection: Connection;

@@ -1,6 +1,6 @@
 import { Satellite } from "@stellarfw/common/lib";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
-import { isMaster } from "cluster";
+import cluster from "cluster";
 import { mkdirSync, writeFileSync, unlinkSync } from "fs";
 
 class Pids {
@@ -29,7 +29,7 @@ class Pids {
     this.pid = process.pid;
     this.path = this.api.configs.general.paths.pid;
 
-    if (isMaster) {
+    if (cluster.isPrimary) {
       this.title = `stellar-${this.sanitizeId()}`;
     } else {
       this.title = this.sanitizeId();
@@ -67,9 +67,9 @@ class Pids {
 }
 
 export default class PidsSatellite extends Satellite {
-  protected _name: string = "pids";
-  public loadPriority: number = 110;
-  public startPriority: number = 1;
+  protected _name = "pids";
+  public loadPriority = 110;
+  public startPriority = 1;
 
   public async load(): Promise<void> {
     this.api.pids = new Pids(this.api);

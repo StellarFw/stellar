@@ -2,7 +2,7 @@ import winston from "winston";
 import "winston-daily-rotate-file";
 import { TransformableInfo } from "logform";
 import chalk from "chalk";
-import { isMaster } from "cluster";
+import cluster from "cluster";
 import { LogLevel } from "@stellarfw/common/lib";
 
 /**
@@ -98,7 +98,7 @@ export default {
     const loggers: Array<() => winston.Logger> = [];
 
     // check if this Stellar instance is the Master
-    if (isMaster) {
+    if (cluster.isPrimary) {
       loggers.push(() => buildConsoleLogger(LogLevel.Debug));
     }
 

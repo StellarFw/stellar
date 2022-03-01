@@ -1,13 +1,18 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "node12",
+    "module": "ESNext",
     "lib": ["ESNext"],
-    "esModuleInterop": true,
+    "moduleResolution": "Node",
+    // needed to load CommonJS legacy modules
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+
     // equivalent to package.json sideEffects: false
     "isolatedModules": true,
     "sourceMap": true,
 
+    // code configuration
     "strict": true,
     "noImplicitAny": false,
     // TODO: remove in a second round of rewrite
@@ -17,6 +22,7 @@
     "useUnknownInCatchVariables": false,
     "skipDefaultLibCheck": true,
 
+    // typing configurations
     "declaration": true,
     "declarationMap": true
   },

@@ -1,4 +1,4 @@
-import { API } from "./interfaces";
+import { API } from "./index.js";
 
 export abstract class Task {
   /**

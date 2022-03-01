@@ -1,9 +1,8 @@
-import { Satellite } from "@stellarfw/common/lib";
 import { normalize, isAbsolute } from "path";
-import ConnectionDetails from "@stellarfw/common/lib/interfaces/connection-details.interface";
-import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 import { promisify } from "util";
 import { stat, createReadStream, readlink, ReadStream } from "fs";
+
+import { Satellite, ConnectionDetails, LogLevel } from "@stellarfw/common/lib";
 
 import * as Mime from "mime";
 
@@ -20,8 +19,8 @@ export interface FileResponse {
  * Satellite to manager static files.
  */
 export default class StaticFileServer extends Satellite {
-  protected _name: string = "StaticFile";
-  public loadPriority: number = 510;
+  protected _name = "StaticFile";
+  public loadPriority = 510;
 
   /**
    * Array with search paths to be used during a file request.
@@ -86,7 +85,7 @@ export default class StaticFileServer extends Satellite {
    * @param connection Client connection object.
    * @param counter Counter position
    */
-  private searchPath(connection: ConnectionDetails, counter: number = 0): null | string {
+  private searchPath(connection: ConnectionDetails, counter = 0): null | string {
     if (this.searchLocations.length === 0 || counter >= this.searchLocations.length) {
       return null;
     }
@@ -108,7 +107,7 @@ export default class StaticFileServer extends Satellite {
     connection: ConnectionDetails,
     length: number | null,
     duration: number | null,
-    success: boolean = true,
+    success = true,
   ) {
     this.api.log(`[file @ ${connection.type}]`, LogLevel.Debug, {
       to: connection.remoteIP,
@@ -119,7 +118,7 @@ export default class StaticFileServer extends Satellite {
     });
   }
 
-  public async get(connection: ConnectionDetails, counter: number = 0): Promise<FileResponse> {
+  public async get(connection: ConnectionDetails, counter = 0): Promise<FileResponse> {
     if (!connection.params.file || !this.searchPath(connection, counter)) {
       return this.sendFileNotFound(connection, this.api.configs.errors.fileNotFound());
     }

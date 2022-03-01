@@ -1,5 +1,4 @@
-import { API, panic } from ".";
-import { SatelliteInterface } from "./interfaces/satellite.interface";
+import { API, panic, SatelliteInterface } from "./index.js";
 
 export abstract class Satellite implements SatelliteInterface {
   public loadPriority = 100;
@@ -17,7 +16,7 @@ export abstract class Satellite implements SatelliteInterface {
     return this._name;
   }
 
-  public load(): Promise<void> {
+  public async load(): Promise<void> {
     panic("Method not implemented.");
   }
 }

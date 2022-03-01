@@ -1,6 +1,5 @@
 /**
- * Interface for a Satellite, all Satellites must implement
- * this Interface.
+ * Interface for a Satellite, all Satellites must implement this Interface.
  */
 export interface SatelliteInterface {
   /**

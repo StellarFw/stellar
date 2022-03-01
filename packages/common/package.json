@@ -6,7 +6,7 @@
   "author": "Gil Mendes <gil00mendes@gmail.com>",
   "license": "MIT",
   "type": "module",
-  "main": "./lib/",
+  "main": "lib/index.js",
   "types": "lib/",
   "directories": {
     "lib": "lib"

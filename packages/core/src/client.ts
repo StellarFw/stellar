@@ -6,6 +6,7 @@ import { callbackify } from "util";
 import { timingSafeEqual } from "crypto";
 
 import Primus from "primus";
+import { ConnectionDetails } from "@stellarfw/common/lib";
 
 const warn = (msg) => console.warn(`[Stellar warn]: ${msg}`);
 const error = (msg) => console.error(`[Stellar error]: ${msg}`);
@@ -14,16 +15,14 @@ const isObject = (obj) => obj !== null && typeof obj === "object";
 
 export type HandlerFn = (...args: any[]) => void;
 
-export interface ConnectionDetailsInterface {
-  id: string;
-  fingerprint: string;
-  remoteIP: string;
-  remotePort: number;
-  params: any;
+// TODO: try to abstract this
+export interface ConnectionDetailsInterface extends ConnectionDetails {
+  /**
+   * Type of connection.
+   */
   connectedAt: Date;
   rooms: Array<string>;
   totalActions: number;
-  pendingActions: number;
 }
 
 export interface ConnectionDetailsResponse {
@@ -170,7 +169,7 @@ export default class Stellar extends Primus.EventEmitter {
   /**
    * Number of sent messages.
    */
-  private messageCount: number = 0;
+  private messageCount = 0;
 
   /**
    * Client options.
@@ -180,7 +179,7 @@ export default class Stellar extends Primus.EventEmitter {
   /**
    * Informs if is to use an external client.
    */
-  private useExternalClient: boolean = false;
+  private useExternalClient = false;
 
   /**
    * External client.
@@ -214,7 +213,7 @@ export default class Stellar extends Primus.EventEmitter {
   /**
    * Number of pending requests.
    */
-  private pendingRequestsCounter: number = 0;
+  private pendingRequestsCounter = 0;
 
   protected welcomeMessage!: string;
 
@@ -376,7 +375,8 @@ export default class Stellar extends Primus.EventEmitter {
 
     // Save connection information
     this.id = details.data.id;
-    this.fingerprint = details.data.fingerprint;
+    // TODO: do this prop is always a string? I din't know for sure.
+    this.fingerprint = details.data.fingerprint as string;
     this.rooms = details.data.rooms;
 
     return details.data;

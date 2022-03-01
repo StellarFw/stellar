@@ -2,13 +2,11 @@ import { Stream } from "stream";
 import { Server, Socket, createServer } from "net";
 import { createServer as createSecureServer } from "tls";
 
-import ConnectionDetails from "@stellarfw/common/lib/interfaces/connection-details.interface";
-import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 import { GenericServer } from "../base/generic-server";
-import { Connection } from "@stellarfw/common/lib";
+import { Connection, LogLevel, ConnectionDetails } from "@stellarfw/common/lib";
 
 export default class TCPServer extends GenericServer {
-  protected static serverName: string = "TCP";
+  protected static serverName = "TCP";
 
   /**
    * TCP server object.
@@ -232,7 +230,7 @@ export default class TCPServer extends GenericServer {
    *
    * @param alreadyShutdown Informs of the server was already shutdown.
    */
-  private innerStop(alreadyShutdown: boolean = false): Promise<void> {
+  private innerStop(alreadyShutdown = false): Promise<void> {
     return new Promise((resolve) => {
       // If the server isn't already shutdown do it now
       if (!alreadyShutdown) {
@@ -296,7 +294,7 @@ export default class TCPServer extends GenericServer {
    * @param message Message to be sent.
    * @param messageCount Number of messages already sent for this connection.
    */
-  public sendMessage(connection: ConnectionDetails, message: any, messageCount: number = 0) {
+  public sendMessage(connection: ConnectionDetails, message: any, messageCount = 0) {
     if (message.error) {
       message.error = this.api.configs.errors.serializers.servers.tcp(message.error);
     }
@@ -361,7 +359,7 @@ export default class TCPServer extends GenericServer {
       throw new Error(`Cannot start tcp server @ ${this.options.bindIP}:${this.options.port} => ${error.message}`);
     });
 
-    await new Promise((resolve) => this.server?.listen(this.options.port, this.options.bindIP, resolve));
+    await new Promise((resolve) => this.server?.listen(this.options.port, this.options.bindIP, () => resolve(null)));
   }
 
   public async stop(): Promise<void> {
