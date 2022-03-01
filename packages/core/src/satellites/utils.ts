@@ -194,6 +194,12 @@ class Utils {
     return safeReadFile(path);
   }
 
+  public readJsonFile<T>(path: PathLike | FileHandle): IO<Promise<Result<T, string>>> {
+    return safeReadFile(path).map((future) =>
+      future.then((result) => result.map((buffer) => JSON.parse(buffer.toString()))),
+    );
+  }
+
   /**
    * Copy a file.
    *

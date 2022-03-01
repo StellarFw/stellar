@@ -11,6 +11,13 @@ export interface IUtilsSatellite {
   readFile(path: PathLike | FileHandle): IO<Promise<Result<Buffer, string>>>;
 
   /**
+   * Read a JSON file from the filesystem.
+   *
+   * @param path JSON file to be read.
+   */
+  readJsonFile<T>(path: PathLike | FileHandle): IO<Promise<Result<T, string>>>;
+
+  /**
    * Get all files of a given extensions inside a directory and its subdirectories.
    *
    * @param dir Root directory to be searched.

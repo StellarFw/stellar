@@ -117,7 +117,7 @@ export default class ModulesSatellite extends Satellite implements IModuleSatell
 
       // Read module manifest file. This file is required in order for it to work. Otherwise we need to shutdown the
       // engine with no change to recover.
-      const manifestFile = await importFile<ModuleInterface>(`${modulePath}/manifest.json`).run();
+      const manifestFile = await this.api.utils.readJsonFile<ModuleInterface>(`${modulePath}/manifest.json`).run();
       manifestFile.tapErr(() => {
         this.api.log(
           `Impossible to load module(${moduleName}), fix this to start Stellar normally. Usually this means the module or the 'manifest.json' file doesn't exist.`,
