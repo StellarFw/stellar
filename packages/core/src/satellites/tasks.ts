@@ -1,6 +1,6 @@
-import { Satellite } from "@stellarfw/common/lib";
+import { Satellite } from "@stellarfw/common/lib/index.js";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
-import { ITaskMetadata } from "@stellarfw/common/lib";
+import { ITaskMetadata } from "@stellarfw/common/lib/index.js";
 
 export interface InternalJob {
   plugins: Array<any>;
@@ -9,9 +9,9 @@ export interface InternalJob {
 }
 
 export default class TasksSatellite extends Satellite {
-  protected _name: string = "tasks";
-  public loadPriority: number = 699;
-  public startPriority: number = 900;
+  protected _name = "tasks";
+  public loadPriority = 699;
+  public startPriority = 900;
 
   public jobs: Map<string, InternalJob> = new Map();
 
@@ -101,7 +101,7 @@ export default class TasksSatellite extends Satellite {
    * @param path Task path.
    * @param reload Set to true when it's a reloaded.
    */
-  private loadFile(path: string, reload: boolean = false): void {
+  private loadFile(path: string, reload = false): void {
     const loadMessage = (loadedTasksName) => {
       const level = reload ? LogLevel.Info : LogLevel.Debug;
       const reloadWord = reload ? "(re)" : "";
@@ -219,7 +219,7 @@ export default class TasksSatellite extends Satellite {
    * @param args Arguments to pass to node-reques.
    * @param count Number of tasks entires to be removed.
    */
-  public del(queue: string, taskName: string, args: {} = {}, count: number = 0): Promise<number> {
+  public del(queue: string, taskName: string, args: {} = {}, count = 0): Promise<number> {
     return this.api.resque.queue.del(queue, taskName, args, count);
   }
 

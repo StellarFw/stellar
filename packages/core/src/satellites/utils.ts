@@ -1,4 +1,4 @@
-import { Satellite } from "@stellarfw/common/lib";
+import { Satellite } from "@stellarfw/common/lib/index.js";
 import { setTimeout } from "timers";
 import {
   readdirSync,

@@ -1,6 +1,6 @@
 import { resolve } from "path";
 
-import { Satellite } from "@stellarfw/common/lib";
+import { Satellite } from "@stellarfw/common/lib/index.js";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
 import { GenericServer } from "../base/generic-server";

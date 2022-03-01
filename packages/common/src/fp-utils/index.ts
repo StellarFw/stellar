@@ -1,7 +1,7 @@
 import { writeFileSync } from "fs";
-import { io, unsafeAsync } from "..";
+import { io, unsafeAsync } from "../index.js";
 
-export * from "./action-builder";
+export * from "./action-builder.js";
 
 /**
  * Safely import a file using the JS `import` function.

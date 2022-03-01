@@ -1,4 +1,13 @@
-import { Satellite, Event, LogLevel, EventHandler, EventContext, Result, err, ok } from "@stellarfw/common/lib";
+import {
+  Satellite,
+  Event,
+  LogLevel,
+  EventHandler,
+  EventContext,
+  Result,
+  err,
+  ok,
+} from "@stellarfw/common/lib/index.js";
 import * as _ from "lodash";
 
 /**

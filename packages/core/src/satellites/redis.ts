@@ -1,6 +1,6 @@
 import * as uuid from "uuid";
 
-import { Satellite, ClusterPayload, LogLevel } from "@stellarfw/common/lib";
+import { Satellite, ClusterPayload, LogLevel } from "@stellarfw/common/lib/index.js";
 
 export default class RedisSatellite extends Satellite {
   protected _name = "redis";

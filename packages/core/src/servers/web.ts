@@ -12,7 +12,7 @@ import * as zlib from "zlib";
 import { parse } from "url";
 
 import { GenericServer } from "../base/generic-server";
-import { ConnectionDetails, LogLevel } from "@stellarfw/common/lib";
+import { ConnectionDetails, LogLevel } from "@stellarfw/common/lib/index.js";
 
 interface RequestInformation {
   id: string;

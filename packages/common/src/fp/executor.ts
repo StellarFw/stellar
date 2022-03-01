@@ -1,4 +1,4 @@
-import { err, ok, Result } from ".";
+import { err, ok, Result } from "./index.js";
 
 /**
  * Panic with an error.

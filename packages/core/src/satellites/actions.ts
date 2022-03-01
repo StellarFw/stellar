@@ -12,7 +12,7 @@ import {
   always,
   ActionsStore,
   importFile,
-} from "@stellarfw/common/lib";
+} from "@stellarfw/common/lib/index.js";
 import { statusAction } from "../base/system-actions";
 
 /**

@@ -1,4 +1,4 @@
-import { Satellite } from "@stellarfw/common/lib";
+import { Satellite } from "@stellarfw/common/lib/index.js";
 import { readFileSync, writeFileSync } from "fs";
 import * as Handlebars from "handlebars";
 import { Action } from "@stellarfw/common";

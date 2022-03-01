@@ -1,6 +1,6 @@
 import winston from "winston";
 
-import { io, Satellite, unsafe } from "@stellarfw/common/lib";
+import { io, Satellite, unsafe } from "@stellarfw/common/lib/index.js";
 import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
 
 export default class LoggerSatellite extends Satellite {

@@ -15,7 +15,7 @@ import {
   unsafe,
   always,
   identity,
-} from "@stellarfw/common/lib";
+} from "@stellarfw/common/lib/index.js";
 
 /**
  * Satellite to manage the cache.

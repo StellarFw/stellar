@@ -10,7 +10,7 @@ import {
   ValidatorFunction,
   ValidatorRules,
   ParsedRules,
-} from "@stellarfw/common/lib";
+} from "@stellarfw/common/lib/index.js";
 
 import * as Messages from "../base/validator-messages.json";
 

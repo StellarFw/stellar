@@ -1,9 +1,14 @@
-import { EngineStatus } from "@stellarfw/common/lib/enums/engine-status.enum";
-import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
-import { Action, ActionFormat, ProcessingAction } from "@stellarfw/common/lib";
-import { Satellite } from "@stellarfw/common/lib";
-import { UnknownActionException, IActionProcessor } from "@stellarfw/common";
-import { Connection } from "@stellarfw/common/lib";
+import {
+  Connection,
+  Action,
+  Satellite,
+  ActionFormat,
+  ProcessingAction,
+  EngineStatus,
+  LogLevel,
+  UnknownActionException,
+  IActionProcessor,
+} from "@stellarfw/common/lib/index.js";
 
 type ActionProcessorCallback = (data: any) => void;
 

@@ -1,4 +1,4 @@
-import { identity } from "@stellarfw/common/lib";
+import { identity } from "@stellarfw/common/lib/index.js";
 import { buildEngine } from "../test-utils";
 
 describe("Core", () => {

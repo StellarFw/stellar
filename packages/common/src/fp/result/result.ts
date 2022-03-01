@@ -1,6 +1,6 @@
-import { none, panic, some } from "..";
-import { Option } from "../option/option.interface";
-import { Err as IErr, IResultPattern, Ok as IOk, Result } from "./result.interface";
+import { none, panic, some } from "../index.js";
+import { Option } from "../option/option.interface.js";
+import { Err as IErr, IResultPattern, Ok as IOk, Result } from "./result.interface.js";
 
 class Ok<T, E> implements IOk<T, E> {
   public readonly tag: "ok" = "ok";

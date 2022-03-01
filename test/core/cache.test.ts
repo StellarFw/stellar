@@ -1,4 +1,4 @@
-import { API, CacheErrors, none, some } from "@stellarfw/common/lib";
+import { API, CacheErrors, none, some } from "@stellarfw/common/lib/index.js";
 import { buildEngine } from "../test-utils";
 
 describe("Core", () => {

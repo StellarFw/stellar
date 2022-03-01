@@ -3,7 +3,7 @@ import { Server, Socket, createServer } from "net";
 import { createServer as createSecureServer } from "tls";
 
 import { GenericServer } from "../base/generic-server";
-import { Connection, LogLevel, ConnectionDetails } from "@stellarfw/common/lib";
+import { Connection, LogLevel, ConnectionDetails } from "@stellarfw/common/lib/index.js";
 
 export default class TCPServer extends GenericServer {
   protected static serverName = "TCP";

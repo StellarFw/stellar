@@ -1,4 +1,4 @@
-import { Satellite, RouteInterface, LogLevel, ConnectionDetails } from "@stellarfw/common/lib";
+import { Satellite, RouteInterface, LogLevel, ConnectionDetails } from "@stellarfw/common/lib/index.js";
 
 interface RouterDictionary {
   GET: Array<RouteInterface>;

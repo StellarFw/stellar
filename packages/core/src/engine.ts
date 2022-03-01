@@ -1,22 +1,28 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import "source-map-support/register";
+import "source-map-support/register.js";
 
-import { resolve, normalize, basename } from "path";
+import { resolve, normalize, basename, dirname } from "path";
 
-// @ts-ignore
-import stellarPackageJSON from "../package.json";
+import { API, Satellite, SatelliteInterface, EngineStatus, LogLevel } from "@stellarfw/common/lib/index.js";
+import { fileURLToPath } from "url";
+import { readFileSync } from "fs";
 
-import { SatelliteInterface } from "@stellarfw/common/lib/interfaces/satellite.interface";
-import { API, Satellite } from "@stellarfw/common/lib";
-import { EngineStatus } from "@stellarfw/common/lib/enums/engine-status.enum";
-import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
+/**
+ * Path of the code package.
+ */
+export const pkgPath = dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Package.json parsed contents.
+ */
+const stellarPackageJSON = JSON.parse(readFileSync(resolve(pkgPath, "../package.json")).toString());
 
 /**
  * Main entry point for the Stellar code.
  *
  * This makes the system bootstrap, loading and executing all satellites.
- * Each satellite load new features to the Engine instance and could perform
- * a set of instructions to accomplish a certain goal.
+ * Each satellite load new features to the Engine instance and could perform a set of instructions to accomplish a
+ * certain goal.
  */
 export class Engine {
   /**
@@ -183,7 +189,7 @@ export class Engine {
     this.satellitesStopOrder = new Map();
 
     // load the core satellites
-    this.loadArrayOfSatellites(this.api.utils.getFiles(`${__dirname}/satellites`));
+    this.loadArrayOfSatellites(this.api.utils.getFiles(`${pkgPath}/satellites`));
 
     // load module satellites
     const modulesToLoad = this.api.configs.modules || [];
@@ -252,16 +258,14 @@ export class Engine {
     // the `utils` and `config` Satellites needs to be loaded
     // first. They contains some functions that are needed
     // durning the startup process.
-    const initialSatellites = [
-      resolve(`${__dirname}/satellites/utils.js`),
-      resolve(`${__dirname}/satellites/config.js`),
-    ];
+    const initialSatellites = [resolve(`${pkgPath}/satellites/utils.js`), resolve(`${pkgPath}/satellites/config.js`)];
 
     for (const file of initialSatellites) {
       const fileName = file.replace(/^.*[\\\/]/, "");
       const satellite = fileName.split(".")[0];
 
-      const currentSatellite = new (require(file).default)(this.api);
+      const satelliteModule = await import(file);
+      const currentSatellite = new satelliteModule.default(this.api);
       this.satellites[satellite] = currentSatellite;
 
       try {

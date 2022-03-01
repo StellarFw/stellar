@@ -1,9 +1,9 @@
-import { Connection } from "@stellarfw/common/lib";
-import { Satellite } from "@stellarfw/common/lib";
+import { Connection } from "@stellarfw/common/lib/index.js";
+import { Satellite } from "@stellarfw/common/lib/index.js";
 
 export default class ConnectionSatellite extends Satellite {
-  protected _name: string = "connection";
-  public loadPriority: number = 400;
+  protected _name = "connection";
+  public loadPriority = 400;
 
   /**
    * Dictionary with all registered middleware.

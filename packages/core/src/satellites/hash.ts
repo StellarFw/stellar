@@ -1,6 +1,6 @@
 import * as bcrypt from "bcrypt";
 
-import { Satellite } from "@stellarfw/common/lib";
+import { Satellite } from "@stellarfw/common/lib/index.js";
 
 /**
  * This class is a wrapper for bcrypt library.

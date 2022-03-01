@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
 import { ReadStream } from "fs";
-import { Connection, LogLevel, ConnectionDetails } from "@stellarfw/common/lib";
+import { Connection, LogLevel, ConnectionDetails } from "@stellarfw/common/lib/index.js";
 
 /**
  * This function is called when the method is not implemented.

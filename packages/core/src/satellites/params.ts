@@ -1,8 +1,8 @@
-import { Satellite } from "@stellarfw/common/lib";
+import { Satellite } from "@stellarfw/common/lib/index.js";
 
 export default class ParamsSatellite extends Satellite {
-  protected _name: string = "params";
-  public loadPriority: number = 420;
+  protected _name = "params";
+  public loadPriority = 420;
 
   /**
    * Special params.

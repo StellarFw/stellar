@@ -1,10 +1,10 @@
 import * as i18n from "i18n";
 
-import { Satellite } from "@stellarfw/common/lib";
+import { Satellite } from "@stellarfw/common/lib/index.js";
 
 export default class I18nSatellite extends Satellite {
-  protected _name: string = "i18n";
-  public loadPriority: number = 10;
+  protected _name = "i18n";
+  public loadPriority = 10;
 
   private i18n: any = null;
 
