@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
-import * as Handlebars from "handlebars";
+import Handlebars from "handlebars";
 
 import { Satellite } from "@stellarfw/common/lib/index.js";
 import { stellarPkgPath } from "../engine.js";
@@ -20,7 +20,7 @@ export default class DocumentationSatellite extends Satellite {
 
     this.api.utils.createDir(this.api.configs.general.paths.public);
     this.docsFolder = `${this.api.configs.general.paths.public}/docs`;
-    this.templateFolder = `${stellarPkgPath}/../../static-files/docs`;
+    this.templateFolder = `${stellarPkgPath}/../static-files/docs`;
   }
 
   public async load(): Promise<void> {

@@ -11,6 +11,7 @@ import {
 import { execSync } from "child_process";
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
+import { stellarPkgPath } from "../engine.js";
 import * as ts from "typescript";
 
 export default class ModulesSatellite extends Satellite implements IModuleSatellite {
@@ -45,7 +46,7 @@ export default class ModulesSatellite extends Satellite implements IModuleSatell
    * Loads the base TypeScript configurations.
    */
   private loadBaseTsConfigs() {
-    const baseOptionsPath = join(__dirname, "../../../../tsconfig.base.json");
+    const baseOptionsPath = join(stellarPkgPath, "../../../tsconfig.base.json");
 
     const buffer = readFileSync(baseOptionsPath, { encoding: "utf-8" });
     const tsConfigBase = JSON.parse(buffer.toString());

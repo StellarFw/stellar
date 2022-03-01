@@ -3,6 +3,7 @@ import { resolve } from "path";
 import { Satellite, LogLevel } from "@stellarfw/common/lib/index.js";
 
 import { GenericServer } from "../base/generic-server.js";
+import { stellarPkgPath } from "../engine.js";
 
 export default class ServersSatellite extends Satellite {
   public loadPriority = 550;
@@ -18,12 +19,12 @@ export default class ServersSatellite extends Satellite {
   /**
    * Load all servers.
    */
-  private loadServers() {
+  private async loadServers() {
     // Get all JS files
-    const serversFiles = this.api.utils.recursiveDirSearch(resolve(`${__dirname}/../servers`));
+    const serversFiles = this.api.utils.recursiveDirSearch(resolve(`${stellarPkgPath}/servers`));
 
     for (const file of serversFiles) {
-      const ServerClass = require(file).default;
+      const ServerClass = (await import(file)).default;
       const options = this.api.configs.servers[ServerClass.serverName];
 
       if (options && options.enable === true) {
@@ -84,7 +85,7 @@ export default class ServersSatellite extends Satellite {
     this.api.servers = this;
 
     // Load all enabled servers
-    this.api.servers.loadServers();
+    await this.api.servers.loadServers();
   }
 
   public async start(): Promise<void> {

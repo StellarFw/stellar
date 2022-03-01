@@ -2,15 +2,24 @@ import { normalize, sep } from "path";
 import { ReadStream, readFileSync } from "fs";
 import { BrowserFingerprint } from "browser_fingerprint";
 import UglifyJS from "uglify-js";
-import WebServer from "./web";
 import { inspect } from "util";
-
-import { LogLevel } from "@stellarfw/common/lib/enums/log-level.enum";
-
-import { GenericServer } from "../base/generic-server";
 import Primus from "primus";
 import { Server } from "http";
-import { always, Connection, io, ok, Result, safeWriteFile, unsafe, ConnectionDetails } from "@stellarfw/common";
+
+import WebServer from "./web.js";
+import { GenericServer } from "../base/generic-server.js";
+import {
+  always,
+  Connection,
+  io,
+  ok,
+  Result,
+  safeWriteFile,
+  unsafe,
+  ConnectionDetails,
+  LogLevel,
+} from "@stellarfw/common/lib/index.js";
+import { stellarPkgPath } from "../engine.js";
 
 export default class WebSocketServer extends GenericServer {
   protected static serverName = "websocket";
@@ -270,7 +279,7 @@ export default class WebSocketServer extends GenericServer {
    * Compile client JS.
    */
   private compileClientJs(): string {
-    let clientSource: string = readFileSync(`${__dirname}/../client.js`).toString();
+    let clientSource: string = readFileSync(`${stellarPkgPath}/client.js`).toString();
     const url: string = this.api.configs.servers.websocket.clientUrl;
 
     clientSource = clientSource.replace(/\'%%URL%%\'/g, url);
