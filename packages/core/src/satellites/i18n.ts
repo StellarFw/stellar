@@ -1,4 +1,4 @@
-import * as i18n from "i18n";
+import i18n from "i18n";
 
 import { Satellite } from "@stellarfw/common/lib/index.js";
 
@@ -69,8 +69,6 @@ export default class I18nSatellite extends Satellite {
    * Localize a message.
    */
   public localize(message: string | Array<any>, options) {
-    const self = this;
-
     // the arguments should be an array
     if (!Array.isArray(message)) {
       message = [message];
