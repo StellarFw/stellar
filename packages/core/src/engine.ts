@@ -189,7 +189,11 @@ export class Engine {
     this.satellitesStopOrder = new Map();
 
     // load the core satellites
-    await this.loadArrayOfSatellites(this.api.utils.getFiles(`${stellarPkgPath}/satellites`));
+    const predicates = [/.*config.js/, /.*utils.js/];
+    const satellitesToLoad = this.api.utils
+      .getFiles(`${stellarPkgPath}/satellites`)
+      .filter((e: string) => !predicates.some((r) => e.match(r)));
+    await this.loadArrayOfSatellites(satellitesToLoad);
 
     // load module satellites
     const modulesToLoad = this.api.configs.modules || [];
