@@ -1,6 +1,6 @@
 "use strict";
 
-import fs, { readFileSync } from "fs";
+import fs from "fs";
 import Handlebars from "handlebars";
 
 export class Utils {
@@ -196,8 +196,3 @@ export class Utils {
     Utils.createFile(outputPath, template(data));
   }
 }
-
-/**
- * Stellar package.json content.
- */
-export const pkgMetadata = JSON.parse(readFileSync("../package.json"));

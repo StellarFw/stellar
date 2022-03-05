@@ -9,7 +9,7 @@
   "homepage": "https://stellar-framework.com/",
   "license": "MIT",
   "type": "module",
-  "main": "lib/cli.js",
+  "main": "lib/index.js",
   "directories": {
     "lib": "lib"
   },
@@ -25,17 +25,18 @@
   },
   "dependencies": {
     "@stellarfw/core": "^2.0.0",
-    "handlebars": "4.0.11",
     "async": "^2.6.0",
-    "is-running": "^2.1.0",
-    "winston": "2.4.0",
     "chalk": "^4.1.2",
-    "sywac": "^1.3.0"
+    "commander": "^9.0.0",
+    "handlebars": "4.0.11",
+    "is-running": "^2.1.0",
+    "winston": "2.4.0"
   },
   "scripts": {
-    "test": "echo \"Error: run tests from root\" && exit 1"
+    "dev": "rm -rf ./lib && tsc -w",
+    "build": "rm -rf ./lib && tsc"
   },
   "bin": {
-    "stellar": "./src/stellar.js"
+    "stellar": "./bin/stellar"
   }
 }
