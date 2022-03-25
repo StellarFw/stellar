@@ -4,6 +4,13 @@ import { IO, Result } from "../index.js";
 
 export interface IUtilsSatellite {
   /**
+   * Read all files from the given directory.
+   *
+   * @param path Path to the directory to be.
+   */
+  listFiles(path: PathLike): IO<Promise<Array<string>>>;
+
+  /**
    * Read the contents of the given file.
    *
    * @param path
@@ -13,7 +20,7 @@ export interface IUtilsSatellite {
   /**
    * Read a JSON file from the filesystem.
    *
-   * @param path JSON file to be read.
+   * @param path path for the JSON file to be read.
    */
   readJsonFile<T>(path: PathLike | FileHandle): IO<Promise<Result<T, string>>>;
 

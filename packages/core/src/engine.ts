@@ -190,8 +190,9 @@ export class Engine {
 
     // load the core satellites
     const predicates = [/.*config.js/, /.*utils.js/];
+    console.log(await this.api.utils.listFiles(`${stellarPkgPath}/satellites`).run());
     const satellitesToLoad = this.api.utils
-      .getFiles(`${stellarPkgPath}/satellites`)
+      .listFiles(`${stellarPkgPath}/satellites`)
       .filter((e: string) => !predicates.some((r) => e.match(r)));
     await this.loadArrayOfSatellites(satellitesToLoad);
 
@@ -200,7 +201,7 @@ export class Engine {
     modulesToLoad.forEach(async (moduleName) => {
       const moduleSatellitesPath = `${this.api.scope.rootPath}/modules/${moduleName}/satellites`;
       if (this.api.utils.dirExists(moduleSatellitesPath)) {
-        await this.loadArrayOfSatellites(this.api.utils.getFiles(moduleSatellitesPath));
+        await this.loadArrayOfSatellites(this.api.utils.listFiles(moduleSatellitesPath));
       }
     });
 

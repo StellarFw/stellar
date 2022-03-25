@@ -1,4 +1,4 @@
-import { Satellite, IO, safeReadFile, Result } from "@stellarfw/common/lib/index.js";
+import { Satellite, IO, io, safeReadFile, Result } from "@stellarfw/common/lib/index.js";
 import { setTimeout } from "timers";
 import {
   readdirSync,
@@ -13,10 +13,10 @@ import {
   accessSync,
   PathLike,
 } from "fs";
-import { normalize, dirname } from "path";
+import { normalize, dirname, join } from "path";
 import { F_OK } from "constants";
 import { networkInterfaces } from "os";
-import { FileHandle } from "fs/promises";
+import { FileHandle, readdir, stat } from "fs/promises";
 
 class Utils {
   private api: any = null;
@@ -41,24 +41,30 @@ class Utils {
     });
   }
 
-  /**
-   * Read all files from the given directory.
-   *
-   * @param dir Folder path to search.
-   */
-  public getFiles(dir: string): Array<string> {
-    const results: Array<any> = [];
+  public listFiles(path: PathLike): IO<Promise<Array<string>>> {
+    return io(async () =>
+      readdir(path)
+        .then((fsEntries) =>
+          fsEntries.reduce(async (a, e) => {
+            const statResult = await stat(e);
+            return statResult.isDirectory() ? a : [...a, e];
+          }, []),
+        )
+        .then(Promise.all),
+    );
 
-    readdirSync(dir).forEach((file) => {
-      file = `${dir}/${file}`;
-      const stat = statSync(file);
+    // const results: Array<any> = [];
 
-      if (stat && !stat.isDirectory()) {
-        results.push(file);
-      }
-    });
+    // readdirSync(dir).forEach((file) => {
+    //   file = `${dir}/${file}`;
+    //   const stat = statSync(file);
 
-    return results;
+    //   if (stat && !stat.isDirectory()) {
+    //     results.push(file);
+    //   }
+    // });
+
+    // return results;
   }
 
   /**
