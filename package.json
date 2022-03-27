@@ -42,7 +42,7 @@
     "primus": "7.3.4",
     "qs": "^6.5.0",
     "ramda": "^0.27.1",
-    "sails-disk": "1.0.0-12",
+    "sails-disk": "1.0.0",
     "should": "^13.0.0",
     "source-map-support": "^0.5.0",
     "st-formidable": "^1.0.18",
@@ -52,7 +52,7 @@
     "uuid": "3.4.0",
     "waterline": "github:balderdashy/waterline#v0.14.0",
     "winston": "^2.1.1",
-    "winston-daily-rotate-file": "^1.4.6",
+    "winston-daily-rotate-file": "^3.0.0",
     "ws": "^4.0.0"
   },
   "devDependencies": {
