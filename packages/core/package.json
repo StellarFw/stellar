@@ -30,7 +30,7 @@
     "lib": "lib"
   },
   "dependencies": {
-    "@stellarfw/common": "workspace:*",
+    "@stellarfw/common": "*",
     "bcrypt": "5.0.1",
     "bluebird": "^3.5.1",
     "browser_fingerprint": "2.0.3",
