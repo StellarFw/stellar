@@ -4,10 +4,10 @@
     "packages/*"
   ],
   "devDependencies": {
+    "@stellarfw/core": "*",
+    "@stellarfw/common": "*",
     "@commitlint/cli": "7.2.1",
     "@commitlint/config-conventional": "7.1.2",
-    "@stellarfw/common": "workspace:*",
-    "@stellarfw/core": "workspace:*",
     "@types/jest": "^27.0.2",
     "@types/node": "^17.0.16",
     "@typescript-eslint/eslint-plugin": "^5.2.0",
@@ -17,7 +17,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "jest": "^27.3.1",
-    "lerna": "3.21.0",
+    "lerna": "5.2.0",
     "prettier": "^2.4.1",
     "ts-jest": "^27.0.7",
     "ts-node": "7.0.1",
@@ -32,7 +32,7 @@
   },
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "dev": "pnpm run dev -r --stream --parallel",
+    "dev": "pnpm run --stream --parallel -r dev",
     "build": "rm -rf ./dist; lerna run build",
     "test": "jest --runInBand",
     "test:ci": "jest --runInBand",
