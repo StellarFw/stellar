@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import { consoleCommand } from "./commands/console.js";
+import { runCommand } from "./commands/run.js";
 import { pkgMetadata } from "./utils.js";
 
 export const main = () => {
@@ -11,6 +12,7 @@ export const main = () => {
   program.version(pkgMetadata.version).option("--daemon", "Execute the command as a daemon").showHelpAfterError();
 
   program.addCommand(consoleCommand);
+  program.addCommand(runCommand);
 
   // parse the given console arguments
   program.parse();
