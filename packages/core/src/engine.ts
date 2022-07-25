@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import "source-map-support/register.js";
 
-import { resolve, normalize, basename, dirname } from "path";
+import { resolve, normalize, basename, dirname, join } from "path";
 
 import { API, Satellite, SatelliteInterface, EngineStatus, LogLevel } from "@stellarfw/common/lib/index.js";
 import { fileURLToPath } from "url";
@@ -190,10 +190,12 @@ export class Engine {
 
     // load the core satellites
     const predicates = [/.*config.js/, /.*utils.js/];
-    console.log(await this.api.utils.listFiles(`${stellarPkgPath}/satellites`).run());
-    const satellitesToLoad = this.api.utils
-      .listFiles(`${stellarPkgPath}/satellites`)
-      .filter((e: string) => !predicates.some((r) => e.match(r)));
+    const satellitesPath = join(stellarPkgPath, "satellites");
+    const satellitesToLoad = await this.api.utils
+      .listFiles(satellitesPath)
+      .map((v) => v.then((paths) => paths.filter((e) => !predicates.some((r) => e.match(r)))))
+      .run();
+
     await this.loadArrayOfSatellites(satellitesToLoad);
 
     // load module satellites

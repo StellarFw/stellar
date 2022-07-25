@@ -1,4 +1,4 @@
-import { Satellite, IO, io, safeReadFile, Result } from "@stellarfw/common/lib/index.js";
+import { Satellite, IO, io, safeReadFile, Result, pipe } from "@stellarfw/common/lib/index.js";
 import { setTimeout } from "timers";
 import {
   readdirSync,
@@ -12,6 +12,7 @@ import {
   createWriteStream,
   accessSync,
   PathLike,
+  Stats,
 } from "fs";
 import { normalize, dirname, join } from "path";
 import { F_OK } from "constants";
@@ -42,29 +43,18 @@ class Utils {
   }
 
   public listFiles(path: PathLike): IO<Promise<Array<string>>> {
-    return io(async () =>
-      readdir(path)
-        .then((fsEntries) =>
-          fsEntries.reduce(async (a, e) => {
-            const statResult = await stat(e);
-            return statResult.isDirectory() ? a : [...a, e];
-          }, []),
-        )
-        .then(Promise.all),
+    const getNodeStat = pipe<string, [string, Stats]>(
+      (fileName) => join(path.toString(), fileName),
+      async (path) => [path, await stat(path)],
     );
 
-    // const results: Array<any> = [];
+    return io(async () => {
+      const nodes = await readdir(path)
+        .then((v) => v.map(getNodeStat))
+        .then((v) => Promise.all(v));
 
-    // readdirSync(dir).forEach((file) => {
-    //   file = `${dir}/${file}`;
-    //   const stat = statSync(file);
-
-    //   if (stat && !stat.isDirectory()) {
-    //     results.push(file);
-    //   }
-    // });
-
-    // return results;
+      return nodes.filter(([_, s]) => !s.isDirectory()).map((v) => v[0]);
+    });
   }
 
   /**

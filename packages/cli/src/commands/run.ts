@@ -18,7 +18,7 @@ const stopProcess = (engine: Engine, shutdownTimeout: Option<number>) => async (
 const startServer = (engine: Engine) => {
   unsafeAsync(() => engine.start()).then((result) =>
     result.tapErr((msg) => {
-      console.log("[INTERNAL ERROR]", msg);
+      console.error("[INTERNAL ERROR]", msg);
       process.exit(1);
     }),
   );
