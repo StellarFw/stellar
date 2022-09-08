@@ -1,4 +1,4 @@
-import { Satellite, IO, io, safeReadFile, Result, pipe } from "@stellarfw/common/lib/index.js";
+import { Satellite, IO, io, safeReadFile, Result, pipe, unsafeAsync } from "@stellarfw/common/lib/index.js";
 import { setTimeout } from "timers";
 import {
   readdirSync,
@@ -7,17 +7,16 @@ import {
   readlinkSync,
   unlinkSync,
   rmdirSync,
-  mkdirSync,
   createReadStream,
   createWriteStream,
   accessSync,
   PathLike,
   Stats,
+  constants,
 } from "fs";
-import { normalize, dirname, join } from "path";
-import { F_OK } from "constants";
+import { normalize, join } from "path";
 import { networkInterfaces } from "os";
-import { FileHandle, readdir, stat } from "fs/promises";
+import { FileHandle, mkdir, readdir, rm, stat } from "fs/promises";
 
 class Utils {
   private api: any = null;
@@ -114,57 +113,35 @@ class Utils {
    *
    * @param path Path where the directory must be created.
    */
-  public createDir(path: string, mode = 0o777): void {
-    try {
-      mkdirSync(path, mode);
-    } catch (e) {
-      if (e.code === "ENOENT") {
-        this.createDir(dirname(path), mode);
-        this.createDir(path, mode);
-      }
-    }
+  public createDir(path: PathLike, mode = 0o777): IO<Promise<Result<string | undefined>>> {
+    return io(() => unsafeAsync(() => mkdir(path, { mode, recursive: true })));
   }
 
   /**
-   * Remove a directory.
+   * Remove a file/directory.
    *
-   * @param path Directory to be removed.
+   * @param path Path to be removed.
    */
-  public removeDir(path: string): void {
-    let filesList: Array<string>;
-
-    try {
-      filesList = readdirSync(path);
-    } catch (e) {
-      return;
-    }
-
-    filesList.forEach((file) => {
-      const filePath = `${path}/${file}`;
-
-      if (statSync(filePath).isFile()) {
-        unlinkSync(filePath);
-      } else {
-        this.removeDir(filePath);
-      }
-    });
-
-    rmdirSync(path);
+  public removePath(path: PathLike): IO<Promise<Result<void>>> {
+    return io(() => unsafeAsync(() => rm(path)));
   }
 
   /**
    * Check if the directory exists.
    *
-   * @param dir Path to check.
+   * @param path Path of the directory to be tested
    */
-  public dirExists(dir): boolean {
-    try {
-      statSync(dir).isDirectory();
-    } catch (_) {
-      return false;
-    }
-
-    return true;
+  public dirExists(path: PathLike): IO<Promise<boolean>> {
+    return io(async () => {
+      return (await unsafeAsync(() => stat(path))).match({
+        err() {
+          return false;
+        },
+        ok(stats) {
+          return stats.isDirectory();
+        },
+      });
+    });
   }
 
   /**
@@ -213,7 +190,7 @@ class Utils {
    */
   public exists(path: string): boolean {
     try {
-      accessSync(path, F_OK);
+      accessSync(path, constants.F_OK);
     } catch (_) {
       return false;
     }
@@ -252,23 +229,6 @@ class Utils {
     }
 
     return o.toString() === "[object Object]";
-  }
-
-  /**
-   * Remove the object pointed by the path (file/directory).
-   *
-   * @param path Path to be removed.
-   */
-  public removePath(path: string) {
-    if (!this.exists(path)) {
-      return;
-    }
-
-    if (this.fileExists(path)) {
-      return unlinkSync(path);
-    }
-
-    this.removeDir(path);
   }
 
   /**

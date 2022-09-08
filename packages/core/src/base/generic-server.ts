@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 import { ReadStream } from "fs";
 import { Connection, LogLevel, ConnectionDetails } from "@stellarfw/common/lib/index.js";
+import { API } from "@stellarfw/common/lib";
 
 /**
  * This function is called when the method is not implemented.
@@ -21,7 +22,7 @@ export abstract class GenericServer extends EventEmitter {
   /**
    * Reference for the API object.
    */
-  protected api: any = null;
+  protected api: API;
 
   /**
    * Server type.

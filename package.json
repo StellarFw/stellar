@@ -21,7 +21,7 @@
     "prettier": "^2.4.1",
     "ts-jest": "^27.0.7",
     "ts-node": "7.0.1",
-    "typescript": "^4.7.0-dev.20220301",
+    "typescript": "^4.9.0-dev.20220817",
     "yorkie": "2.0.0"
   },
   "engines": {

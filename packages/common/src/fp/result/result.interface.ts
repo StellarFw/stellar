@@ -214,4 +214,4 @@ export interface Err<T, E> extends IResult<T, E> {
 /**
  * Result is a type that represents either success (Ok) or failure (Err).
  */
-export type Result<T, E> = Ok<T, E> | Err<T, E>;
+export type Result<T, E = string> = Ok<T, E> | Err<T, E>;

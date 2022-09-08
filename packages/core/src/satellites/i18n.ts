@@ -13,17 +13,15 @@ export default class I18nSatellite extends Satellite {
 
     // create locale folder (remove first if exists)
     const localePath = this.api.configs.general.paths.temp + "/locale";
-    this.api.utils.removeDir(localePath);
-    this.api.utils.createDir(localePath);
+    this.api.utils.removePath(localePath).run();
+    this.api.utils.createDir(localePath).run();
 
     // iterate all modules
     for (const module of this.api.modules.activeModules.keys()) {
       const moduleLocalePath = `${this.api.scope.rootPath}/modules/${module}/locale`;
 
-      // check if the folder exists
-      if (this.api.utils.dirExists(moduleLocalePath)) {
-        // copy all files to temp locale folder
-      }
+      // TODO: copy all files to temp locale folder
+      // this.api.utils.dirExists(moduleLocalePath)
     }
 
     const options = this.api.configs.i18n;

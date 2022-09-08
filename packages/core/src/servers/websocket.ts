@@ -5,6 +5,7 @@ import UglifyJS from "uglify-js";
 import { inspect } from "util";
 import Primus from "primus";
 import { Server } from "http";
+import { when } from "ramda";
 
 import WebServer from "./web.js";
 import { GenericServer } from "../base/generic-server.js";
@@ -20,6 +21,7 @@ import {
   LogLevel,
 } from "@stellarfw/common/lib/index.js";
 import { stellarPkgPath } from "../engine.js";
+import { isFalse } from "ramda-adjunct";
 
 export default class WebSocketServer extends GenericServer {
   protected static serverName = "websocket";
@@ -172,7 +174,7 @@ export default class WebSocketServer extends GenericServer {
     // @ts-ignore
     this.server.active = true;
 
-    this.writeClientJS().tapErr((errMsg) => this.api.log(errMsg, LogLevel.Warning));
+    (await this.writeClientJS()).tapErr((errMsg) => this.api.log(errMsg, LogLevel.Warning));
   }
 
   /**
@@ -325,11 +327,16 @@ export default class WebSocketServer extends GenericServer {
   /**
    * Write client JS code.
    */
-  private writeClientJS(): Result<unknown, string> {
+  private async writeClientJS(): Promise<Result<unknown, string>> {
     // Ensure the public folder exists
-    if (!this.api.utils.dirExists(`${this.api.configs.general.paths.public}`)) {
-      this.api.utils.createDir(`${this.api.configs.general.paths.public}`);
-    }
+    this.api.utils.dirExists(`${this.api.configs.general.paths.public}`);
+
+    const createPublicDir = () => this.api.utils.createDir(`${this.api.configs.general.paths.public}`).run();
+
+    await this.api.utils
+      .dirExists(`${this.api.configs.general.paths.public}`)
+      .map(async (result) => when(isFalse, createPublicDir, await result))
+      .run();
 
     if (this.api.configs.servers.websocket.clientJsName) {
       const base = normalize(

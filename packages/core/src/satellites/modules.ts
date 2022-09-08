@@ -102,9 +102,12 @@ export default class ModulesSatellite extends Satellite implements IModuleSatell
   private async loadModules(): Promise<void> {
     const modules = (this.api.configs.modules || []) as Array<string>;
 
-    if (this.api.utils.dirExists(`${this.api.scope.rootPath}/modules/private`)) {
-      modules.push("private");
-    }
+    await this.api.utils
+      .dirExists(`${this.api.scope.rootPath}/modules/private`)
+      .map(async (resultP) => {
+        (await resultP) && modules.push("private");
+      })
+      .run();
 
     if (modules.length === 0) {
       this.api.log("At least one module needs to be active.", LogLevel.Emergency);
@@ -171,7 +174,7 @@ export default class ModulesSatellite extends Satellite implements IModuleSatell
     if (scope.args.clean) {
       const tempFilesLocations = ["temp", "package.json", "package-lock.json", "node_modules"];
 
-      tempFilesLocations.forEach((e) => this.api.utils.removePath(`${scope.rootPath}/${e}`));
+      tempFilesLocations.forEach((e) => this.api.utils.removePath(`${scope.rootPath}/${e}`).run());
     }
 
     // If the `package.json` file already exists and Stellar isn't starting with the
@@ -200,7 +203,7 @@ export default class ModulesSatellite extends Satellite implements IModuleSatell
     };
 
     const packageJsonPath = `${this.api.scope.rootPath}/package.json`;
-    this.api.utils.removePath(packageJsonPath);
+    this.api.utils.removePath(packageJsonPath).run();
     writeFileSync(packageJsonPath, JSON.stringify(projectJson, null, 2), "utf8");
 
     this.api.log("Updating Node dependencies", LogLevel.Info);

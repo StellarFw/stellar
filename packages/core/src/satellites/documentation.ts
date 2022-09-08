@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "fs";
 import Handlebars from "handlebars";
 
-import { Satellite } from "@stellarfw/common/lib/index.js";
+import { API, Satellite } from "@stellarfw/common/lib/index.js";
 import { stellarPkgPath } from "../engine.js";
 
 export default class DocumentationSatellite extends Satellite {
@@ -15,10 +15,9 @@ export default class DocumentationSatellite extends Satellite {
 
   private templateFolder!: string;
 
-  constructor(api: any) {
+  constructor(api: API) {
     super(api);
 
-    this.api.utils.createDir(this.api.configs.general.paths.public);
     this.docsFolder = `${this.api.configs.general.paths.public}/docs`;
     this.templateFolder = `${stellarPkgPath}/../static-files/docs`;
   }
@@ -27,6 +26,8 @@ export default class DocumentationSatellite extends Satellite {
     if (!this.api.configs.general.generateDocumentation) {
       return;
     }
+
+    await this.api.utils.createDir(this.api.configs.general.paths.public).run();
 
     this.generateDocumentation();
   }
@@ -65,8 +66,8 @@ export default class DocumentationSatellite extends Satellite {
    * Generate documentation
    */
   private generateDocumentation() {
-    this.api.utils.removeDir(this.docsFolder);
-    this.api.utils.createDir(this.docsFolder);
+    this.api.utils.removePath(this.docsFolder).run();
+    this.api.utils.createDir(this.docsFolder).run();
 
     const actions = this.getActionToGenerateDoc();
 

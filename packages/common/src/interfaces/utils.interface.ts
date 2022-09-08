@@ -33,6 +33,27 @@ export interface IUtilsSatellite {
   recursiveDirSearch(dir: string, extensions: string | Array<string>): Array<string>;
 
   /**
+   * Check if the directory exists.
+   *
+   * @param path Path of the directory to be tested
+   */
+  dirExists(path: PathLike): IO<Promise<boolean>>;
+
+  /**
+   * Create a new directory.
+   *
+   * @param path Path where the directory must be created.
+   */
+  createDir(path: PathLike, mode?: number): IO<Promise<Result<string | undefined>>>;
+
+  /**
+   * Remove a directory.
+   *
+   * @param path Directory to be removed.
+   */
+  removeDir(path: PathLike): IO<Promise<void>>;
+
+  /**
    * Merge two hashes recursively.
    *
    * @param a First hash.

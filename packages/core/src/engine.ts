@@ -199,12 +199,17 @@ export class Engine {
     await this.loadArrayOfSatellites(satellitesToLoad);
 
     // load module satellites
-    const modulesToLoad = this.api.configs.modules || [];
+    const modulesToLoad = this.api.configs.modules ?? [];
     modulesToLoad.forEach(async (moduleName) => {
       const moduleSatellitesPath = `${this.api.scope.rootPath}/modules/${moduleName}/satellites`;
-      if (this.api.utils.dirExists(moduleSatellitesPath)) {
-        await this.loadArrayOfSatellites(this.api.utils.listFiles(moduleSatellitesPath));
-      }
+      this.api.utils
+        .dirExists(moduleSatellitesPath)
+        .map(async (result) => {
+          return (
+            (await result) && this.api.utils.listFiles(moduleSatellitesPath).run().then(this.loadArrayOfSatellites)
+          );
+        })
+        .run();
     });
 
     // organize final array to match the satellites priorities

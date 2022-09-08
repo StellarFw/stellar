@@ -8,7 +8,7 @@ export abstract class Satellite implements SatelliteInterface {
   protected api!: API;
   protected _name!: string;
 
-  constructor(api) {
+  constructor(api: API) {
     this.api = api;
   }
 

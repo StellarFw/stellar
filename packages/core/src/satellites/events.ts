@@ -35,7 +35,7 @@ export default class EventsSatellite extends Satellite {
     this.api.events = this;
 
     // load listeners form the active project modules
-    this.loadListeners();
+    await this.loadListeners();
   }
 
   /**
@@ -195,11 +195,13 @@ export default class EventsSatellite extends Satellite {
   /**
    * Iterate over all active modules and loads al the listeners.
    */
-  private loadListeners() {
-    this.api.modules.modulesPaths.forEach((modulePath: string) => {
+  private async loadListeners(): Promise<void> {
+    const paths = [...(this.api.modules.modulesPaths as Map<string, string>).values()];
+    const workList = paths.map(async (modulePath) => {
       const listenersFolderPath = `${modulePath}/listeners`;
 
-      if (!this.api.utils.dirExists(listenersFolderPath)) {
+      const isDirExists = await this.api.utils.dirExists(listenersFolderPath).run();
+      if (!isDirExists) {
         return;
       }
 
@@ -207,7 +209,9 @@ export default class EventsSatellite extends Satellite {
       // For each listeners folder load each listener file
       this.api.utils
         .recursiveDirSearch(listenersFolderPath, "js")
-        .forEach((listenerPath: string) => this.loadFile(listenerPath));
+        .forEach((listenerPath) => this.loadFile(listenerPath));
     });
+
+    await Promise.all(workList);
   }
 }

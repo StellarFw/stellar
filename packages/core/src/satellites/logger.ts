@@ -1,6 +1,8 @@
 import winston from "winston";
 
-import { io, Satellite, unsafe, LogLevel } from "@stellarfw/common/lib/index.js";
+import { io, Satellite, unsafe, LogLevel, ok } from "@stellarfw/common/lib/index.js";
+import { always, ifElse, when } from "ramda";
+import { isFalse } from "ramda-adjunct";
 
 export default class LoggerSatellite extends Satellite {
   protected _name = "logger";
@@ -8,22 +10,20 @@ export default class LoggerSatellite extends Satellite {
 
   /**
    * Container to create the folder where to store the log files.
-   *
-   * TODO: change when move the utils function to the IO Monad
    */
-  private createLogsFolder = io(() =>
-    unsafe(() => {
-      const logsDir = this.api.configs.general.paths.log;
+  private createLogsFolder = io(() => {
+    const logsDir = this.api.configs.general.paths.log;
+    const createLogDir = () => this.api.utils.createDir(logsDir).run();
 
-      if (!this.api.utils.dirExists(logsDir)) {
-        this.api.utils.createDir(logsDir);
-      }
-    }),
-  );
+    return this.api.utils
+      .dirExists(logsDir)
+      .map(async (result) => ifElse(isFalse, createLogDir, always(ok(true)))(await result))
+      .run();
+  });
 
   public async load(): Promise<void> {
     // try to create the logs folder.
-    this.createLogsFolder.run().tapErr(() => {
+    (await this.createLogsFolder.run()).tapErr(() => {
       this.api.log(`Unable to create the logs directory(${this.api.configs.general.paths.log})`, LogLevel.Emergency);
       this.api.commands.stop();
     });
