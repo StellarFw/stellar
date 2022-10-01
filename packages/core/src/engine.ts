@@ -271,8 +271,8 @@ export class Engine {
 		// first. They contains some functions that are needed
 		// durning the startup process.
 		const initialSatellites = [
-			resolve(`${stellarPkgPath}/satellites/utils.js`),
-			resolve(`${stellarPkgPath}/satellites/config.js`),
+			resolve(`${stellarPkgPath}/satellites/utils.ts`),
+			resolve(`${stellarPkgPath}/satellites/config.ts`),
 		];
 
 		for (const file of initialSatellites) {

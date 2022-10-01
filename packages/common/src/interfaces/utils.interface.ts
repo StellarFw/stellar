@@ -28,9 +28,9 @@ export interface IUtilsSatellite {
 	 * Get all files of a given extensions inside a directory and its subdirectories.
 	 *
 	 * @param dir Root directory to be searched.
-	 * @param extensions File extension filter. By default the filter is 'js' and 'mjs'.
+	 * @param extensions File extension filter. By default the filter is 'js', 'mjs', 'ts', and 'mts'.
 	 */
-	recursiveDirSearch(dir: string, extensions: string | Array<string>): Array<string>;
+	recursiveDirSearch(dir: string, extensions?: string | Array<string>): Array<string>;
 
 	/**
 	 * Check if the directory exists.

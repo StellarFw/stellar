@@ -61,7 +61,10 @@ class Utils {
 	 * @param extensions File extension filter. By default the filter is
 	 * 'js.
 	 */
-	public recursiveDirSearch(dir: string, extensions: string | Array<string> = ["js", "mjs"]): Array<string> {
+	public recursiveDirSearch(
+		dir: string,
+		extensions: string | Array<string> = ["js", "mjs", "ts", "mts"],
+	): Array<string> {
 		let results: Array<string> = [];
 
 		const innerExtensions = Array.isArray(extensions) ? extensions : [extensions];
