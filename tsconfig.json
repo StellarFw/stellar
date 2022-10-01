@@ -4,28 +4,17 @@
     "module": "ESNext",
     "lib": ["ESNext"],
     "moduleResolution": "Node",
-    // needed to load CommonJS legacy modules
-    "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
-
-    // equivalent to package.json sideEffects: false
-    "isolatedModules": true,
-    "sourceMap": true,
-
-    // code configuration
+    "esModuleInterop": true,
     "strict": true,
-    "noImplicitAny": false,
-    // TODO: remove in a second round of rewrite
-    "noUnusedLocals": false,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "useUnknownInCatchVariables": false,
-    "skipDefaultLibCheck": true,
-
-    // typing configurations
+    "strictNullChecks": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "outDir": "./dist",
     "declaration": true,
-    "declarationMap": true
+    "paths": {
+      "@stellar-fw/cli": ["./packages/cli/*"]
+    },
+    "types": ["node"]
   },
-  "include": ["**/*"],
-  "exclude": ["**/dist", "**/node_modules", "**/*.spec.ts"]
+  "exclude": ["./example/**/*"]
 }

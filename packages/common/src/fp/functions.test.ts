@@ -1,3 +1,4 @@
+import { describe, expect, test } from "vitest";
 import { always, identity, promisify, pipe, asyncAlways } from ".";
 
 describe("functions", () => {

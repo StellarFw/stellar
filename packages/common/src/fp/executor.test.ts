@@ -1,4 +1,5 @@
 import { panic, unsafe, unsafeAsync } from ".";
+import { describe, expect, test } from "vitest";
 
 describe("executor", () => {
   test("panic throws an exception", () => {
