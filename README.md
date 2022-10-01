@@ -38,7 +38,19 @@ Stellar is a web framework that makes it easy to build modular APIs. It is desig
 - Native support for HTTP, WebSocket and TCP connections
 - Powerful and simple to use [Validation system](https://stellar-framework.com/guide/validation.html)
 
-Note that Stellar only supports Node.js LTS version 14 or upper.
+Note that Stellar only supports Node.js LTS version 18 or upper.
+
+## Development
+
+For a more integrated development experience the repository comes with configurations files for [Nix](https://nixos.wiki/wiki/Nix_package_manager), which will automate the installation of all needed dependencies.
+
+First, ensure that you have Nix installed, then simply run:
+
+```shell
+nix develop
+```
+
+> **📒 Note:** nix shell doesn't support a default shell other than bash, so if you use another shell just run it after init the development environment.
 
 ## Questions/Issues
 
