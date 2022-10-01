@@ -7,11 +7,11 @@ import {
   ok,
   err,
   Result,
-} from "@stellarfw/common/lib/index.js";
+} from "@stellarfw/common";
 import { execSync } from "child_process";
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
-import { stellarPkgPath } from "../engine.js";
+import { stellarPkgPath } from "../engine";
 import * as ts from "typescript";
 
 export default class ModulesSatellite extends Satellite implements IModuleSatellite {

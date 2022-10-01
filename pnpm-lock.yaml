@@ -49,8 +49,8 @@ importers:
 
   packages/cli:
     specifiers:
-      '@stellarfw/common': '*'
-      '@stellarfw/core': ^2.0.0
+      '@stellarfw/common': workspace:*
+      '@stellarfw/core': workspace:*
       '@types/ramda': ^0.28.15
       async: ^2.6.0
       chalk: ^4.1.2

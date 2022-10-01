@@ -11,9 +11,9 @@ import {
   ValidatorRules,
   ParsedRules,
   safeReadFile,
-} from "@stellarfw/common/lib/index.js";
+} from "@stellarfw/common";
 
-import { stellarPkgPath } from "../engine.js";
+import { stellarPkgPath } from "../engine";
 
 /**
  * Base error messages for each validator.

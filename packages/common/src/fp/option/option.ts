@@ -1,5 +1,5 @@
-import { panic } from "../index.js";
-import { IOptionPattern, None as INone, Option, Some as ISome } from "./option.interface.js";
+import { panic } from "../index";
+import { IOptionPattern, None as INone, Option, Some as ISome } from "./option.interface";
 
 class Some<T> implements ISome<T> {
   public tag: "some" = "some";

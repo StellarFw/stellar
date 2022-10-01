@@ -1,7 +1,7 @@
-import { Satellite, LogLevel } from "@stellarfw/common/lib/index.js";
+import { Satellite, LogLevel } from "@stellarfw/common";
 
 import * as UUID from "uuid";
-import { GenericServer } from "../base/generic-server.js";
+import { GenericServer } from "../base/generic-server";
 
 export class TestServer extends GenericServer {
   constructor(api, type, options) {

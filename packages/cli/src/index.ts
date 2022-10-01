@@ -1,7 +1,7 @@
 import { Command } from "commander";
-import { consoleCommand } from "./commands/console.js";
-import { runCommand } from "./commands/run.js";
-import { pkgMetadata } from "./utils.js";
+import { consoleCommand } from "./commands/console";
+import { runCommand } from "./commands/run";
+import { pkgMetadata } from "./utils";
 
 export const main = () => {
   // preface

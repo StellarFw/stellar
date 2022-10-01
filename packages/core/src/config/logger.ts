@@ -3,7 +3,7 @@ import "winston-daily-rotate-file";
 import { TransformableInfo } from "logform";
 import chalk from "chalk";
 import cluster from "cluster";
-import { LogLevel } from "@stellarfw/common/lib/index.js";
+import { LogLevel } from "@stellarfw/common";
 
 /**
  * List of colors for each level

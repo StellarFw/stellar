@@ -1,6 +1,6 @@
 import i18n from "i18n";
 
-import { Satellite } from "@stellarfw/common/lib/index.js";
+import { Satellite } from "@stellarfw/common";
 
 export default class I18nSatellite extends Satellite {
   protected _name = "i18n";

@@ -1,4 +1,4 @@
-import { IO } from "./io.interface.js";
+import { IO } from "./io.interface";
 
 class IOImpl<T> implements IO<T> {
   constructor(private containerFn: () => T) {}

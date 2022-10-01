@@ -1,9 +1,9 @@
 import { resolve } from "path";
 
-import { Satellite, LogLevel } from "@stellarfw/common/lib/index.js";
+import { Satellite, LogLevel } from "@stellarfw/common";
 
-import { GenericServer } from "../base/generic-server.js";
-import { stellarPkgPath } from "../engine.js";
+import { GenericServer } from "../base/generic-server";
+import { stellarPkgPath } from "../engine";
 
 export default class ServersSatellite extends Satellite {
   public loadPriority = 550;

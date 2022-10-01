@@ -1,4 +1,5 @@
-import { API, panic, SatelliteInterface } from "./index.js";
+import { panic } from "./fp";
+import { API, SatelliteInterface } from "./interfaces";
 
 export abstract class Satellite implements SatelliteInterface {
   public loadPriority = 100;

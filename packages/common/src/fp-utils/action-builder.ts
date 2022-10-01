@@ -1,4 +1,4 @@
-import { Action, err, asyncAlways, ActionInput, ActionRunFunction, ActionInputMap } from "../index.js";
+import { Action, err, asyncAlways, ActionInput, ActionRunFunction, ActionInputMap } from "../index";
 
 /**
  * Creates a new Action.

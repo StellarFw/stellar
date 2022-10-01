@@ -7,7 +7,7 @@ import {
   Result,
   err,
   ok,
-} from "@stellarfw/common/lib/index.js";
+} from "@stellarfw/common";
 import * as _ from "lodash";
 
 /**

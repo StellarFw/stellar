@@ -1,4 +1,4 @@
-import { Engine } from "@stellarfw/core/lib/index.js";
+import { Engine } from "@stellarfw/core";
 import { Command } from "commander";
 import { start } from "repl";
 

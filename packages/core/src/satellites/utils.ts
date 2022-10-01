@@ -1,4 +1,4 @@
-import { Satellite, IO, io, safeReadFile, Result, pipe, unsafeAsync } from "@stellarfw/common/lib/index.js";
+import { Satellite, IO, io, safeReadFile, Result, pipe, unsafeAsync } from "@stellarfw/common";
 import { setTimeout } from "timers";
 import {
   readdirSync,

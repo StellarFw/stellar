@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
 import { ReadStream } from "fs";
-import { Connection, LogLevel, ConnectionDetails } from "@stellarfw/common/lib/index.js";
+import { Connection, LogLevel, ConnectionDetails } from "@stellarfw/common";
 import { API } from "@stellarfw/common/lib";
 
 /**

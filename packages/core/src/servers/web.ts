@@ -11,8 +11,8 @@ import * as etag from "etag";
 import * as zlib from "zlib";
 import { parse } from "url";
 
-import { GenericServer } from "../base/generic-server.js";
-import { ConnectionDetails, LogLevel } from "@stellarfw/common/lib/index.js";
+import { GenericServer } from "../base/generic-server";
+import { ConnectionDetails, LogLevel } from "@stellarfw/common";
 
 interface RequestInformation {
   id: string;

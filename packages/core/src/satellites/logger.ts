@@ -1,6 +1,6 @@
 import winston from "winston";
 
-import { io, Satellite, unsafe, LogLevel, ok } from "@stellarfw/common/lib/index.js";
+import { io, Satellite, unsafe, LogLevel, ok } from "@stellarfw/common";
 import { always, ifElse, when } from "ramda";
 import { isFalse } from "ramda-adjunct";
 

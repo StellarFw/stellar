@@ -6,7 +6,7 @@ import { callbackify } from "util";
 import { timingSafeEqual } from "crypto";
 
 import Primus from "primus";
-import { ConnectionDetails } from "@stellarfw/common/lib/index.js";
+import { ConnectionDetails } from "@stellarfw/common";
 
 const warn = (msg) => console.warn(`[Stellar warn]: ${msg}`);
 const error = (msg) => console.error(`[Stellar error]: ${msg}`);

@@ -1,47 +1,36 @@
 {
-  "name": "@stellarfw/cli",
-  "version": "2.0.0",
-  "description": "Stellar command line",
-  "keywords": [
-    "stellar"
-  ],
-  "author": "Gil Mendes <gil00mendes@gmail.com>",
-  "homepage": "https://stellar-framework.com/",
-  "license": "MIT",
-  "type": "module",
-  "main": "lib/index.js",
-  "directories": {
-    "lib": "lib"
-  },
-  "files": [
-    "lib"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/StellarFw/stellar.git"
-  },
-  "bugs": {
-    "url": "https://github.com/StellarFw/stellar/issues"
-  },
-  "dependencies": {
-    "@stellarfw/common": "*",
-    "@stellarfw/core": "^2.0.0",
-    "async": "^2.6.0",
-    "chalk": "^4.1.2",
-    "commander": "^9.0.0",
-    "handlebars": "4.0.11",
-    "ramda": "^0.28.0",
-    "ramda-adjunct": "^3.2.0",
-    "winston": "3.8.2"
-  },
-  "scripts": {
-    "dev": "rm -rf ./lib && tsc -w",
-    "build": "rm -rf ./lib && tsc"
-  },
-  "bin": {
-    "stellar": "./bin/stellar"
-  },
-  "devDependencies": {
-    "@types/ramda": "^0.28.15"
-  }
+	"name": "@stellarfw/cli",
+	"version": "2.0.0",
+	"description": "Stellar command line",
+	"keywords": [
+		"stellar"
+	],
+	"author": "Gil Mendes <gil00mendes@gmail.com>",
+	"homepage": "https://stellar-framework.com/",
+	"license": "MIT",
+	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/StellarFw/stellar.git"
+	},
+	"bugs": {
+		"url": "https://github.com/StellarFw/stellar/issues"
+	},
+	"dependencies": {
+		"@stellarfw/common": "workspace:*",
+		"@stellarfw/core": "workspace:*",
+		"async": "^2.6.0",
+		"chalk": "^4.1.2",
+		"commander": "^9.0.0",
+		"handlebars": "4.0.11",
+		"ramda": "^0.28.0",
+		"ramda-adjunct": "^3.2.0",
+		"winston": "3.8.2"
+	},
+	"bin": {
+		"stellar": "./bin/stellar"
+	},
+	"devDependencies": {
+		"@types/ramda": "^0.28.15"
+	}
 }

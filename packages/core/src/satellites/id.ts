@@ -1,4 +1,4 @@
-import { Satellite, LogLevel } from "@stellarfw/common/lib/index.js";
+import { Satellite, LogLevel } from "@stellarfw/common";
 import cluster from "cluster";
 
 /**

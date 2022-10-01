@@ -1,8 +1,8 @@
 import { PathLike, writeFileSync } from "fs";
 import { FileHandle, readFile } from "fs/promises";
-import { io, unsafeAsync } from "../index.js";
+import { io, unsafeAsync } from "../index";
 
-export * from "./action-builder.js";
+export * from "./action-builder";
 
 /**
  * Safely import a file using the JS `import` function.

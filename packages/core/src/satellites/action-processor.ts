@@ -8,7 +8,7 @@ import {
   LogLevel,
   UnknownActionException,
   IActionProcessor,
-} from "@stellarfw/common/lib/index.js";
+} from "@stellarfw/common";
 
 type ActionProcessorCallback = (data: any) => void;
 

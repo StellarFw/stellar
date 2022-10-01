@@ -1,1 +1,1 @@
-export * from "./unknown-action.exception.js";
+export * from "./unknown-action.exception";

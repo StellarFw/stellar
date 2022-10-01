@@ -2,7 +2,7 @@ import { normalize, isAbsolute } from "path";
 import { promisify } from "util";
 import { stat, createReadStream, readlink, ReadStream } from "fs";
 
-import { Satellite, ConnectionDetails, LogLevel } from "@stellarfw/common/lib/index.js";
+import { Satellite, ConnectionDetails, LogLevel } from "@stellarfw/common";
 
 import * as Mime from "mime";
 

@@ -1,4 +1,4 @@
-import { Action, API, behavior, createAction, ok, pipeInto } from "@stellarfw/common/lib/index.js";
+import { Action, API, behavior, createAction, ok, pipeInto } from "@stellarfw/common";
 
 /**
  * System action to inform the server status.

@@ -7,7 +7,7 @@ import { cwd } from "process";
 import { always, isNil, mergeWith, when } from "ramda";
 import { isFunction } from "ramda-adjunct";
 import winston from "winston";
-import { cliPath, createDirectory, isPidRunning } from "../utils.js";
+import { cliPath, createDirectory, isPidRunning } from "../utils";
 
 type Options = {
   id: string;

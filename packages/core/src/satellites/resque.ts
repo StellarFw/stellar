@@ -1,4 +1,4 @@
-import { Satellite, LogLevel } from "@stellarfw/common/lib/index.js";
+import { Satellite, LogLevel } from "@stellarfw/common";
 
 import * as NodeResque from "node-resque";
 

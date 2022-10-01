@@ -1,7 +1,7 @@
-import { EngineStatus, API, Satellite, LogLevel } from "@stellarfw/common/lib/index.js";
+import { EngineStatus, API, Satellite, LogLevel } from "@stellarfw/common";
 import { normalize } from "path";
 import { existsSync, watchFile, unwatchFile } from "fs";
-import { stellarPkgPath } from "../engine.js";
+import { stellarPkgPath } from "../engine";
 
 class ConfigManager {
   private api!: API;

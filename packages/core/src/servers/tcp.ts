@@ -2,8 +2,8 @@ import { Stream } from "stream";
 import { Server, Socket, createServer } from "net";
 import { createServer as createSecureServer } from "tls";
 
-import { GenericServer } from "../base/generic-server.js";
-import { Connection, LogLevel, ConnectionDetails } from "@stellarfw/common/lib/index.js";
+import { GenericServer } from "../base/generic-server";
+import { Connection, LogLevel, ConnectionDetails } from "@stellarfw/common";
 
 export default class TCPServer extends GenericServer {
   protected static serverName = "TCP";

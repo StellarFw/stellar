@@ -1,4 +1,4 @@
-import { EngineStatus } from "@stellarfw/common/lib/index.js";
+import { EngineStatus } from "@stellarfw/common";
 import cluster, { Worker as ClusterWorker } from "cluster";
 import { inc } from "ramda";
 import { isNotNil } from "ramda-adjunct";

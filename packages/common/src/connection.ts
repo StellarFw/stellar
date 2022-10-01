@@ -1,5 +1,5 @@
+import { ConnectionDetails } from "@stellarfw/common";
 import * as UUID from "uuid";
-import { ConnectionDetails } from "./index.js";
 
 /**
  * This class represents an active connection.

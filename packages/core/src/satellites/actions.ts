@@ -11,8 +11,8 @@ import {
   some,
   always,
   ActionsStore,
-} from "@stellarfw/common/lib/index.js";
-import { statusAction } from "../base/system-actions.js";
+} from "@stellarfw/common";
+import { statusAction } from "../base/system-actions;
 
 /**
  * Map with the action by version.

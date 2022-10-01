@@ -1,6 +1,6 @@
 import { IActionSatellite, ICacheSatellite, IValidatorSatellite } from ".";
 import { EngineStatus, LogLevel } from "..";
-import { IUtilsSatellite } from "./utils.interface.js";
+import { IUtilsSatellite } from "./utils.interface";
 
 export interface API {
   /**

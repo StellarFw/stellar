@@ -1,4 +1,4 @@
-import { Satellite, ITaskMetadata, LogLevel } from "@stellarfw/common/lib/index.js";
+import { Satellite, ITaskMetadata, LogLevel } from "@stellarfw/common";
 
 export interface InternalJob {
   plugins: Array<any>;

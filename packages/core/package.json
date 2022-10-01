@@ -1,77 +1,72 @@
 {
-  "name": "@stellarfw/core",
-  "version": "2.0.0",
-  "description": "A modern action based Web Framework, to create Web APIs easily",
-  "homepage": "https://stellar-framework.com",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/StellarFw/stellar"
-  },
-  "bugs": {
-    "url": "https://github.com/StellarFw/stellar/issues"
-  },
-  "author": "Gil Mendes <gil00mendes@gmail.com>",
-  "license": "MIT",
-  "keywords": [
-    "api",
-    "web framework",
-    "stellar",
-    "rest",
-    "http",
-    "https",
-    "tcp",
-    "action",
-    "task",
-    "websocket"
-  ],
-  "type": "module",
-  "main": "lib/index.js",
-  "typings": "lib/",
-  "directories": {
-    "lib": "lib"
-  },
-  "dependencies": {
-    "@stellarfw/common": "*",
-    "bcrypt": "5.0.1",
-    "bluebird": "^3.5.1",
-    "browser_fingerprint": "2.0.3",
-    "chalk": "^2.3.0",
-    "etag": "1.8.1",
-    "fakeredis": "2.0.0",
-    "handlebars": "4.0.11",
-    "i18n": "^0.8.3",
-    "ioredis": "^3.2.2",
-    "lodash": "4.17.10",
-    "log": "^1.4.0",
-    "logform": "^2.3.0",
-    "mime": "^2.3.1",
-    "node-resque": "5.2.0",
-    "primus": "^7.3.0",
-    "qs": "6.5.2",
-    "ramda": "^0.28.0",
-    "ramda-adjunct": "^3.2.0",
-    "redis-commands": "1.3.5",
-    "sails-disk": "1.0.0-12",
-    "source-map-support": "0.5.4",
-    "st-formidable": "^1.0.18",
-    "then-fakeredis": "^2.0.1",
-    "typescript": "^4.4.4",
-    "uglify-js": "^3.14.3",
-    "uuid": "3.2.1",
-    "waterline": "0.13.1",
-    "winston": "^3.3.3",
-    "winston-daily-rotate-file": "^4.5.5",
-    "winston-transport": "^4.4.0",
-    "ws": "^3.3.3"
-  },
-  "devDependencies": {
-    "@types/primus": "^7.3.6",
-    "@types/ramda": "^0.28.15",
-    "request": "^2.83.0"
-  },
-  "scripts": {
-    "dev": "tsc -w",
-    "build": "rm -rf ./lib && tsc",
-    "test": "NODE_ENV=test jest --runInBand --config jest.conf.js --verbose false"
-  }
+	"name": "@stellarfw/core",
+	"version": "2.0.0",
+	"description": "A modern action based Web Framework, to create Web APIs easily",
+	"homepage": "https://stellar-framework.com",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/StellarFw/stellar"
+	},
+	"bugs": {
+		"url": "https://github.com/StellarFw/stellar/issues"
+	},
+	"author": "Gil Mendes <gil00mendes@gmail.com>",
+	"license": "MIT",
+	"keywords": [
+		"api",
+		"web framework",
+		"stellar",
+		"rest",
+		"http",
+		"https",
+		"tcp",
+		"action",
+		"task",
+		"websocket"
+	],
+	"type": "module",
+	"main": "src/index.ts",
+	"dependencies": {
+		"@stellarfw/common": "*",
+		"bcrypt": "5.0.1",
+		"bluebird": "^3.5.1",
+		"browser_fingerprint": "2.0.3",
+		"chalk": "^2.3.0",
+		"etag": "1.8.1",
+		"fakeredis": "2.0.0",
+		"handlebars": "4.0.11",
+		"i18n": "^0.8.3",
+		"ioredis": "^3.2.2",
+		"lodash": "4.17.10",
+		"log": "^1.4.0",
+		"logform": "^2.3.0",
+		"mime": "^2.3.1",
+		"node-resque": "5.2.0",
+		"primus": "^7.3.0",
+		"qs": "6.5.2",
+		"ramda": "^0.28.0",
+		"ramda-adjunct": "^3.2.0",
+		"redis-commands": "1.3.5",
+		"sails-disk": "1.0.0-12",
+		"source-map-support": "0.5.4",
+		"st-formidable": "^1.0.18",
+		"then-fakeredis": "^2.0.1",
+		"typescript": "^4.4.4",
+		"uglify-js": "^3.14.3",
+		"uuid": "3.2.1",
+		"waterline": "0.13.1",
+		"winston": "^3.3.3",
+		"winston-daily-rotate-file": "^4.5.5",
+		"winston-transport": "^4.4.0",
+		"ws": "^3.3.3"
+	},
+	"devDependencies": {
+		"@types/primus": "^7.3.6",
+		"@types/ramda": "^0.28.15",
+		"request": "^2.83.0"
+	},
+	"exports": {
+		".": "./src/index.ts",
+		"./*": "./src/*"
+	}
 }

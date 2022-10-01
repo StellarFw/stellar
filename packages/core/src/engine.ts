@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import "source-map-support/register.js";
+import "source-map-support/register";
 
 import { resolve, normalize, basename, dirname, join } from "path";
 
-import { API, Satellite, SatelliteInterface, EngineStatus, LogLevel } from "@stellarfw/common/lib/index.js";
+import { API, Satellite, SatelliteInterface, EngineStatus, LogLevel } from "@stellarfw/common";
 import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
 

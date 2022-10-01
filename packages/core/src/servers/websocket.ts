@@ -7,8 +7,8 @@ import Primus from "primus";
 import { Server } from "http";
 import { when } from "ramda";
 
-import WebServer from "./web.js";
-import { GenericServer } from "../base/generic-server.js";
+import WebServer from "./web";
+import { GenericServer } from "../base/generic-server";
 import {
   always,
   Connection,
@@ -19,8 +19,8 @@ import {
   unsafe,
   ConnectionDetails,
   LogLevel,
-} from "@stellarfw/common/lib/index.js";
-import { stellarPkgPath } from "../engine.js";
+} from "@stellarfw/common";
+import { stellarPkgPath } from "../engine";
 import { isFalse } from "ramda-adjunct";
 
 export default class WebSocketServer extends GenericServer {

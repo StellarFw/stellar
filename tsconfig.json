@@ -1,20 +1,22 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "lib": ["ESNext"],
-    "moduleResolution": "Node",
-    "esModuleInterop": true,
-    "strict": true,
-    "strictNullChecks": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "outDir": "./dist",
-    "declaration": true,
-    "paths": {
-      "@stellar-fw/cli": ["./packages/cli/*"]
-    },
-    "types": ["node"]
-  },
-  "exclude": ["./example/**/*"]
+	"compilerOptions": {
+		"target": "ESNext",
+		"module": "ESNext",
+		"lib": ["ESNext"],
+		"moduleResolution": "Node",
+		"esModuleInterop": true,
+		"strict": true,
+		"strictNullChecks": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"outDir": "./dist",
+		"declaration": true,
+		"paths": {
+			"@stellarfw/cli": ["./packages/cli/*"],
+			"@stellarfw/common": ["./packages/common/*"],
+			"@stellarfw/core": ["./packages/core/*"]
+		},
+		"types": ["node"]
+	},
+	"exclude": ["./example/**/*"]
 }

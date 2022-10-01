@@ -1,8 +1,8 @@
 import { readFileSync, writeFileSync } from "fs";
 import Handlebars from "handlebars";
 
-import { API, Satellite } from "@stellarfw/common/lib/index.js";
-import { stellarPkgPath } from "../engine.js";
+import { API, Satellite } from "@stellarfw/common";
+import { stellarPkgPath } from "../engine";
 
 export default class DocumentationSatellite extends Satellite {
   protected _name = "documentation";

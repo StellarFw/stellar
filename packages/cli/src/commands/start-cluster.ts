@@ -1,4 +1,4 @@
-import { EngineStatus } from "@stellarfw/common/lib/index.js";
+import { EngineStatus } from "@stellarfw/common";
 import cluster, { Worker as ClusterWorker } from "cluster";
 import { existsSync } from "fs";
 import { readFile, writeFile } from "fs/promises";
@@ -25,8 +25,8 @@ import {
 } from "ramda";
 import { isFunction, isNotNil } from "ramda-adjunct";
 import winston from "winston";
-import { RunCommandArgs } from "../command.types.js";
-import { cliPath, createDirectory, isPidRunning } from "../utils.js";
+import { RunCommandArgs } from "../command.types";
+import { cliPath, createDirectory, isPidRunning } from "../utils";
 
 type Options = {
   id: string;

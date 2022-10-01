@@ -1,7 +1,7 @@
-export * from "./functions.js";
+export * from "./functions";
 
-export * from "./executor.js";
+export * from "./executor";
 
-export * from "./option/index.js";
-export * from "./result/index.js";
-export * from "./io/index.js";
+export * from "./option/index";
+export * from "./result/index";
+export * from "./io/index";

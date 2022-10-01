@@ -1,6 +1,6 @@
 import { PathLike } from "fs";
 import { FileHandle } from "fs/promises";
-import { IO, Result } from "../index.js";
+import { IO, Result } from "../index";
 
 export interface IUtilsSatellite {
   /**

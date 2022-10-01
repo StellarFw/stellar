@@ -1,5 +1,5 @@
-import { Option, option, unsafeAsync } from "@stellarfw/common/lib/index.js";
-import { Engine } from "@stellarfw/core/lib/index.js";
+import { Option, option, unsafeAsync } from "@stellarfw/common";
+import { Engine } from "@stellarfw/core";
 import { Command } from "commander";
 import { RunCommandArgs } from "../command.types";
 
@@ -27,7 +27,7 @@ const startServer = (engine: Engine) => {
 const execRunCommand = async (args: RunCommandArgs) => {
   // when the cluster mode is required by the user, stop the normal run command and move to cluster mode
   if (!!args.cluster) {
-    (await import("./start-cluster.js")).startCluster(args);
+    (await import("./start-cluster")).startCluster(args);
     return;
   }
 

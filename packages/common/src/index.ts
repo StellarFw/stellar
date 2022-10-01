@@ -1,9 +1,9 @@
-export * from "./fp/index.js";
-export * from "./fp-utils/index.js";
+export * from "./fp/index";
+export * from "./fp-utils/index";
 
-export * from "./enums/index.js";
-export * from "./exceptions/index.js";
-export * from "./interfaces/index.js";
+export * from "./enums/index";
+export * from "./exceptions/index";
+export * from "./interfaces/index";
 
-export * from "./connection.js";
-export * from "./satellite.js";
+export * from "./connection";
+export * from "./satellite";
