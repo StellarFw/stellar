@@ -1,10 +1,9 @@
-'use strict'
+"use strict";
 
 exports.default = {
-
-  example (api) {
-    return {
-      exampleConfig: 'exampleValue'
-    }
-  }
-}
+	example(api) {
+		return {
+			exampleConfig: "exampleValue",
+		};
+	},
+};

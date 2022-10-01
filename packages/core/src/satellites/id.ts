@@ -11,46 +11,46 @@ import cluster from "cluster";
  *  - or one can be generated automatically using the server's external IP.
  */
 export default class IDSatellite extends Satellite {
-  protected _name = "ID";
+	protected _name = "ID";
 
-  public loadPriority = 100;
-  public startPriority = 2;
+	public loadPriority = 100;
+	public startPriority = 2;
 
-  public async load(): Promise<void> {
-    this.defineEngineName();
-    this.api.stellarVersion = this.api.scope.stellarPackageJSON.version;
-  }
+	public async load(): Promise<void> {
+		this.defineEngineName();
+		this.api.stellarVersion = this.api.scope.stellarPackageJSON.version;
+	}
 
-  public async start(): Promise<void> {
-    this.api.log(`server ID: ${this.api.id}`, LogLevel.Notice);
-  }
+	public async start(): Promise<void> {
+		this.api.log(`server ID: ${this.api.id}`, LogLevel.Notice);
+	}
 
-  /**
-   * Define the engine instance name.
-   */
-  private defineEngineName(): void {
-    const args = this.api.scope.args;
+	/**
+	 * Define the engine instance name.
+	 */
+	private defineEngineName(): void {
+		const args = this.api.scope.args;
 
-    if (args.title) {
-      this.api.id = args.title;
-    } else if (process.env.STELLAR_TITLE) {
-      this.api.id = process.env.STELLAR_TITLE;
-    } else if (this.api.configs.general && this.api.configs.general.id) {
-      this.api.id = this.api.configs.general.id;
-    } else {
-      const externalIP = this.api.utils.getExternalIPAddress();
+		if (args.title) {
+			this.api.id = args.title;
+		} else if (process.env.STELLAR_TITLE) {
+			this.api.id = process.env.STELLAR_TITLE;
+		} else if (this.api.configs.general && this.api.configs.general.id) {
+			this.api.id = this.api.configs.general.id;
+		} else {
+			const externalIP = this.api.utils.getExternalIPAddress();
 
-      if (externalIP === false) {
-        this.api.log(" * Error fetching this host external IP address; setting id base to 'stellar'", LogLevel.Error);
-        this.api.id = "stellar";
-        return;
-      }
+			if (externalIP === false) {
+				this.api.log(" * Error fetching this host external IP address; setting id base to 'stellar'", LogLevel.Error);
+				this.api.id = "stellar";
+				return;
+			}
 
-      this.api.id = externalIP;
+			this.api.id = externalIP;
 
-      if (cluster.isWorker) {
-        this.api.id += `:${process.pid}`;
-      }
-    }
-  }
+			if (cluster.isWorker) {
+				this.api.id += `:${process.pid}`;
+			}
+		}
+	}
 }

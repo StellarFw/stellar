@@ -2,29 +2,29 @@
  * Returns the value it was given.
  */
 export function identity<T>(x: T): T {
-  return x;
+	return x;
 }
 
 /**
  * Returns a function that always returns the same value.
  */
 export function always<T>(x: T): () => T {
-  return () => x;
+	return () => x;
 }
 
 /**
  * Returns a function that always returns the same promised value.
  */
 export function asyncAlways<T>(x: T): () => Promise<T> {
-  const promisedVal = promisify(x);
-  return () => promisedVal;
+	const promisedVal = promisify(x);
+	return () => promisedVal;
 }
 
 /**
  * Wrap the given value into a promise that always resolves to the same value.
  */
 export async function promisify<T>(value: T): Promise<T> {
-  return value;
+	return value;
 }
 
 /**
@@ -34,7 +34,7 @@ export async function promisify<T>(value: T): Promise<T> {
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function pipe<T, O>(...fns: Array<Function>) {
-  return (value: T) => fns.reduce((a, fn) => fn(a), value) as unknown as O;
+	return (value: T) => fns.reduce((a, fn) => fn(a), value) as unknown as O;
 }
 
 /**
@@ -42,5 +42,5 @@ export function pipe<T, O>(...fns: Array<Function>) {
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function pipeInto<T, O>(val: T, fn1: Function, ...fns: Array<Function>) {
-  return pipe<T, O>(fn1, ...fns)(val);
+	return pipe<T, O>(fn1, ...fns)(val);
 }

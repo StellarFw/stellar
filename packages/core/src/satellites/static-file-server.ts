@@ -7,170 +7,170 @@ import { Satellite, ConnectionDetails, LogLevel } from "@stellarfw/common";
 import * as Mime from "mime";
 
 export interface FileResponse {
-  connection: ConnectionDetails;
-  fileStream?: ReadStream;
-  mime: string;
-  length: number;
-  lastModified?: Date;
-  error?: string;
+	connection: ConnectionDetails;
+	fileStream?: ReadStream;
+	mime: string;
+	length: number;
+	lastModified?: Date;
+	error?: string;
 }
 
 /**
  * Satellite to manager static files.
  */
 export default class StaticFileServer extends Satellite {
-  protected _name = "StaticFile";
-  public loadPriority = 510;
+	protected _name = "StaticFile";
+	public loadPriority = 510;
 
-  /**
-   * Array with search paths to be used during a file request.
-   */
-  private searchLocations: Array<string> = [];
+	/**
+	 * Array with search paths to be used during a file request.
+	 */
+	private searchLocations: Array<string> = [];
 
-  public async sendFile(file: string, connection: ConnectionDetails): Promise<FileResponse> {
-    const fsStat = promisify(stat);
+	public async sendFile(file: string, connection: ConnectionDetails): Promise<FileResponse> {
+		const fsStat = promisify(stat);
 
-    try {
-      const stats = await fsStat(file);
+		try {
+			const stats = await fsStat(file);
 
-      const mime = Mime.getType(file);
-      const length = stats.size;
-      const fileStream = createReadStream(file);
-      const start = new Date().getTime();
+			const mime = Mime.getType(file);
+			const length = stats.size;
+			const fileStream = createReadStream(file);
+			const start = new Date().getTime();
 
-      const lastModified = stats.mtime;
+			const lastModified = stats.mtime;
 
-      fileStream.on("close", () => {
-        const duration = new Date().getTime() - start;
-        this.logRequest(file, connection, length, duration, true);
-      });
+			fileStream.on("close", () => {
+				const duration = new Date().getTime() - start;
+				this.logRequest(file, connection, length, duration, true);
+			});
 
-      const response: FileResponse = {
-        connection,
-        fileStream,
-        mime,
-        length,
-        lastModified,
-      };
-      return response;
-    } catch (error) {
-      return this.sendFileNotFound(connection, this.api.configs.errors.fileReadError(String(error)));
-    }
-  }
+			const response: FileResponse = {
+				connection,
+				fileStream,
+				mime,
+				length,
+				lastModified,
+			};
+			return response;
+		} catch (error) {
+			return this.sendFileNotFound(connection, this.api.configs.errors.fileReadError(String(error)));
+		}
+	}
 
-  /**
-   * Send a file not found error to the client.
-   *
-   * @param connection Client connection object.
-   * @param errorMessage Error message to send.
-   */
-  public sendFileNotFound(connection: ConnectionDetails, errorMessage: string): FileResponse {
-    connection.error = new Error(errorMessage);
-    this.logRequest("{404: not found}", connection, null, null, false);
+	/**
+	 * Send a file not found error to the client.
+	 *
+	 * @param connection Client connection object.
+	 * @param errorMessage Error message to send.
+	 */
+	public sendFileNotFound(connection: ConnectionDetails, errorMessage: string): FileResponse {
+		connection.error = new Error(errorMessage);
+		this.logRequest("{404: not found}", connection, null, null, false);
 
-    const originalError = this.api.configs.errors.fileNotFound();
-    const error: string = typeof originalError === "string" ? originalError : JSON.stringify(originalError);
+		const originalError = this.api.configs.errors.fileNotFound();
+		const error: string = typeof originalError === "string" ? originalError : JSON.stringify(originalError);
 
-    return {
-      connection,
-      error,
-      mime: "text/html",
-      length: error.length,
-    } as FileResponse;
-  }
+		return {
+			connection,
+			error,
+			mime: "text/html",
+			length: error.length,
+		} as FileResponse;
+	}
 
-  /**
-   * Get the public path.
-   *
-   * @param connection Client connection object.
-   * @param counter Counter position
-   */
-  private searchPath(connection: ConnectionDetails, counter = 0): null | string {
-    if (this.searchLocations.length === 0 || counter >= this.searchLocations.length) {
-      return null;
-    }
+	/**
+	 * Get the public path.
+	 *
+	 * @param connection Client connection object.
+	 * @param counter Counter position
+	 */
+	private searchPath(connection: ConnectionDetails, counter = 0): null | string {
+		if (this.searchLocations.length === 0 || counter >= this.searchLocations.length) {
+			return null;
+		}
 
-    return this.searchLocations[counter];
-  }
+		return this.searchLocations[counter];
+	}
 
-  /**
-   * Log file request.
-   *
-   * @param file File path to be logged.
-   * @param connection Client connection that originated the request.
-   * @param length Content length.
-   * @param duration Search duration.
-   * @param success Informs if is a success or not.
-   */
-  private logRequest(
-    file: string,
-    connection: ConnectionDetails,
-    length: number | null,
-    duration: number | null,
-    success = true,
-  ) {
-    this.api.log(`[file @ ${connection.type}]`, LogLevel.Debug, {
-      to: connection.remoteIP,
-      file,
-      size: length,
-      duration,
-      success,
-    });
-  }
+	/**
+	 * Log file request.
+	 *
+	 * @param file File path to be logged.
+	 * @param connection Client connection that originated the request.
+	 * @param length Content length.
+	 * @param duration Search duration.
+	 * @param success Informs if is a success or not.
+	 */
+	private logRequest(
+		file: string,
+		connection: ConnectionDetails,
+		length: number | null,
+		duration: number | null,
+		success = true,
+	) {
+		this.api.log(`[file @ ${connection.type}]`, LogLevel.Debug, {
+			to: connection.remoteIP,
+			file,
+			size: length,
+			duration,
+			success,
+		});
+	}
 
-  public async get(connection: ConnectionDetails, counter = 0): Promise<FileResponse> {
-    if (!connection.params.file || !this.searchPath(connection, counter)) {
-      return this.sendFileNotFound(connection, this.api.configs.errors.fileNotFound());
-    }
+	public async get(connection: ConnectionDetails, counter = 0): Promise<FileResponse> {
+		if (!connection.params.file || !this.searchPath(connection, counter)) {
+			return this.sendFileNotFound(connection, this.api.configs.errors.fileNotFound());
+		}
 
-    let file: string = connection.params.file;
+		let file: string = connection.params.file;
 
-    if (!isAbsolute(connection.params.file)) {
-      file = normalize(this.searchPath(connection, counter) + "/" + connection.params.file);
-    }
+		if (!isAbsolute(connection.params.file)) {
+			file = normalize(`${this.searchPath(connection, counter)}/${connection.params.file}`);
+		}
 
-    if (file.indexOf(normalize(this.searchPath(connection, counter)!)) !== 0) {
-      return this.get(connection, counter + 1);
-    }
+		if (file.indexOf(normalize(this.searchPath(connection, counter)!)) !== 0) {
+			return this.get(connection, counter + 1);
+		}
 
-    try {
-      const truePath = await this.checkExistence(file);
-      return this.sendFile(truePath, connection);
-    } catch (error) {
-      return this.get(connection, counter + 1);
-    }
-  }
+		try {
+			const truePath = await this.checkExistence(file);
+			return this.sendFile(truePath, connection);
+		} catch (error) {
+			return this.get(connection, counter + 1);
+		}
+	}
 
-  public async load() {
-    this.api.staticFile = this;
+	public async load() {
+		this.api.staticFile = this;
 
-    // Load in the explicit public paths first
-    if (this.api.configs.general.paths !== undefined) {
-      this.searchLocations.push(normalize(this.api.configs.general.paths.public));
-    }
-  }
+		// Load in the explicit public paths first
+		if (this.api.configs.general.paths !== undefined) {
+			this.searchLocations.push(normalize(this.api.configs.general.paths.public));
+		}
+	}
 
-  /**
-   * Check the existence of a file.
-   *
-   * @param file File to check.
-   */
-  private async checkExistence(file: string): Promise<string> {
-    const statP = promisify(stat);
-    const stats = await statP(file);
+	/**
+	 * Check the existence of a file.
+	 *
+	 * @param file File to check.
+	 */
+	private async checkExistence(file: string): Promise<string> {
+		const statP = promisify(stat);
+		const stats = await statP(file);
 
-    if (stats.isDirectory()) {
-      const indexPath = `${file}/${this.api.configs.general.directoryFileType}`;
-      return this.checkExistence(indexPath);
-    } else if (stats.isSymbolicLink()) {
-      const readlinkP = promisify(readlink);
-      let truePath = await readlinkP(file);
-      truePath = normalize(file);
-      return this.checkExistence(truePath);
-    } else if (stats.isFile()) {
-      return file;
-    }
+		if (stats.isDirectory()) {
+			const indexPath = `${file}/${this.api.configs.general.directoryFileType}`;
+			return this.checkExistence(indexPath);
+		} else if (stats.isSymbolicLink()) {
+			const readlinkP = promisify(readlink);
+			let truePath = await readlinkP(file);
+			truePath = normalize(file);
+			return this.checkExistence(truePath);
+		} else if (stats.isFile()) {
+			return file;
+		}
 
-    throw new Error("File does not exists");
-  }
+		throw new Error("File does not exists");
+	}
 }

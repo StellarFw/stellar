@@ -25,346 +25,346 @@ const stellarPackageJSON = JSON.parse(readFileSync(resolve(stellarPkgPath, "../p
  * certain goal.
  */
 export class Engine {
-  /**
-   * List of all loaded Satellites.
-   */
-  private satellites: Map<string, SatelliteInterface> = new Map();
+	/**
+	 * List of all loaded Satellites.
+	 */
+	private satellites: Map<string, SatelliteInterface> = new Map();
 
-  private satellitesLoadOrder: Map<number, Array<SatelliteInterface>> = new Map();
-  private satellitesStartOrder: Map<number, Array<SatelliteInterface>> = new Map();
-  private satellitesStopOrder: Map<number, Array<SatelliteInterface>> = new Map();
+	private satellitesLoadOrder: Map<number, Array<SatelliteInterface>> = new Map();
+	private satellitesStartOrder: Map<number, Array<SatelliteInterface>> = new Map();
+	private satellitesStopOrder: Map<number, Array<SatelliteInterface>> = new Map();
 
-  private loadSatellites: Array<SatelliteInterface> = [];
-  private startSatellites: Array<SatelliteInterface> = [];
-  private stopSatellites: Array<SatelliteInterface> = [];
+	private loadSatellites: Array<SatelliteInterface> = [];
+	private startSatellites: Array<SatelliteInterface> = [];
+	private stopSatellites: Array<SatelliteInterface> = [];
 
-  private startCount = 0;
+	private startCount = 0;
 
-  /**
-   * API object.
-   *
-   * This object contains all the logic shared across all platform. It's here
-   * Satellites will load logic and developers access the functions.
-   */
-  public api: API = {
-    bootTime: 0,
-    status: EngineStatus.Stopped,
-    // @ts-ignore
-    log: null,
-    scope: {},
-  };
+	/**
+	 * API object.
+	 *
+	 * This object contains all the logic shared across all platform. It's here
+	 * Satellites will load logic and developers access the functions.
+	 */
+	public api: API = {
+		bootTime: 0,
+		status: EngineStatus.Stopped,
+		// @ts-ignore
+		log: null,
+		scope: {},
+	};
 
-  constructor(scope) {
-    this.api = {
-      ...this.api,
-      log: this.log,
-      scope,
-      commands: {
-        start: this.start.bind(this),
-        stop: this.stop.bind(this),
-        restart: this.restart.bind(this),
-      },
-    };
+	constructor(scope) {
+		this.api = {
+			...this.api,
+			log: this.log,
+			scope,
+			commands: {
+				start: this.start.bind(this),
+				stop: this.stop.bind(this),
+				restart: this.restart.bind(this),
+			},
+		};
 
-    this.api.scope = {
-      ...this.api.scope,
-      args: scope.args ?? {},
-      stellarPackageJSON,
-    };
-  }
+		this.api.scope = {
+			...this.api.scope,
+			args: scope.args ?? {},
+			stellarPackageJSON,
+		};
+	}
 
-  private log(msg: unknown, level: LogLevel = LogLevel.Info) {
-    // when it's running on a test environment the logs are disabled
-    if (process.env.NODE_ENV === "test") {
-      return;
-    }
+	private log(msg: unknown, level: LogLevel = LogLevel.Info) {
+		// when it's running on a test environment the logs are disabled
+		if (process.env.NODE_ENV === "test") {
+			return;
+		}
 
-    switch (level) {
-      case LogLevel.Emergency || LogLevel.Error:
-        console.log(`\x1b[31m[-] ${msg}\x1b[37m`);
-        break;
-      case LogLevel.Info:
-        console.log("[!]", msg);
-        break;
-    }
-  }
+		switch (level) {
+			case LogLevel.Emergency || LogLevel.Error:
+				console.log(`\x1b[31m[-] ${msg}\x1b[37m`);
+				break;
+			case LogLevel.Info:
+				console.log("[!]", msg);
+				break;
+		}
+	}
 
-  /**
-   * Print fatal error on the console and finishes the process.
-   *
-   * @param errors String or array with the fatal error(s).
-   * @param type Error type.
-   */
-  private async fatalError(errors: Array<Error> | Error, type: string) {
-    if (!errors) {
-      throw new Error("There must be passed at lest one Error");
-    }
-    if (!Array.isArray(errors)) {
-      errors = [errors];
-    }
+	/**
+	 * Print fatal error on the console and finishes the process.
+	 *
+	 * @param errors String or array with the fatal error(s).
+	 * @param type Error type.
+	 */
+	private async fatalError(errors: Array<Error> | Error, type: string) {
+		if (!errors) {
+			throw new Error("There must be passed at lest one Error");
+		}
+		if (!Array.isArray(errors)) {
+			errors = [errors];
+		}
 
-    this.log(`Error with satellite step: ${type}`, LogLevel.Emergency);
-    errors.forEach((error) => console.error(error));
+		this.log(`Error with satellite step: ${type}`, LogLevel.Emergency);
+		errors.forEach((error) => console.error(error));
 
-    // stop process execution
-    await this.stop();
+		// stop process execution
+		await this.stop();
 
-    // When running in test mode the process shouldn't be
-    // killed
-    if (process.env.NODE_ENV !== "test") {
-      process.exit(1);
-    }
-  }
+		// When running in test mode the process shouldn't be
+		// killed
+		if (process.env.NODE_ENV !== "test") {
+			process.exit(1);
+		}
+	}
 
-  /**
-   * Function to load the satellites in the right place given they priorities.
-   *
-   * @param satellitesFiles Array of paths.
-   */
-  private async loadArrayOfSatellites(satellitesFiles): Promise<void> {
-    for (const path of satellitesFiles) {
-      const file = normalize(path);
-      const satelliteName = basename(file).split(".")[0];
-      const extension = file.split(".").pop();
+	/**
+	 * Function to load the satellites in the right place given they priorities.
+	 *
+	 * @param satellitesFiles Array of paths.
+	 */
+	private async loadArrayOfSatellites(satellitesFiles): Promise<void> {
+		for (const path of satellitesFiles) {
+			const file = normalize(path);
+			const satelliteName = basename(file).split(".")[0];
+			const extension = file.split(".").pop();
 
-      // only load files with the `js` extension
-      if (extension !== "js") {
-        continue;
-      }
+			// only load files with the `js` extension
+			if (extension !== "js") {
+				continue;
+			}
 
-      const SatelliteClass = (await import(file)).default;
-      const satelliteInstance: SatelliteInterface = new SatelliteClass(this.api);
+			const SatelliteClass = (await import(file)).default;
+			const satelliteInstance: SatelliteInterface = new SatelliteClass(this.api);
 
-      this.satellites[satelliteName] = satelliteInstance;
+			this.satellites[satelliteName] = satelliteInstance;
 
-      if (typeof satelliteInstance.load === "function") {
-        this.satellitesLoadOrder[satelliteInstance.loadPriority] =
-          this.satellitesLoadOrder[satelliteInstance.loadPriority] || [];
-        this.satellitesLoadOrder[satelliteInstance.loadPriority].push(satelliteInstance);
-      }
+			if (typeof satelliteInstance.load === "function") {
+				this.satellitesLoadOrder[satelliteInstance.loadPriority] =
+					this.satellitesLoadOrder[satelliteInstance.loadPriority] || [];
+				this.satellitesLoadOrder[satelliteInstance.loadPriority].push(satelliteInstance);
+			}
 
-      if (typeof satelliteInstance.start === "function") {
-        this.satellitesStartOrder[satelliteInstance.startPriority] =
-          this.satellitesStartOrder[satelliteInstance.startPriority] || [];
-        this.satellitesStartOrder[satelliteInstance.startPriority].push(satelliteInstance);
-      }
+			if (typeof satelliteInstance.start === "function") {
+				this.satellitesStartOrder[satelliteInstance.startPriority] =
+					this.satellitesStartOrder[satelliteInstance.startPriority] || [];
+				this.satellitesStartOrder[satelliteInstance.startPriority].push(satelliteInstance);
+			}
 
-      if (typeof satelliteInstance.stop === "function") {
-        this.satellitesStopOrder[satelliteInstance.stopPriority] =
-          this.satellitesStopOrder[satelliteInstance.stopPriority] || [];
-        this.satellitesStopOrder[satelliteInstance.stopPriority].push(satelliteInstance);
-      }
-    }
-  }
+			if (typeof satelliteInstance.stop === "function") {
+				this.satellitesStopOrder[satelliteInstance.stopPriority] =
+					this.satellitesStopOrder[satelliteInstance.stopPriority] || [];
+				this.satellitesStopOrder[satelliteInstance.stopPriority].push(satelliteInstance);
+			}
+		}
+	}
 
-  /**
-   * Order a collection of satellites by their priority.
-   *
-   * @param collection Collection of satellites to be ordered.
-   */
-  private flattenOrderedSatellites(collection) {
-    const output: Array<Satellite> = [];
+	/**
+	 * Order a collection of satellites by their priority.
+	 *
+	 * @param collection Collection of satellites to be ordered.
+	 */
+	private flattenOrderedSatellites(collection) {
+		const output: Array<Satellite> = [];
 
-    Object.keys(collection)
-      .map((k) => parseInt(k, 10))
-      .sort((a, b) => a - b)
-      .forEach((k) => collection[k].forEach((d: Satellite) => output.push(d)));
+		Object.keys(collection)
+			.map((k) => parseInt(k, 10))
+			.sort((a, b) => a - b)
+			.forEach((k) => collection[k].forEach((d: Satellite) => output.push(d)));
 
-    return output;
-  }
+		return output;
+	}
 
-  /**
-   * Second startup stage.
-   *
-   * Steps:
-   *  - load all satellites into memory;
-   *  - load satellites;
-   *  - mark Engine like initialized;
-   */
-  private async stage1(): Promise<void> {
-    this.api.status = EngineStatus.Stage1;
+	/**
+	 * Second startup stage.
+	 *
+	 * Steps:
+	 *  - load all satellites into memory;
+	 *  - load satellites;
+	 *  - mark Engine like initialized;
+	 */
+	private async stage1(): Promise<void> {
+		this.api.status = EngineStatus.Stage1;
 
-    this.satellitesLoadOrder = new Map();
-    this.satellitesStartOrder = new Map();
-    this.satellitesStopOrder = new Map();
+		this.satellitesLoadOrder = new Map();
+		this.satellitesStartOrder = new Map();
+		this.satellitesStopOrder = new Map();
 
-    // load the core satellites
-    const predicates = [/.*config.js/, /.*utils.js/];
-    const satellitesPath = join(stellarPkgPath, "satellites");
-    const satellitesToLoad = await this.api.utils
-      .listFiles(satellitesPath)
-      .map((v) => v.then((paths) => paths.filter((e) => !predicates.some((r) => e.match(r)))))
-      .run();
+		// load the core satellites
+		const predicates = [/.*config.js/, /.*utils.js/];
+		const satellitesPath = join(stellarPkgPath, "satellites");
+		const satellitesToLoad = await this.api.utils
+			.listFiles(satellitesPath)
+			.map((v) => v.then((paths) => paths.filter((e) => !predicates.some((r) => e.match(r)))))
+			.run();
 
-    await this.loadArrayOfSatellites(satellitesToLoad);
+		await this.loadArrayOfSatellites(satellitesToLoad);
 
-    // load module satellites
-    const modulesToLoad = this.api.configs.modules ?? [];
-    modulesToLoad.forEach(async (moduleName) => {
-      const moduleSatellitesPath = `${this.api.scope.rootPath}/modules/${moduleName}/satellites`;
-      this.api.utils
-        .dirExists(moduleSatellitesPath)
-        .map(async (result) => {
-          return (
-            (await result) && this.api.utils.listFiles(moduleSatellitesPath).run().then(this.loadArrayOfSatellites)
-          );
-        })
-        .run();
-    });
+		// load module satellites
+		const modulesToLoad = this.api.configs.modules ?? [];
+		modulesToLoad.forEach(async (moduleName) => {
+			const moduleSatellitesPath = `${this.api.scope.rootPath}/modules/${moduleName}/satellites`;
+			this.api.utils
+				.dirExists(moduleSatellitesPath)
+				.map(async (result) => {
+					return (
+						(await result) && this.api.utils.listFiles(moduleSatellitesPath).run().then(this.loadArrayOfSatellites)
+					);
+				})
+				.run();
+		});
 
-    // organize final array to match the satellites priorities
-    this.loadSatellites = this.flattenOrderedSatellites(this.satellitesLoadOrder);
-    this.startSatellites = this.flattenOrderedSatellites(this.satellitesStartOrder);
-    this.stopSatellites = this.flattenOrderedSatellites(this.satellitesStopOrder);
+		// organize final array to match the satellites priorities
+		this.loadSatellites = this.flattenOrderedSatellites(this.satellitesLoadOrder);
+		this.startSatellites = this.flattenOrderedSatellites(this.satellitesStartOrder);
+		this.stopSatellites = this.flattenOrderedSatellites(this.satellitesStopOrder);
 
-    try {
-      for (const satelliteInstance of this.loadSatellites) {
-        this.api.log(`> load: ${satelliteInstance.name}`, LogLevel.Debug);
-        await satelliteInstance.load();
-        this.api.log(`\tloaded: ${satelliteInstance.name}`, LogLevel.Debug);
-      }
-    } catch (e) {
-      this.fatalError(e, "stage1");
-    }
-  }
+		try {
+			for (const satelliteInstance of this.loadSatellites) {
+				this.api.log(`> load: ${satelliteInstance.name}`, LogLevel.Debug);
+				await satelliteInstance.load();
+				this.api.log(`\tloaded: ${satelliteInstance.name}`, LogLevel.Debug);
+			}
+		} catch (e) {
+			this.fatalError(e, "stage1");
+		}
+	}
 
-  private async stage2(): Promise<void> {
-    try {
-      for (const satelliteInstance of this.startSatellites) {
-        this.api.log(`> start: ${satelliteInstance.name!}`, LogLevel.Debug);
-        await satelliteInstance.start!();
-        this.api.log(`\tstarted: ${satelliteInstance.name!}`, LogLevel.Debug);
-      }
-    } catch (error) {
-      this.fatalError(error, "stage2");
-    }
+	private async stage2(): Promise<void> {
+		try {
+			for (const satelliteInstance of this.startSatellites) {
+				this.api.log(`> start: ${satelliteInstance.name!}`, LogLevel.Debug);
+				await satelliteInstance.start!();
+				this.api.log(`\tstarted: ${satelliteInstance.name!}`, LogLevel.Debug);
+			}
+		} catch (error) {
+			this.fatalError(error, "stage2");
+		}
 
-    this.api.status = EngineStatus.Running;
-    this.api.bootTime = new Date().getTime();
+		this.api.status = EngineStatus.Running;
+		this.api.bootTime = new Date().getTime();
 
-    if (this.startCount === 0) {
-      this.api.log(`** Server Started @ ${new Date()} **`, LogLevel.Alert);
-    } else {
-      this.api.log(`** Server Restarted @ ${new Date()} **`, LogLevel.Alert);
-    }
+		if (this.startCount === 0) {
+			this.api.log(`** Server Started @ ${new Date()} **`, LogLevel.Alert);
+		} else {
+			this.api.log(`** Server Restarted @ ${new Date()} **`, LogLevel.Alert);
+		}
 
-    this.startCount++;
-  }
+		this.startCount++;
+	}
 
-  /**
-   * First startup stage.
-   *
-   * This step is responsible to execute the initial
-   * Satellites.
-   */
-  public async initialize(): Promise<Engine> {
-    if (this.api.status !== EngineStatus.Stopped) {
-      throw new Error("Invalid Engine state, it must be stopped first.");
-    }
+	/**
+	 * First startup stage.
+	 *
+	 * This step is responsible to execute the initial
+	 * Satellites.
+	 */
+	public async initialize(): Promise<Engine> {
+		if (this.api.status !== EngineStatus.Stopped) {
+			throw new Error("Invalid Engine state, it must be stopped first.");
+		}
 
-    this.satellites = new Map();
+		this.satellites = new Map();
 
-    this.log(`Current universe "${this.api.scope.rootPath}"`, LogLevel.Info);
-    this.api.status = EngineStatus.Stage0;
+		this.log(`Current universe "${this.api.scope.rootPath}"`, LogLevel.Info);
+		this.api.status = EngineStatus.Stage0;
 
-    // the `utils` and `config` Satellites needs to be loaded
-    // first. They contains some functions that are needed
-    // durning the startup process.
-    const initialSatellites = [
-      resolve(`${stellarPkgPath}/satellites/utils.js`),
-      resolve(`${stellarPkgPath}/satellites/config.js`),
-    ];
+		// the `utils` and `config` Satellites needs to be loaded
+		// first. They contains some functions that are needed
+		// durning the startup process.
+		const initialSatellites = [
+			resolve(`${stellarPkgPath}/satellites/utils.js`),
+			resolve(`${stellarPkgPath}/satellites/config.js`),
+		];
 
-    for (const file of initialSatellites) {
-      const fileName = file.replace(/^.*[\\\/]/, "");
-      const satellite = fileName.split(".")[0];
+		for (const file of initialSatellites) {
+			const fileName = file.replace(/^.*[\\\/]/, "");
+			const satellite = fileName.split(".")[0];
 
-      const satelliteModule = await import(file);
-      const currentSatellite = new satelliteModule.default(this.api);
-      this.satellites[satellite] = currentSatellite;
+			const satelliteModule = await import(file);
+			const currentSatellite = new satelliteModule.default(this.api);
+			this.satellites[satellite] = currentSatellite;
 
-      try {
-        await currentSatellite.load();
-      } catch (error) {
-        this.fatalError(error, "stage0");
-      }
-    }
+			try {
+				await currentSatellite.load();
+			} catch (error) {
+				this.fatalError(error, "stage0");
+			}
+		}
 
-    return this;
-  }
+		return this;
+	}
 
-  public async start(): Promise<Engine> {
-    // when the Engine isn't initialized just do it now. This usually happens with tests.
-    if (this.api.status !== EngineStatus.Stage0) {
-      await this.initialize();
-    }
+	public async start(): Promise<Engine> {
+		// when the Engine isn't initialized just do it now. This usually happens with tests.
+		if (this.api.status !== EngineStatus.Stage0) {
+			await this.initialize();
+		}
 
-    this.startCount = 0;
-    await this.stage1();
-    await this.stage2();
+		this.startCount = 0;
+		await this.stage1();
+		await this.stage2();
 
-    return this;
-  }
+		return this;
+	}
 
-  /**
-   * Restarts the engine.
-   *
-   * This execute the stop action and executed the stage2 again.
-   */
-  public async restart(): Promise<Engine> {
-    if (this.api.status === EngineStatus.Running) {
-      await this.stop();
-    }
+	/**
+	 * Restarts the engine.
+	 *
+	 * This execute the stop action and executed the stage2 again.
+	 */
+	public async restart(): Promise<Engine> {
+		if (this.api.status === EngineStatus.Running) {
+			await this.stop();
+		}
 
-    await this.stage2();
+		await this.stage2();
 
-    this.api.log("** Stellar Restarted **", LogLevel.Info);
+		this.api.log("** Stellar Restarted **", LogLevel.Info);
 
-    return this;
-  }
+		return this;
+	}
 
-  /**
-   * Stop the engine.
-   *
-   * Tries to shutdown the engine in a non violent way. This starts
-   * executes all the stop methods provided by the loaded Satellites.
-   */
-  public async stop(): Promise<Engine> {
-    if (this.api.status === EngineStatus.Stopping) {
-      // double sigterm; ignore it
-      return this;
-    }
+	/**
+	 * Stop the engine.
+	 *
+	 * Tries to shutdown the engine in a non violent way. This starts
+	 * executes all the stop methods provided by the loaded Satellites.
+	 */
+	public async stop(): Promise<Engine> {
+		if (this.api.status === EngineStatus.Stopping) {
+			// double sigterm; ignore it
+			return this;
+		}
 
-    if (this.api.status === EngineStatus.Running) {
-      this.api.status = EngineStatus.Stopping;
-      this.api.log("Shutdown down open server and stopping task processing", LogLevel.Alert);
+		if (this.api.status === EngineStatus.Running) {
+			this.api.status = EngineStatus.Stopping;
+			this.api.log("Shutdown down open server and stopping task processing", LogLevel.Alert);
 
-      try {
-        for (const satelliteInstance of this.stopSatellites) {
-          this.api.log(`> stop: ${satelliteInstance.name!}`, LogLevel.Debug);
-          await satelliteInstance.stop!();
-          this.api.log(`\tstopped: ${satelliteInstance.name!}`, LogLevel.Debug);
-        }
-      } catch (error) {
-        this.fatalError(error, "stop");
-      }
+			try {
+				for (const satelliteInstance of this.stopSatellites) {
+					this.api.log(`> stop: ${satelliteInstance.name!}`, LogLevel.Debug);
+					await satelliteInstance.stop!();
+					this.api.log(`\tstopped: ${satelliteInstance.name!}`, LogLevel.Debug);
+				}
+			} catch (error) {
+				this.fatalError(error, "stop");
+			}
 
-      this.api.config.unwatchAllFiles();
+			this.api.config.unwatchAllFiles();
 
-      // TODO: this.api.pids.clearPidFile();
+			// TODO: this.api.pids.clearPidFile();
 
-      this.api.log("Stellar has been stopped", LogLevel.Alert);
-      this.api.log("**", LogLevel.Debug);
+			this.api.log("Stellar has been stopped", LogLevel.Alert);
+			this.api.log("**", LogLevel.Debug);
 
-      this.api.status = EngineStatus.Stopped;
+			this.api.status = EngineStatus.Stopped;
 
-      return this;
-    }
+			return this;
+		}
 
-    this.api.log("Cannot shutdown Stellar, not running", LogLevel.Error);
+		this.api.log("Cannot shutdown Stellar, not running", LogLevel.Error);
 
-    return this;
-  }
+		return this;
+	}
 }
 
 export default Engine;

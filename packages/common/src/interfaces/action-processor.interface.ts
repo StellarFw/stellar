@@ -1,6 +1,6 @@
 import { Connection } from "../connection";
 
 export interface IActionProcessor {
-  connection: Connection;
-  toRender: boolean;
+	connection: Connection;
+	toRender: boolean;
 }

@@ -7,7 +7,7 @@ import { err, ok, Result } from "./index";
  * use a Result monad to return an error.
  */
 export function panic(error: string | Error): never {
-  throw error instanceof Error ? error : Error(error);
+	throw error instanceof Error ? error : Error(error);
 }
 
 /**
@@ -18,13 +18,13 @@ export function panic(error: string | Error): never {
  * @param f
  */
 export function unsafe<T>(f: () => T): Result<T, string> {
-  try {
-    const result = f();
-    return ok(result);
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : error;
-    return err(msg);
-  }
+	try {
+		const result = f();
+		return ok(result);
+	} catch (error) {
+		const msg = error instanceof Error ? error.message : error;
+		return err(msg);
+	}
 }
 
 /**
@@ -35,11 +35,11 @@ export function unsafe<T>(f: () => T): Result<T, string> {
  * @param f
  */
 export async function unsafeAsync<T>(f: () => Promise<T>): Promise<Result<T, string>> {
-  try {
-    const result = await f();
-    return ok(result);
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : error;
-    return err(msg);
-  }
+	try {
+		const result = await f();
+		return ok(result);
+	} catch (error) {
+		const msg = error instanceof Error ? error.message : error;
+		return err(msg);
+	}
 }

@@ -16,7 +16,7 @@ export const importFile = <T = unknown>(path: string) => io(() => unsafeAsync<T>
  * Safely write contents to a file.
  */
 export const safeWriteFile = (path: string, data: string | NodeJS.ArrayBufferView) =>
-  io(() => writeFileSync(path, data));
+	io(() => writeFileSync(path, data));
 
 /**
  * Read the content of a file.

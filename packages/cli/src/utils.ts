@@ -17,18 +17,18 @@ export const pkgMetadata = JSON.parse(readFileSync(resolve(cliPath, "../package.
  * Check if the given process id is running.
  */
 export const isPidRunning = (pid: number): boolean => {
-  try {
-    return process.kill(pid, 0);
-  } catch (e) {
-    return e.code === "EPERM";
-  }
+	try {
+		return process.kill(pid, 0);
+	} catch (e) {
+		return e.code === "EPERM";
+	}
 };
 
 /**
  * Create a directory if it doesn't exists.
  */
 export const createDirectory = async (path: PathLike) => {
-  if (!existsSync(path)) {
-    return mkdir(path);
-  }
+	if (!existsSync(path)) {
+		return mkdir(path);
+	}
 };

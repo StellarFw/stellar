@@ -1,80 +1,80 @@
 export interface ConnectionDetails {
-  /**
-   * Connection type.
-   */
-  type: string;
+	/**
+	 * Connection type.
+	 */
+	type: string;
 
-  /**
-   * Unique connection identifier.
-   */
-  id: string;
+	/**
+	 * Unique connection identifier.
+	 */
+	id: string;
 
-  /**
-   * Connection fingerprint.
-   *
-   * This is used to uniquely identify connections.
-   */
-  fingerprint?: string;
+	/**
+	 * Connection fingerprint.
+	 *
+	 * This is used to uniquely identify connections.
+	 */
+	fingerprint?: string;
 
-  /**
-   * Remote connection port.
-   */
-  remotePort: number;
+	/**
+	 * Remote connection port.
+	 */
+	remotePort: number;
 
-  /**
-   * Remote connection string.
-   */
-  remoteIP: string;
+	/**
+	 * Remote connection string.
+	 */
+	remoteIP: string;
 
-  /**
-   * Raw connection details.
-   */
-  rawConnection: any;
+	/**
+	 * Raw connection details.
+	 */
+	rawConnection: any;
 
-  /**
-   * Flag to know if the connection supports chat.
-   */
-  canChat: boolean;
+	/**
+	 * Flag to know if the connection supports chat.
+	 */
+	canChat: boolean;
 
-  /**
-   * Number of sent messages by this connection.
-   */
-  messageCount: number;
+	/**
+	 * Number of sent messages by this connection.
+	 */
+	messageCount: number;
 
-  respondingTo?: any;
+	respondingTo?: any;
 
-  /**
-   * Response object to sent to the client.
-   */
-  response?: any;
+	/**
+	 * Response object to sent to the client.
+	 */
+	response?: any;
 
-  /**
-   * Number of pending actions that are waiting by a response.
-   */
-  pendingActions?: number;
+	/**
+	 * Number of pending actions that are waiting by a response.
+	 */
+	pendingActions?: number;
 
-  /**
-   * Dictionary with the request parameters.
-   */
-  params: { [key: string]: any };
+	/**
+	 * Dictionary with the request parameters.
+	 */
+	params: { [key: string]: any };
 
-  /**
-   * Used file extension when doing file requests.
-   */
-  extension?: string;
+	/**
+	 * Used file extension when doing file requests.
+	 */
+	extension?: string;
 
-  /**
-   * Error that occurs during the request processing.
-   */
-  error?: Error;
+	/**
+	 * Error that occurs during the request processing.
+	 */
+	error?: Error;
 
-  /**
-   * Destroy method.
-   */
-  destroy?: () => void;
+	/**
+	 * Destroy method.
+	 */
+	destroy?: () => void;
 
-  /**
-   * Execute a verb for this connection.
-   */
-  verbs?: (verb: string, words: Array<string>) => Promise<any>;
+	/**
+	 * Execute a verb for this connection.
+	 */
+	verbs?: (verb: string, words: Array<string>) => Promise<any>;
 }
