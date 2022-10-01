@@ -24,14 +24,15 @@
     "url": "https://github.com/StellarFw/stellar/issues"
   },
   "dependencies": {
-    "@stellarfw/core": "^2.0.0",
     "@stellarfw/common": "*",
+    "@stellarfw/core": "^2.0.0",
     "async": "^2.6.0",
     "chalk": "^4.1.2",
     "commander": "^9.0.0",
     "handlebars": "4.0.11",
-    "is-running": "^2.1.0",
-    "winston": "2.4.0"
+    "ramda": "^0.28.0",
+    "ramda-adjunct": "^3.2.0",
+    "winston": "3.8.2"
   },
   "scripts": {
     "dev": "rm -rf ./lib && tsc -w",
@@ -39,5 +40,8 @@
   },
   "bin": {
     "stellar": "./bin/stellar"
+  },
+  "devDependencies": {
+    "@types/ramda": "^0.28.15"
   }
 }

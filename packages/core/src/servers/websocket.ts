@@ -329,8 +329,6 @@ export default class WebSocketServer extends GenericServer {
    */
   private async writeClientJS(): Promise<Result<unknown, string>> {
     // Ensure the public folder exists
-    this.api.utils.dirExists(`${this.api.configs.general.paths.public}`);
-
     const createPublicDir = () => this.api.utils.createDir(`${this.api.configs.general.paths.public}`).run();
 
     await this.api.utils

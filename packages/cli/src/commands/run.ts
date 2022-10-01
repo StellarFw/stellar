@@ -1,4 +1,4 @@
-import { LogLevel, Option, option, unsafeAsync } from "@stellarfw/common/lib/index.js";
+import { Option, option, unsafeAsync } from "@stellarfw/common/lib/index.js";
 import { Engine } from "@stellarfw/core/lib/index.js";
 import { Command } from "commander";
 import { RunCommandArgs } from "../command.types";
@@ -27,14 +27,12 @@ const startServer = (engine: Engine) => {
 const execRunCommand = async (args: RunCommandArgs) => {
   // when the cluster mode is required by the user, stop the normal run command and move to cluster mode
   if (!!args.cluster) {
-    (await import("../start-cluster.js")).startCluster(args);
+    (await import("./start-cluster.js")).startCluster(args);
     return;
   }
 
   //number of ms to wait to do a force shutdown if the Stellar won't stop gracefully
   const shutdownTimeout = option(process.env.STELLAR_SHUTDOWN_TIMEOUT).map((v) => parseInt(v, 10));
-
-  // TODO: implement cluster mode
 
   // build and initialize Stellar, this will give us access to the config satellite
   const scope = { rootPath: process.cwd(), args };
@@ -58,7 +56,7 @@ export const runCommand = new Command("run")
   .option("--update", "Update dependencies")
   .option("--cluster", "Run Stellar as a cluster")
   .option("--id", "Cluster identifier")
-  .option("--silent", "No messages will be printed to the console")
+  .option("--silent", "No messages will be printed to the console", false)
   .option("--workers <number>", "Number of workers")
   .option(
     "--workerPrefix <prefix>",

@@ -17,6 +17,7 @@
   "plugins": ["@typescript-eslint", "prettier", "unused-imports"],
   "rules": {
     "prettier/prettier": "error",
+    "prefer-template": "error",
 
     "no-unused-vars": "off",
     "unused-imports/no-unused-imports": "error",
