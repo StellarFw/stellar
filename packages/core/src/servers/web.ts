@@ -10,6 +10,8 @@ import * as uuid from "uuid";
 import * as etag from "etag";
 import * as zlib from "zlib";
 import { parse } from "url";
+import { isTrue } from "ramda-adjunct";
+import { inc } from "ramda";
 
 import { GenericServer } from "../base/generic-server";
 import { ConnectionDetails, LogLevel } from "@stellarfw/common";
@@ -116,24 +118,33 @@ export default class WebServer extends GenericServer {
 		}
 
 		let bootAttempts = 0;
+		const isUseNextFreePortEnable = isTrue(this.api.configs.servers.web.useNextFreePort);
 
 		this.server.on("error", (e) => {
-			bootAttempts++;
+			// only apply the attempt logic when the `useNextFreePort` isn't enable
+			if (!isUseNextFreePortEnable) {
+				bootAttempts++;
 
-			if (bootAttempts < this.api.configs.servers.web.bootAttempts) {
-				this.log(`cannot boot web server; trying again [${String(e)}]`, LogLevel.Error);
-
-				if (bootAttempts === 1) {
-					this.cleanSocket(this.options.bindIP, this.options.port);
+				if (bootAttempts >= this.api.configs.servers.web.bootAttempts) {
+					throw new Error(`Cannot start web server @ ${this.options.bindIP}:${this.options.port} => ${e.message}`);
 				}
-
-				setTimeout(() => {
-					this.log("attempting to boot again...", LogLevel.Info);
-					this.server?.listen(this.options.port, this.options.bindIP);
-				}, 1000);
-			} else {
-				throw new Error(`Cannot start web server @ ${this.options.bindIP}:${this.options.port} => ${e.message}`);
 			}
+
+			this.log(`cannot boot web server; trying again [${String(e)}]`, LogLevel.Error);
+
+			if (bootAttempts === 1) {
+				this.cleanSocket(this.options.bindIP, this.options.port);
+			}
+
+			// if the `useNextFreePort` option is enabled increment port number
+			if (isUseNextFreePortEnable) {
+				this.options.port = inc(this.options.port);
+			}
+
+			setTimeout(() => {
+				this.log("attempting to boot again...", LogLevel.Info);
+				this.server?.listen(this.options.port, this.options.bindIP);
+			}, 1000);
 		});
 
 		return new Promise((resolve) => {

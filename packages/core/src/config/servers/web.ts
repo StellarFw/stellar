@@ -1,8 +1,9 @@
+import { API } from "@stellarfw/common";
 import { tmpdir } from "os";
 
 export default {
 	servers: {
-		web(api) {
+		web(api: API) {
 			return {
 				// ---------------------------------------------------------------------
 				// Enable server?
@@ -36,10 +37,15 @@ export default {
 				// ---------------------------------------------------------------------
 				// Port ot Socket Path.
 				//
-				// This options can be overwrited withe PORT param on the console
+				// This options can be overwritten with PORT param on the console
 				// execution.
 				// ---------------------------------------------------------------------
 				port: process.env.PORT || 8080,
+
+				// ---------------------------------------------------------------------
+				// Use the next free port when specific one is already in use.
+				// ---------------------------------------------------------------------
+				useNextFreePort: true,
 
 				// ---------------------------------------------------------------------
 				// This are the headers who are sended on all Stellar responses.
@@ -98,7 +104,10 @@ export default {
 				// This define the many times the Stellar should try boot the server.
 				//
 				// This might happen if the port is in use by another process or the
-				// socketfile is claimed.
+				// socket file is claimed.
+				//
+				// As an alternative you can the the `useNextFreePort` option to try use
+				// the next free socket.
 				// ---------------------------------------------------------------------
 				bootAttempts: 1,
 
