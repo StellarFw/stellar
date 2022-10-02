@@ -1,7 +1,7 @@
 import { EventEmitter } from "events";
 import { ReadStream } from "fs";
 import { Connection, LogLevel, ConnectionDetails } from "@stellarfw/common";
-import { API } from "@stellarfw/common/lib";
+import { API } from "@stellarfw/common";
 
 /**
  * This function is called when the method is not implemented.

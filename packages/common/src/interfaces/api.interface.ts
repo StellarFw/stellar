@@ -45,6 +45,13 @@ export interface API {
 	utils: IUtilsSatellite;
 
 	/**
+	 * Helper functions for some recurrent tasks inside the core.
+	 *
+	 * IMPORTANT: this is for internal use only.
+	 */
+	helpers: IHelpersSatellite;
+
+	/**
 	 * Runtime configurations.
 	 */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any

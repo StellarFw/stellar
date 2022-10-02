@@ -8,13 +8,13 @@ export default class I18nSatellite extends Satellite {
 
 	private i18n: any = null;
 
-	private configure() {
+	private async configure() {
 		// TODO: copy all modules locale folder to a temp folder '/tmp/locale'
 
 		// create locale folder (remove first if exists)
 		const localePath = `${this.api.configs.general.paths.temp}/locale`;
-		this.api.utils.removePath(localePath).run();
-		this.api.utils.createDir(localePath).run();
+		await this.api.utils.removePath(localePath).run();
+		await this.api.utils.createDir(localePath).run();
 
 		// iterate all modules
 		for (const module of this.api.modules.activeModules.keys()) {
@@ -83,6 +83,6 @@ export default class I18nSatellite extends Satellite {
 		this.api.i18n = this;
 		this.i18n = i18n;
 
-		this.configure();
+		await this.configure();
 	}
 }

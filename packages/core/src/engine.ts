@@ -6,6 +6,7 @@ import { resolve, normalize, basename, dirname, join } from "path";
 import { API, Satellite, SatelliteInterface, EngineStatus, LogLevel } from "@stellarfw/common";
 import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
+import { isNil } from "ramda";
 
 /**
  * Path of the code package.
@@ -16,6 +17,11 @@ export const stellarPkgPath = dirname(fileURLToPath(import.meta.url));
  * Package.json parsed contents.
  */
 const stellarPackageJSON = JSON.parse(readFileSync(resolve(stellarPkgPath, "../package.json")).toString());
+
+/**
+ * Valid extensions for the modules.
+ */
+const VALID_EXTS = ["js", "mjs", "ts", "mts"];
 
 /**
  * Main entry point for the Stellar code.
@@ -121,14 +127,14 @@ export class Engine {
 	 *
 	 * @param satellitesFiles Array of paths.
 	 */
-	private async loadArrayOfSatellites(satellitesFiles): Promise<void> {
+	private async loadArrayOfSatellites(satellitesFiles: string[]): Promise<void> {
 		for (const path of satellitesFiles) {
 			const file = normalize(path);
 			const satelliteName = basename(file).split(".")[0];
 			const extension = file.split(".").pop();
 
-			// only load files with the `js` extension
-			if (extension !== "js") {
+			// only load files with a valid module extension
+			if (isNil(extension) || !VALID_EXTS.includes(extension)) {
 				continue;
 			}
 
@@ -189,7 +195,7 @@ export class Engine {
 		this.satellitesStopOrder = new Map();
 
 		// load the core satellites
-		const predicates = [/.*config.js/, /.*utils.js/];
+		const predicates = [/.*config.ts/, /.*utils.ts/];
 		const satellitesPath = join(stellarPkgPath, "satellites");
 		const satellitesToLoad = await this.api.utils
 			.listFiles(satellitesPath)
@@ -231,12 +237,12 @@ export class Engine {
 	private async stage2(): Promise<void> {
 		try {
 			for (const satelliteInstance of this.startSatellites) {
-				this.api.log(`> start: ${satelliteInstance.name!}`, LogLevel.Debug);
-				await satelliteInstance.start!();
-				this.api.log(`\tstarted: ${satelliteInstance.name!}`, LogLevel.Debug);
+				this.api.log(`> start: ${satelliteInstance.name}`, LogLevel.Debug);
+				await satelliteInstance.start?.();
+				this.api.log(`\tstarted: ${satelliteInstance.name}`, LogLevel.Debug);
 			}
 		} catch (error) {
-			this.fatalError(error, "stage2");
+			this.fatalError(error as Error, "stage2");
 		}
 
 		this.api.status = EngineStatus.Running;
@@ -277,16 +283,16 @@ export class Engine {
 
 		for (const file of initialSatellites) {
 			const fileName = file.replace(/^.*[\\\/]/, "");
-			const satellite = fileName.split(".")[0];
+			const satelliteName = fileName.split(".")[0];
 
-			const satelliteModule = await import(file);
-			const currentSatellite = new satelliteModule.default(this.api);
-			this.satellites[satellite] = currentSatellite;
+			const { default: SatelliteClass } = await import(file);
+			const satelliteInstance: SatelliteInterface = new SatelliteClass(this.api);
+			this.satellites.set(satelliteName, satelliteInstance);
 
 			try {
-				await currentSatellite.load();
+				await satelliteInstance.load();
 			} catch (error) {
-				this.fatalError(error, "stage0");
+				this.fatalError(error as Error, "stage0");
 			}
 		}
 

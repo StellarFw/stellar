@@ -80,7 +80,7 @@ importers:
 
   packages/core:
     specifiers:
-      '@stellarfw/common': '*'
+      '@stellarfw/common': workspace:*
       '@types/primus': ^7.3.6
       '@types/ramda': ^0.28.15
       bcrypt: 5.0.1

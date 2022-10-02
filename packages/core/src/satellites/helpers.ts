@@ -69,7 +69,7 @@ export class TestServer extends GenericServer {
 	public goodbye() {}
 }
 
-export default class HelpersSatellite extends Satellite {
+export default class HelpersSatellite extends Satellite implements HelpersSatellite {
 	public _name = "Helpers";
 	public loadPriority = 800;
 	public startPriority = 800;
@@ -92,7 +92,7 @@ export default class HelpersSatellite extends Satellite {
 	 *
 	 * @param options Server options.
 	 */
-	public async initServer(options) {
+	public initServer(options) {
 		const type = "testServer";
 		return new TestServer(this.api, type, options);
 	}

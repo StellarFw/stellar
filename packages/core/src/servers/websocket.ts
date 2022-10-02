@@ -171,8 +171,7 @@ export default class WebSocketServer extends GenericServer {
 
 		this.api.log(`WebSocket bound to ${webServer.options.bindIP}:${webServer.options.port}`, LogLevel.Debug);
 
-		// @ts-ignore
-		this.server.active = true;
+		(this.server as any).active = true;
 
 		(await this.writeClientJS()).tapErr((errMsg) => this.api.log(errMsg, LogLevel.Warning));
 	}
@@ -181,8 +180,7 @@ export default class WebSocketServer extends GenericServer {
 	 * Shutdown the websocket server.
 	 */
 	public async stop(): Promise<void> {
-		// @ts-ignore
-		this.server.active = false;
+		(this.server as any).active = false;
 
 		if (this.api.configs.servers.websocket.destroyClientOnShutdown === true) {
 			this.connections().forEach((connection: Connection) => {
@@ -281,7 +279,8 @@ export default class WebSocketServer extends GenericServer {
 	 * Compile client JS.
 	 */
 	private compileClientJs(): string {
-		let clientSource: string = readFileSync(`${stellarPkgPath}/client.js`).toString();
+		// TODO: find a way to compile into JS or maybe move into an external module
+		let clientSource: string = readFileSync(`${stellarPkgPath}/client.ts`).toString();
 		const url: string = this.api.configs.servers.websocket.clientUrl;
 
 		clientSource = clientSource.replace(/\'%%URL%%\'/g, url);
@@ -327,7 +326,7 @@ export default class WebSocketServer extends GenericServer {
 	/**
 	 * Write client JS code.
 	 */
-	private async writeClientJS(): Promise<Result<unknown, string>> {
+	private async writeClientJS(): Promise<Result<null, string>> {
 		// Ensure the public folder exists
 		const createPublicDir = () => this.api.utils.createDir(`${this.api.configs.general.paths.public}`).run();
 
@@ -355,15 +354,16 @@ export default class WebSocketServer extends GenericServer {
 			}
 
 			// write compressed library
-			return this.renderClientJs(true)
-				.mapErr(always("Cannot write compressed client-side library"))
-				.map((code) => safeWriteFile(`${base}.min.js`, code).run())
-				.andThen(() => {
-					this.api.log(`wrote ${base}.min.js`, LogLevel.Debug);
-					return ok(null);
-				});
+			// TODO: before doing minification we need to find a way to compile the TS into JS
+			// return this.renderClientJs(true)
+			// 	.mapErr(always("Cannot write compressed client-side library"))
+			// 	.map((code) => safeWriteFile(`${base}.min.js`, code).run())
+			// 	.andThen(() => {
+			// 		this.api.log(`wrote ${base}.min.js`, LogLevel.Debug);
+			// 		return ok(null);
+			// 	});
 		}
 
-		return ok("the library is not to be generated");
+		return ok(null);
 	}
 }
