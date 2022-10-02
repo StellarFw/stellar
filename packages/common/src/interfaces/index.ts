@@ -17,3 +17,4 @@ export * from "./validator-satellite.interface";
 export * from "./action-satellite.interface";
 export * from "./module-satellite.interface";
 export * from "./helpers.interface";
+export * from "./events.interface";

@@ -1,5 +1,6 @@
-import { IActionSatellite, ICacheSatellite, IValidatorSatellite } from ".";
+import { IActionSatellite, ICacheSatellite, IValidatorSatellite, IHelpersSatellite } from ".";
 import { EngineStatus, LogLevel } from "..";
+import { IEventsSatellite } from "./events.interface";
 import { IUtilsSatellite } from "./utils.interface";
 
 export interface API {
@@ -38,6 +39,11 @@ export interface API {
 	 * Allows to manage middleware and actions in the system, as well to call them.
 	 */
 	actions: IActionSatellite;
+
+	/**
+	 * Event system to hook into the execution of actions and core features.
+	 */
+	events: IEventsSatellite;
 
 	/**
 	 * Utility functions that are used by both core and application.

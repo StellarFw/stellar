@@ -7,7 +7,7 @@ export interface EventContext {
 /**
  * Type to be used for handle events.
  */
-export type EventHandler = <T>(args: T, context: EventContext) => Promise<T>;
+export type EventHandler = <T, R = T>(args: T, context: EventContext) => Promise<R>;
 
 /**
  * Interface that represents an event.

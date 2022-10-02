@@ -1,5 +1,16 @@
-import { Satellite, Event, LogLevel, EventHandler, EventContext, Result, err, ok } from "@stellarfw/common";
+import {
+	Satellite,
+	Event,
+	LogLevel,
+	EventHandler,
+	EventContext,
+	Result,
+	err,
+	ok,
+	IEventsSatellite,
+} from "@stellarfw/common";
 import * as _ from "lodash";
+import { append, keys } from "ramda";
 
 /**
  * Satellite to manage the Stellar's event system.
@@ -8,7 +19,7 @@ import * as _ from "lodash";
  * to extend functionalities adding new behaviors to existing logic. The
  * listeners must be stored in <moduleName>/listeners.
  */
-export default class EventsSatellite extends Satellite {
+export default class EventsSatellite extends Satellite implements IEventsSatellite {
 	protected _name = "events";
 	public loadPriority = 300;
 
@@ -148,7 +159,7 @@ export default class EventsSatellite extends Satellite {
 	 * @param path Path listener.
 	 * @param reload When set to true that means that is a reload.
 	 */
-	public loadFile(path: string, reload = false) {
+	public async loadFile(path: string, reload = false): Promise<void> {
 		const loadMessage = (listener: Event) => {
 			const level = reload ? LogLevel.Info : LogLevel.Debug;
 			const msg = reload
@@ -158,25 +169,21 @@ export default class EventsSatellite extends Satellite {
 			this.api.log(msg, level);
 		};
 
-		// TODO: convert into async code, so we can make use of the import function
-		const collection = require(path) as Array<Event>;
+		const collection = await import(path);
+		const collectionKeys = keys(collection);
 
 		if (!reload) {
 			this.watchForChanges(path);
 		}
 
-		const listeners: Array<Event> = [];
+		let listeners: Array<Event> = [];
 
-		for (const key in collection) {
-			if (!collection.hasOwnProperty(key)) {
-				continue;
-			}
-
-			const listener = collection[key];
+		for (const key of collectionKeys) {
+			const listener = collection[key] as Event;
 
 			// When there was an error while register the events just log a warning error on the console
 			this.listenerObj(listener).tapErr((error) => this.api.log(error, LogLevel.Warning));
-			listeners.push(listener);
+			listeners = append(listener, listeners);
 			loadMessage(listener);
 		}
 
@@ -196,11 +203,8 @@ export default class EventsSatellite extends Satellite {
 				return;
 			}
 
-			// TODO: adapt to support TypeScript modules
 			// For each listeners folder load each listener file
-			this.api.utils
-				.recursiveDirSearch(listenersFolderPath, "js")
-				.forEach((listenerPath) => this.loadFile(listenerPath));
+			this.api.utils.recursiveDirSearch(listenersFolderPath).forEach((listenerPath) => this.loadFile(listenerPath));
 		});
 
 		await Promise.all(workList);
