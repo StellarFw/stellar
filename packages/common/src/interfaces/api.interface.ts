@@ -1,6 +1,7 @@
 import { IActionSatellite, ICacheSatellite, IValidatorSatellite, IHelpersSatellite } from ".";
 import { EngineStatus, LogLevel } from "..";
 import { IEventsSatellite } from "./events.interface";
+import { IHashSatellite } from "./hash-satellite.interface";
 import { IUtilsSatellite } from "./utils.interface";
 
 export interface API {
@@ -44,6 +45,11 @@ export interface API {
 	 * Event system to hook into the execution of actions and core features.
 	 */
 	events: IEventsSatellite;
+
+	/**
+	 * Exposes some hash features using bcrypt algorithm.
+	 */
+	hash: IHashSatellite;
 
 	/**
 	 * Utility functions that are used by both core and application.

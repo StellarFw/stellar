@@ -1,6 +1,7 @@
 import * as bcrypt from "bcrypt";
 
-import { Satellite } from "@stellarfw/common";
+import { HashConfigs, Satellite } from "@stellarfw/common";
+import { mergeDeepRight } from "ramda";
 
 /**
  * This class is a wrapper for bcrypt library.
@@ -28,9 +29,9 @@ export default class HashManager extends Satellite {
 	 * @param config Additional configuration where you can override
 	 *  pre-defined config.
 	 */
-	public hash(data: any, config: any = {}): Promise<string> {
-		config = this.getConfigs(config);
-		return bcrypt.hash(data, config.salt || config.saltLength);
+	public hash(data: string | Buffer, config: Partial<HashConfigs> = {}): Promise<string> {
+		const allConfigs = this.getConfigs(config);
+		return bcrypt.hash(data, allConfigs.salt || allConfigs.saltLength);
 	}
 
 	/**
@@ -39,7 +40,7 @@ export default class HashManager extends Satellite {
 	 * @param plainData Plain data.
 	 * @param hash Hash to compare with.
 	 */
-	public compare(plainData, hash): Promise<boolean> {
+	public compare(plainData: string | Buffer, hash: string): Promise<boolean> {
 		return bcrypt.compare(plainData, hash);
 	}
 
@@ -48,8 +49,8 @@ export default class HashManager extends Satellite {
 	 *
 	 * @param configs User defined configurations.
 	 */
-	private getConfigs(configs: object = {}): object {
-		return this.api.utils.hashMerge(
+	private getConfigs(configs: Partial<HashConfigs> = {}): HashConfigs {
+		return mergeDeepRight(
 			{
 				salt: this.api.configs.general.salt,
 				saltRounds: this.api.configs.general.saltRounds,
