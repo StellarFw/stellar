@@ -38,7 +38,7 @@ export interface IActionSatellite {
 	/**
 	 * This map stores the actions associated with a group.
 	 */
-	groupActions: Map<string, Array<Action<unknown, unknown, unknown>>>;
+	groupActions: Map<string, string[]>;
 
 	/**
 	 * Hash map with middleware by actions.
@@ -78,5 +78,5 @@ export interface IActionSatellite {
 	 * @param actionName Name of the action to be called.
 	 * @param params Action parameters.
 	 */
-	call<T, R, E = string>(actionName: string, params?: T): Promise<Result<R, E>>;
+	call<R, T = object, E = string>(actionName: string, params?: T): Promise<Result<R, E>>;
 }

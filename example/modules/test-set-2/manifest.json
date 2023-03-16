@@ -1,0 +1,7 @@
+{
+  "id": "test-set-2",
+  "version": "1.0.0",
+  "nodeDependencies": {
+    "@stellarfw/common": "../core/packages/common"
+  }
+}

@@ -14,21 +14,25 @@ describe("Core", () => {
 	describe("Errors", () => {
 		test("returns string errors properly", async () => {
 			const response = await engine.api.helpers.runAction("aNotExistingAction");
-			expect(response.error.code).toBe("004");
+
+			expect(response.isErr()).toBeTruthy();
+			expect(response.unwrapErr().code).toBe("004");
 		});
 
 		test("returns Error object properly", async () => {
 			engine.api.configs.errors.unknownAction = () => new Error("error test");
 
 			const response = await engine.api.helpers.runAction("aNotExistingAction");
-			expect(response.error).toBe("Error: error test");
+			expect(response.isErr()).toBeTruthy();
+			expect(response.unwrapErr().message).toBe("error test");
 		});
 
 		test("returns generic object properly", async () => {
 			engine.api.configs.errors.unknownAction = () => ({ code: "error160501" });
 
 			const response = await engine.api.helpers.runAction("aNotExistingAction");
-			expect(response.error.code).toBe("error160501");
+			expect(response.isErr()).toBeTruthy();
+			expect(response.unwrapErr().code).toBe("error160501");
 		});
 	});
 });

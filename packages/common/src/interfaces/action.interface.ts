@@ -11,16 +11,18 @@ export type ActionFormat = "integer" | "float" | "string";
 
 /**
  * Structure of a format function.
+ *
+ * Notice that the `origValue` can be from a type other than `T`; so this is insecure.
  */
-export type FormatFn<T> = <R>(x: T, api: API) => R;
+export type FormatFn<T> = (origValue: unknown, api: API) => T;
 
 /**
  * Action input.
  */
-export interface ActionInput<T> {
+export type ActionInput<T> = {
 	/**
 	 * Type of the input data.
-	 * TODO: see how to implement this
+	 * TODO: need to time to see how I will implement this
 	 */
 	// type: InputType;
 
@@ -48,21 +50,25 @@ export interface ActionInput<T> {
 	 * Allows to specify constraints to the input value.
 	 */
 	validator?: string | RegExp;
-}
+};
 
 /**
  * Type for the inputs property.
  */
-export interface ActionInputMap {
-	[key: string]: ActionInput<unknown>;
-}
+export type ActionInputMap<K> = {
+	[key in keyof K]: ActionInput<K[key]>;
+};
 
 /**
- * Action behaviour.
+ * Action behavior.
  */
-export type ActionRunFunction<R, I, E = string> = (params: I, api: API) => Promise<Result<R, E>>;
+export type ActionRunFunction<R, I, E = string> = (
+	params: I,
+	api: API,
+	action: Action<I, R, E>,
+) => Promise<Result<R, E>>;
 
-export interface Action<R, I, E = string> {
+export type Action<R, I = unknown, E = string> = {
 	/**
 	 * A unique action identifier.
 	 *
@@ -91,7 +97,7 @@ export interface Action<R, I, E = string> {
 	 *
 	 * You can also apply restrictions to allowed inputted values.
 	 */
-	inputs: ActionInputMap;
+	inputs?: ActionInputMap<I>;
 
 	/**
 	 * Group which this action is part of.
@@ -110,8 +116,7 @@ export interface Action<R, I, E = string> {
 	 *
 	 * This example will be used in automatic documentation.
 	 */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	outputExample?: any;
+	outputExample?: R;
 
 	/**
 	 * Block certain types of connections.
@@ -145,6 +150,12 @@ export interface Action<R, I, E = string> {
 	toDocument?: boolean;
 
 	/**
+	 * Dynamic field for actions so its possible to store additional data for them; this can be used by the developers,
+	 * modifiers, or even runtime.
+	 */
+	metadata?: Record<string, unknown>;
+
+	/**
 	 * Action logic.
 	 */
 	run: ActionRunFunction<R, I, E>;
@@ -158,7 +169,7 @@ export interface Action<R, I, E = string> {
 	 * will be overwritten by the the core itself.
 	 */
 	path?: Option<string>;
-}
+};
 
 /**
  * Type used while action is being processed.

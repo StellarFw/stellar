@@ -150,12 +150,17 @@ class Utils {
 	 *
 	 * @param dir Path to check.
 	 */
-	public fileExists(dir): boolean {
-		try {
-			return statSync(dir).isFile();
-		} catch (_) {
-			return false;
-		}
+	fileExists(path: PathLike): IO<Promise<boolean>> {
+		return io(async () =>
+			(await unsafeAsync(() => stat(path))).match({
+				err() {
+					return false;
+				},
+				ok(stats) {
+					return stats.isFile();
+				},
+			}),
+		);
 	}
 
 	/**
@@ -337,10 +342,10 @@ class Utils {
 	/**
 	 * Checks if the given var is an non empty string.
 	 *
-	 * @param {string} value Value to be validated.
+	 * @param value Value to be validated.
 	 */
-	public isNonEmptyString(value) {
-		return typeof value === "string" && value.length > 0;
+	public isNonEmptyString(value: string): boolean {
+		return value.length > 0;
 	}
 
 	/**

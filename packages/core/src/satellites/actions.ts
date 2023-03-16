@@ -11,10 +11,14 @@ import {
 	some,
 	always,
 	ActionsStore,
+	importFile,
 } from "@stellarfw/common";
-import { keys } from "ramda";
+import { join } from "path";
+import { append, concat, keys } from "ramda";
+import { isArray, isFunction, isNotEmpty } from "ramda-adjunct";
 
 import { statusAction } from "../base/system-actions";
+import { ActionProcessor } from "./action-processor";
 
 /**
  * Map with the action by version.
@@ -24,10 +28,7 @@ export interface VersionActionMap {
 }
 
 /**
- * This contains all the protected keys, that can not be modified by the mod
- * groups.
- *
- * @type {Array}
+ * This contains all the protected keys, that can not be modified by the mod groups.
  */
 const PROTECTED_KEYS = ["name"];
 
@@ -47,15 +48,13 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
 
 	/**
 	 * This Map contains all the metadata changes that be applied to the actions.
-	 *
-	 * @type {Map}
 	 */
 	public groups = new Map();
 
 	/**
 	 * This map stores the actions associated with a group.
 	 */
-	public groupActions: Map<string, Array<Action<unknown, unknown>>> = new Map();
+	public groupActions: Map<string, string[]> = new Map();
 
 	/**
 	 * Hash map with middleware by actions.
@@ -76,7 +75,7 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
 	 * @param params      Action parameters.
 	 * @return Promise
 	 */
-	public call<T, R, E = string>(actionName: string, rawParams: T): Promise<Result<R, E>> {
+	public call<R, I = object, E = string>(actionName: string, rawParams: I): Promise<Result<R, E>> {
 		const params = rawParams ?? {};
 		const connection = new Connection(this.api, {
 			type: "internal",
@@ -89,12 +88,9 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
 		connection.params.action = actionName;
 
 		const ActionProcessor = this.api.ActionProcessor;
-		return new Promise((resolve, reject) => {
-			const actionProcessor = new ActionProcessor(this.api, connection, (data) => {
+		return new Promise((resolve) => {
+			const actionProcessor = new ActionProcessor(this.api, connection, (data: ActionProcessor) => {
 				connection.destroy();
-				if (data.response.error !== undefined) {
-					return reject(data.response.error);
-				}
 
 				resolve(data.response);
 			});
@@ -146,8 +142,9 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
 		const actionVersion = action.version ?? 1;
 
 		// initialize some fields when not set
-		const newAction: Action<unknown, unknown> = {
+		const newAction: Action<unknown> = {
 			...action,
+			metadata: action.metadata ?? {},
 			inputs: action.inputs ?? {},
 			private: action.private ?? false,
 			protected: action.protected ?? false,
@@ -297,6 +294,8 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
 	/**
 	 * Load the modifier and apply it to all already loaded actions.
 	 *
+	 * TODO: add types
+	 *
 	 * @param {object} modifier
 	 */
 	public applyModifier(modifier) {
@@ -307,17 +306,17 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
 			const group = modifier[groupName];
 
 			// array to store the group's actions
-			let actions = [];
+			let actions: string[] = [];
 
 			// process the `actions` property. This is simpler as concat the two arrays
-			if (Array.isArray(group.actions)) {
-				actions = actions.concat(group.actions);
+			if (isArray(group.actions)) {
+				actions = concat(actions, group.actions);
 			}
 
 			// process the `modules` property
-			if (Array.isArray(group.modules)) {
+			if (isArray(group.modules)) {
 				group.modules.forEach((modulesName) => {
-					actions = actions.concat(this.api.modules.moduleActions.get(modulesName) || []);
+					actions = concat(actions, this.api.modules.moduleActions.get(modulesName) ?? []);
 				});
 			}
 
@@ -333,51 +332,37 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
 	 * Applies the modifications to an action from each group that them makes part
 	 * of.
 	 *
-	 * @param {object} action Action object.
+	 * @param action Action object.
 	 */
-	private applyModificationsToAction(action) {
+	private applyModificationsToAction(action: Action<unknown, unknown>) {
 		// when the action has a group defined, the action name must be pushed
 		// to the `groupsActions`
-		if (this.api.utils.isNonEmptyString(action.group)) {
-			// if the key doesn't exists we must create one with an empty array
-			if (!this.groupActions.has(action.group)) {
-				this.groupActions.set(action.group, []);
-			}
+		if (action.group && isNotEmpty(action.group)) {
+			const arrayOfActions = this.groupActions.get(action.group) ?? [];
 
-			// get the array of actions
-			const arrayOfActions = this.groupActions.get(action.group)!;
-
-			// to prevent duplicated entries, it's necessary check if the array
-			// already exists on the array
-			if (!arrayOfActions.includes(action.id)) {
-				arrayOfActions.push(action.id);
+			if (!arrayOfActions.includes(action.name)) {
+				this.groupActions.set(action.group, append(action.name, arrayOfActions));
 			}
 		}
 
 		// check the groups here the action is present and apply the modifications
-		const groupNames = this.checkWhatGroupsArePresent(action.id);
-
-		// apply the changes of all founded groups
-		groupNames.forEach((groupName) => this.applyGroupModToAction(groupName, action));
+		this.checkWhatGroupsArePresent(action.name).forEach((groupName) => {
+			this.applyGroupModToAction(groupName, action);
+		});
 	}
 
 	/**
 	 * Apply the group modification to the action.
 	 *
-	 * @param {string} groupName Group name
-	 * @param {object} action Action object where the modifications must be
-	 *                        applied.
+	 * @param groupName Group name
+	 * @param action Action object where the modifications must be applied.
 	 */
-	private applyGroupModToAction(groupName, action) {
-		console.log(">", action);
-		// get group metadata modifications
+	private applyGroupModToAction(groupName: string, action: Action<unknown>) {
 		const metadata = this.groups.get(groupName);
 
-		// iterate all modification keys
 		for (let key of Object.keys(metadata)) {
 			let value = metadata[key];
 
-			// if there is a protected key, ignore it
 			if (PROTECTED_KEYS.includes(key)) {
 				continue;
 			}
@@ -389,16 +374,14 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
 				key = key.substring(1, key.length);
 
 				// set the new value
-				action[key] = (action[key] || []).concat(value);
+				action.metadata[key] = (action.metadata[key] || []).concat(value);
 
 				continue;
 			} else if (key.charAt(0) === "-") {
-				// create a sub-string without the plus sign
 				key = key.substring(1, key.length);
 
-				// this needs to be an Array
-				if (Array.isArray(action[key])) {
-					action[key] = action[key].filter((item) => !value.includes(item));
+				if (isArray(action.metadata[key])) {
+					action.metadata[key] = action.metadata[key].filter((item) => !value.includes(item));
 				}
 
 				continue;
@@ -406,27 +389,23 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
 
 			// if the value is a function we need process it
 			if (typeof value === "function") {
-				value = value(action, action[key]);
+				value = value(action, action.metadata[key]);
 			}
 
 			// replace the value
-			action[key] = value;
+			action.metadata[key] = value;
 		}
 	}
 
 	/**
 	 * Gets all the groups thats the given action is part of.
-	 *
-	 * @param {string} actionName
 	 */
-	private checkWhatGroupsArePresent(actionName) {
-		// this array will store the groups of which the action is part
-		const result: Array<string> = [];
+	private checkWhatGroupsArePresent(actionName: string) {
+		let result: Array<string> = [];
 
-		// iterate all groups
 		this.groupActions.forEach((actions, groupName) => {
 			if (actions.includes(actionName)) {
-				result.push(groupName);
+				result = append(groupName, result);
 			}
 		});
 
@@ -445,7 +424,7 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
 			// iterate all action versions
 			Object.keys(actionVersion).forEach((versionNumber) => {
 				// apply the group modifications
-				this.applyModificationsToAction(actionVersion[versionNumber]);
+				this.applyModificationsToAction(actionVersion[parseInt(versionNumber, 10)]);
 			});
 		});
 	}
@@ -527,17 +506,29 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
 		return ok(true);
 	}
 
-	private loadModuleModifier() {
-		this.api.modules.modulesPaths.forEach((modulePath) => {
-			const modPath = `${modulePath}/mod.js`;
+	private async loadModuleModifier() {
+		for (const [_name, modulePath] of this.api.modules.modulesPaths) {
+			const modPath = join(modulePath, "mod.ts");
+			const modExists = await this.api.utils.fileExists(modPath).run();
 
-			if (this.api.utils.fileExists(modPath)) {
-				this.applyModifier(require(modPath)(this.api).actions);
-
-				// when the modifier file changes we must reload the entire server
-				this.api.config.watchFileAndAct(modPath, () => this.api.commands.restart());
+			if (!modExists) {
+				continue;
 			}
-		});
+
+			await importFile(modPath)
+				.run()
+				.then((result) =>
+					result.tapOk((module) => {
+						if (module.default && isFunction(module.default)) {
+							const modObj = module.default(this.api);
+							this.applyModifier(modObj.actions);
+						}
+
+						// when the modifier file changes we must reload the entire server
+						this.api.config.watchFileAndAct(modPath, () => this.api.commands.restart());
+					}),
+				);
+		}
 	}
 
 	public async load(): Promise<void> {
@@ -547,7 +538,7 @@ export default class ActionsSatellite extends Satellite implements IActionSatell
 		this.loadModuleActions();
 
 		// Load the modules after the action in order to reduce the number of operations to apply the group modifications.
-		this.loadModuleModifier();
+		await this.loadModuleModifier();
 
 		this.applyGroupModifications();
 	}

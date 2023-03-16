@@ -11,6 +11,13 @@ export interface IUtilsSatellite {
 	listFiles(path: PathLike): IO<Promise<Array<string>>>;
 
 	/**
+	 * Check if a file exists.
+	 *
+	 * @param path Path to check.
+	 */
+	fileExists(path: PathLike): IO<Promise<boolean>>;
+
+	/**
 	 * Read the contents of the given file.
 	 *
 	 * @param path

@@ -1,4 +1,4 @@
-import { IActionSatellite, ICacheSatellite, IValidatorSatellite, IHelpersSatellite } from ".";
+import { IActionSatellite, ICacheSatellite, IValidatorSatellite, IHelpersSatellite, IModuleSatellite } from ".";
 import { EngineStatus, LogLevel } from "..";
 import { IEventsSatellite } from "./events.interface";
 import { IHashSatellite } from "./hash-satellite.interface";
@@ -68,6 +68,8 @@ export interface API {
 	 */
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	configs: { [key: string]: any };
+
+	modules: IModuleSatellite;
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	[key: string]: any;

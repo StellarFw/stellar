@@ -2,12 +2,16 @@ import {
 	Connection,
 	Action,
 	Satellite,
-	ProcessingAction,
 	EngineStatus,
 	LogLevel,
 	UnknownActionException,
 	IActionProcessor,
+	API,
+	Result,
+	err,
+	ok,
 } from "@stellarfw/common";
+import { clone, last } from "ramda";
 
 type ActionProcessorCallback = (data: any) => void;
 
@@ -22,11 +26,11 @@ enum ActionStatus {
 	OTHER = "other",
 }
 
-class ActionProcessor implements IActionProcessor {
+export class ActionProcessor implements IActionProcessor {
 	/**
 	 * API instance.
 	 */
-	private api: any;
+	private api: API;
 
 	/**
 	 * Connection instance.
@@ -39,14 +43,9 @@ class ActionProcessor implements IActionProcessor {
 	private action!: string;
 
 	/**
-	 * Action class.
+	 * Action template.
 	 */
-	private actionInstance!: ProcessingAction<unknown, unknown>;
-
-	/**
-	 * Action's metadata.
-	 */
-	private actionMetadata: Action<unknown, unknown, unknown> = {} as Action<unknown, unknown, unknown>;
+	private actionTemplate!: Action<unknown>;
 
 	/**
 	 * Action status.
@@ -73,7 +72,7 @@ class ActionProcessor implements IActionProcessor {
 	/**
 	 * Map with all validator errors.
 	 */
-	private validatorErrors: Map<string, string> = new Map();
+	private validatorErrors: Map<string, string[]> = new Map();
 
 	/**
 	 * Timestamp when the action was started to be processed.
@@ -88,7 +87,7 @@ class ActionProcessor implements IActionProcessor {
 	/**
 	 * Action response.
 	 */
-	private response: any = {};
+	public response?: Result<unknown, string | Error>;
 
 	/**
 	 * Duration that the action took to be completed.
@@ -114,7 +113,7 @@ class ActionProcessor implements IActionProcessor {
 	 * @param api API reference.
 	 * @param connection Connection object.
 	 */
-	constructor(api: {}, connection: Connection, callback: ActionProcessorCallback) {
+	constructor(api: API, connection: Connection, callback: ActionProcessorCallback) {
 		this.api = api;
 		this.connection = connection;
 		this.messageCount = connection.messageCount;
@@ -152,7 +151,7 @@ class ActionProcessor implements IActionProcessor {
 	 *
 	 * @param status Action status or an error.
 	 */
-	public completeAction(status?: ActionStatus, error?: Error) {
+	public completeAction(status?: ActionStatus, error?: Error | string) {
 		switch (status) {
 			case ActionStatus.SERVER_ERROR:
 				error = this.api.configs.errors.serverErrorMessage;
@@ -181,12 +180,8 @@ class ActionProcessor implements IActionProcessor {
 			error = new Error(error);
 		}
 
-		if (error && !this.response.error) {
-			if (typeof this.response === "string" || Array.isArray(this.response)) {
-				this.response = error.toString();
-			} else {
-				this.response.error = error;
-			}
+		if (error && !this.response?.isErr()) {
+			this.response = err(error);
 		}
 
 		this.incrementPendingActions(-1);
@@ -205,12 +200,12 @@ class ActionProcessor implements IActionProcessor {
 	 *
 	 * @param error Error that occurred during the action processing, if exists.
 	 */
-	private logAction(error?: Error) {
+	private logAction(error?: Error | string) {
 		let logLevel = LogLevel.Info;
 
 		// check if the action have a specific log level
-		if (this.actionMetadata.logLevel) {
-			logLevel = this.actionMetadata.logLevel;
+		if (this.actionTemplate.logLevel) {
+			logLevel = this.actionTemplate.logLevel;
 		}
 
 		const filteredParams = {};
@@ -248,20 +243,19 @@ class ActionProcessor implements IActionProcessor {
 		this.api.log(`[ action @  ${this.connection.type}]`, logLevel, logLine);
 	}
 
-	private async preProcessAction() {
-		// If the action is private this can only be executed internally
-		if (this.actionMetadata.private === true && this.connection.type !== "internal") {
-			throw new Error(this.api.config.errors.privateActionCalled(this.actionMetadata.name));
+	private async preProcessAction(): Promise<Result<null>> {
+		// If the action is private it only can be executed internally
+		if (this.actionTemplate.private === true && this.connection.type !== "internal") {
+			return err(this.api.config.errors.privateActionCalled(this.actionTemplate.name));
 		}
 
-		// Copy call parameters into the action instance
-		this.actionInstance.params = this.params;
+		this.actionTemplate.params = clone(this.params);
 
 		const processorsNames = this.api.actions.globalMiddleware.slice(0);
 
 		// get action processor names
-		if (this.actionMetadata.middleware) {
-			this.actionMetadata.middleware.forEach((m) => {
+		if (this.actionTemplate.middleware) {
+			this.actionTemplate.middleware.forEach((m) => {
 				processorsNames.push(m);
 			});
 		}
@@ -277,27 +271,24 @@ class ActionProcessor implements IActionProcessor {
 				await this.api.actions.middleware[name].preProcessor(this);
 			}
 		}
+
+		return ok(null);
 	}
 
-	/**
-	 * Instantiate the requested action.
-	 */
-	private instantiateAction() {
-		if (this.api.actions.versions[this.action]) {
-			if (!this.params.apiVersion) {
-				this.params.apiVersion =
-					this.api.actions.versions[this.action][this.api.actions.versions[this.action].length - 1];
-			}
+	private setupActionTemplate(): Result<true, UnknownActionException> {
+		const actionVersions = this.api.actions.versions.get(this.action);
 
-			const actionClass = this.api.actions.actions[this.action][this.params.apiVersion];
-
-			// FIXME: this needs to be adapted for the new version
-			// this.actionMetadata = Reflect.getMetadata(ACTION_METADATA, actionClass);
-			this.actionInstance = new actionClass(this.api, this);
-			return;
+		if (!actionVersions) {
+			return err(new UnknownActionException());
 		}
 
-		throw new UnknownActionException();
+		// use the latest action version when no version is specified
+		if (!this.params.apiVersion) {
+			this.params.apiVersion = last(actionVersions);
+		}
+
+		this.actionTemplate = this.api.actions.actions[this.action][this.params.apiVersion];
+		return ok(true);
 	}
 
 	/**
@@ -311,9 +302,8 @@ class ActionProcessor implements IActionProcessor {
 		this.incrementPendingActions();
 		this.action = this.params.action;
 
-		try {
-			this.instantiateAction();
-		} catch (e) {
+		const setupTemplateResult = this.setupActionTemplate();
+		if (setupTemplateResult.isErr()) {
 			this.completeAction(ActionStatus.UNKNOWN_ACTION);
 			return;
 		}
@@ -323,8 +313,8 @@ class ActionProcessor implements IActionProcessor {
 		} else if (this.getPendingActionCount() > this.api.configs.general.simultaneousActions) {
 			this.completeAction(ActionStatus.TOO_MANY_REQUESTS);
 		} else if (
-			this.actionMetadata.blockedConnectionTypes &&
-			this.actionMetadata.blockedConnectionTypes.includes(this.connection.type)
+			this.actionTemplate.blockedConnectionTypes &&
+			this.actionTemplate.blockedConnectionTypes.includes(this.connection.type)
 		) {
 			this.completeAction(ActionStatus.UNSUPPORTED_SERVER_TYPE);
 		} else {
@@ -343,12 +333,12 @@ class ActionProcessor implements IActionProcessor {
 	private validateParams() {
 		const toValidate = {};
 
-		for (const key in this.actionMetadata.inputs) {
-			if (!this.actionMetadata.inputs.hasOwnProperty(key)) {
+		for (const key in this.actionTemplate.inputs) {
+			if (!this.actionTemplate.inputs.hasOwnProperty(key)) {
 				continue;
 			}
 
-			const props = this.actionMetadata.inputs[key];
+			const props = this.actionTemplate.inputs[key];
 
 			// Default
 			if (this.params[key] === undefined && props.default !== undefined) {
@@ -391,9 +381,11 @@ class ActionProcessor implements IActionProcessor {
 		// Execute all validators. If there is found some error on the validations, the error map must be attributed to
 		// `validatorErrors`;
 		const response = this.api.validator.validate(this.params, toValidate);
-		if (response !== true) {
-			this.validatorErrors = response;
-		}
+		response.tapErr((errors) => {
+			Object.keys(errors).forEach((key) => {
+				this.validatorErrors.set(key, errors[key]);
+			});
+		});
 	}
 
 	private actionTimeout(): void {
@@ -407,8 +399,8 @@ class ActionProcessor implements IActionProcessor {
 	private async postProcessAction(): Promise<void> {
 		const processorNames = this.api.actions.globalMiddleware.slice(0);
 
-		if (this.actionMetadata.middleware) {
-			this.actionMetadata.middleware.forEach((m) => {
+		if (this.actionTemplate.middleware) {
+			this.actionTemplate.middleware.forEach((m) => {
 				processorNames.push(m);
 			});
 		}
@@ -425,7 +417,7 @@ class ActionProcessor implements IActionProcessor {
 		try {
 			await this.preProcessAction();
 		} catch (error) {
-			this.completeAction(undefined, error);
+			this.completeAction(undefined, error as Error);
 			return;
 		}
 
@@ -449,33 +441,28 @@ class ActionProcessor implements IActionProcessor {
 		// client.
 		this.timeoutTimer = setTimeout(this.actionTimeout.bind(this), this.api.configs.general.actionTimeout);
 
-		try {
-			this.response = await this.actionInstance.run(this.params, this.api);
-		} catch (error) {
-			clearTimeout(this.timeoutTimer);
-			this.completeAction(undefined, error);
+		// TODO: better protect against unsafe code
+		// TODO: don't know if passing the action template is the best way, but we need it to get access to the action props, and eventually the context
+		this.response = (await this.actionTemplate.run(this.params, this.api, this.actionTemplate)).map((val) => val ?? {});
+
+		clearTimeout(this.timeoutTimer);
+
+		if (this.response.isErr()) {
+			this.completeAction(undefined, this.response.unwrapErr());
 			return;
 		}
-
-		// If the action returns an undefined fallback it to
-		// an object.
-		if (this.response === undefined) {
-			this.response = {};
-		}
-
-		// Clear the timeout timer
-		clearTimeout(this.timeoutTimer);
 
 		// When the error rendered flag is set we don't send a response
 		if (this.errorRendered) {
 			return;
 		}
 
+		// TODO: move this into safe code with no exceptions
 		try {
 			await this.postProcessAction();
 			this.completeAction();
 		} catch (error) {
-			this.completeAction(undefined, error);
+			this.completeAction(undefined, error as Error);
 		}
 	}
 }

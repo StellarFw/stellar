@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { always, identity, promisify, pipe, asyncAlways } from ".";
+import { always, identity, promisify, pipe, asyncAlways, mapPromise } from ".";
 
 describe("functions", () => {
 	test("identity always return the original value", () => {
@@ -42,6 +42,15 @@ describe("functions", () => {
 			);
 
 			expect(testPipe(2)).toBe("is 4");
+		});
+	});
+
+	describe("mapPromise", () => {
+		test("apply a map function to a promise value", () => {
+			const val = Promise.resolve(130);
+			const resultFn = mapPromise((v: number) => v + 70);
+
+			expect(resultFn(val)).resolves.toEqual(200);
 		});
 	});
 });

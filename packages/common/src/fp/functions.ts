@@ -44,3 +44,9 @@ export function pipe<T, O>(...fns: Array<Function>) {
 export function pipeInto<T, O>(val: T, fn1: Function, ...fns: Array<Function>) {
 	return pipe<T, O>(fn1, ...fns)(val);
 }
+
+type MapPromiseParam<T, R> = (val: T) => R;
+type MapPromiseReturn<T, R> = (val: Promise<T>) => Promise<R>;
+export function mapPromise<T, R>(mapFn: MapPromiseParam<T, R>): MapPromiseReturn<T, R> {
+	return (wrapperVal: Promise<T>) => wrapperVal.then(mapFn);
+}

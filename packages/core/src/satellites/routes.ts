@@ -1,4 +1,4 @@
-import { Satellite, RouteInterface, LogLevel, ConnectionDetails } from "@stellarfw/common";
+import { Satellite, RouteInterface, LogLevel, ConnectionDetails, importFile } from "@stellarfw/common";
 
 interface RouterDictionary {
 	GET: Array<RouteInterface>;
@@ -258,19 +258,28 @@ export default class RoutesSatellite extends Satellite {
 	 * If the modules have a `routes.js` file on the modules root
 	 * folder we load that file.
 	 */
-	private loadModulesRoutes() {
-		this.api.modules.modulesPaths.forEach((modulePath: string) => {
-			// Try loading the JS version of the routes
-			let path = `${modulePath}/routes.json`;
-			if (this.api.utils.fileExists(path)) {
-				this.loadRoutes(require(path));
+	private async loadModulesRoutes() {
+		for (const modulePath of this.api.modules.modulesPaths) {
+			const routesJsonPath = `${modulePath}/routes.json`;
+			if (await this.api.utils.fileExists(routesJsonPath).run()) {
+				importFile(routesJsonPath)
+					.map(async (modulePromise) => {
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						(await modulePromise).tapOk((routesModule: any) => this.loadRoutes(routesModule));
+					})
+					.run();
 			}
 
-			path = `${modulePath}/routes.js`;
-			if (this.api.utils.fileExists(path)) {
-				this.loadRoutes(require(path).default);
+			const routesJsPath = `${modulePath}/routes.js`;
+			if (await this.api.utils.fileExists(routesJsPath).run()) {
+				await importFile(routesJsPath)
+					.map(async (modulePromise) => {
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						(await modulePromise).tapOk((module: any) => this.loadRoutes(module.default));
+					})
+					.run();
 			}
-		});
+		}
 
 		if (this.api.configs.routes) {
 			this.loadRoutes(this.api.configs.routes);

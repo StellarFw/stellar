@@ -13,8 +13,14 @@
 	"dependencies": {
 		"uuid": "3.2.1"
 	},
+	"devDependencies": {
+		"vitest": "0.29.3"
+	},
 	"exports": {
 		".": "./src/index.ts",
 		"./*": "./src/*"
+	},
+	"scripts": {
+		"test": "NODE_ENV=test vitest"
 	}
 }

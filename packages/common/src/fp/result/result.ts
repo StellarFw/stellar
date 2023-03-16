@@ -129,7 +129,7 @@ class Err<T, E> implements IErr<T, E> {
 	}
 
 	unwrap(): T {
-		panic(`panics with \`${this.value}\``);
+		panic(`panics with \`${JSON.stringify(this.value)}\``);
 	}
 
 	expect(msg: string): T {

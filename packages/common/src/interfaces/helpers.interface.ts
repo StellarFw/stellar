@@ -1,3 +1,5 @@
+import { Result } from "@stellarfw/common";
+
 export interface IHelpersSatellite {
 	// TODO: set current return type
 	/**
@@ -20,7 +22,7 @@ export interface IHelpersSatellite {
 	 * @param input       Action parameters.
 	 */
 	// TODO: improve type
-	runAction(actionName: string, input?: { [key: string]: any }): Promise<any>;
+	runAction(actionName: string, input?: { [key: string]: any }): Promise<Result<any>>;
 
 	/**
 	 * Execute a task.
