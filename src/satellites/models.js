@@ -1,12 +1,7 @@
-import Waterline from 'waterline'
-import {basename} from 'path'
+import Waterline from "waterline";
+import { basename } from "path";
 import { promisify } from "util";
 import { mergeDeepRight } from "ramda";
-
-const DEFAULT_PRIMARY_KEY = {
-  type: 'number',
-  autoMigrations: { autoIncrement: true }
-};
 
 /**
  * Satellite to manage the models using Waterline ORM.
@@ -19,33 +14,35 @@ class Models {
    *
    * @type null
    */
-  api = null
+  api = null;
 
   /**
    * Waterline instance.
    *
    * @type {[type]}
    */
-  waterline = null
+  waterline = null;
 
   /**
    * Object with the Waterline ontology.
    *
    * @type WaterlineOntology
    */
-  ontology = null
+  ontology = null;
 
   /**
    * Create a new class instance.
    *
    * @param api   API reference.
    */
-  constructor (api) { this.api = api }
+  constructor(api) {
+    this.api = api;
+  }
 
   /**
    * Create a new Waterline instance.
    */
-  async createNewInstance () {
+  async createNewInstance() {
     const adapters = this.processAdapters();
     const datastores = this.api.config.models.datastores;
     const models = await this.loadModels();
@@ -56,13 +53,13 @@ class Models {
       adapters,
       datastores,
       models,
-    })
+    });
   }
 
   /**
    * Finish the model system.
    */
-  async finish () {
+  async finish() {
     const waterlineStop = promisify(Waterline.stop);
     await waterlineStop(this.waterline);
   }
@@ -80,10 +77,14 @@ class Models {
       modelOrig = modelOrig(this.api);
     }
 
-    const dataStoreToUse = modelOrig.datastore || this.api.config.models.defaultDatastore;
+    const dataStoreToUse =
+      modelOrig.datastore || this.api.config.models.defaultDatastore;
 
     // cerate a new model objects to merge the model into the default model properties defied in the configurations file
-    const newModel = mergeDeepRight(this.api.config.models.defaultModelPropsForDatastore[dataStoreToUse], modelOrig);
+    const newModel = mergeDeepRight(
+      this.api.config.models.defaultModelPropsForDatastore[dataStoreToUse],
+      modelOrig
+    );
 
     // Execute the `add` event to allow other modules modify this model before it
     // gets compiled.
@@ -91,7 +92,7 @@ class Models {
       `core.models.add.${modelName}`,
       {
         model: newModel,
-      },
+      }
     );
 
     // When there is no identity property defined we use the file basename.
@@ -115,38 +116,50 @@ class Models {
    * @param models array of modules to be loaded
    */
   async processModelsFiles(models) {
-    const result = []
+    const result = [];
 
     for (const modelFile of models) {
-      const modelBasename = basename(modelFile, '.js')
-      this._watchForChanges(modelFile)
+      const modelBasename = basename(modelFile, ".js");
+      this._watchForChanges(modelFile);
 
       try {
-        const model = await this.preProcessModelData(modelBasename, require(modelFile).default)
-        result.push(model)
+        const model = await this.preProcessModelData(
+          modelBasename,
+          require(modelFile).default
+        );
+        result.push(model);
 
-        this.api.log(`Model loaded: ${modelBasename}`, 'debug')
-      } catch(error) {
-        this.api.log(`Model error (${modelBasename}): ${error.message}`, 'error', error)
+        this.api.log(`Model loaded: ${modelBasename}`, "debug");
+      } catch (error) {
+        this.api.log(
+          `Model error (${modelBasename}): ${error.message}`,
+          "error",
+          error
+        );
       }
     }
 
-    return result
+    return result;
   }
 
   /**
    * Load models from the modules.
    */
-  async loadModels () {
+  async loadModels() {
     let allModels = [];
 
     for (const [, modulePath] of this.api.modules.modulesPaths) {
-      const modelFiles = this.api.utils.recursiveDirectoryGlob(`${modulePath}/models`);
+      const modelFiles = this.api.utils.recursiveDirectoryGlob(
+        `${modulePath}/models`
+      );
       const processedModels = await this.processModelsFiles(modelFiles);
       allModels = [...allModels, ...processedModels];
     }
 
-    return allModels.reduce((result, model) => ({...result, [model.identity]: model}), ({}))
+    return allModels.reduce(
+      (result, model) => ({ ...result, [model.identity]: model }),
+      {}
+    );
   }
 
   /**
@@ -157,21 +170,26 @@ class Models {
    *  - remove the file cache from require
    *  - reload Stellar
    */
-  _watchForChanges (file) {
+  _watchForChanges(file) {
     // if the development mode is active we return
-    if (!this.api.config.general.developmentMode) { return }
+    if (!this.api.config.general.developmentMode) {
+      return;
+    }
 
     // watch for changes on the model file
     this.api.configs.watchFileAndAct(file, () => {
       // log a information message
-      this.api.log(`\r\n\r\n*** rebooting due to model change (${file}) ***\r\n\r\n`, 'info')
+      this.api.log(
+        `\r\n\r\n*** rebooting due to model change (${file}) ***\r\n\r\n`,
+        "info"
+      );
 
       // remove require cache
-      delete require.cache[ require.resolve(file) ]
+      delete require.cache[require.resolve(file)];
 
       // reload Stellar
-      this.api.commands.restart.call(this.api._self)
-    })
+      this.api.commands.restart.call(this.api._self);
+    });
   }
 
   /**
@@ -180,7 +198,7 @@ class Models {
    * @param modelName                 Model name to get.
    * @returns {WaterlineCollection}   Model object.
    */
-  get (modelName) {
+  get(modelName) {
     return Waterline.getModel(modelName, this.waterline);
   }
 
@@ -189,12 +207,14 @@ class Models {
    *
    * @param modelName   model name to be deleted.
    */
-  remove (modelName) { this.models.delete(modelName) }
+  remove(modelName) {
+    this.models.delete(modelName);
+  }
 
   /**
    * Process adapters.
    */
-  processAdapters () {
+  processAdapters() {
     // iterate all adapters and require the right modules. We need to do this
     // here other wise the config system will break when the module isn't
     // installed
@@ -204,14 +224,16 @@ class Models {
       }
 
       // get module name
-      const moduleName = this.api.config.models.adapters[ key ]
+      const moduleName = this.api.config.models.adapters[key];
 
       // when we are restarting the server this already was replaced with the
       // module, so we ignore it
-      if (typeof moduleName !== 'string') { continue }
+      if (typeof moduleName !== "string") {
+        continue;
+      }
 
       // replace the static value with the module instance
-      this.api.config.models.adapters[ key ] = this.api.utils.require(moduleName)
+      this.api.config.models.adapters[key] = this.api.utils.require(moduleName);
 
       // force all adapters to use the key specific by the user.
       this.api.config.models.adapters[key].identity = key;
@@ -230,21 +252,21 @@ export default class {
    *
    * @type {number}
    */
-  loadPriority = 100
+  loadPriority = 100;
 
   /**
    * Initializer start priority.
    *
    * @type {number}
    */
-  startPriority = 100
+  startPriority = 100;
 
   /**
    * Initializer stop priority.
    *
    * @type {number}
    */
-  stopPriority = 400
+  stopPriority = 400;
 
   /**
    * Initializer loading function.
@@ -252,12 +274,12 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  load (api, next) {
+  load(api, next) {
     // expose models class on the engine
-    api.models = new Models(api)
+    api.models = new Models(api);
 
     // finish the initializer loading
-    next()
+    next();
   }
 
   /**
@@ -266,8 +288,8 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  start (api, next) {
-    api.models.createNewInstance().then(next)
+  start(api, next) {
+    api.models.createNewInstance().then(next);
   }
 
   /**
@@ -276,7 +298,7 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  stop (api, next) {
-    api.models.finish().then(next)
+  stop(api, next) {
+    api.models.finish().then(next);
   }
 }

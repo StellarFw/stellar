@@ -8,25 +8,25 @@
  * By default we use a memory based adapter to make the startup really simple.
  */
 export default {
-  models () {
+  models() {
     return {
-      '_toExpand': false,
+      _toExpand: false,
 
       // -----------------------------------------------------------------------
       // Object with model system adapters
       // -----------------------------------------------------------------------
       adapters: {
-        'memory': 'sails-disk'
+        memory: "sails-disk",
       },
 
       // -----------------------------------------------------------------------
       // Object with the active datastores
       // -----------------------------------------------------------------------
       datastores: {
-        default: {
-          adapter: 'memory',
+        memory: {
+          adapter: "memory",
           inMemoryOnly: true,
-        }
+        },
       },
 
       // -----------------------------------------------------------------------
@@ -39,21 +39,21 @@ export default {
         memory: {
           attributes: {
             id: {
-              type: 'number',
+              type: "number",
               autoMigrations: {
                 unique: true,
-                autoIncrement: false,
-              }
-            }
+                autoIncrement: true,
+              },
+            },
           },
-          primaryKey: 'id',
-        }
+          primaryKey: "id",
+        },
       },
 
       // -----------------------------------------------------------------------
       // Default datastore
       // -----------------------------------------------------------------------
-      defaultDatastore: 'default',
+      defaultDatastore: "memory",
 
       // -----------------------------------------------------------------------
       // Use schemas
@@ -64,7 +64,7 @@ export default {
       // You can turn this off when use are using schema-less adapters like the
       // MongoDB or Redis, if you want.
       // -----------------------------------------------------------------------
-      schema: true
-    }
-  }
-}
+      schema: true,
+    };
+  },
+};
