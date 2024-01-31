@@ -1,4 +1,4 @@
-import cluster from 'cluster'
+import cluster from "cluster";
 
 /**
  * Setup the server ID.
@@ -17,14 +17,14 @@ export default class {
    *
    * @type {number}
    */
-  loadPriority = 100
+  loadPriority = 100;
 
   /**
    * Start priority.
    *
    * @type {number}
    */
-  startPriority = 2
+  startPriority = 2;
 
   /**
    * Initializer load functions.
@@ -32,40 +32,41 @@ export default class {
    * @param api   API reference.
    * @param next  Callback.
    */
-  async load (api, next) {
-    const argv = api.scope.args
+  async load(api, next) {
+    const argv = api.scope.args;
 
     if (argv.title) {
-      api.id = argv.title
+      api.id = argv.title;
     } else if (process.env.STELLAR_TITLE) {
-      api.id = process.env.STELLAR_TITLE
+      api.id = process.env.STELLAR_TITLE;
     } else if (!api.config.general.id) {
       // get servers external IP
-      let externalIP = api.utils.getExternalIPAddress()
+      let externalIP = api.utils.getExternalIPAddress();
 
       if (externalIP === false) {
-        let message = ' * Error fetching this host external IP address; setting id base to \'stellar\''
+        let message =
+          " * Error fetching this host external IP address; setting id base to 'stellar'";
 
         try {
-          api.log(message, 'crit')
+          api.log(message, "crit");
         } catch (e) {
-          console.log(message)
+          console.log(message);
         }
       }
 
-      api.id = externalIP
+      api.id = externalIP;
       if (cluster.isWorker) {
-        api.id += `:${process.pid}`
+        api.id += `:${process.pid}`;
       }
     } else {
-      api.id = api.config.general.id
+      api.id = api.config.general.id;
     }
 
     // save Stellar version
-    api.stellarVersion = require('../../package.json').version
+    api.stellarVersion = (await import("../../package.json")).version;
 
     // finish the initializer load
-    next()
+    next();
   }
 
   /**
@@ -74,11 +75,11 @@ export default class {
    * @param api   API reference.
    * @param next  Callback.
    */
-  start (api, next) {
+  start(api, next) {
     // print out the server ID
-    api.log(`server ID: ${api.id}`, 'notice')
+    api.log(`server ID: ${api.id}`, "notice");
 
     // finish the initializer start
-    next()
+    next();
   }
 }

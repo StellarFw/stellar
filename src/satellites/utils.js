@@ -1,18 +1,19 @@
 /*eslint no-useless-catch: 0 */
 
-import os from 'os'
-import fs from 'fs'
-import path from 'path'
-import { randomBytes } from 'crypto'
+import os from "os";
+import fs from "fs";
+import path from "path";
+import { randomBytes } from "crypto";
+import { readFile } from "fs/promises";
 
 export class ExtendableError extends Error {
-  constructor (message) {
-    super(message)
-    this.name = this.constructor.name
-    if (typeof Error.captureStackTrace === 'function') {
-      Error.captureStackTrace(this, this.constructor)
+  constructor(message) {
+    super(message);
+    this.name = this.constructor.name;
+    if (typeof Error.captureStackTrace === "function") {
+      Error.captureStackTrace(this, this.constructor);
     } else {
-      this.stack = (new Error(message)).stack
+      this.stack = new Error(message).stack;
     }
   }
 }
@@ -23,9 +24,11 @@ export class Utils {
    *
    * @type {}
    */
-  api = null
+  api = null;
 
-  constructor (api = null) { this.api = api }
+  constructor(api = null) {
+    this.api = api;
+  }
 
   /**
    * Check if object has key.
@@ -42,16 +45,16 @@ export class Utils {
    *
    * @param {string} file path for the file
    */
-  async stats (file) {
+  async stats(file) {
     return new Promise((resolve, reject) => {
       fs.stat(file, (error, stats) => {
         if (error) {
-          return reject(error)
+          return reject(error);
         }
 
-        return resolve(stats)
-      })
-    })
+        return resolve(stats);
+      });
+    });
   }
 
   /**
@@ -60,8 +63,10 @@ export class Utils {
    * @param t             Time in millisecond.
    * @returns {Promise}
    */
-  delay (t) {
-    return new Promise(resolve => { setTimeout(resolve, t) })
+  delay(t) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, t);
+    });
   }
 
   /**
@@ -70,19 +75,35 @@ export class Utils {
    * @param dir         Folder path to search.
    * @returns {Array}   Array with the files paths.
    */
-  getFiles (dir) {
-    var results = []
+  getFiles(dir) {
+    var results = [];
 
-    fs.readdirSync(dir).forEach(file => {
-      file = `${dir}/${file}`
-      var stat = fs.statSync(file)
+    fs.readdirSync(dir).forEach((file) => {
+      file = `${dir}/${file}`;
+      var stat = fs.statSync(file);
 
       if (stat && !stat.isDirectory()) {
-        results.push(file)
+        results.push(file);
       }
-    })
+    });
 
-    return results
+    return results;
+  }
+
+  /**
+   * Read contents of the given file path.
+   *
+   * @param {string} filePath
+   * @returns {Promise<Buffer>}
+   */
+  readFile(filePath) {
+    return readFile(filePath);
+  }
+
+  readJsonFile(filePath) {
+    return this.readFile(filePath).then((buffer) =>
+      JSON.parse(buffer.toString())
+    );
   }
 
   /**
@@ -92,38 +113,45 @@ export class Utils {
    * @param extension
    * @returns {Array.<T>}
    */
-  recursiveDirectoryGlob (dir, extension) {
-    var results = []
+  recursiveDirectoryGlob(dir, extension) {
+    var results = [];
 
-    if (!extension) { extension = 'js' }
-
-    extension = extension.replace('.', '')
-    if (dir[ dir.length - 1 ] !== '/') { dir += '/' }
-
-    if (fs.existsSync(dir)) {
-      fs.readdirSync(dir).forEach(file => {
-        let fullFilePath = path.normalize(dir + file)
-        if (file[ 0 ] !== '.') { // ignore 'system' files
-          let stats = fs.statSync(fullFilePath)
-          let child
-
-          if (stats.isDirectory()) {
-            child = this.recursiveDirectoryGlob(fullFilePath, extension)
-            child.forEach(c => results.push(c))
-          } else if (stats.isSymbolicLink()) {
-            let realPath = fs.readlinkSync(fullFilePath)
-            child = this.recursiveDirectoryGlob(realPath)
-            child.forEach(c => results.push(c))
-          } else if (stats.isFile()) {
-            let fileParts = file.split('.')
-            let ext = fileParts[ (fileParts.length - 1) ]
-            if (ext === extension) { results.push(fullFilePath) }
-          }
-        }
-      })
+    if (!extension) {
+      extension = "js";
     }
 
-    return results.sort()
+    extension = extension.replace(".", "");
+    if (dir[dir.length - 1] !== "/") {
+      dir += "/";
+    }
+
+    if (fs.existsSync(dir)) {
+      fs.readdirSync(dir).forEach((file) => {
+        let fullFilePath = path.normalize(dir + file);
+        if (file[0] !== ".") {
+          // ignore 'system' files
+          let stats = fs.statSync(fullFilePath);
+          let child;
+
+          if (stats.isDirectory()) {
+            child = this.recursiveDirectoryGlob(fullFilePath, extension);
+            child.forEach((c) => results.push(c));
+          } else if (stats.isSymbolicLink()) {
+            let realPath = fs.readlinkSync(fullFilePath);
+            child = this.recursiveDirectoryGlob(realPath);
+            child.forEach((c) => results.push(c));
+          } else if (stats.isFile()) {
+            let fileParts = file.split(".");
+            let ext = fileParts[fileParts.length - 1];
+            if (ext === extension) {
+              results.push(fullFilePath);
+            }
+          }
+        }
+      });
+    }
+
+    return results.sort();
   }
 
   /**
@@ -134,58 +162,63 @@ export class Utils {
    * @param arg
    * @returns {{}}
    */
-  hashMerge (a, b, arg) {
-    let c = {}
-    let i, response
+  hashMerge(a, b, arg) {
+    let c = {};
+    let i, response;
 
     for (i in a) {
-      if (this.isPlainObject(a[ i ])) {
+      if (this.isPlainObject(a[i])) {
         // can't be added into above condition, or empty objects will overwrite and not merge
         // also make sure empty objects are created
-        c[ i ] = Object.keys(a[ i ]).length > 0 ? this.hashMerge(c[ i ], a[ i ], arg) : {}
+        c[i] =
+          Object.keys(a[i]).length > 0 ? this.hashMerge(c[i], a[i], arg) : {};
       } else {
-        if (typeof a[ i ] === 'function') {
-          response = a[ i ](arg)
+        if (typeof a[i] === "function") {
+          response = a[i](arg);
           if (this.isPlainObject(response)) {
-            c[ i ] = this.hashMerge(c[ i ], response, arg)
+            c[i] = this.hashMerge(c[i], response, arg);
           } else {
-            c[ i ] = response
+            c[i] = response;
           }
         } else {
           if (a[i] === undefined || a[i] === null) {
             // don't create first term if it is undefined or null
           } else {
-            c[ i ] = a[ i ]
+            c[i] = a[i];
           }
         }
       }
     }
     for (i in b) {
-      if (this.isPlainObject(b[ i ])) {
-        if (Object.keys(b[ i ]).length > 0) { // prevent empty objects from being overwrite
-          c[ i ] = this.hashMerge(c[ i ], b[ i ], arg)
-        } else if (!(i in c)) { // make sure objects are not created, when no key exists yet
-          c[i] = {}
+      if (this.isPlainObject(b[i])) {
+        if (Object.keys(b[i]).length > 0) {
+          // prevent empty objects from being overwrite
+          c[i] = this.hashMerge(c[i], b[i], arg);
+        } else if (!(i in c)) {
+          // make sure objects are not created, when no key exists yet
+          c[i] = {};
         }
       } else {
-        if (typeof b[ i ] === 'function') {
-          response = b[ i ](arg)
+        if (typeof b[i] === "function") {
+          response = b[i](arg);
           if (this.isPlainObject(response)) {
-            c[ i ] = this.hashMerge(c[ i ], response, arg)
+            c[i] = this.hashMerge(c[i], response, arg);
           } else {
-            c[ i ] = response
+            c[i] = response;
           }
         } else {
-          if (b[i] === undefined) { // ignore second term if is undefined
-          } else if (b[i] === null && i in c) { // delete second term/key if value is null and ir already exists
-            delete c[i]
+          if (b[i] === undefined) {
+            // ignore second term if is undefined
+          } else if (b[i] === null && i in c) {
+            // delete second term/key if value is null and ir already exists
+            delete c[i];
           } else {
-            c[ i ] = b[ i ]
+            c[i] = b[i];
           }
         }
       }
     }
-    return c
+    return c;
   }
 
   /**
@@ -194,32 +227,41 @@ export class Utils {
    * @param o
    * @returns {boolean}
    */
-  isPlainObject (o) {
-    let safeTypes = [ Boolean, Number, String, Function, Array, Date, RegExp, Buffer ]
-    let safeInstances = [ 'boolean', 'number', 'string', 'function' ]
-    let expandPreventMatchKey = '_toExpand' // set `_toExpand = false` within an object if you don't want to expand it
-    let i
+  isPlainObject(o) {
+    let safeTypes = [
+      Boolean,
+      Number,
+      String,
+      Function,
+      Array,
+      Date,
+      RegExp,
+      Buffer,
+    ];
+    let safeInstances = ["boolean", "number", "string", "function"];
+    let expandPreventMatchKey = "_toExpand"; // set `_toExpand = false` within an object if you don't want to expand it
+    let i;
 
     if (!o) {
-      return false
+      return false;
     }
-    if ((o instanceof Object) === false) {
-      return false
+    if (o instanceof Object === false) {
+      return false;
     }
     for (i in safeTypes) {
-      if (o instanceof safeTypes[ i ]) {
-        return false
+      if (o instanceof safeTypes[i]) {
+        return false;
       }
     }
     for (i in safeInstances) {
-      if (typeof o === safeInstances[ i ]) {
-        return false
+      if (typeof o === safeInstances[i]) {
+        return false;
       }
     }
-    if (o[ expandPreventMatchKey ] === false) {
-      return false
+    if (o[expandPreventMatchKey] === false) {
+      return false;
     }
-    return (o.toString() === '[object Object]')
+    return o.toString() === "[object Object]";
   }
 
   /**
@@ -228,15 +270,15 @@ export class Utils {
    * @param req
    * @returns {{}}
    */
-  parseCookies (req) {
-    let cookies = {}
+  parseCookies(req) {
+    let cookies = {};
     if (req.headers.cookie) {
-      req.headers.cookie.split(';').forEach(function (cookie) {
-        let parts = cookie.split('=')
-        cookies[ parts[ 0 ].trim() ] = (parts[ 1 ] || '').trim()
-      })
+      req.headers.cookie.split(";").forEach(function (cookie) {
+        let parts = cookie.split("=");
+        cookies[parts[0].trim()] = (parts[1] || "").trim();
+      });
     }
-    return cookies
+    return cookies;
   }
 
   /**
@@ -245,32 +287,32 @@ export class Utils {
    * @param obj
    * @returns {*}
    */
-  collapseObjectToArray (obj) {
+  collapseObjectToArray(obj) {
     try {
-      let keys = Object.keys(obj)
+      let keys = Object.keys(obj);
       if (keys.length < 1) {
-        return false
+        return false;
       }
-      if (keys[ 0 ] !== '0') {
-        return false
+      if (keys[0] !== "0") {
+        return false;
       }
-      if (keys[ (keys.length - 1) ] !== String(keys.length - 1)) {
-        return false
+      if (keys[keys.length - 1] !== String(keys.length - 1)) {
+        return false;
       }
 
-      let arr = []
+      let arr = [];
       for (let i in keys) {
-        let key = keys[ i ]
+        let key = keys[i];
         if (String(parseInt(key)) !== key) {
-          return false
+          return false;
         } else {
-          arr.push(obj[ key ])
+          arr.push(obj[key]);
         }
       }
 
-      return arr
+      return arr;
     } catch (e) {
-      return false
+      return false;
     }
   }
 
@@ -280,24 +322,27 @@ export class Utils {
    * @param array Array to be uniquefied.
    * @returns {Array} New array.
    */
-  arrayUniqueify (array) {
+  arrayUniqueify(array) {
     array.filter((value, index, self) => {
-      return self.indexOf(value) === index
-    })
+      return self.indexOf(value) === index;
+    });
 
-    return array
+    return array;
   }
 
-  isObject (arg) {
-    return typeof arg === 'object' && arg !== null
+  isObject(arg) {
+    return typeof arg === "object" && arg !== null;
   }
 
-  objectToString (o) {
-    return Object.prototype.toString.call(o)
+  objectToString(o) {
+    return Object.prototype.toString.call(o);
   }
 
-  isError (e) {
-    return this.isObject(e) && (this.objectToString(e) === '[object Error]' || e instanceof Error)
+  isError(e) {
+    return (
+      this.isObject(e) &&
+      (this.objectToString(e) === "[object Error]" || e instanceof Error)
+    );
   }
 
   /**
@@ -305,27 +350,31 @@ export class Utils {
    *
    * @param path   Directory path.
    */
-  removeDirectory (path) {
-    let filesList
+  removeDirectory(path) {
+    let filesList;
 
     // get directory files
-    try { filesList = fs.readdirSync(path) } catch (e) { return }
+    try {
+      filesList = fs.readdirSync(path);
+    } catch (e) {
+      return;
+    }
 
     // iterate all folders and files on the directory
-    filesList.forEach(file => {
+    filesList.forEach((file) => {
       // get full file path
-      let filePath = `${path}/${file}`
+      let filePath = `${path}/${file}`;
 
       // check if it's a file
       if (fs.statSync(filePath).isFile()) {
-        fs.unlinkSync(filePath)
+        fs.unlinkSync(filePath);
       } else {
-        this.removeDirectory(filePath)
+        this.removeDirectory(filePath);
       }
-    })
+    });
 
     // remove current directory
-    fs.rmdirSync(path)
+    fs.rmdirSync(path);
   }
 
   /**
@@ -334,14 +383,14 @@ export class Utils {
    * @param dir           Directory path.
    * @returns {boolean}   True if exists, false if not or the given path isn't a directory.
    */
-  directoryExists (dir) {
+  directoryExists(dir) {
     try {
-      fs.statSync(dir).isDirectory()
+      fs.statSync(dir).isDirectory();
     } catch (er) {
-      return false
+      return false;
     }
 
-    return true
+    return true;
   }
 
   /**
@@ -350,14 +399,14 @@ export class Utils {
    * @param path          Path to check.
    * @returns {boolean}   True if the file exists, false otherwise.
    */
-  fileExists (path) {
+  fileExists(path) {
     try {
-      fs.statSync(path).isFile()
+      fs.statSync(path).isFile();
     } catch (error) {
-      return false
+      return false;
     }
 
-    return true
+    return true;
   }
 
   /**
@@ -365,11 +414,13 @@ export class Utils {
    *
    * @param path Path there the directory must be created.
    */
-  createFolder (path) {
+  createFolder(path) {
     try {
-      fs.mkdirSync(path)
+      fs.mkdirSync(path);
     } catch (e) {
-      if (e.code !== 'EEXIST') { throw e }
+      if (e.code !== "EEXIST") {
+        throw e;
+      }
     }
   }
 
@@ -381,8 +432,8 @@ export class Utils {
    * @param source        Source path.
    * @param destination   Destination path.
    */
-  copyFile (source, destination) {
-    fs.createReadStream(source).pipe(fs.createWriteStream(destination))
+  copyFile(source, destination) {
+    fs.createReadStream(source).pipe(fs.createWriteStream(destination));
   }
 
   /**
@@ -390,19 +441,19 @@ export class Utils {
    *
    * @returns {String} Server external IP or false if not founded.
    */
-  getExternalIPAddress () {
-    let ifaces = os.networkInterfaces()
-    let ip = false
+  getExternalIPAddress() {
+    let ifaces = os.networkInterfaces();
+    let ip = false;
 
     for (let dev in ifaces) {
-      ifaces[ dev ].forEach((details) => {
-        if (details.family === 'IPv4' && details.address !== '127.0.0.1') {
-          ip = details.address
+      ifaces[dev].forEach((details) => {
+        if (details.family === "IPv4" && details.address !== "127.0.0.1") {
+          ip = details.address;
         }
-      })
+      });
     }
 
-    return ip
+    return ip;
   }
 
   /**
@@ -411,17 +462,26 @@ export class Utils {
    * @param obj         Object to be cloned.
    * @returns {Object}  New object reference.
    */
-  objClone (obj) {
-    return Object.create(Object.getPrototypeOf(obj), Object.getOwnPropertyNames(obj).reduce((memo, name) => {
-      return (memo[ name ] = Object.getOwnPropertyDescriptor(obj, name)) && memo
-    }, {}))
+  objClone(obj) {
+    return Object.create(
+      Object.getPrototypeOf(obj),
+      Object.getOwnPropertyNames(obj).reduce((memo, name) => {
+        return (
+          (memo[name] = Object.getOwnPropertyDescriptor(obj, name)) && memo
+        );
+      }, {})
+    );
   }
 
-  stringToHash (api, path, object) {
-    if (!object) { object = api }
-    function _index (obj, i) { return obj[ i ] }
+  stringToHash(api, path, object) {
+    if (!object) {
+      object = api;
+    }
+    function _index(obj, i) {
+      return obj[i];
+    }
 
-    return path.split('.').reduce(_index, object)
+    return path.split(".").reduce(_index, object);
   }
 
   /**
@@ -430,26 +490,28 @@ export class Utils {
    * @param address   Address to be parsed.
    * @returns {{host: string, port: Number}}
    */
-  parseIPv6URI (address) {
-    let host = '::1'
-    let port = 80
-    let regexp = new RegExp(/\[([0-9a-f:]+)\]:([0-9]{1,5})/)
+  parseIPv6URI(address) {
+    let host = "::1";
+    let port = 80;
+    let regexp = new RegExp(/\[([0-9a-f:]+)\]:([0-9]{1,5})/);
 
     // if we have brackets parse them and find a port
-    if (address.indexOf('[') > -1 && address.indexOf(']') > -1) {
+    if (address.indexOf("[") > -1 && address.indexOf("]") > -1) {
       // execute the regular expression
-      let res = regexp.exec(address)
+      let res = regexp.exec(address);
 
       // if null this isn't a valid IPv6 address
-      if (res === null) { throw new Error('failed to parse address') }
+      if (res === null) {
+        throw new Error("failed to parse address");
+      }
 
-      host = res[ 1 ]
-      port = res[ 2 ]
+      host = res[1];
+      port = res[2];
     } else {
-      host = address
+      host = address;
     }
 
-    return { host: host, port: parseInt(port, 10) }
+    return { host: host, port: parseInt(port, 10) };
   }
 
   /**
@@ -458,15 +520,15 @@ export class Utils {
    * @param path
    * @returns {boolean}
    */
-  exists (path) {
+  exists(path) {
     try {
-      fs.accessSync(path, fs.F_OK)
-      return true
+      fs.accessSync(path, fs.F_OK);
+      return true;
     } catch (e) {
       // it will return false either way
     }
 
-    return false
+    return false;
   }
 
   /**
@@ -476,15 +538,19 @@ export class Utils {
    *
    * @param path  Path to be removed.
    */
-  removePath (path) {
+  removePath(path) {
     // if the path don't exists return
-    if (!this.exists(path)) { return }
+    if (!this.exists(path)) {
+      return;
+    }
 
     // if the path is a file remote it and return
-    if (fs.statSync(path).isFile()) { return fs.unlinkSync(path) }
+    if (fs.statSync(path).isFile()) {
+      return fs.unlinkSync(path);
+    }
 
     // remove all the directory content
-    this.removeDirectory(path)
+    this.removeDirectory(path);
   }
 
   /**
@@ -492,35 +558,36 @@ export class Utils {
    *
    * @param String dir  Path for the directory to be created.
    */
-  mkdir (dir, mode) {
+  mkdir(dir, mode) {
     try {
-      fs.mkdirSync(dir, mode)
+      fs.mkdirSync(dir, mode);
     } catch (e) {
-      if (e.code === 'ENOENT') {
-        this.mkdir(path.dirname(dir), mode)
-        this.mkdir(dir, mode)
+      if (e.code === "ENOENT") {
+        this.mkdir(path.dirname(dir), mode);
+        this.mkdir(dir, mode);
       }
     }
   }
 
   /**
-   * Custom require function to load from the core scope and then from the
-   * project scope.
+   * Custom require function to load from the core scope and then from the project scope.
    *
    * @note: this is a ugly hack but it's working!
    */
-  require (path) {
+  async require(path) {
     // try load module from the core
     try {
-      return require(path)
+      return import(path);
     } catch (e) {
-      if (this.api == null) { throw e }
+      if (this.api == null) {
+        throw e;
+      }
 
       // if fails try load from the project folder
       try {
-        return require(`${this.api.scope.rootPath}/node_modules/${path}`)
+        return import(`${this.api.scope.rootPath}/node_modules/${path}`);
       } catch (e) {
-        throw e
+        throw e;
       }
     }
   }
@@ -532,8 +599,8 @@ export class Utils {
    *
    * @param {string} value Value to be validated.
    */
-  isNonEmptyString (value) {
-    return (typeof value === 'string' && value.length > 0)
+  isNonEmptyString(value) {
+    return typeof value === "string" && value.length > 0;
   }
 
   // ----------------------------------------------------------------- [Strings]
@@ -543,8 +610,8 @@ export class Utils {
    *
    * @param {string} s String to be converted.
    */
-  snakeToCamel (s) {
-    return s.replace(/(\_\w)/g, m => m[ 1 ].toUpperCase())
+  snakeToCamel(s) {
+    return s.replace(/(\_\w)/g, (m) => m[1].toUpperCase());
   }
 
   /**
@@ -553,9 +620,9 @@ export class Utils {
    * @param {Number} length size of the generated string. By default this
    * parameters is set to 16.
    */
-  randomStr (length = 16) {
-    const characterEntropy = Math.ceil(length * 0.5)
-    return randomBytes(characterEntropy).toString('hex').slice(0, length)
+  randomStr(length = 16) {
+    const characterEntropy = Math.ceil(length * 0.5);
+    return randomBytes(characterEntropy).toString("hex").slice(0, length);
   }
 }
 
@@ -565,10 +632,10 @@ export default class {
    *
    * @type {Number}
    */
-  loadPriority = 0
+  loadPriority = 0;
 
-  load (api, next) {
-    api.utils = new Utils(api)
-    next()
+  load(api, next) {
+    api.utils = new Utils(api);
+    next();
   }
 }

@@ -1,179 +1,205 @@
-module.exports = [ {
-  name: 'input-require',
-  description: 'Test input require property',
+export const inputRequire = {
+  name: "input-require",
+  description: "Test input require property",
 
   inputs: {
-    'value': {
-      required: true
-    }
+    value: {
+      required: true,
+    },
   },
 
-  run (api, action, next) {
-    action.response.string = `Input > ${action.params.value}`
-    next()
-  }
-}, {
-  name: 'input-default',
-  description: 'Test input default value',
+  run(api, action, next) {
+    action.response.string = `Input > ${action.params.value}`;
+    next();
+  },
+};
+
+export const inputDefault = {
+  name: "input-default",
+  description: "Test input default value",
 
   inputs: {
-    'value': {
-      default: 'DefaultVal'
-    }
+    value: {
+      default: "DefaultVal",
+    },
   },
 
-  run (api, action, next) {
-    action.response.string = `Input > ${action.params.value}`
-    next()
-  }
-}, {
-  name: 'input-default-function',
+  run(api, action, next) {
+    action.response.string = `Input > ${action.params.value}`;
+    next();
+  },
+};
+
+export const inputDefaultFunction = {
+  name: "input-default-function",
   description: `Test input default value using a function`,
 
   inputs: {
     value: {
-      default (api) { return 156 }
-    }
+      default(api) {
+        return 156;
+      },
+    },
   },
 
-  run (api, action, next) {
-    action.response.value = action.params.value
-    next()
-  }
-}, {
-  name: 'inputDefaultFunctionApi',
-  description: 'Test input default value using a function and the API object',
+  run(api, action, next) {
+    action.response.value = action.params.value;
+    next();
+  },
+};
+
+export const inputDefaultFunctionApi = {
+  name: "inputDefaultFunctionApi",
+  description: "Test input default value using a function and the API object",
 
   inputs: {
     value: {
-      default (api) {
-        return api.config.testValue
-      }
-    }
+      default(api) {
+        return api.config.testValue;
+      },
+    },
   },
 
-  async run (_, { params, response }) {
-    response.value = params.value
-  }
-}, {
-  name: 'input-validator-regex',
-  description: 'Test input string validator',
+  async run(_, { params, response }) {
+    response.value = params.value;
+  },
+};
+
+export const inputValidatorRegex = {
+  name: "input-validator-regex",
+  description: "Test input string validator",
 
   inputs: {
-    'value': {
-      validator: /^\d{3}$/
-    }
+    value: {
+      validator: /^\d{3}$/,
+    },
   },
 
-  run (api, action, next) {
-    action.response.string = `Input > ${action.params.value}`
-    next()
-  }
-}, {
-  name: 'input-validator-function',
-  description: 'Test input function validator',
+  run(api, action, next) {
+    action.response.string = `Input > ${action.params.value}`;
+    next();
+  },
+};
+
+export const inputValidatorFunction = {
+  name: "input-validator-function",
+  description: "Test input function validator",
 
   inputs: {
-    'value': {
-      validator: param => param === 'asd'
-    }
+    value: {
+      validator: (param) => param === "asd",
+    },
   },
 
-  run (api, action, next) {
-    action.response.string = `Input > ${action.params.value}`
-    next()
-  }
-}, {
-  name: 'input-validator-predef-alpha',
-  description: 'Test pre-defined validator alpha',
+  run(api, action, next) {
+    action.response.string = `Input > ${action.params.value}`;
+    next();
+  },
+};
+
+export const inputValidatorPredefAlpha = {
+  name: "input-validator-predef-alpha",
+  description: "Test pre-defined validator alpha",
 
   inputs: {
-    'value': {
-      validator: 'alpha'
-    }
+    value: {
+      validator: "alpha",
+    },
   },
 
-  run (api, action, next) {
-    action.response.string = `Input > ${action.params.value}`
-    next()
-  }
-}, {
-  name: 'input-validator-predef-alpha-num',
-  description: 'Test pre-defined validator alpha numeric',
+  run(api, action, next) {
+    action.response.string = `Input > ${action.params.value}`;
+    next();
+  },
+};
+
+export const inputValidatorPredefAlphaNum = {
+  name: "input-validator-predef-alpha-num",
+  description: "Test pre-defined validator alpha numeric",
   inputs: {
-    'value': {
-      description: 'value to be validated',
-      validator: 'alpha_num'
-    }
+    value: {
+      description: "value to be validated",
+      validator: "alpha_num",
+    },
   },
 
-  run (api, action, next) {
-    action.response.string = `Input > ${action.params.value}`
-    next()
-  }
-}, {
-  name: 'input-validator-predef-test',
-  description: 'Test pre-defined validator generic test',
+  run(api, action, next) {
+    action.response.string = `Input > ${action.params.value}`;
+    next();
+  },
+};
+
+export const inputValidatorPredefTest = {
+  name: "input-validator-predef-test",
+  description: "Test pre-defined validator generic test",
   inputs: {
-    'value': {
-      validator: 'url'
-    }
+    value: {
+      validator: "url",
+    },
   },
 
-  run (api, action, next) {
-    action.response.string = `Input > ${action.params.value}`
-    next()
-  }
-}, {
-  name: 'input-validator-invalid',
+  run(api, action, next) {
+    action.response.string = `Input > ${action.params.value}`;
+    next();
+  },
+};
+
+export const inputValidatorInvalid = {
+  name: "input-validator-invalid",
   description: `This uses an invalid validator to test if the error message
     appears`,
 
   inputs: {
-    'value': {
-      validator: 'some_random_string'
-    }
+    value: {
+      validator: "some_random_string",
+    },
   },
 
-  run (api, action, next) {
-    action.response.string = `Input > ${action.params.value}`
-    next()
-  }
-}, {
-  name: 'input-validator-multiple',
+  run(api, action, next) {
+    action.response.string = `Input > ${action.params.value}`;
+    next();
+  },
+};
+
+export const inputValidatorMultiple = {
+  name: "input-validator-multiple",
   description: `Used to test multiple restrictions to the inputs`,
 
   inputs: {
-    name: { validator: 'alpha' },
-    phone: { validator: 'numeric' },
-    someField: { validator: 'required_if:phone,123' }
+    name: { validator: "alpha" },
+    phone: { validator: "numeric" },
+    someField: { validator: "required_if:phone,123" },
   },
 
-  run (api, action, next) {
-    action.response.success = true
-    next()
-  }
-}, {
-  name: 'input-function-with-default',
-  description: 'this action has some required params',
+  run(api, action, next) {
+    action.response.success = true;
+    next();
+  },
+};
+
+export const inputFunctionWithDefault = {
+  name: "input-function-with-default",
+  description: "this action has some required params",
   version: 1,
 
   inputs: {
     requiredParam: { required: true },
     optionalParam: { required: false },
     fancyParam: {
-      default: 'test123',
+      default: "test123",
 
-      validator (s) {
-        if (s === undefined || s === 'test123') { return true }
+      validator(s) {
+        if (s === undefined || s === "test123") {
+          return true;
+        }
 
-        return `fancyParam should be 'test123'. so says ${this.id}`
-      }
-    }
+        return `fancyParam should be 'test123'. so says ${this.id}`;
+      },
+    },
   },
 
-  run (api, connection, next) {
-    connection.response.params = connection.params
-    next()
-  }
-}]
+  run(api, connection, next) {
+    connection.response.params = connection.params;
+    next();
+  },
+};

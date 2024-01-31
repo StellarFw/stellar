@@ -43,7 +43,7 @@ class Models {
    * Create a new Waterline instance.
    */
   async createNewInstance() {
-    const adapters = this.processAdapters();
+    const adapters = await this.processAdapters();
     const datastores = this.api.config.models.datastores;
     const models = await this.loadModels();
 
@@ -125,7 +125,9 @@ class Models {
       try {
         const model = await this.preProcessModelData(
           modelBasename,
-          require(modelFile).default
+          (
+            await import(modelFile)
+          ).default
         );
         result.push(model);
 
@@ -214,7 +216,7 @@ class Models {
   /**
    * Process adapters.
    */
-  processAdapters() {
+  async processAdapters() {
     // iterate all adapters and require the right modules. We need to do this
     // here other wise the config system will break when the module isn't
     // installed
@@ -233,7 +235,9 @@ class Models {
       }
 
       // replace the static value with the module instance
-      this.api.config.models.adapters[key] = this.api.utils.require(moduleName);
+      this.api.config.models.adapters[key] = (
+        await this.api.utils.require(moduleName)
+      ).default;
 
       // force all adapters to use the key specific by the user.
       this.api.config.models.adapters[key].identity = key;

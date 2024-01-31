@@ -1,53 +1,53 @@
-import winston from 'winston'
+import winston from "winston";
 
 export default class {
-  loadPriority = 120
+  loadPriority = 120;
 
-  load (api, next) {
-    let transports = []
+  load(api, next) {
+    let transports = [];
 
     // load all transports
     for (let i in api.config.logger.transports) {
-      let t = api.config.logger.transports[ i ]
+      let t = api.config.logger.transports[i];
 
-      if (typeof t === 'function') {
-        transports.push(t(api, winston))
+      if (typeof t === "function") {
+        transports.push(t(api, winston));
       } else {
-        transports.push(t)
+        transports.push(t);
       }
     }
 
     // create the logger instance
-    api.logger = new winston.Logger({ transports: transports })
+    api.logger = new winston.Logger({ transports: transports });
 
     // define the log level
     if (api.config.logger.levels) {
-      api.logger.setLevels(api.config.logger.levels)
+      api.logger.setLevels(api.config.logger.levels);
     } else {
-      api.logger.setLevels(winston.config.syslog.levels)
+      api.logger.setLevels(winston.config.syslog.levels);
     }
 
     // define log colors
     if (api.config.logger.colors) {
-      winston.addColors(api.config.logger.colors)
+      winston.addColors(api.config.logger.colors);
     }
 
     // define an helper function to log
-    api.log = function (msg, level = 'info') {
-      let args = [ level, msg ]
+    api.log = function (msg, level = "info") {
+      let args = [level, msg];
 
-      args.push.apply(args, Array.prototype.slice.call(arguments, 2))
-      api.logger.log.apply(api.logger, args)
-    }
+      args.push.apply(args, Array.prototype.slice.call(arguments, 2));
+      api.logger.log.apply(api.logger, args);
+    };
 
-    let logLevels = []
+    let logLevels = [];
     for (let i in api.logger.levels) {
-      logLevels.push(i)
+      logLevels.push(i);
     }
 
-    api.log('*** starting Stellar ***', 'notice')
-    api.log('Logger loaded. Possible levels include: ', 'debug', logLevels)
+    api.log("*** starting Stellar ***", "notice");
+    api.log("Logger loaded. Possible levels include: ", "debug", logLevels);
 
-    next()
+    next();
   }
 }

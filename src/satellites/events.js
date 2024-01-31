@@ -1,4 +1,4 @@
-import async from 'async'
+import async from "async";
 
 /**
  * Class to manage events.
@@ -13,28 +13,30 @@ class EventsManager {
    *
    * @type {null}
    */
-  api = null
+  api = null;
 
   /**
    * Map with all registered events and listeners.
    *
    * @type {Map}
    */
-  events = new Map()
+  events = new Map();
 
   /**
    * Map to keep track of the file listeners.
    *
    * @type {Map}
    */
-  fileListeners = new Map()
+  fileListeners = new Map();
 
   /**
    * Create a new instance.
    *
    * @param api   API reference object.
    */
-  constructor (api) { this.api = api }
+  constructor(api) {
+    this.api = api;
+  }
 
   // --------------------------------------------------------------------------- [Commands]
 
@@ -44,22 +46,27 @@ class EventsManager {
    * @param eventName   Event to fire.
    * @param data        Params to pass to the listeners.
    */
-  fire (eventName, data) {
+  fire(eventName, data) {
     // variable to store listener response data
-    let responseData = data
+    let responseData = data;
 
     // build a new promise and return them
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       // if there is no listeners for the event finish the promise now
-      if (!this.events.has(eventName)) { resolve(responseData) }
+      if (!this.events.has(eventName)) {
+        resolve(responseData);
+      }
 
       // execute the listeners async in series
-      async.each(this.events.get(eventName),
-        (listener, callback) => listener.run(this.api, responseData, callback), () => {
+      async.each(
+        this.events.get(eventName),
+        (listener, callback) => listener.run(this.api, responseData, callback),
+        () => {
           // resolve the promise returning the response data
-          resolve(responseData)
-        })
-    })
+          resolve(responseData);
+        }
+      );
+    });
   }
 
   /**
@@ -71,18 +78,18 @@ class EventsManager {
    * @param fn        Listener handler.
    * @param priority  Priority.
    */
-  listener (event, fn, priority) {
-    let self = this
+  listener(event, fn, priority) {
+    let self = this;
 
     // build a listener object
     let listener = {
       event: event,
       run: fn,
-      priority: priority
-    }
+      priority: priority,
+    };
 
     // insert the listener
-    self._listenerObj(listener)
+    self._listenerObj(listener);
   }
 
   /**
@@ -93,123 +100,132 @@ class EventsManager {
    * @param listenerObj   Listener object.
    * @return boolean      True if is all okay, false otherwise.
    */
-  _listenerObj (listenerObj) {
+  _listenerObj(listenerObj) {
     // validate event name
     if (listenerObj.event === undefined) {
-      this.api.log('invalid listener - missing event name', 'warning')
-      return false
+      this.api.log("invalid listener - missing event name", "warning");
+      return false;
     }
 
     // validate run
-    if (listenerObj.run === undefined || typeof listenerObj.run !== 'function') {
-      this.api.log('invalid listener - missing run property or not a function', 'warning')
-      return false
+    if (
+      listenerObj.run === undefined ||
+      typeof listenerObj.run !== "function"
+    ) {
+      this.api.log(
+        "invalid listener - missing run property or not a function",
+        "warning"
+      );
+      return false;
     }
 
     // if priority are not defined
     if (listenerObj.priority === undefined) {
-      listenerObj.priority = this.api.config.general.defaultListenerPriority
+      listenerObj.priority = this.api.config.general.defaultListenerPriority;
     }
 
     // the event property can be an array, when the listener supports multiple
     // events, so we need to iterate it. When the event property is an string we
     // must convert it to an array in order to simplify the implementation
-    const events = (typeof listenerObj.event === 'string')
-      ? [ listenerObj.event ] : listenerObj.event
+    const events =
+      typeof listenerObj.event === "string"
+        ? [listenerObj.event]
+        : listenerObj.event;
 
     // iterate the events array. There is no need to change the event name,
     // because we don't use it when we execute the listener
     for (const event of events) {
       // if there is no listener for this event, create a new entry with an
       // empty array
-      if (!this.events.has(event)) { this.events.set(event, [ ]) }
+      if (!this.events.has(event)) {
+        this.events.set(event, []);
+      }
 
       // get the array with all registered listeners for this event
-      let listeners = this.events.get(event)
+      let listeners = this.events.get(event);
 
       // register the new listener
-      listeners.push(listenerObj)
+      listeners.push(listenerObj);
 
       // order the listeners by priority
-      listeners.sort((l1, l2) => l1.priority - l2.priority)
+      listeners.sort((l1, l2) => l1.priority - l2.priority);
     }
 
-    return true
+    return true;
   }
 
   /**
    * Load a listener file.
    */
-  _loadFile (path, reload = false) {
+  async _loadFile(path, reload = false) {
     // function to show a (re)load message
-    const loadMessage = listener => {
-      const level = reload ? 'info' : 'debug'
-      let msg = null
+    const loadMessage = (listener) => {
+      const level = reload ? "info" : "debug";
+      let msg = null;
 
       if (reload) {
-        msg = `listener (re)loaded: ${listener.event}, ${path}`
+        msg = `listener (re)loaded: ${listener.event}, ${path}`;
       } else {
-        msg = `listener loaded: ${listener.event}, ${path}`
+        msg = `listener loaded: ${listener.event}, ${path}`;
       }
 
       // print the message out
-      this.api.log(msg, level)
-    }
+      this.api.log(msg, level);
+    };
 
     // require listener file
-    let collection = require(path)
+    let collection = await import(path);
 
     // start watching for changes on the model
-    if (!reload) { this._watchForChanges(path) }
+    if (!reload) {
+      this._watchForChanges(path);
+    }
 
     // array to keep all file listeners
-    const listeners = []
+    const listeners = [];
 
     for (let i in collection) {
-      // get action object
-      let listener = collection[ i ]
+      let listener = collection[i];
 
       // insert the listener on the map
-      this._listenerObj(listener)
+      this._listenerObj(listener);
+      listeners.push(listener);
 
-      // push the listener to the array
-      listeners.push(listener)
-
-      // log a message
-      loadMessage(listener)
+      loadMessage(listener);
     }
 
     // keep track of the functions by file to make live-reload
-    this.fileListeners.set(path, listeners)
+    this.fileListeners.set(path, listeners);
   }
 
   /**
    * Adds a listener to watch for file changes in order to reload the listeners.
    */
-  _watchForChanges (path) {
-    this.api.configs.watchFileAndAct(path, () => {
+  _watchForChanges(path) {
+    this.api.configs.watchFileAndAct(path, async () => {
       // remove old listeners
-      this.fileListeners.get(path).forEach(listener => {
+      this.fileListeners.get(path).forEach((listener) => {
         // an listener can support multiple events, so we need iterate all
-        const events = (typeof listener.event === 'string')
-          ? [ listener.event ]
-          : listener.event
+        const events =
+          typeof listener.event === "string"
+            ? [listener.event]
+            : listener.event;
 
         for (const event of events) {
           // get array of functions
-          const listeners = this.events.get(event)
+          const listeners = this.events.get(event);
 
           // get listener index
-          const index = listeners.indexOf(listener)
+          const index = listeners.indexOf(listener);
 
           // remove listener
-          listeners.splice(index, 1)
+          listeners.splice(index, 1);
         }
-      })
+      });
 
       // load the listeners again
-      this._loadFile(path, true)
-    })
+      await this._loadFile(path, true);
+    });
   }
 
   // --------------------------------------------------------------------------- [Other Methods]
@@ -219,22 +235,27 @@ class EventsManager {
    *
    * @param next
    */
-  loadListeners (next) {
+  loadListeners(next) {
     // iterate all active modules
-    this.api.modules.modulesPaths.forEach(modulePath => {
+    this.api.modules.modulesPaths.forEach((modulePath) => {
       // build path for the module listeners folder
-      let listenersFolderPath = `${modulePath}/listeners`
+      let listenersFolderPath = `${modulePath}/listeners`;
 
       // check if the listeners
-      if (!this.api.utils.directoryExists(listenersFolderPath)) { return }
+      if (!this.api.utils.directoryExists(listenersFolderPath)) {
+        return;
+      }
 
       // get all listeners files
-      this.api.utils.recursiveDirectoryGlob(listenersFolderPath, 'js')
-        .forEach(listenerPath => { this._loadFile(listenerPath) })
-    })
+      this.api.utils
+        .recursiveDirectoryGlob(listenersFolderPath, "js")
+        .forEach((listenerPath) => {
+          this._loadFile(listenerPath);
+        });
+    });
 
     // end listeners loading
-    next()
+    next();
   }
 }
 
@@ -247,7 +268,7 @@ export default class {
    *
    * @type {number}
    */
-  loadPriority = 300
+  loadPriority = 300;
 
   /**
    * Satellite loading function.
@@ -255,11 +276,11 @@ export default class {
    * @param api   API reference object.
    * @param next  Callback function.
    */
-  load (api, next) {
+  load(api, next) {
     // make events api available in all platform
-    api.events = new EventsManager(api)
+    api.events = new EventsManager(api);
 
     // load listeners
-    api.events.loadListeners(next)
+    api.events.loadListeners(next);
   }
 }

@@ -1,5 +1,5 @@
-import fs from 'fs'
-import { exec } from 'child_process'
+import fs from "fs";
+import { exec } from "child_process";
 
 /**
  * This class is responsible to manage all modules, process
@@ -11,7 +11,7 @@ class Modules {
    *
    * @type {null}
    */
-  api = null
+  api = null;
 
   /**
    * Map with the active modules.
@@ -21,28 +21,30 @@ class Modules {
    *
    * @type {Map}
    */
-  activeModules = new Map()
+  activeModules = new Map();
 
   /**
    * Map with the modules paths.
    *
    * @type {Map}
    */
-  modulesPaths = new Map()
+  modulesPaths = new Map();
 
   /**
    * This map contains all the actions who are part of each module.
    *
    * @type {Map}
    */
-  moduleActions = new Map()
+  moduleActions = new Map();
 
   /**
    * Create a new class instance.
    *
    * @param api
    */
-  constructor (api) { this.api = api }
+  constructor(api) {
+    this.api = api;
+  }
 
   /**
    * Register a new action name for a module.
@@ -50,21 +52,21 @@ class Modules {
    * @param {string} moduleName Module name
    * @param {string|array} value Array of action name to be stored.
    */
-  regModuleAction (moduleName, value) {
+  regModuleAction(moduleName, value) {
     // first, check there is already a slot to store the actions of this module
     if (!this.moduleActions.has(moduleName)) {
-      this.moduleActions.set(moduleName, [ ])
+      this.moduleActions.set(moduleName, []);
     }
 
     // get the array where the action name must be stored
-    const arrayOfActions = this.moduleActions.get(moduleName)
+    const arrayOfActions = this.moduleActions.get(moduleName);
 
     if (Array.isArray(value)) {
-      this.moduleActions.set(moduleName, arrayOfActions.concat(value))
+      this.moduleActions.set(moduleName, arrayOfActions.concat(value));
     } else if (this.api.utils.isNonEmptyString(value)) {
-      arrayOfActions.push(value)
+      arrayOfActions.push(value);
     } else {
-      throw new Error('Value got an invalid state')
+      throw new Error("Value got an invalid state");
     }
   }
 
@@ -74,41 +76,53 @@ class Modules {
    * The private module is always loaded even if not present on the
    * activeModules property.
    */
-  loadModules (next) {
-    let self = this
+  async loadModules(next) {
+    let self = this;
 
     // get active modules
-    let modules = self.api.config.modules
+    let modules = self.api.config.modules;
 
     // check if the private module folder exists
-    if (this.api.utils.directoryExists(`${self.api.scope.rootPath}/modules/private`)) { modules.push('private') }
+    if (
+      this.api.utils.directoryExists(
+        `${self.api.scope.rootPath}/modules/private`
+      )
+    ) {
+      modules.push("private");
+    }
 
     // this config is required. If doesn't exists or is an empty array
     // an exception should be raised.
     if (modules === undefined || modules.length === 0) {
-      next(new Error('At least one module needs to be active.'))
+      next(new Error("At least one module needs to be active."));
 
       // engine don't finish the starting wet, soo we need to finish the process
-      process.exit(1)
+      process.exit(1);
     }
 
     // load all modules declared in the manifest file
     for (const moduleName of modules) {
       // build the full path
-      const path = `${self.api.scope.rootPath}/modules/${moduleName}`
+      const path = `${self.api.scope.rootPath}/modules/${moduleName}`;
 
       // get module manifest file content
       try {
-        const manifest = require(`${path}/manifest.json`)
+        const manifest = await this.api.utils.readJsonFile(
+          `${path}/manifest.json`
+        );
 
         // save the module config on the engine instance
-        self.activeModules.set(manifest.id, manifest)
+        self.activeModules.set(manifest.id, manifest);
 
         // save the module full path
-        self.modulesPaths.set(manifest.id, path)
+        self.modulesPaths.set(manifest.id, path);
       } catch (e) {
-        next(new Error(`There is an invalid module active, named "${moduleName}", fix this to start Stellar normally.`))
-        break
+        next(
+          new Error(
+            `There is an invalid module active, named "${moduleName}", fix this to start Stellar normally.`
+          )
+        );
+        break;
       }
     }
   }
@@ -121,14 +135,16 @@ class Modules {
    *
    * @param next    Callback function.
    */
-  processNpmDependencies (next) {
-    let self = this
+  processNpmDependencies(next) {
+    let self = this;
 
     // don't use NPM on test environment (otherwise the tests will fail)
-    if (self.api.env === 'test') { return next() }
+    if (self.api.env === "test") {
+      return next();
+    }
 
     // get scope variable
-    const scope = this.api.scope
+    const scope = this.api.scope;
 
     // check if the stellar is starting in clean mode. If yes we need remove all
     // temporary files and process every thing again
@@ -137,63 +153,77 @@ class Modules {
       let tempFilesLocations = [
         `${scope.rootPath}/temp`,
         `${scope.rootPath}/package.json`,
-        `${scope.rootPath}/node_modules`
-      ]
+        `${scope.rootPath}/node_modules`,
+      ];
 
       // iterate all temp paths and remove all of them
-      tempFilesLocations.forEach(path => this.api.utils.removePath(path))
+      tempFilesLocations.forEach((path) => this.api.utils.removePath(path));
     }
 
     // if the `package.json` file already exists and Stellar isn't starting with
     // the `update` flag return now
-    if (this.api.utils.fileExists(`${scope.rootPath}/package.json`) &&
-      !scope.args.update) { return next() }
+    if (
+      this.api.utils.fileExists(`${scope.rootPath}/package.json`) &&
+      !scope.args.update
+    ) {
+      return next();
+    }
 
     // global npm dependencies
-    let npmDependencies = {}
+    let npmDependencies = {};
 
     // iterate all active modules
-    self.activeModules.forEach(manifest => {
+    self.activeModules.forEach((manifest) => {
       // check if the module have NPM dependencies
       if (manifest.npmDependencies !== undefined) {
         // merge the two hashes
-        npmDependencies = this.api.utils.hashMerge(npmDependencies, manifest.npmDependencies)
+        npmDependencies = this.api.utils.hashMerge(
+          npmDependencies,
+          manifest.npmDependencies
+        );
       }
-    })
+    });
 
     // compile project information
     let projectJson = {
       private: true,
-      name: 'stellar-dependencies',
-      version: '1.0.0',
-      description: 'This is automatically generated don\'t edit',
-      dependencies: npmDependencies
-    }
+      name: "stellar-dependencies",
+      version: "1.0.0",
+      description: "This is automatically generated don't edit",
+      dependencies: npmDependencies,
+    };
 
     // generate project.json file
-    const packageJsonPath = `${self.api.scope.rootPath}/package.json`
-    this.api.utils.removePath(packageJsonPath)
-    fs.writeFileSync(packageJsonPath, JSON.stringify(projectJson, null, 2), 'utf8')
+    const packageJsonPath = `${self.api.scope.rootPath}/package.json`;
+    this.api.utils.removePath(packageJsonPath);
+    fs.writeFileSync(
+      packageJsonPath,
+      JSON.stringify(projectJson, null, 2),
+      "utf8"
+    );
 
-    self.api.log('updating NPM packages', 'info')
+    self.api.log("updating NPM packages", "info");
 
     // check the command to be executed
-    const npmCommand = (scope.args.update) ? 'npm update' : 'npm install'
+    const npmCommand = scope.args.update ? "npm update" : "npm install";
 
     // run npm command
-    exec(npmCommand, error => {
+    exec(npmCommand, (error) => {
       // if an error occurs finish the process
       if (error) {
-        self.api.log('An error occurs during the NPM install command', 'emergency')
-        process.exit(1)
+        self.api.log(
+          "An error occurs during the NPM install command",
+          "emergency"
+        );
+        process.exit(1);
       }
 
       // load a success message
-      self.api.log('NPM dependencies updated!', 'info')
+      self.api.log("NPM dependencies updated!", "info");
 
       // finish the loading process
-      next()
-    })
+      next();
+    });
   }
 }
 
@@ -207,7 +237,7 @@ export default class {
    *
    * @type {number}
    */
-  loadPriority = 1
+  loadPriority = 1;
 
   /**
    * Initializer load function.
@@ -215,14 +245,11 @@ export default class {
    * @param api   API reference.
    * @param next  Callback function.
    */
-  load (api, next) {
-    // instantiate the manager
-    api.modules = new Modules(api)
+  async load(api, next) {
+    api.modules = new Modules(api);
 
-    // load modules into memory
-    api.modules.loadModules(next)
+    await api.modules.loadModules(next);
 
-    // process NPM dependencies
-    api.modules.processNpmDependencies(next)
+    api.modules.processNpmDependencies(next);
   }
 }

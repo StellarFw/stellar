@@ -1,10 +1,7 @@
-'use strict'
-
-exports.default = {
-
-  example (api) {
+export default {
+  example(api) {
     return {
-      exampleConfig: 'exampleValue'
-    }
-  }
-}
+      exampleConfig: "exampleValue",
+    };
+  },
+};
