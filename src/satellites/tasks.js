@@ -206,14 +206,13 @@ class TaskSatellite {
   async loadModulesTasks() {
     let self = this;
 
-    // get all active modules
-    for (const modulePath in self.api.modules.modulesPaths) {
+    for (const modulePath of self.api.modules.modulesPaths.values()) {
       // build the task folder path for the current module
       let tasksFolder = `${modulePath}/tasks`;
 
       // load task files
       const taskFiles = this.api.utils.recursiveDirectoryGlob(tasksFolder);
-      for (const taskFile in taskFiles) {
+      for (const taskFile of taskFiles) {
         await self.loadFile(taskFile);
       }
     }
