@@ -48,7 +48,7 @@ describe("Core: Hash", function () {
   });
 
   it("generate salt", () => {
-    expect(api.hash.generateSalt()).resolves.toBeTypeOf("string");
+    return expect(api.hash.generateSalt()).resolves.toBeTypeOf("string");
   });
 
   it("generate salt in sync mode", () => {

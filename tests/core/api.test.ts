@@ -94,7 +94,7 @@ describe("Core: API", () => {
     });
 
     it("will default clients to the latest version of the action", async () => {
-      expect(
+      return expect(
         new Promise((resolve) => {
           api.helpers.runAction("versionedAction", {}, resolve);
         })
@@ -108,19 +108,19 @@ describe("Core: API", () => {
     });
 
     it("will fail on a missing version", () => {
-      expect(
+      return expect(
         runActionPromise(api, "versionedAction", { apiVersion: 16 })
       ).rejects.toHaveProperty("code", "004");
     });
 
     it("will fail in a missing action", function () {
-      expect(
+      return expect(
         runActionPromise(api, "undefinedAction", {})
       ).rejects.toHaveProperty("code", "004");
     });
 
     it("can return complex error responses", function () {
-      expect(
+      return expect(
         runActionPromise(api, "versionedAction", {
           apiVersion: 3,
         })
@@ -181,13 +181,15 @@ describe("Core: API", () => {
     });
 
     it("will fail for missing or empty params", async function () {
-      expect(
+      await expect(
         runActionPromise(api, "testAction", {
           requiredParam: "",
         })
       ).resolves.not.toHaveProperty("error");
 
-      expect(runActionPromise(api, "testAction", {})).rejects.toHaveProperty(
+      await expect(
+        runActionPromise(api, "testAction", {})
+      ).rejects.toHaveProperty(
         "requiredParam",
         "The requiredParam field is required."
       );
@@ -216,7 +218,7 @@ describe("Core: API", () => {
     });
 
     it("will use validator if provided", () => {
-      expect(
+      return expect(
         runActionPromise(api, "testAction", {
           requiredParam: true,
           fancyParam: 123,
@@ -228,7 +230,7 @@ describe("Core: API", () => {
     });
 
     it("validator will have the API object in scope and this", async () => {
-      expect(
+      return expect(
         runActionPromise(api, "testAction", {
           requiredParam: true,
           fancyParam: 123,

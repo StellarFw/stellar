@@ -29,20 +29,20 @@ describe("Core: Actions", () => {
 
   describe("can execute internally", () => {
     it("without params", () => {
-      expect(api.actions.call("formattedSum")).rejects.toEqual({
+      return expect(api.actions.call("formattedSum")).rejects.toEqual({
         a: "The a field is required.",
         b: "The b field is required.",
       });
     });
 
     it("reject works", () => {
-      expect(api.actions.call("formattedSum")).rejects.toThrow();
+      return expect(api.actions.call("formattedSum")).rejects.toThrow();
     });
 
     it("normally", () => {
-      expect(api.actions.call("formattedSum", { a: 3, b: 3 })).resolves.toEqual(
-        { formatted: "3 + 3 = 6" }
-      );
+      return expect(
+        api.actions.call("formattedSum", { a: 3, b: 3 })
+      ).resolves.toEqual({ formatted: "3 + 3 = 6" });
     });
   });
 
@@ -53,27 +53,31 @@ describe("Core: Actions", () => {
       expect(api.actions.groupsActions.has("example")).toBeTruthy();
     });
 
-    it("the action name exists on the group", (done) => {
+    it("the action name exists on the group", () => {
       const arrayOfAction = api.actions.groupsActions.get("example");
       expect(arrayOfAction).toContain("groupTest");
     });
 
-    it("support the group property", (done) => {
-      expect(api.actions.call("groupTest")).resolves.toEqual({ result: "OK" });
-    });
-
-    it("support modules", (done) => {
-      expect(api.actions.call("modModuleTest")).resolves.toEqual({
+    it("support the group property", () => {
+      return expect(api.actions.call("groupTest")).resolves.toEqual({
         result: "OK",
       });
     });
 
-    it("support the actions property", (done) => {
-      expect(api.actions.call("modTest")).resolves.toEqual({ result: "OK" });
+    it("support modules", () => {
+      return expect(api.actions.call("modModuleTest")).resolves.toEqual({
+        result: "OK",
+      });
+    });
+
+    it("support the actions property", () => {
+      return expect(api.actions.call("modTest")).resolves.toEqual({
+        result: "OK",
+      });
     });
 
     it("can add new items to an array", () => {
-      expect(api.actions.call("groupAddItems")).resolves.toHaveProperty(
+      return expect(api.actions.call("groupAddItems")).resolves.toHaveProperty(
         "result",
         ["a", "b", "c"]
       );
@@ -100,52 +104,48 @@ describe("Core: Actions", () => {
     });
 
     it("when the action exceed the config time it timeout", () => {
-      expect(api.actions.call("sleep", { sleepDuration: 150 })).rejects.toEqual(
-        {
-          code: "022",
-          message: `Response timeout for action 'sleep'`,
-        }
-      );
+      return expect(
+        api.actions.call("sleep", { sleepDuration: 150 })
+      ).rejects.toEqual({
+        code: "022",
+        message: `Response timeout for action 'sleep'`,
+      });
     });
   });
 
   // ------------------------------------------------------------------- [Other]
 
   it("is possible finish an action retuning a promise", () => {
-    expect(api.actions.call("promiseAction")).resolves.toHaveProperty(
+    return expect(api.actions.call("promiseAction")).resolves.toHaveProperty(
       "success",
       `It's working!`
     );
   });
 
   it("is possible using a foreign promise to finish an action", (done) => {
-    expect(api.actions.call("internalCallPromise")).resolves.toHaveProperty(
-      "result",
-      `4 + 5 = 9`
-    );
+    return expect(
+      api.actions.call("internalCallPromise")
+    ).resolves.toHaveProperty("result", `4 + 5 = 9`);
   });
 
   it("can handle promise rejections and exceptions", (done) => {
-    expect(api.actions.call("errorPromiseAction")).rejects.toHaveProperty(
-      "message",
-      "This is an error"
-    );
+    return expect(
+      api.actions.call("errorPromiseAction")
+    ).rejects.toHaveProperty("message", "This is an error");
   });
 
   it("can use a function to set a param default value", async () => {
-    expect(api.actions.call("input-default-function")).resolves.toHaveProperty(
-      "value",
-      156
-    );
+    return expect(
+      api.actions.call("input-default-function")
+    ).resolves.toHaveProperty("value", 156);
   });
 
   it("can use a function to set a param default value accessing the api object", async () => {
     const testVal = "looks-awesome";
     api.config.testValue = testVal;
 
-    expect(api.actions.call("inputDefaultFunctionApi")).resolves.toHaveProperty(
-      "value",
-      testVal
-    );
+    return expect(
+      api.actions.call("inputDefaultFunctionApi")
+    ).resolves.toHaveProperty("value", testVal);
   });
 });
