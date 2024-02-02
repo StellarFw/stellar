@@ -11,7 +11,6 @@ describe("Core: Actions", () => {
   beforeAll(
     () =>
       new Promise((done) => {
-        // start a Stellar instance
         engine.start((error, a) => {
           api = a;
           done();
@@ -22,7 +21,6 @@ describe("Core: Actions", () => {
   afterAll(
     () =>
       new Promise((done) => {
-        // finish the Stellar instance execution
         engine.stop(done);
       })
   );
