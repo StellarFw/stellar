@@ -1,7 +1,6 @@
-import { describe, beforeAll, afterAll, it } from "vitest";
+import { describe, beforeAll, afterAll, it, expect } from "vitest";
 
 import Engine from "../../src/engine";
-import { expect } from "vitest";
 
 const engine = new Engine({ rootPath: process.cwd() + "/example" });
 
