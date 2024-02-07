@@ -7,15 +7,13 @@ const engine = new Engine({ rootPath: process.cwd() + "/example" });
 let api = null;
 
 describe("Core: Actions", () => {
-  beforeAll(
-    () =>
-      new Promise((done) => {
-        engine.start((error, a) => {
-          api = a;
-          done();
-        });
-      })
-  );
+  beforeAll(async () => {
+    api = await new Promise((done) => {
+      engine.start((error, a) => {
+        done(a);
+      });
+    });
+  });
 
   afterAll(
     () =>
