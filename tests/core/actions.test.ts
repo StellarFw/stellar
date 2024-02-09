@@ -1,7 +1,6 @@
 import { describe, beforeAll, afterAll, it, expect } from "vitest";
 
 import Engine from "../../src/engine";
-
 const engine = new Engine({ rootPath: process.cwd() + "/example" });
 
 let api = null;
