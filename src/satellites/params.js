@@ -7,57 +7,61 @@ class Params {
    *
    * @type {null}
    */
-  api = null
+  api = null;
 
   /**
    * Special params we will always accept.
    *
    * @type {string[]}
    */
-  globalSafeParams = [ 'file', 'apiVersion', 'callback', 'action' ]
+  globalSafeParams = ["file", "apiVersion", "callback", "action"];
 
   /**
    * List with all save params.
    */
-  postVariables
+  postVariables;
 
   /**
    * Create a new instance of this class.
    *
    * @param api API reference.
    */
-  constructor (api) { this.api = api }
+  constructor(api) {
+    this.api = api;
+  }
 
   /**
    * Build the hash map with all safe application params.
    *
    * @returns {*}
    */
-  buildPostVariables () {
-    let self = this
+  buildPostVariables() {
+    let self = this;
 
-    let i, j
-    let postVariables = []
+    let i, j;
+    let postVariables = [];
 
     // push the global safe params for the 'postVariables'
-    self.globalSafeParams.forEach(p => postVariables.push(p))
+    self.globalSafeParams.forEach((p) => postVariables.push(p));
 
     // iterate all actions files
     for (i in self.api.actions.actions) {
       // iterate all actions definitions
-      for (j in self.api.actions.actions[ i ]) {
+      for (j in self.api.actions.actions[i]) {
         // get current action
-        let action = self.api.actions.actions[ i ][ j ]
+        let action = self.api.actions.actions[i][j];
 
         // iterate all inputs keys and add it to postVariables
-        for (let key in action.inputs) { postVariables.push(key) }
+        for (let key in action.inputs) {
+          postVariables.push(key);
+        }
       }
     }
 
     // remove the duplicated entries
-    self.postVariables = this.api.utils.arrayUniqueify(postVariables)
+    self.postVariables = this.api.utils.arrayUniqueify(postVariables);
 
-    return self.postVariables
+    return self.postVariables;
   }
 }
 
@@ -67,7 +71,7 @@ export default class {
    *
    * @type {number}
    */
-  loadPriority = 420
+  loadPriority = 420;
 
   /**
    * Action to the executed on the initializer loading.
@@ -75,14 +79,14 @@ export default class {
    * @param api   Api reference.
    * @param next  Callback function.
    */
-  load (api, next) {
+  load(api, next) {
     // put the params API available to all platform
-    api.params = new Params(api)
+    api.params = new Params(api);
 
     // build the post variables
-    api.params.buildPostVariables()
+    api.params.buildPostVariables();
 
     // finish the initializer execution
-    next()
+    next();
   }
 }

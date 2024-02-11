@@ -1,0 +1,37 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "root": true,
+
+  "env": {
+    "browser": false,
+    "node": true,
+    "es2021": true
+  },
+
+  "extends": ["plugin:prettier/recommended"],
+
+  "ignorePatterns": ["**/node_modules", "**/dits"],
+  "plugins": ["prettier", "unused-imports"],
+  "rules": {
+    "prettier/prettier": "error",
+    "prefer-template": "error",
+
+    "no-unused-vars": "off",
+    "unused-imports/no-unused-imports": "error",
+    "unused-imports/no-unused-vars": [
+      "warn",
+      {
+        "vars": "all",
+        "varsIgnorePattern": "^_",
+        "args": "after-used",
+        "argsIgnorePattern": "^_"
+      }
+    ],
+
+    "arrow-parens": 0,
+    "generator-star-spacing": 0,
+    "no-useless-escape": 0,
+    "valid-typeof": 0,
+    "standard/no-callback-literal": 0
+  }
+}

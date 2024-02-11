@@ -1,6 +1,6 @@
 export default {
   servers: {
-    websocket () {
+    websocket() {
       return {
         // ---------------------------------------------------------------------
         // Enable the server?
@@ -12,7 +12,7 @@ export default {
         //
         // This can also be a FQDN.
         // ---------------------------------------------------------------------
-        clientUrl: 'window.location.origin',
+        clientUrl: "window.location.origin",
 
         // ---------------------------------------------------------------------
         // The name of the client-side JS file to render.
@@ -20,7 +20,7 @@ export default {
         // Both '.js' and '.min.js' versions will be created do not include the
         // file extension.
         // ---------------------------------------------------------------------
-        clientJsName: 'stellar-client',
+        clientJsName: "stellar-client",
 
         // ---------------------------------------------------------------------
         // Should the server signal clients to not reconnect when the server is
@@ -33,9 +33,9 @@ export default {
         // ---------------------------------------------------------------------
         client: {
           // API base endpoint on your server
-          apiPath: '/api',
+          apiPath: "/api",
           // Default room for the chat system
-          defaultRoom: 'defaultRoom'
+          defaultRoom: "defaultRoom",
         },
 
         // ---------------------------------------------------------------------
@@ -43,9 +43,9 @@ export default {
         // ---------------------------------------------------------------------
         server: {
           // this disable Primus warning on cluster environments
-          iknowclusterwillbreakconnections: true
-        }
-      }
-    }
-  }
-}
+          iknowclusterwillbreakconnections: true,
+        },
+      };
+    },
+  },
+};

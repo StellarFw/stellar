@@ -1,4 +1,4 @@
-import os from 'os'
+import os from "os";
 
 class ExceptionsManager {
   /**
@@ -13,52 +13,64 @@ class ExceptionsManager {
    *
    * @type {Array}
    */
-  reporters = []
+  reporters = [];
 
-  constructor (api) {
-    this.api = api
+  constructor(api) {
+    this.api = api;
 
     // load default console handler
     this.reporters.push((err, type, name, objects, severity) => {
-      let output = ''
-      let lines = []
-      let extraMessages = []
+      let output = "";
+      let lines = [];
+      let extraMessages = [];
 
-      if (type === 'loader') {
-        extraMessages.push(`Failed to load ${objects.fullFilePath}\n`)
-      } else if (type === 'action') {
-        extraMessages.push(`Uncaught error from action: ${name}\n`)
+      if (type === "loader") {
+        extraMessages.push(`Failed to load ${objects.fullFilePath}\n`);
+      } else if (type === "action") {
+        extraMessages.push(`Uncaught error from action: ${name}\n`);
 
-        extraMessages.push('Connection details:')
-        const relevantDetails = [ 'action', 'remoteIP', 'type', 'params', 'room' ]
+        extraMessages.push("Connection details:");
+        const relevantDetails = [
+          "action",
+          "remoteIP",
+          "type",
+          "params",
+          "room",
+        ];
         for (let detailName of relevantDetails) {
           if (
-            objects.connection[ detailName ] !== null &&
-            objects.connection[ detailName ] !== undefined &&
-            typeof objects.connection[ detailName ] !== 'function'
+            objects.connection[detailName] !== null &&
+            objects.connection[detailName] !== undefined &&
+            typeof objects.connection[detailName] !== "function"
           ) {
-            extraMessages.push(`    ${detailName}: ${JSON.stringify(objects.connection[ detailName ])}`)
+            extraMessages.push(
+              `    ${detailName}: ${JSON.stringify(objects.connection[detailName])}`,
+            );
           }
         }
 
         // push an empty element to create a empty line
-        extraMessages.push('')
-      } else if (type === 'task') {
-        extraMessages.push(`Uncaught error from task: ${name} on queue ${objects.queue} (worker #${objects.workerId})\n`)
+        extraMessages.push("");
+      } else if (type === "task") {
+        extraMessages.push(
+          `Uncaught error from task: ${name} on queue ${objects.queue} (worker #${objects.workerId})\n`,
+        );
         try {
-          extraMessages.push('    arguments: ' + JSON.stringify(objects.task.args))
+          extraMessages.push(
+            `    arguments: ${JSON.stringify(objects.task.args)}`,
+          );
         } catch (e) {
           // ignore error
         }
       } else {
-        extraMessages.push(`Error: ${err.message}\n`)
-        extraMessages.push(`    Type: ${type}`)
-        extraMessages.push(`    Name: ${name}`)
-        extraMessages.push(`    Data: ${JSON.stringify(objects)}`)
+        extraMessages.push(`Error: ${err.message}\n`);
+        extraMessages.push(`    Type: ${type}`);
+        extraMessages.push(`    Name: ${name}`);
+        extraMessages.push(`    Data: ${JSON.stringify(objects)}`);
       }
 
       // reduce the extra messages into a single string
-      output += extraMessages.reduce((prev, item) => prev + `${item} \n`, '')
+      output += extraMessages.reduce((prev, item) => `${prev}${item} \n`, "");
 
       // FIXME I think that this can be removed, but for now we keep it where in case to be needed
       // if there is one of the known core exceptions we need to add information
@@ -67,17 +79,17 @@ class ExceptionsManager {
 
       // add the stack trace
       try {
-        lines = lines.concat(err.stack.split(os.EOL))
+        lines = lines.concat(err.stack.split(os.EOL));
       } catch (e) {
-        lines = lines.concat(new Error(err).stack.split(os.EOL))
+        lines = lines.concat(new Error(err).stack.split(os.EOL));
       }
 
       // reduce the lines array into a single string
-      output += lines.reduce((prev, item) => prev + `${item}\n`, '')
+      output += lines.reduce((prev, item) => `${prev}${item}\n`, "");
 
       // print out the output message
-      api.log(output, severity)
-    })
+      api.log(output, severity);
+    });
   }
 
   /**
@@ -89,11 +101,11 @@ class ExceptionsManager {
    * @param objects
    * @param severity
    */
-  report (err, type, name, objects, severity = 'error') {
-    let self = this
+  report(err, type, name, objects, severity = "error") {
+    let self = this;
 
     for (let i in self.reporters) {
-      self.reporters[ i ](err, type, name, objects, severity)
+      self.reporters[i](err, type, name, objects, severity);
     }
   }
 
@@ -103,10 +115,10 @@ class ExceptionsManager {
    * @param fullFilePath
    * @param err
    */
-  loader (fullFilePath, err) {
-    let self = this
-    let name = `loader ${fullFilePath}`
-    self.report(err, 'loader', name, { fullFilePath: fullFilePath }, 'alert')
+  loader(fullFilePath, err) {
+    let self = this;
+    let name = `loader ${fullFilePath}`;
+    self.report(err, "loader", name, { fullFilePath: fullFilePath }, "alert");
   }
 
   /**
@@ -116,25 +128,33 @@ class ExceptionsManager {
    * @param data
    * @param next
    */
-  action (err, data, next) {
-    let self = this
-    let simpleName
+  action(err, data, next) {
+    let self = this;
+    let simpleName;
 
     // try get the action name. Sometimes this can be impossible so we use the
     // error message instead.
     try {
-      simpleName = data.action
+      simpleName = data.action;
     } catch (e) {
-      simpleName = err.message
+      simpleName = err.message;
     }
 
     // report the error
-    self.report(err, 'action', simpleName, { connection: data.connection }, 'error')
+    self.report(
+      err,
+      "action",
+      simpleName,
+      { connection: data.connection },
+      "error",
+    );
 
     // remove already processed responses
-    data.response = {}
+    data.response = {};
 
-    if (typeof next === 'function') { next() }
+    if (typeof next === "function") {
+      next();
+    }
   }
 
   /**
@@ -145,22 +165,29 @@ class ExceptionsManager {
    * @param task
    * @param workerId
    */
-  task (error, queue, task, workerId) {
-    let self = this
+  task(error, queue, task, workerId) {
+    let self = this;
 
-    let simpleName
+    let simpleName;
 
     try {
-      simpleName = task[ 'class' ]
+      simpleName = task["class"];
     } catch (e) {
-      simpleName = error.message
+      simpleName = error.message;
     }
 
-    self.api.exceptionHandlers.report(error, 'task', `task:${simpleName}`, simpleName, {
-      task: task,
-      queue: queue,
-      workerId: workerId
-    }, self.api.config.tasks.workerLogging.failure)
+    self.api.exceptionHandlers.report(
+      error,
+      "task",
+      `task:${simpleName}`,
+      simpleName,
+      {
+        task: task,
+        queue: queue,
+        workerId: workerId,
+      },
+      self.api.config.tasks.workerLogging.failure,
+    );
   }
 }
 
@@ -173,7 +200,7 @@ export default class {
    *
    * @type {number}
    */
-  loadPriority = 130
+  loadPriority = 130;
 
   /**
    * Satellite load function.
@@ -181,11 +208,11 @@ export default class {
    * @param api     API reference
    * @param next    Callback function
    */
-  load (api, next) {
+  load(api, next) {
     // put the exception handlers available in all platform
-    api.exceptionHandlers = new ExceptionsManager(api)
+    api.exceptionHandlers = new ExceptionsManager(api);
 
     // finish the satellite load
-    next()
+    next();
   }
 }

@@ -94,7 +94,7 @@ class RedisManager {
         } else {
           this.api.log(
             `RP method '${cmdParts.join(".")}' not found`,
-            "warning"
+            "warning",
           );
         }
       }
@@ -137,7 +137,7 @@ class RedisManager {
           });
         } else {
           this.clients[r] = this.api.config.redis[r].constructor(
-            this.api.config.redis[r].args
+            this.api.config.redis[r].args,
           );
 
           this.clients[r].on("error", (error) => {
@@ -234,7 +234,7 @@ class RedisManager {
           delete this.clusterCallbackTimeouts[requestId];
         },
         this.api.config.general.rpcTimeout,
-        requestId
+        requestId,
       );
     }
   }
@@ -291,7 +291,7 @@ export default class {
         "api.log",
         `Stellar member ${api.id} has joined the cluster`,
         null,
-        null
+        null,
       );
 
       // finish the loading
@@ -318,7 +318,7 @@ export default class {
       "api.log",
       `Stellar member ${api.id} has left the cluster`,
       null,
-      null
+      null,
     );
 
     // unsubscribe stellar instance and finish the stop method execution

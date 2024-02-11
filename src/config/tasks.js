@@ -2,7 +2,7 @@
  * Default task configs.
  */
 export default {
-  tasks (api) {
+  tasks(api) {
     return {
       // ---------------------------------------------------------------------
       // should this mode run a scheduler to promote delayed tasks?
@@ -12,35 +12,35 @@ export default {
       // ---------------------------------------------------------------------
       // what queues should the taskProcessors work?
       // ---------------------------------------------------------------------
-      queues: [ '*' ],
+      queues: ["*"],
 
       // ---------------------------------------------------------------------
       // logging levels of tasks workers
       // ---------------------------------------------------------------------
       workerLogging: {
-        failure: 'error', // task failure
-        success: 'info', // task success
-        start: 'info',
-        end: 'info',
-        cleaning_worker: 'info',
-        poll: 'debug',
-        job: 'debug',
-        pause: 'debug',
-        internalError: 'error',
-        multiWorkerAction: 'debug'
+        failure: "error", // task failure
+        success: "info", // task success
+        start: "info",
+        end: "info",
+        cleaning_worker: "info",
+        poll: "debug",
+        job: "debug",
+        pause: "debug",
+        internalError: "error",
+        multiWorkerAction: "debug",
       },
 
       // ---------------------------------------------------------------------
       // logging levels of the task scheduler
       // ---------------------------------------------------------------------
       schedulerLogging: {
-        start: 'info',
-        end: 'info',
-        poll: 'debug',
-        enqueue: 'debug',
-        reEnqueue: 'debug',
-        working_timestamp: 'debug',
-        transferred_job: 'debug'
+        start: "info",
+        end: "info",
+        poll: "debug",
+        enqueue: "debug",
+        reEnqueue: "debug",
+        working_timestamp: "debug",
+        transferred_job: "debug",
       },
 
       // ---------------------------------------------------------------------
@@ -79,10 +79,10 @@ export default {
       // ---------------------------------------------------------------------
       // What redis server should we connect to for tasks / delayed jobs?
       // ---------------------------------------------------------------------
-      redis: api.config.redis
-    }
-  }
-}
+      redis: api.config.redis,
+    };
+  },
+};
 
 /**
  * Tasks configs for test environment.
@@ -90,12 +90,12 @@ export default {
  * @type {{tasks: (function())}}
  */
 export let test = {
-  tasks (api) {
+  tasks(api) {
     return {
       timeout: 100,
       checkTimeout: 50,
       scheduler: true,
-      redis: api.config.redis
-    }
-  }
-}
+      redis: api.config.redis,
+    };
+  },
+};

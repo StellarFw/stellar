@@ -1,4 +1,4 @@
-import UUID from 'uuid'
+import UUID from "uuid";
 
 /**
  * Create a clean connection.
@@ -6,35 +6,37 @@ import UUID from 'uuid'
  * @param connection  Connection object.
  * @returns {{}}      New clean connection object.
  */
-let cleanConnection = connection => {
-  let clean = {}
+let cleanConnection = (connection) => {
+  let clean = {};
 
   for (let i in connection) {
-    if (i !== 'rawConnection') { clean[ i ] = connection[ i ] }
+    if (i !== "rawConnection") {
+      clean[i] = connection[i];
+    }
   }
 
-  return clean
-}
+  return clean;
+};
 
 class Connections {
   /**
    * API reference object.
    */
-  api
+  api;
 
   /**
    * Hash with all registered middleware.
    *
    * @type {{}}
    */
-  middleware = {}
+  middleware = {};
 
   /**
    * Array with global middleware.
    *
    * @type {Array}
    */
-  globalMiddleware = []
+  globalMiddleware = [];
 
   /**
    * Array with the allowed verbs.
@@ -42,89 +44,106 @@ class Connections {
    * @type {string[]}
    */
   allowedVerbs = [
-    'quit',
-    'exit',
-    'paramAdd',
-    'paramDelete',
-    'paramView',
-    'paramsView',
-    'paramsDelete',
-    'roomJoin',
-    'roomLeave',
-    'roomView',
-    'detailsView',
-    'say',
-    'event'
-  ]
+    "quit",
+    "exit",
+    "paramAdd",
+    "paramDelete",
+    "paramView",
+    "paramsView",
+    "paramsDelete",
+    "roomJoin",
+    "roomLeave",
+    "roomView",
+    "detailsView",
+    "say",
+    "event",
+  ];
 
   /**
    * Hash with the active connections.
    *
    * @type {{}}
    */
-  connections = {}
+  connections = {};
 
   /**
    * Create a new class instance.
    *
    * @param api   API object reference.
    */
-  constructor (api) { this.api = api }
+  constructor(api) {
+    this.api = api;
+  }
 
   /**
    * Add a new middleware.
    *
    * @param data  Middleware to be added.
    */
-  addMiddleware (data) {
+  addMiddleware(data) {
     // middleware require a name
-    if (!data.name) { throw new Error('middleware.name is required') }
+    if (!data.name) {
+      throw new Error("middleware.name is required");
+    }
 
     // if there is no defined priority use the default
-    if (!data.priority) { data.priority = this.api.config.general.defaultMiddlewarePriority }
+    if (!data.priority) {
+      data.priority = this.api.config.general.defaultMiddlewarePriority;
+    }
 
     // ensure the priority is a number
-    data.priority = Number(data.priority)
+    data.priority = Number(data.priority);
 
     // save the new middleware
-    this.middleware[ data.name ] = data
+    this.middleware[data.name] = data;
 
     // push the new middleware to the global list
-    this.globalMiddleware.push(data.name)
+    this.globalMiddleware.push(data.name);
 
     // sort the global middleware array
     this.globalMiddleware.sort((a, b) => {
-      if (this.middleware[ a ].priority > this.middleware[ b ].priority) {
-        return 1
+      if (this.middleware[a].priority > this.middleware[b].priority) {
+        return 1;
       }
 
-      return -1
-    })
+      return -1;
+    });
   }
 
-  apply (connectionId, method, args, callback) {
-    if (args === undefined && callback === undefined && typeof method === 'function') {
-      callback = method
-      args = null
-      method = null
+  apply(connectionId, method, args, callback) {
+    if (
+      args === undefined &&
+      callback === undefined &&
+      typeof method === "function"
+    ) {
+      callback = method;
+      args = null;
+      method = null;
     }
 
-    this.api.redis._doCluster('api.connections.applyCatch', [ connectionId, method, args ], connectionId, callback)
+    this.api.redis._doCluster(
+      "api.connections.applyCatch",
+      [connectionId, method, args],
+      connectionId,
+      callback,
+    );
   }
 
-  applyCatch (connectionId, method, args, callback) {
-    const connection = this.api.connections.connections[ connectionId ]
+  applyCatch(connectionId, method, args, callback) {
+    const connection = this.api.connections.connections[connectionId];
 
     if (method && args) {
-      if (method === 'sendMessage' || method === 'sendFile') {
-        connection[ method ](args)
+      if (method === "sendMessage" || method === "sendFile") {
+        connection[method](args);
       } else {
-        connection[ method ].apply(connection, args)
+        connection[method].apply(connection, args);
       }
     }
 
-    if (typeof callback === 'function') {
-      process.nextTick(() => { callback(cleanConnection(connection)) })
+    if (typeof callback === "function") {
+      process.nextTick(() => {
+        callback(cleanConnection(connection));
+      });
     }
   }
 }
@@ -136,24 +155,24 @@ class Connection {
   /**
    * Api reference.
    */
-  api
+  api;
 
   /**
    * Unique client identifier.
    */
-  id
+  id;
 
   /**
    * Timestamp of the connection.
    */
-  connectedAt
+  connectedAt;
 
   /**
    * Rooms which the client belongs.
    *
    * @type {Array}
    */
-  rooms = []
+  rooms = [];
 
   /**
    * Create a new connection object.
@@ -167,19 +186,22 @@ class Connection {
    * @param api Stellar API reference
    * @param data hash map
    */
-  constructor (api, data) {
-    this.api = api
-    this._setup(data)
+  constructor(api, data) {
+    this.api = api;
+    this._setup(data);
 
     // save this connection on the connection manager
-    api.connections.connections[ this.id ] = this
+    api.connections.connections[this.id] = this;
 
     // execute the middleware
-    this.api.connections.globalMiddleware.forEach(middlewareName => {
-      if (typeof this.api.connections.middleware[ middlewareName ].create === 'function') {
-        this.api.connections.middleware[ middlewareName ].create(this)
+    this.api.connections.globalMiddleware.forEach((middlewareName) => {
+      if (
+        typeof this.api.connections.middleware[middlewareName].create ===
+        "function"
+      ) {
+        this.api.connections.middleware[middlewareName].create(this);
       }
-    })
+    });
   }
 
   /**
@@ -188,38 +210,40 @@ class Connection {
    * @param data
    * @private
    */
-  _setup (data) {
+  _setup(data) {
     if (data.id) {
-      this.id = data.id
+      this.id = data.id;
     } else {
       // generate an unique ID for this connection
-      this.id = this._generateID()
+      this.id = this._generateID();
     }
 
     // set the connection timestamp
-    this.connectedAt = new Date().getTime()
+    this.connectedAt = new Date().getTime();
 
-    let requiredFields = [ 'type', 'rawConnection' ]
+    let requiredFields = ["type", "rawConnection"];
 
-    requiredFields.forEach(req => {
-      if (data[ req ] === null || data[ req ] === undefined) {
-        throw new Error(`${req} is required to create a new connection object`)
+    requiredFields.forEach((req) => {
+      if (data[req] === null || data[req] === undefined) {
+        throw new Error(`${req} is required to create a new connection object`);
       }
-      this[ req ] = data[ req ]
-    })
+      this[req] = data[req];
+    });
 
-    let enforcedConnectionProperties = [ 'remotePort', 'remoteIP' ]
+    let enforcedConnectionProperties = ["remotePort", "remoteIP"];
 
-    enforcedConnectionProperties.forEach(req => {
-      if (data[ req ] === null || data[ req ] === undefined) {
+    enforcedConnectionProperties.forEach((req) => {
+      if (data[req] === null || data[req] === undefined) {
         if (this.api.config.general.enforceConnectionProperties === true) {
-          throw new Error(`${req} is required to create a new connection object`)
+          throw new Error(
+            `${req} is required to create a new connection object`,
+          );
         } else {
-          data[ req ] = 0 // could be a random uuid as well?
+          data[req] = 0; // could be a random uuid as well?
         }
       }
-      this[ req ] = data[ req ]
-    })
+      this[req] = data[req];
+    });
 
     // set connection defaults
     let connectionDefaults = {
@@ -230,15 +254,19 @@ class Connection {
       pendingActions: 0,
       totalActions: 0,
       messageCount: 0,
-      canChat: false
-    }
+      canChat: false,
+    };
 
     for (let i in connectionDefaults) {
-      if (this[ i ] === undefined && data[ i ] !== undefined) { this[ i ] = data[ i ] }
-      if (this[ i ] === undefined) { this[ i ] = connectionDefaults[ i ] }
+      if (this[i] === undefined && data[i] !== undefined) {
+        this[i] = data[i];
+      }
+      if (this[i] === undefined) {
+        this[i] = connectionDefaults[i];
+      }
     }
 
-    this.api.i18n.invokeConnectionLocale(this)
+    this.api.i18n.invokeConnectionLocale(this);
   }
 
   /**
@@ -247,15 +275,19 @@ class Connection {
    * @returns {*}
    * @private
    */
-  _generateID () { return UUID.v4() }
+  _generateID() {
+    return UUID.v4();
+  }
 
   /**
    * Send a message to this connection.
    *
    * @param message
    */
-  sendMessage (message) {
-    throw new Error(`I should be replaced with a connection-specific method [${message}]`)
+  sendMessage(message) {
+    throw new Error(
+      `I should be replaced with a connection-specific method [${message}]`,
+    );
   }
 
   /**
@@ -263,8 +295,10 @@ class Connection {
    *
    * @param path
    */
-  sendFile (path) {
-    throw new Error(`I should be replaced with a connection-specific method [${path}]`)
+  sendFile(path) {
+    throw new Error(
+      `I should be replaced with a connection-specific method [${path}]`,
+    );
   }
 
   /**
@@ -272,42 +306,49 @@ class Connection {
    *
    * @param message   Message to be localized.
    */
-  localize (message) {
-    return this.api.i18n.localize(message, this)
+  localize(message) {
+    return this.api.i18n.localize(message, this);
   }
 
-  destroy (callback) {
+  destroy(callback) {
     // set connection as destroyed
-    this.destroyed = true
+    this.destroyed = true;
 
     // execute the destroy middleware
-    this.api.connections.globalMiddleware.forEach(middlewareName => {
-      if (typeof this.api.connections.middleware[ middlewareName ].destroy === 'function') {
-        this.api.connections.middleware[ middlewareName ].destroy(this)
+    this.api.connections.globalMiddleware.forEach((middlewareName) => {
+      if (
+        typeof this.api.connections.middleware[middlewareName].destroy ===
+        "function"
+      ) {
+        this.api.connections.middleware[middlewareName].destroy(this);
       }
-    })
+    });
 
     // remove the connection from all rooms
     if (this.canChat === true) {
-      this.rooms.forEach(room => this.api.chatRoom.leave(this.id, room))
+      this.rooms.forEach((room) => this.api.chatRoom.leave(this.id, room));
     }
 
     // get server instance
-    let server = this.api.servers.servers[ this.type ]
+    let server = this.api.servers.servers[this.type];
 
     if (server) {
       if (server.attributes.logExits === true) {
-        server.log('connection closed', 'info', { to: this.remoteIP })
+        server.log("connection closed", "info", { to: this.remoteIP });
       }
 
-      if (typeof server.goodbye === 'function') { server.goodbye(this) }
+      if (typeof server.goodbye === "function") {
+        server.goodbye(this);
+      }
     }
 
     // remove this connection from the connections array
-    delete this.api.connections.connections[ this.id ]
+    delete this.api.connections.connections[this.id];
 
     // execute the callback function
-    if (typeof callback === 'function') { callback() }
+    if (typeof callback === "function") {
+      callback();
+    }
   }
 
   /**
@@ -318,9 +359,9 @@ class Connection {
    *
    * @return Connection The current instance.
    */
-  set (key, value) {
-    this[ key ] = value
-    return this
+  set(key, value) {
+    this[key] = value;
+    return this;
   }
 
   /**
@@ -330,78 +371,105 @@ class Connection {
    * @param words     Words are optional.
    * @param callback  Callback function.
    */
-  verbs (verb, words, callback = () => { }) {
-    let key, value, room
-    let server = this.api.servers.servers[ this.type ]
-    let allowedVerbs = server.attributes.verbs
+  verbs(verb, words, callback = () => {}) {
+    let key, value, room;
+    let server = this.api.servers.servers[this.type];
+    let allowedVerbs = server.attributes.verbs;
 
-    if (typeof words === 'function' && !callback) {
-      callback = words
-      words = []
+    if (typeof words === "function" && !callback) {
+      callback = words;
+      words = [];
     }
 
-    if (!(words instanceof Array)) { words = [ words ] }
+    if (!(words instanceof Array)) {
+      words = [words];
+    }
 
     if (server && allowedVerbs.indexOf(verb) >= 0) {
       // log verb message
-      server.log('verb', 'debug', { verb: verb, to: this.remoteIP, params: JSON.stringify(words) })
+      server.log("verb", "debug", {
+        verb: verb,
+        to: this.remoteIP,
+        params: JSON.stringify(words),
+      });
 
-      if (verb === 'quit' || verb === 'exit') {
-        server.goodbye(this)
-      } else if (verb === 'paramAdd') {
-        key = words[ 0 ]
-        value = words[ 1 ]
+      if (verb === "quit" || verb === "exit") {
+        server.goodbye(this);
+      } else if (verb === "paramAdd") {
+        key = words[0];
+        value = words[1];
 
-        if (words[ 0 ] && (words[ 0 ].indexOf('=') >= 0)) {
-          let parts = words[ 0 ].split('=')
-          key = parts[ 0 ]
-          value = parts[ 1 ]
+        if (words[0] && words[0].indexOf("=") >= 0) {
+          let parts = words[0].split("=");
+          key = parts[0];
+          value = parts[1];
         }
 
-        this.params[ key ] = value
+        this.params[key] = value;
 
         // execute the callback function
-        if (typeof callback === 'function') { callback(null, null) }
-      } else if (verb === 'paramDelete') {
-        key = words[ 0 ]
-        delete this.params[ key ]
+        if (typeof callback === "function") {
+          callback(null, null);
+        }
+      } else if (verb === "paramDelete") {
+        key = words[0];
+        delete this.params[key];
 
         // execute the callback function
-        if (typeof callback === 'function') { callback(null, null) }
-      } else if (verb === 'paramView') {
-        key = words[ 0 ]
+        if (typeof callback === "function") {
+          callback(null, null);
+        }
+      } else if (verb === "paramView") {
+        key = words[0];
 
-        if (typeof callback === 'function') { callback(null, this.params[ key ]) }
-      } else if (verb === 'paramsView') {
-        if (typeof callback === 'function') { callback(null, this.params) }
-      } else if (verb === 'paramsDelete') {
+        if (typeof callback === "function") {
+          callback(null, this.params[key]);
+        }
+      } else if (verb === "paramsView") {
+        if (typeof callback === "function") {
+          callback(null, this.params);
+        }
+      } else if (verb === "paramsDelete") {
         // delete all params
-        for (let i in this.params) { delete this.params[ i ] }
+        for (let i in this.params) {
+          delete this.params[i];
+        }
 
-        if (typeof callback === 'function') { callback(null, null) }
-      } else if (verb === 'roomJoin') {
-        room = words[ 0 ]
+        if (typeof callback === "function") {
+          callback(null, null);
+        }
+      } else if (verb === "roomJoin") {
+        room = words[0];
 
-        this.api.chatRoom.join(this.id, room)
-          .then(didHappen => { callback(null, didHappen) })
-          .catch(error => { callback(error, false) })
-      } else if (verb === 'roomLeave') {
-        room = words[ 0 ]
-        this.api.chatRoom.leave(this.id, room)
-          .then(didHappen => callback(null, didHappen))
-          .catch(error => callback(error, false))
-      } else if (verb === 'roomView') {
+        this.api.chatRoom
+          .join(this.id, room)
+          .then((didHappen) => {
+            callback(null, didHappen);
+          })
+          .catch((error) => {
+            callback(error, false);
+          });
+      } else if (verb === "roomLeave") {
+        room = words[0];
+        this.api.chatRoom
+          .leave(this.id, room)
+          .then((didHappen) => callback(null, didHappen))
+          .catch((error) => callback(error, false));
+      } else if (verb === "roomView") {
         // get requested room name
-        room = words[ 0 ]
+        room = words[0];
 
         if (this.rooms.indexOf(room) > -1) {
-          this.api.chatRoom.status(room)
-            .then(status => callback(null, status))
-            .catch(error => callback(error))
+          this.api.chatRoom
+            .status(room)
+            .then((status) => callback(null, status))
+            .catch((error) => callback(error));
         } else {
-          if (typeof callback === 'function') { callback(`not member of room ${room}`) }
+          if (typeof callback === "function") {
+            callback(`not member of room ${room}`);
+          }
         }
-      } else if (verb === 'detailsView') {
+      } else if (verb === "detailsView") {
         let details = {
           id: this.id,
           fingerprint: this.fingerprint,
@@ -411,39 +479,49 @@ class Connection {
           connectedAt: this.connectedAt,
           rooms: this.rooms,
           totalActions: this.totalActions,
-          pendingActions: this.pendingActions
-        }
+          pendingActions: this.pendingActions,
+        };
 
         // execute the callback function
-        if (typeof callback === 'function') { callback(null, details) }
-      } else if (verb === 'say') {
+        if (typeof callback === "function") {
+          callback(null, details);
+        }
+      } else if (verb === "say") {
         // get the room name
-        room = words.shift()
+        room = words.shift();
 
         // broadcast the message on the requested room
-        this.api.chatRoom.broadcast(this, room, words.join(' '))
-          .then(() => { callback(null) })
-          .catch(error => { callback(error) })
-      } else if (verb === 'event') {
+        this.api.chatRoom
+          .broadcast(this, room, words.join(" "))
+          .then(() => {
+            callback(null);
+          })
+          .catch((error) => {
+            callback(error);
+          });
+      } else if (verb === "event") {
         // get the vent information
-        const { room, event, data } = words.shift()
+        const { room, event, data } = words.shift();
 
         // execute the event on the event system
-        this.api.events.fire(`event.${event}`, { room, data })
-        this.api.events.fire(`event.${room}.${event}`, { room, data })
+        this.api.events.fire(`event.${event}`, { room, data });
+        this.api.events.fire(`event.${room}.${event}`, { room, data });
 
         // broadcast the event to the room
-        this.api.chatRoom.broadcast(this, room, { event, data })
-          .then(() => { callback(null) })
-          .catch(error => callback(error))
+        this.api.chatRoom
+          .broadcast(this, room, { event, data })
+          .then(() => {
+            callback(null);
+          })
+          .catch((error) => callback(error));
       } else {
-        if (typeof callback === 'function') {
-          callback(this.api.config.errors.verbNotFound(this, verb), null)
+        if (typeof callback === "function") {
+          callback(this.api.config.errors.verbNotFound(this, verb), null);
         }
       }
     } else {
-      if (typeof callback === 'function') {
-        callback(this.api.config.errors.verbNotAllowed(this, verb), null)
+      if (typeof callback === "function") {
+        callback(this.api.config.errors.verbNotAllowed(this, verb), null);
       }
     }
   }
@@ -455,7 +533,7 @@ export default class {
    *
    * @type {number}
    */
-  loadPriority = 400
+  loadPriority = 400;
 
   /**
    * Satellite load function.
@@ -463,14 +541,14 @@ export default class {
    * @param api   API reference object.
    * @param next  Callback function.
    */
-  load (api, next) {
+  load(api, next) {
     // put Connections instance available to all platform
-    api.connections = new Connections(api)
+    api.connections = new Connections(api);
 
     // put the connection Class available to all platform
-    api.connection = Connection
+    api.connection = Connection;
 
     // finish the loading process
-    next()
+    next();
   }
 }

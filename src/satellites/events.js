@@ -64,7 +64,7 @@ class EventsManager {
         () => {
           // resolve the promise returning the response data
           resolve(responseData);
-        }
+        },
       );
     });
   }
@@ -114,7 +114,7 @@ class EventsManager {
     ) {
       this.api.log(
         "invalid listener - missing run property or not a function",
-        "warning"
+        "warning",
       );
       return false;
     }

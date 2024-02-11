@@ -3,7 +3,7 @@
 
 // Module Dependencies
 import path from "path";
-import async, { forEach } from "async";
+import async from "async";
 import { Utils as UtilsClass } from "./satellites/utils";
 
 // FIXME: this is a temporary workaround, we must make this more professional
@@ -299,7 +299,7 @@ export default class Engine {
       // log a shutting down message
       self.api.log(
         "Shutting down open servers and stopping task processing",
-        "alert"
+        "alert",
       );
 
       // if this is the second shutdown we need remove the `finalStopInitializer` callback
@@ -338,7 +338,7 @@ export default class Engine {
 
       // iterate all satellites and stop them
       async.series(self.stopSatellites, (errors) =>
-        Engine.fatalError(self.api, errors, "stop")
+        Engine.fatalError(self.api, errors, "stop"),
       );
     } else if (self.api.status === "shutting_down") {
       // double sigterm; ignore it
@@ -444,7 +444,7 @@ export default class Engine {
 
       // add it to array
       this.initialSatellites.push((next) =>
-        this.satellites[initializer].load(this.api, next)
+        this.satellites[initializer].load(this.api, next),
       );
     }
 
@@ -569,13 +569,13 @@ export default class Engine {
 
         // push loader state function to ranked arrays
         loadSatellitesRankings[this.satellites[initializer].loadPriority].push(
-          loadFunction
+          loadFunction,
         );
         startSatellitesRankings[
           this.satellites[initializer].startPriority
         ].push(startFunction);
         stopSatellitesRankings[this.satellites[initializer].stopPriority].push(
-          stopFunction
+          stopFunction,
         );
       }
     };
@@ -594,13 +594,13 @@ export default class Engine {
 
     // organize final array to match the satellites priorities
     this.loadSatellites = Engine.flattenOrderedInitializer(
-      loadSatellitesRankings
+      loadSatellitesRankings,
     );
     this.startSatellites = Engine.flattenOrderedInitializer(
-      startSatellitesRankings
+      startSatellitesRankings,
     );
     this.stopSatellites = Engine.flattenOrderedInitializer(
-      stopSatellitesRankings
+      stopSatellitesRankings,
     );
 
     // on the end of loading all satellites set engine like initialized
@@ -610,7 +610,7 @@ export default class Engine {
 
     // start initialization process
     async.series(this.loadSatellites, (errors) =>
-      Engine.fatalError(this.api, errors, "stage1")
+      Engine.fatalError(this.api, errors, "stage1"),
     );
   }
 
@@ -634,9 +634,9 @@ export default class Engine {
 
         this.api.bootTime = new Date().getTime();
         if (startCount === 0) {
-          this.api.log("** Server Started @ " + new Date() + " ***", "alert");
+          this.api.log(`** Server Started @ ${new Date()} ***`, "alert");
         } else {
-          this.api.log("** Server Restarted @ " + new Date() + " ***", "alert");
+          this.api.log(`** Server Restarted @ ${new Date()} ***`, "alert");
         }
 
         // increment the number of starts
@@ -653,7 +653,7 @@ export default class Engine {
 
     // start all initializers
     async.series(this.startSatellites, (err) =>
-      Engine.fatalError(this.api, err, "stage2")
+      Engine.fatalError(this.api, err, "stage2"),
     );
   }
 }

@@ -46,14 +46,14 @@ export default class Web extends GenericServer {
     let self = this;
 
     this.fingerprinter = new BrowserFingerprint(
-      self.api.config.servers.web.fingerprintOptions
+      self.api.config.servers.web.fingerprintOptions,
     );
 
     if (
       ["api", "file"].indexOf(self.api.config.servers.web.rootEndpointType) < 0
     ) {
       throw new Error(
-        "api.config.servers.web.rootEndpointType can only be 'api' or 'file'."
+        "api.config.servers.web.rootEndpointType can only be 'api' or 'file'.",
       );
     }
 
@@ -107,7 +107,7 @@ export default class Web extends GenericServer {
         self.api.config.servers.web.serverOptions,
         (req, res) => {
           self._handleRequest(req, res);
-        }
+        },
       );
     }
 
@@ -119,7 +119,7 @@ export default class Web extends GenericServer {
       if (bootAttempts < self.api.config.servers.web.bootAttempts) {
         self.log(
           `cannot boot web server; trying again [${String(e)}]`,
-          "error"
+          "error",
         );
 
         if (bootAttempts === 1) {
@@ -133,8 +133,8 @@ export default class Web extends GenericServer {
       } else {
         return next(
           new Error(
-            `Cannot start web server @ ${self.options.bindIP}:${self.options.port} => ${e.message}`
-          )
+            `Cannot start web server @ ${self.options.bindIP}:${self.options.port} => ${e.message}`,
+          ),
         );
       }
     });
@@ -194,7 +194,7 @@ export default class Web extends GenericServer {
       connection,
       responseHttpCode,
       headers,
-      stringResponse
+      stringResponse,
     );
   }
 
@@ -257,7 +257,7 @@ export default class Web extends GenericServer {
       // parse the HTTP status code to int
       let responseHttpCode = parseInt(
         connection.rawConnection.responseHttpCode,
-        10
+        10,
       );
 
       if (error) {
@@ -267,7 +267,7 @@ export default class Web extends GenericServer {
           connection,
           responseHttpCode,
           headers,
-          errorString
+          errorString,
         );
       } else if (responseHttpCode !== 304) {
         this.sendWithCompression(
@@ -276,7 +276,7 @@ export default class Web extends GenericServer {
           headers,
           null,
           fileStream,
-          length
+          length,
         );
       } else {
         connection.rawConnection.res.writeHead(responseHttpCode, headers);
@@ -337,7 +337,7 @@ export default class Web extends GenericServer {
         if (noneMatchHeader) {
           etagMatches = noneMatchHeader.some(
             (match) =>
-              match === "*" || match === fileEtag || match === "W/" + fileEtag
+              match === "*" || match === fileEtag || match === `W/${fileEtag}`,
           );
         }
 
@@ -370,7 +370,7 @@ export default class Web extends GenericServer {
     headers,
     stringResponse,
     fileStream,
-    fileLength
+    fileLength,
   ) {
     let self = this;
     let compressor, stringEncoder;
@@ -639,7 +639,7 @@ export default class Web extends GenericServer {
       let search = connection.rawConnection.parsedURL.search.slice(1);
       self._fillParamsFromWebRequest(
         connection,
-        qs.parse(search, self.api.config.servers.web.queryParseOptions)
+        qs.parse(search, self.api.config.servers.web.queryParseOptions),
       );
 
       connection.rawConnection.params.query =
@@ -664,7 +664,7 @@ export default class Web extends GenericServer {
             if (error) {
               self.log(`error processing form: ${String(error)}`, "error");
               connection.error = new Error(
-                "There was an error processing this form."
+                "There was an error processing this form.",
               );
             } else {
               connection.rawConnection.params.body = fields;
@@ -681,7 +681,7 @@ export default class Web extends GenericServer {
             self.api.routes.processRoute(connection, pathParts);
 
             callback(requestMode);
-          }
+          },
         );
       } else {
         if (self.api.config.servers.web.queryRouting !== true) {
@@ -716,10 +716,11 @@ export default class Web extends GenericServer {
 
     // client lib
     let file = path.normalize(
-      self.api.config.general.paths.public +
+      `${
+        self.api.config.general.paths.public +
         path.sep +
-        self.api.config.servers.websocket.clientJsName +
-        ".js"
+        self.api.config.servers.websocket.clientJsName
+      }.js`,
     );
 
     // define the file to be loaded
@@ -766,10 +767,10 @@ export default class Web extends GenericServer {
         data.connection.destroy();
       } else {
         data.connection.rawConnection.res.on("finish", () =>
-          data.connection.destroy()
+          data.connection.destroy(),
         );
         data.connection.rawConnection.res.on("close", () =>
-          data.connection.destroy()
+          data.connection.destroy(),
         );
       }
 
@@ -790,7 +791,7 @@ export default class Web extends GenericServer {
     // check if is to use requester information
     if (this.api.config.servers.web.metadataOptions.requesterInformation) {
       data.response.requesterInformation = this._buildRequesterInformation(
-        data.connection
+        data.connection,
       );
     }
 
@@ -829,7 +830,7 @@ export default class Web extends GenericServer {
     // if its an error response we need to serialize the error object
     if (data.response.error) {
       data.response.error = this.api.config.errors.serializers.servers.web(
-        data.response.error
+        data.response.error,
       );
     }
 
@@ -841,14 +842,14 @@ export default class Web extends GenericServer {
         stringResponse = JSON.stringify(
           data.response,
           null,
-          this.api.config.servers.web.padding
+          this.api.config.servers.web.padding,
         );
       } catch (_) {
         data.connection.rawConnection.responseHttpCode = 500;
         stringResponse = JSON.stringify({
           error: "invalid_response_object",
           requesterInformation: this._buildRequesterInformation(
-            data.connection
+            data.connection,
           ),
         });
       }
@@ -858,8 +859,7 @@ export default class Web extends GenericServer {
           "Content-Type",
           "application/javascript",
         ]);
-        stringResponse =
-          data.connection.params.callback + "(" + stringResponse + ");";
+        stringResponse = `${data.connection.params.callback}(${stringResponse});`;
       }
     } else {
       stringResponse = data.response;
@@ -1011,7 +1011,7 @@ export default class Web extends GenericServer {
     let stringResponse = JSON.stringify(
       data,
       null,
-      self.api.config.servers.web.padding
+      self.api.config.servers.web.padding,
     );
     self.sendMessage(connection, stringResponse);
   }

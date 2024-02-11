@@ -2,17 +2,17 @@
  * General configs.
  */
 export default {
-  general (api) {
+  general(api) {
     return {
       // ---------------------------------------------------------------------
       // API version
       // ---------------------------------------------------------------------
-      apiVersion: '0.0.1',
+      apiVersion: "0.0.1",
 
       // ---------------------------------------------------------------------
       // Server name
       // ---------------------------------------------------------------------
-      serverName: 'Stellar API',
+      serverName: "Stellar API",
 
       // ---------------------------------------------------------------------
       // A unique token to the application that servers will use to
@@ -20,22 +20,22 @@ export default {
       //
       // If this is not present an id will be generated dynamically.
       // ---------------------------------------------------------------------
-      serverToken: 'change-me',
+      serverToken: "change-me",
 
       // ---------------------------------------------------------------------
       // Welcome message seen by TCP and WebSocket clients upon connection
       // ---------------------------------------------------------------------
-      welcomeMessage: 'Hello human! Welcome to Stellar',
+      welcomeMessage: "Hello human! Welcome to Stellar",
 
       // ---------------------------------------------------------------------
       // The Redis prefix for Stellar's cache objects
       // ---------------------------------------------------------------------
-      cachePrefix: 'stellar:cache',
+      cachePrefix: "stellar:cache",
 
       // ---------------------------------------------------------------------
       // The Redis prefix for Stellar's cache/lock objects
       // ---------------------------------------------------------------------
-      lockPrefix: 'stellar:lock',
+      lockPrefix: "stellar:lock",
 
       // ---------------------------------------------------------------------
       // How long will a lock last before it expires (ms)
@@ -68,7 +68,7 @@ export default {
       // ---------------------------------------------------------------------
       // Which channel to use on redis pub/sub for RPC communication
       // ---------------------------------------------------------------------
-      channel: 'stellar',
+      channel: "stellar",
 
       // ---------------------------------------------------------------------
       // How long to wait for an RPC call before considering it a failure
@@ -88,16 +88,16 @@ export default {
       // ---------------------------------------------------------------------
       // Default filetype to serve when a user requests a directory
       // ---------------------------------------------------------------------
-      directoryFileType: 'index.html',
+      directoryFileType: "index.html",
 
       // ---------------------------------------------------------------------
       // Configurations for Stellar project structure
       // ---------------------------------------------------------------------
       paths: {
-        'public': api.scope.rootPath + '/public',
-        'temp': api.scope.rootPath + '/temp',
-        'pid': api.scope.rootPath + '/temp/pids',
-        'log': api.scope.rootPath + '/temp/logs'
+        public: `${api.scope.rootPath}/public`,
+        temp: `${api.scope.rootPath}/temp`,
+        pid: `${api.scope.rootPath}/temp/pids`,
+        log: `${api.scope.rootPath}/temp/logs`,
       },
 
       // ---------------------------------------------------------------------
@@ -110,7 +110,7 @@ export default {
       //  'secureRoom': {authorized: true}
       // ---------------------------------------------------------------------
       startingChatRooms: {
-        'defaultRoom': {}
+        defaultRoom: {},
       },
 
       // ---------------------------------------------------------------------
@@ -133,7 +133,7 @@ export default {
       //
       // Attention: you must overwrite this with your own salt
       // ---------------------------------------------------------------------
-      salt: '$2a$10$NH3tXRj/M1YX6cXn2RmVI.CFOiKGJz59qfoD3Coe1rN1TJi9olK1S',
+      salt: "$2a$10$NH3tXRj/M1YX6cXn2RmVI.CFOiKGJz59qfoD3Coe1rN1TJi9olK1S",
 
       // ---------------------------------------------------------------------
       // Predefined salt length to use in the salt generation
@@ -151,11 +151,10 @@ export default {
       // NOTE: The values is specified into milliseconds.
       // DEFAULT: 30 seconds
       // ---------------------------------------------------------------------
-      actionTimeout: 30000
-    }
-  }
-
-}
+      actionTimeout: 30000,
+    };
+  },
+};
 
 /**
  * Test configs.
@@ -163,10 +162,10 @@ export default {
  * @type {{}}
  */
 export const test = {
-  general () {
+  general() {
     return {
       // set the server identifier during testing
-      id: 'test-server',
+      id: "test-server",
       serverToken: `server-Token-${process.pid}`,
 
       // disable dev mode to speed up the tests
@@ -175,14 +174,14 @@ export const test = {
       // Ensure the creation of the `defaultRoom` and `otherRoom` rooms
       startingChatRooms: {
         defaultRoom: {},
-        otherRoom: {}
+        otherRoom: {},
       },
 
       // we don't need to generate documentation during testing
-      generateDocumentation: false
-    }
-  }
-}
+      generateDocumentation: false,
+    };
+  },
+};
 
 /**
  * Production configs.
@@ -190,9 +189,9 @@ export const test = {
  * @type {{}}
  */
 export const production = {
-  general () {
+  general() {
     return {
-      developmentMode: false
-    }
-  }
-}
+      developmentMode: false,
+    };
+  },
+};

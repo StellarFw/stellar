@@ -116,7 +116,7 @@ class Actions {
 
             resolve(data.response);
           });
-        }
+        },
       );
 
       // process the action
@@ -303,7 +303,7 @@ class Actions {
       self.api.connections.allowedVerbs.indexOf(action.name) >= 0
     ) {
       fail(
-        `${action.run} is a reserved verb for connections. Choose a new name`
+        `${action.run} is a reserved verb for connections. Choose a new name`,
       );
       return false;
     } else {
@@ -376,7 +376,7 @@ class Actions {
 
     // watch for changes on the middleware file
     self.api.configs.watchFileAndAct(path, () =>
-      self.loadMiddlewareFromFile(path, true)
+      self.loadMiddlewareFromFile(path, true),
     );
 
     // try load the middleware
@@ -429,7 +429,7 @@ class Actions {
         // iterate all groups and for each one load the actions
         group.modules.forEach((groupName) => {
           actions = actions.concat(
-            this.api.modules.moduleActions.get(groupName) || []
+            this.api.modules.moduleActions.get(groupName) || [],
           );
         });
       }
@@ -543,7 +543,7 @@ class Actions {
 
     // apply the changes of all founded groups
     groupNames.forEach((groupName) =>
-      this._applyGroupModToAction(groupName, action)
+      this._applyGroupModToAction(groupName, action),
     );
   }
 
@@ -593,7 +593,7 @@ export default class {
     for (const [moduleName, modulePath] of api.modules.modulesPaths) {
       // load modules middleware
       const middlewarePaths = api.utils.recursiveDirectoryGlob(
-        `${modulePath}/middleware`
+        `${modulePath}/middleware`,
       );
       for (const path of middlewarePaths) {
         await api.actions.loadMiddlewareFromFile(path);
@@ -601,7 +601,7 @@ export default class {
 
       // get all files from the module "actions" folder
       const actionFiles = api.utils.recursiveDirectoryGlob(
-        `${modulePath}/actions`
+        `${modulePath}/actions`,
       );
       for (const actionFile of actionFiles) {
         await api.actions.loadFile(actionFile, moduleName);
@@ -619,7 +619,7 @@ export default class {
 
         // when the modifier file changes we must reload the entire server
         api.configs.watchFileAndAct(modPath, () =>
-          api.commands.restart.call(api._self)
+          api.commands.restart.call(api._self),
         );
       }
     }

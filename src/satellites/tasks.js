@@ -45,13 +45,13 @@ class TaskSatellite {
 
       this.api.log(
         `task ${reloadWord}loaded: ${loadedTasksName}, ${fullFilePath}`,
-        level
+        level,
       );
     };
 
     // start watch for file changes
     this.api.configs.watchFileAndAct(fullFilePath, () =>
-      this.loadFile(fullFilePath, true)
+      this.loadFile(fullFilePath, true),
     );
 
     // temporary task info
@@ -276,7 +276,7 @@ class TaskSatellite {
       queue,
       taskName,
       params,
-      callback
+      callback,
     );
   }
 
@@ -473,7 +473,7 @@ class TaskSatellite {
         self.enqueueIn(task.frequency, taskName, () => {
           self.api.log(
             `re-enqueued recurrent job ${taskName}`,
-            self.api.config.tasks.schedulerLogging.reEnqueue
+            self.api.config.tasks.schedulerLogging.reEnqueue,
           );
           callback();
         });
@@ -504,7 +504,7 @@ class TaskSatellite {
             if (toRun === true) {
               self.api.log(
                 `enqueuing periodic task ${taskName}`,
-                self.api.config.tasks.schedulerLogging.enqueue
+                self.api.config.tasks.schedulerLogging.enqueue,
               );
               loadedTasks.push(taskName);
             }

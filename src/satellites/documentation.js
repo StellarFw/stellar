@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from "fs";
 
 class DocumentationGenerator {
   /**
@@ -6,61 +6,61 @@ class DocumentationGenerator {
    *
    * @type {null}
    */
-  api = null
+  api = null;
 
   /**
    * Docs folder path.
    *
    * @type {string}
    */
-  docsFolder = ''
+  docsFolder = "";
 
   /**
    * Static folder path.
    *
    * @type {string}
    */
-  staticFolder = ''
+  staticFolder = "";
 
   /**
    * Constructor.
    *
    * @param api
    */
-  constructor (api) {
-    let self = this
+  constructor(api) {
+    let self = this;
 
     // save API reference object
-    self.api = api
+    self.api = api;
 
     // unsure the public folder exists
-    this.api.utils.createFolder(self.api.config.general.paths.public)
+    this.api.utils.createFolder(self.api.config.general.paths.public);
 
     // build docs folder path
-    self.docsFolder = `${self.api.config.general.paths.public}/docs`
+    self.docsFolder = `${self.api.config.general.paths.public}/docs`;
 
     // build static folder path
-    self.staticFolder = `${__dirname}/../../staticFiles/docs`
+    self.staticFolder = `${__dirname}/../../staticFiles/docs`;
   }
 
   /**
    * Generate an array with all information needed to build the list of tasks.
    */
-  _getTasksInformation () {
+  _getTasksInformation() {
     // array to store all the tasks
-    const tasks = []
+    const tasks = [];
 
     // iterate all registered tasks
-    Object.keys(this.api.tasks.tasks).forEach(key => {
-      const task = this.api.tasks.tasks[key]
+    Object.keys(this.api.tasks.tasks).forEach((key) => {
+      const task = this.api.tasks.tasks[key];
       tasks.push({
         name: task.name,
-        description: task.description || 'N/A',
-        frequency: task.frequency || '-'
-      })
-    })
+        description: task.description || "N/A",
+        frequency: task.frequency || "-",
+      });
+    });
 
-    return tasks
+    return tasks;
   }
 
   /**
@@ -69,84 +69,96 @@ class DocumentationGenerator {
    * @returns {{}}  Actions to generate documentation.
    * @private
    */
-  _getActionToGenerateDoc () {
-    let self = this
+  _getActionToGenerateDoc() {
+    let self = this;
 
     // array to store the actions
-    let actions = {}
+    let actions = {};
 
     // iterate all actions
     for (let actionName in self.api.actions.actions) {
-      let count = 0
+      let count = 0;
 
-      actions[ actionName ] = {}
+      actions[actionName] = {};
 
       // iterate all action versions
-      for (let versionNumber in self.api.actions.actions[ actionName ]) {
-        if (self.api.actions.actions[ actionName ][ versionNumber ].toDocument !== false) {
-          count++
-          actions[ actionName ][ versionNumber ] = self.api.actions.actions[ actionName ][ versionNumber ]
+      for (let versionNumber in self.api.actions.actions[actionName]) {
+        if (
+          self.api.actions.actions[actionName][versionNumber].toDocument !==
+          false
+        ) {
+          count++;
+          actions[actionName][versionNumber] =
+            self.api.actions.actions[actionName][versionNumber];
         }
       }
 
-      if (count === 0) { delete actions[ actionName ] }
+      if (count === 0) {
+        delete actions[actionName];
+      }
     }
 
-    return actions
+    return actions;
   }
 
   /**
    * Generate the documentation.
    */
-  generateDocumentation () {
-    let self = this
+  generateDocumentation() {
+    let self = this;
 
     // remove docs directory
-    this.api.utils.removeDirectory(self.docsFolder)
+    this.api.utils.removeDirectory(self.docsFolder);
 
     // create the directory again
-    this.api.utils.createFolder(self.docsFolder)
+    this.api.utils.createFolder(self.docsFolder);
 
     // get actions to generate documentation
-    let actions = self._getActionToGenerateDoc()
+    let actions = self._getActionToGenerateDoc();
 
     // object with the template data
-    let data = { actions: Object.keys(actions) }
+    let data = { actions: Object.keys(actions) };
 
     // get base template
-    let generator = require(`${self.staticFolder}/action.html.js`)
+    let generator = require(`${self.staticFolder}/action.html.js`);
 
     // iterate all loaded actions
     for (let actionName in actions) {
       // set action name
-      data.actionName = actionName
+      data.actionName = actionName;
 
       // initialize array
-      data.actionVersions = []
+      data.actionVersions = [];
 
       // iterate all versions
-      for (let versionNumber in actions[ actionName ]) {
+      for (let versionNumber in actions[actionName]) {
         // get action object
-        let action = self._prepareActionToPrint(actions[ actionName ][ versionNumber ])
+        let action = self._prepareActionToPrint(
+          actions[actionName][versionNumber],
+        );
 
         // push the version number
-        action.version = versionNumber
+        action.version = versionNumber;
 
         // push the new action to the actionVersions array
-        data.actionVersions.push(action)
+        data.actionVersions.push(action);
       }
 
-      const generatedHtml = generator.render(data)
+      const generatedHtml = generator.render(data);
 
       // output the result to the temp folder
-      fs.writeFileSync(`${self.docsFolder}/action_${actionName}.html`, generatedHtml, 'utf8')
+      fs.writeFileSync(
+        `${self.docsFolder}/action_${actionName}.html`,
+        generatedHtml,
+        "utf8",
+      );
     }
 
     // build the index.html
-    self._buildIndexFile()
+    self._buildIndexFile();
 
     // copy resource files
-    this._copyResourceFiles()
+    this._copyResourceFiles();
   }
 
   /**
@@ -154,26 +166,26 @@ class DocumentationGenerator {
    *
    * @private
    */
-  _buildIndexFile () {
-    let self = this
+  _buildIndexFile() {
+    let self = this;
 
     // build data object
     let data = {
       actions: Object.keys(self._getActionToGenerateDoc()),
-      project: {}
-    }
-    data.project.name = self.api.config.name
-    data.project.description = self.api.config.description
-    data.project.version = self.api.config.version
+      project: {},
+    };
+    data.project.name = self.api.config.name;
+    data.project.description = self.api.config.description;
+    data.project.version = self.api.config.version;
 
     // append the tasks information
-    data.tasks = this._getTasksInformation()
+    data.tasks = this._getTasksInformation();
 
-    const generator = require(`${self.staticFolder}/index.html.js`)
-    const contentGenerated = generator.render(data)
+    const generator = require(`${self.staticFolder}/index.html.js`);
+    const contentGenerated = generator.render(data);
 
     // save index.html file on final docs folder
-    fs.writeFileSync(`${self.docsFolder}/index.html`, contentGenerated, 'utf8')
+    fs.writeFileSync(`${self.docsFolder}/index.html`, contentGenerated, "utf8");
   }
 
   /**
@@ -183,60 +195,66 @@ class DocumentationGenerator {
    * @returns {{}}
    * @private
    */
-  _prepareActionToPrint (action) {
+  _prepareActionToPrint(action) {
     // create a new object with the data prepared to be printed
-    let output = {}
+    let output = {};
 
     // action name
-    output.name = action.name
+    output.name = action.name;
 
     // action description
-    output.description = action.description
+    output.description = action.description;
 
     // action output example
     if (action.outputExample !== undefined) {
-      output.outputExample = JSON.stringify(action.outputExample, null, 4)
+      output.outputExample = JSON.stringify(action.outputExample, null, 4);
     }
 
     // action inputs
     if (action.inputs !== undefined) {
-      output.inputs = []
+      output.inputs = [];
 
       // iterate all inputs
-      Object.keys(action.inputs).forEach(inputName => {
-        let newInput = {}
-        let input = action.inputs[ inputName ]
+      Object.keys(action.inputs).forEach((inputName) => {
+        let newInput = {};
+        let input = action.inputs[inputName];
 
-        newInput.name = inputName
-        newInput.description = input.description || 'N/A'
-        newInput.default = input.default || 'N/A'
+        newInput.name = inputName;
+        newInput.description = input.description || "N/A";
+        newInput.default = input.default || "N/A";
 
-        newInput.validators = []
+        newInput.validators = [];
 
         if (!(input.required === undefined || input.required === false)) {
-          newInput.validators.push({ type: 'required', value: 'required' })
+          newInput.validators.push({ type: "required", value: "required" });
         }
 
         // validators
-        if (typeof input.validator === 'function') {
-          newInput.validators.push({ type: 'function', value: 'function' })
+        if (typeof input.validator === "function") {
+          newInput.validators.push({ type: "function", value: "function" });
         } else if (input.validator instanceof RegExp) {
-          newInput.validators.push({ type: 'regex', value: String(input.validator) })
-        } else if (typeof input.validator === 'string') {
+          newInput.validators.push({
+            type: "regex",
+            value: String(input.validator),
+          });
+        } else if (typeof input.validator === "string") {
           // the validator string can have many validators separated by '|', we need to split them
-          let validators = input.validator.split('|')
+          let validators = input.validator.split("|");
 
           for (let index in validators) {
-            newInput.validators.push({ type: 'validator', value: validators[ index ] })
+            newInput.validators.push({
+              type: "validator",
+              value: validators[index],
+            });
           }
         }
 
         // push the new input
-        output.inputs.push(newInput)
-      })
+        output.inputs.push(newInput);
+      });
     }
 
-    return output
+    return output;
   }
 
   /**
@@ -244,11 +262,20 @@ class DocumentationGenerator {
    *
    * @private
    */
-  _copyResourceFiles () {
-    let self = this
-    this.api.utils.copyFile(`${self.staticFolder}/reset.css`, `${self.docsFolder}/reset.css`)
-    this.api.utils.copyFile(`${self.staticFolder}/style.css`, `${self.docsFolder}/style.css`)
-    this.api.utils.copyFile(`${self.staticFolder}/highlight.js`, `${self.docsFolder}/highlight.js`)
+  _copyResourceFiles() {
+    let self = this;
+    this.api.utils.copyFile(
+      `${self.staticFolder}/reset.css`,
+      `${self.docsFolder}/reset.css`,
+    );
+    this.api.utils.copyFile(
+      `${self.staticFolder}/style.css`,
+      `${self.docsFolder}/style.css`,
+    );
+    this.api.utils.copyFile(
+      `${self.staticFolder}/highlight.js`,
+      `${self.docsFolder}/highlight.js`,
+    );
   }
 }
 
@@ -262,7 +289,7 @@ export default class {
    *
    * @type {number}
    */
-  loadPriority = 710
+  loadPriority = 710;
 
   /**
    * Satellite loading function.
@@ -270,17 +297,17 @@ export default class {
    * @param api   API reference object.
    * @param next  Callback function.
    */
-  load (api, next) {
+  load(api, next) {
     // if the documentation generation was disabled finish now
     if (api.config.general.generateDocumentation !== true) {
-      next()
-      return
+      next();
+      return;
     }
 
     // build the documentation
-    (new DocumentationGenerator(api)).generateDocumentation()
+    new DocumentationGenerator(api).generateDocumentation();
 
     // finish the satellite loading
-    next()
+    next();
   }
 }

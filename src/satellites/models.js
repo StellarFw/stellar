@@ -83,7 +83,7 @@ class Models {
     // cerate a new model objects to merge the model into the default model properties defied in the configurations file
     const newModel = mergeDeepRight(
       this.api.config.models.defaultModelPropsForDatastore[dataStoreToUse],
-      modelOrig
+      modelOrig,
     );
 
     // Execute the `add` event to allow other modules modify this model before it
@@ -92,7 +92,7 @@ class Models {
       `core.models.add.${modelName}`,
       {
         model: newModel,
-      }
+      },
     );
 
     // When there is no identity property defined we use the file basename.
@@ -125,9 +125,7 @@ class Models {
       try {
         const model = await this.preProcessModelData(
           modelBasename,
-          (
-            await import(modelFile)
-          ).default
+          (await import(modelFile)).default,
         );
         result.push(model);
 
@@ -136,7 +134,7 @@ class Models {
         this.api.log(
           `Model error (${modelBasename}): ${error.message}`,
           "error",
-          error
+          error,
         );
       }
     }
@@ -152,7 +150,7 @@ class Models {
 
     for (const [, modulePath] of this.api.modules.modulesPaths) {
       const modelFiles = this.api.utils.recursiveDirectoryGlob(
-        `${modulePath}/models`
+        `${modulePath}/models`,
       );
       const processedModels = await this.processModelsFiles(modelFiles);
       allModels = [...allModels, ...processedModels];
@@ -160,7 +158,7 @@ class Models {
 
     return allModels.reduce(
       (result, model) => ({ ...result, [model.identity]: model }),
-      {}
+      {},
     );
   }
 
@@ -183,7 +181,7 @@ class Models {
       // log a information message
       this.api.log(
         `\r\n\r\n*** rebooting due to model change (${file}) ***\r\n\r\n`,
-        "info"
+        "info",
       );
 
       // remove require cache

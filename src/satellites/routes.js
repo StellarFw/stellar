@@ -67,7 +67,7 @@ class RoutesManager {
         let match = self.matchURL(
           pathParts,
           route.path,
-          route.matchTrailingPathParts
+          route.matchTrailingPathParts,
         );
 
         if (match.match === true) {
@@ -81,7 +81,7 @@ class RoutesManager {
             try {
               let decodedName = decodeURIComponent(param.replace(/\+/g, " "));
               let decodedValue = decodeURIComponent(
-                match.params[param].replace(/\+g/, " ")
+                match.params[param].replace(/\+g/, " "),
               );
               connection.params[decodedName] = decodedValue;
             } catch (e) {
@@ -150,7 +150,7 @@ class RoutesManager {
         variable = matchPart.replace(":", "").split("(")[0];
         regexp = matchPart.substring(
           matchPart.indexOf("(") + 1,
-          matchPart.length - 1
+          matchPart.length - 1,
         );
         var matches = pathPart.match(new RegExp(regexp, "g"));
         if (matches) {
@@ -188,7 +188,7 @@ class RoutesManager {
     path,
     action,
     apiVersion,
-    matchTrailingPathParts = false
+    matchTrailingPathParts = false,
   ) {
     let self = this;
 
@@ -225,7 +225,7 @@ class RoutesManager {
               route.path,
               route.action,
               route.apiVersion,
-              route.matchTrailingPathParts
+              route.matchTrailingPathParts,
             );
           });
         } else {
@@ -234,7 +234,7 @@ class RoutesManager {
             route.path,
             route.action,
             route.apiVersion,
-            route.matchTrailingPathParts
+            route.matchTrailingPathParts,
           );
         }
         counter++;
@@ -243,7 +243,7 @@ class RoutesManager {
 
     // remove duplicated entries on postVariables
     self.api.params.postVariables = this.api.utils.arrayUniqueify(
-      self.api.params.postVariables
+      self.api.params.postVariables,
     );
 
     // log the number of loaded routes
@@ -269,7 +269,7 @@ class RoutesManager {
       // log the number of simple routes loaded
       self.api.log(
         `${simplePaths.length} simple routes loaded from action names`,
-        "debug"
+        "debug",
       );
       self.api.log("routes: ", "debug", self.routes);
     }

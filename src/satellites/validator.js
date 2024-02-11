@@ -126,7 +126,7 @@ class Validator {
           } else if (funcResponse === false) {
             errors.set(
               fieldName,
-              `The ${fieldName} field do not match with the validator function.`
+              `The ${fieldName} field do not match with the validator function.`,
             );
           }
 
@@ -215,7 +215,7 @@ class Validator {
     // if there is no message for the validator throw an error
     if (message === undefined) {
       throw new Error(
-        `No error message was been specified for the '${rule}' validator`
+        `No error message was been specified for the '${rule}' validator`,
       );
     }
 
@@ -292,7 +292,7 @@ class Validator {
   _requireParameterCount(count, parameters, rule) {
     if (!parameters || parameters.length < count) {
       throw new InvalidArgumentException(
-        `Validation rule ${rule} requires at least ${count} parameters.`
+        `Validation rule ${rule} requires at least ${count} parameters.`,
       );
     }
   }
@@ -471,7 +471,7 @@ class Validator {
    */
   validatorEmail(value) {
     return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-      value
+      value,
     );
   }
 
@@ -811,7 +811,7 @@ class Validator {
    */
   validatorUrl(value) {
     return /^(http|ftp|https):\/\/[\w-]+(\.[\w-]*)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?$/.test(
-      value
+      value,
     );
   }
 

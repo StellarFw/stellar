@@ -136,7 +136,7 @@ class ConfigManager {
   _rebootCallback(file) {
     this.api.log(
       `\r\n\r\n*** rebooting due to config change (${file}) ***\r\n\r\n`,
-      "info"
+      "info",
     );
     // TODO: do we really need this when using ESM modules?
     // delete require.cache[ require.resolve(file) ]
@@ -153,13 +153,13 @@ class ConfigManager {
     // read project manifest
     try {
       this.api.config = await this.api.utils.readJsonFile(
-        `${this.api.scope.rootPath}/manifest.json`
+        `${this.api.scope.rootPath}/manifest.json`,
       );
     } catch (e) {
       // when the project manifest doesn't exists the user is informed and the engine instance is terminated
       this.api.log(
         "Project `manifest.json` file does not exists.",
-        "emergency"
+        "emergency",
       );
 
       // finish process (we can not stop the Engine because it can not be run)
@@ -173,7 +173,7 @@ class ConfigManager {
     for (const moduleName of this.api.config.modules) {
       await this.loadConfigDirectory(
         `${this.api.scope.rootPath}/modules/${moduleName}/config`,
-        isToWatch
+        isToWatch,
       );
     }
 
@@ -181,7 +181,7 @@ class ConfigManager {
     // should be reloaded when the project configs changes
     await this.loadConfigDirectory(
       `${this.api.scope.rootPath}/config`,
-      isToWatch
+      isToWatch,
     );
   }
 
@@ -209,14 +209,14 @@ class ConfigManager {
           this.api.config = this.api.utils.hashMerge(
             this.api.config,
             localConfig.default,
-            this.api
+            this.api,
           );
         }
         if (localConfig[this.api.env]) {
           this.api.config = this.api.utils.hashMerge(
             this.api.config,
             localConfig[this.api.env],
-            this.api
+            this.api,
           );
         }
 
@@ -235,8 +235,9 @@ class ConfigManager {
         loadErrors[file] = error.toString();
         if (++loadRetries === limit - i) {
           throw new Error(
-            "Unable to load configurations, errors: " +
-              JSON.stringify(loadErrors)
+            `Unable to load configurations, errors: ${JSON.stringify(
+              loadErrors,
+            )}`,
           );
         }
         // adjust configuration files list: remove and push failed configuration to the end of the list and continue

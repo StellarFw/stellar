@@ -102,7 +102,7 @@ export class Utils {
 
   readJsonFile(filePath) {
     return this.readFile(filePath).then((buffer) =>
-      JSON.parse(buffer.toString())
+      JSON.parse(buffer.toString()),
     );
   }
 
@@ -470,7 +470,7 @@ export class Utils {
         return (
           (memo[name] = Object.getOwnPropertyDescriptor(obj, name)) && memo
         );
-      }, {})
+      }, {}),
     );
   }
 

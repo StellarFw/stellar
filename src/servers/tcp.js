@@ -67,14 +67,14 @@ export default class Tcp extends GenericServer {
         self.api.config.servers.tcp.serverOptions,
         (rawConnection) => {
           self._handleConnection(rawConnection);
-        }
+        },
       );
     } else {
       self.server = tls.createServer(
         self.api.config.servers.tcp.serverOptions,
         (rawConnection) => {
           self._handleConnection(rawConnection);
-        }
+        },
       );
     }
 
@@ -82,8 +82,8 @@ export default class Tcp extends GenericServer {
     self.server.on("error", (e) => {
       return callback(
         new Error(
-          `Cannot start tcp server @ ${self.options.bindIP}:${self.options.port} => ${e.message}`
-        )
+          `Cannot start tcp server @ ${self.options.bindIP}:${self.options.port} => ${e.message}`,
+        ),
       );
     });
 
@@ -115,7 +115,7 @@ export default class Tcp extends GenericServer {
     // if is an error message serialize the object
     if (message.error) {
       message.error = self.api.config.errors.serializers.servers.tcp(
-        message.error
+        message.error,
       );
     }
 
@@ -133,7 +133,7 @@ export default class Tcp extends GenericServer {
 
     // try send the message to the client
     try {
-      connection.rawConnection.write(JSON.stringify(message) + "\r\n");
+      connection.rawConnection.write(`${JSON.stringify(message)}\r\n`);
     } catch (e) {
       self.api.log(`socket write error: ${e}`, "error");
     }
@@ -149,12 +149,12 @@ export default class Tcp extends GenericServer {
 
     try {
       connection.rawConnection.end(
-        JSON.stringify({
+        `${JSON.stringify({
           status: connection.localize(
-            self.api.config.servers.tcp.goodbeyMessage
+            self.api.config.servers.tcp.goodbeyMessage,
           ),
           context: "api",
-        }) + "\r\n"
+        })}\r\n`,
       );
     } catch (e) {
       // ignore error
@@ -204,7 +204,7 @@ export default class Tcp extends GenericServer {
           if (bufferLen > self.api.config.servers.tcp.maxDataLength) {
             let error = self.api.config.errors.dataLengthTooLarge(
               self.api.config.servers.tcp.maxDataLength,
-              bufferLen
+              bufferLen,
             );
             self.log(error, "error");
             return self.sendMessage(connection, {
@@ -242,11 +242,11 @@ export default class Tcp extends GenericServer {
           ) {
             let data = connection.rawConnection.socketDataString.slice(
               0,
-              index
+              index,
             );
             connection.rawConnection.socketDataString =
               connection.rawConnection.socketDataString.slice(
-                index + delimiter.length
+                index + delimiter.length,
               );
             data.split(delimiter).forEach(parseLine);
           }
@@ -453,7 +453,7 @@ export default class Tcp extends GenericServer {
     if (pendingConnections > 0) {
       self.log(
         `waiting on shutdown, there are still ${pendingConnections} connected clients waiting on a response`,
-        "notice"
+        "notice",
       );
       setTimeout(() => {
         self._gracefulShutdown(next, true);

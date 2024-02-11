@@ -85,7 +85,7 @@ class Modules {
     // check if the private module folder exists
     if (
       this.api.utils.directoryExists(
-        `${self.api.scope.rootPath}/modules/private`
+        `${self.api.scope.rootPath}/modules/private`,
       )
     ) {
       modules.push("private");
@@ -108,7 +108,7 @@ class Modules {
       // get module manifest file content
       try {
         const manifest = await this.api.utils.readJsonFile(
-          `${path}/manifest.json`
+          `${path}/manifest.json`,
         );
 
         // save the module config on the engine instance
@@ -119,8 +119,8 @@ class Modules {
       } catch (e) {
         next(
           new Error(
-            `There is an invalid module active, named "${moduleName}", fix this to start Stellar normally.`
-          )
+            `There is an invalid module active, named "${moduleName}", fix this to start Stellar normally.`,
+          ),
         );
         break;
       }
@@ -179,7 +179,7 @@ class Modules {
         // merge the two hashes
         npmDependencies = this.api.utils.hashMerge(
           npmDependencies,
-          manifest.npmDependencies
+          manifest.npmDependencies,
         );
       }
     });
@@ -199,7 +199,7 @@ class Modules {
     fs.writeFileSync(
       packageJsonPath,
       JSON.stringify(projectJson, null, 2),
-      "utf8"
+      "utf8",
     );
 
     self.api.log("updating NPM packages", "info");
@@ -213,7 +213,7 @@ class Modules {
       if (error) {
         self.api.log(
           "An error occurs during the NPM install command",
-          "emergency"
+          "emergency",
         );
         process.exit(1);
       }

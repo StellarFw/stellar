@@ -1,60 +1,66 @@
-import uuid from 'uuid'
-import GenericServer from '../genericServer'
+import uuid from "uuid";
+import GenericServer from "../genericServer";
 
 class TestServer extends GenericServer {
-  constructor (api, type, options, attributes) {
-    super(api, type, options, attributes)
+  constructor(api, type, options, attributes) {
+    super(api, type, options, attributes);
 
-    this.on('connection', connection => {
-      connection.messages = []
-      connection.actionCallbacks = {}
-    })
+    this.on("connection", (connection) => {
+      connection.messages = [];
+      connection.actionCallbacks = {};
+    });
 
-    this.on('actionComplete', data => {
-      data.response.messageCount = data.messageCount
+    this.on("actionComplete", (data) => {
+      data.response.messageCount = data.messageCount;
       data.response.serverInformation = {
         serverName: api.config.general.serverName,
-        apiVersion: api.config.general.apiVersion
-      }
+        apiVersion: api.config.general.apiVersion,
+      };
 
       data.response.requesterInformation = {
         id: data.connection.id,
         remoteIP: data.connection.remoteIP,
-        receivedParams: {}
-      }
+        receivedParams: {},
+      };
 
       if (data.response.error) {
-        data.response.error = api.config.errors.serializers.servers.helper(data.response.error)
+        data.response.error = api.config.errors.serializers.servers.helper(
+          data.response.error,
+        );
       }
 
-      for (var k in data.params) { data.response.requesterInformation.receivedParams[ k ] = data.params[ k ] }
+      for (var k in data.params) {
+        data.response.requesterInformation.receivedParams[k] = data.params[k];
+      }
 
       if (data.toRender === true) {
-        this.sendMessage(data.connection, data.response, data.messageCount)
+        this.sendMessage(data.connection, data.response, data.messageCount);
       }
-    })
+    });
   }
 
-  start (next) {
-    this.api.log('loading the testServer', 'warning')
-    next()
+  start(next) {
+    this.api.log("loading the testServer", "warning");
+    next();
   }
 
-  stop (next) { next() }
+  stop(next) {
+    next();
+  }
 
-  sendMessage (connection, message, messageCount) {
+  sendMessage(connection, message, messageCount) {
     process.nextTick(() => {
-      message.messageCount = messageCount
-      connection.messages.push(message)
+      message.messageCount = messageCount;
+      connection.messages.push(message);
 
-      if (typeof connection.actionCallbacks[ messageCount ] === 'function') {
-        connection.actionCallbacks[ messageCount ](message, connection)
-        delete connection.actionCallbacks[ messageCount ]
+      if (typeof connection.actionCallbacks[messageCount] === "function") {
+        connection.actionCallbacks[messageCount](message, connection);
+        delete connection.actionCallbacks[messageCount];
       }
-    })
+    });
   }
 
-  goodbye () {}
+  goodbye() {}
 }
 
 class Helpers {
@@ -63,39 +69,41 @@ class Helpers {
    *
    * @type {null}
    */
-  api = null
+  api = null;
 
   /**
    * Create a new instance of Helpers class.
    *
    * @param api
    */
-  constructor (api) { this.api = api }
+  constructor(api) {
+    this.api = api;
+  }
 
-  connection () {
-    let id = uuid.v4()
+  connection() {
+    let id = uuid.v4();
 
     this.api.servers.servers.testServer.buildConnection({
       id: id,
       rawConnection: {},
-      remoteAddress: 'testServer',
-      remotePort: 0
-    })
+      remoteAddress: "testServer",
+      remotePort: 0,
+    });
 
-    return this.api.connections.connections[ id ]
+    return this.api.connections.connections[id];
   }
 
-  initialize (api, options, next) {
-    let type = 'testServer'
+  initialize(api, options, next) {
+    let type = "testServer";
     let attributes = {
       canChat: true,
       logConnections: false,
       logExits: false,
       sendWelcomeMessage: true,
-      verbs: api.connections.allowedVerbs
-    }
+      verbs: api.connections.allowedVerbs,
+    };
 
-    next(new TestServer(api, type, options, attributes))
+    next(new TestServer(api, type, options, attributes));
   }
 
   /**
@@ -108,31 +116,31 @@ class Helpers {
    * @param input       Action parameters.
    * @param next        Callback function.
    */
-  runAction (actionName, input, next) {
-    let self = this
-    let connection
+  runAction(actionName, input, next) {
+    let self = this;
+    let connection;
 
-    if (typeof input === 'function' && !next) {
-      next = input
-      input = {}
+    if (typeof input === "function" && !next) {
+      next = input;
+      input = {};
     }
 
-    if (input.id && input.type === 'testServer') {
-      connection = input
+    if (input.id && input.type === "testServer") {
+      connection = input;
     } else {
-      connection = self.connection()
-      connection.params = input
+      connection = self.connection();
+      connection.params = input;
     }
-    connection.params.action = actionName
+    connection.params.action = actionName;
 
-    connection.messageCount++
-    if (typeof next === 'function') {
-      connection.actionCallbacks[ (connection.messageCount) ] = next
+    connection.messageCount++;
+    if (typeof next === "function") {
+      connection.actionCallbacks[connection.messageCount] = next;
     }
 
     process.nextTick(() => {
-      self.api.servers.servers.testServer.processAction(connection)
-    })
+      self.api.servers.servers.testServer.processAction(connection);
+    });
   }
 
   /**
@@ -142,8 +150,8 @@ class Helpers {
    * @param params    Task parameters.
    * @param next      Callback function.
    */
-  runTask (taskName, params, next) {
-    this.api.tasks.tasks[ taskName ].run(this.api, params, next)
+  runTask(taskName, params, next) {
+    this.api.tasks.tasks[taskName].run(this.api, params, next);
   }
 }
 
@@ -153,14 +161,14 @@ export default class {
    *
    * @type {number}
    */
-  loadPriority = 800
+  loadPriority = 800;
 
   /**
    * Satellite start priority.
    *
    * @type {number}
    */
-  startPriority = 800
+  startPriority = 800;
 
   /**
    * Satellite loading function.
@@ -168,14 +176,14 @@ export default class {
    * @param api   API object reference.
    * @param next  Callback function.
    */
-  load (api, next) {
-    if (api.env === 'test') {
+  load(api, next) {
+    if (api.env === "test") {
       // put the helpers available to all platform
-      api.helpers = new Helpers(api)
+      api.helpers = new Helpers(api);
     }
 
     // finish the satellite load
-    next()
+    next();
   }
 
   /**
@@ -184,17 +192,17 @@ export default class {
    * @param api   API object reference.
    * @param next  Callback function.
    */
-  start (api, next) {
-    if (api.env === 'test') {
-      api.helpers.initialize(api, {}, serverObject => {
-        api.servers.servers.testServer = serverObject
-        api.servers.servers.testServer.start(() => next())
-      })
+  start(api, next) {
+    if (api.env === "test") {
+      api.helpers.initialize(api, {}, (serverObject) => {
+        api.servers.servers.testServer = serverObject;
+        api.servers.servers.testServer.start(() => next());
+      });
 
-      return
+      return;
     }
 
     // finish the satellite start
-    next()
+    next();
   }
 }

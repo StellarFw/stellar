@@ -58,7 +58,7 @@ describe("Servers: Web Socket", function () {
     () =>
       new Promise((done) => {
         engine.stop(done);
-      })
+      }),
   );
 
   it("socket client connections should work: client 1", async () => {
@@ -141,7 +141,7 @@ describe("Servers: Web Socket", function () {
 
   it("can not call private actions", async () => {
     await expect(
-      client1.action("sumANumber", { a: 3, b: 4 })
+      client1.action("sumANumber", { a: 3, b: 4 }),
     ).rejects.toMatchObject({
       error: {
         code: "002",
@@ -176,13 +176,20 @@ describe("Servers: Web Socket", function () {
       .then((response) => responses.push(response));
     client1
       .action("sleep", { sleepDuration: 600 })
-      .then((response) => responses.push(response));
+      .catch((response) => responses.push(response));
 
     await sleep(1000);
 
     expect(responses).toHaveLength(6);
-    for (const response of responses) {
-      expect(response.error).toBeUndefined();
+    for (const index in responses) {
+      const response = responses[index];
+      if (index.toString() === "0") {
+        expect(response.error.message).toEqual(
+          "You have too many pending requests",
+        );
+      } else {
+        expect(response.error).toBeUndefined();
+      }
     }
   });
 
@@ -232,7 +239,7 @@ describe("Servers: Web Socket", function () {
       });
 
       await expect(
-        client1.action("formattedSum", { a: 3, b: 4 })
+        client1.action("formattedSum", { a: 3, b: 4 }),
       ).resolves.toMatchObject({
         additionalField: "awesomeCall",
       });
@@ -365,7 +372,7 @@ describe("Servers: Web Socket", function () {
               room: room,
               event: "say",
             },
-            callback
+            callback,
           );
         };
 
