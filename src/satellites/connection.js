@@ -1,4 +1,4 @@
-import UUID from "uuid";
+import { randomUUID } from "crypto";
 
 /**
  * Create a clean connection.
@@ -262,7 +262,7 @@ class Connection {
    * @private
    */
   _generateID() {
-    return UUID.v4();
+    return randomUUID();
   }
 
   /**

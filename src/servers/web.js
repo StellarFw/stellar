@@ -5,10 +5,10 @@ import path from "path";
 import zlib from "zlib";
 import etag from "etag";
 import Mime from "mime";
-import uuid from "uuid";
 import formidable from "st-formidable";
 import GenericServer from "../genericServer";
 import BrowserFingerprint from "browser_fingerprint";
+import { randomUUID } from "crypto";
 
 // server type
 let type = "web";
@@ -459,7 +459,7 @@ export default class Web extends GenericServer {
         responseHttpCode: responseHttpCode,
         parsedURL: parsedURL,
       },
-      id: `${fingerprint}-${uuid.v4()}`,
+      id: `${fingerprint}-${randomUUID()}`,
       fingerprint: fingerprint,
       remoteAddress: remoteIP,
       remotePort: remotePort,

@@ -22,7 +22,7 @@
     "dev": "rm -rf dist && ts-node-dev --transpile-only --no-deps ./src/engine",
     "build": "rm -rf dist && ./node_modules/.bin/tsc --sourceMap false --declaration",
     "pretest": "pnpm build",
-    "test": "NODE_ENV=test vitest",
+    "test": "vitest",
     "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "lint": "eslint src"
   },
@@ -50,7 +50,6 @@
     "st-formidable": "^1.0.18",
     "sywac": "^1.2.0",
     "uglify-js": "^3.17.4",
-    "uuid": "3.4.0",
     "waterline": "0.15.2",
     "winston": "^2.1.1",
     "winston-daily-rotate-file": "^1.4.6",

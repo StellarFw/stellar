@@ -1,5 +1,5 @@
-import uuid from "uuid";
 import GenericServer from "../genericServer";
+import { randomUUID } from "crypto";
 
 class TestServer extends GenericServer {
   constructor(api, type, options, attributes) {
@@ -79,7 +79,7 @@ class Helpers {
   }
 
   connection() {
-    let id = uuid.v4();
+    let id = randomUUID();
 
     this.api.servers.servers.testServer.buildConnection({
       id: id,

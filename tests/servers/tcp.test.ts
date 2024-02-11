@@ -1,16 +1,8 @@
-import {
-  describe,
-  beforeAll,
-  afterAll,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-} from "vitest";
+import { describe, beforeAll, afterAll, it, expect, beforeEach, afterEach } from "vitest";
 
 import Engine from "../../src/engine";
 import { connect } from "net";
-import uuid from "uuid";
+import { randomUUID } from "crypto";
 
 const engine = new Engine({ rootPath: process.cwd() + "/example" });
 
@@ -133,28 +125,20 @@ describe("Servers: TCP", function () {
 
   it("stringified JSON can also be send as actions", async () => {
     await expect(
-      makeSocketRequest(
-        client1,
-        JSON.stringify({ action: "status", params: { somethings: "example" } })
-      )
+      makeSocketRequest(client1, JSON.stringify({ action: "status", params: { somethings: "example" } })),
     ).resolves.toMatchObject({ id: "test-server" });
   });
 
   it("can not call private actions", async () => {
     await expect(
-      makeSocketRequest(
-        client1,
-        JSON.stringify({ action: "sumANumber", params: { a: 3, b: 4 } })
-      )
+      makeSocketRequest(client1, JSON.stringify({ action: "sumANumber", params: { a: 3, b: 4 } })),
     ).rejects.toMatchObject({
       code: "002",
     });
   });
 
   it("can execute namespaced actions", async () => {
-    await expect(
-      makeSocketRequest(client1, JSON.stringify({ action: "isolated.action" }))
-    ).resolves.toMatchObject({
+    await expect(makeSocketRequest(client1, JSON.stringify({ action: "isolated.action" }))).resolves.toMatchObject({
       success: "ok",
     });
   });
@@ -162,19 +146,17 @@ describe("Servers: TCP", function () {
   it("really long messages are OK", async () => {
     // build a long message using v4 UUIDs
     const value = Array(10)
-      .map(() => uuid())
+      .map(() => randomUUID())
       .join("");
     let msg = {
       action: "cacheTest",
       params: {
-        key: uuid(),
+        key: randomUUID(),
         value,
       },
     };
 
-    await expect(
-      makeSocketRequest(client1, JSON.stringify(msg))
-    ).resolves.toMatchObject({
+    await expect(makeSocketRequest(client1, JSON.stringify(msg))).resolves.toMatchObject({
       cacheTestResults: {
         loadResp: {
           key: `cache_test_${msg.params.key}`,
@@ -194,9 +176,7 @@ describe("Servers: TCP", function () {
 
   it("params can update", async () => {
     await makeSocketRequest(client1, "paramAdd key=otherKey");
-    await expect(
-      makeSocketRequest(client1, "paramsView")
-    ).resolves.toMatchObject({
+    await expect(makeSocketRequest(client1, "paramsView")).resolves.toMatchObject({
       status: "OK",
       data: {
         key: "otherKey",
@@ -206,41 +186,31 @@ describe("Servers: TCP", function () {
 
   it("actions will fail without params set to the connection", async () => {
     await makeSocketRequest(client1, "paramDelete key");
-    await expect(makeSocketRequest(client1, "cacheTest")).rejects.toMatchObject(
-      {
-        key: "The key field is required.",
-      }
-    );
+    await expect(makeSocketRequest(client1, "cacheTest")).rejects.toMatchObject({
+      key: "The key field is required.",
+    });
   });
 
   it("a new param can be added", async () => {
-    await expect(
-      makeSocketRequest(client1, "paramAdd key=testKey")
-    ).resolves.toMatchObject({
+    await expect(makeSocketRequest(client1, "paramAdd key=testKey")).resolves.toMatchObject({
       status: "OK",
     });
   });
 
   it("a new param can be viewed once added", async () => {
-    await expect(
-      makeSocketRequest(client1, "paramView key")
-    ).resolves.toMatchObject({
+    await expect(makeSocketRequest(client1, "paramView key")).resolves.toMatchObject({
       data: "testKey",
     });
   });
 
   it("another new param can be added", async () => {
-    await expect(
-      makeSocketRequest(client1, "paramAdd value=test123")
-    ).resolves.toMatchObject({
+    await expect(makeSocketRequest(client1, "paramAdd value=test123")).resolves.toMatchObject({
       status: "OK",
     });
   });
 
   it("action will work once all the needed params are added", async () => {
-    await expect(
-      makeSocketRequest(client1, "cacheTest")
-    ).resolves.toMatchObject({
+    await expect(makeSocketRequest(client1, "cacheTest")).resolves.toMatchObject({
       cacheTestResults: {
         saveResp: true,
       },
@@ -248,9 +218,7 @@ describe("Servers: TCP", function () {
   });
 
   it("params are sticky between actions", async () => {
-    await expect(
-      makeSocketRequest(client1, "cacheTest")
-    ).resolves.toMatchObject({
+    await expect(makeSocketRequest(client1, "cacheTest")).resolves.toMatchObject({
       cacheTestResults: {
         loadResp: {
           key: "cache_test_testKey",
@@ -259,9 +227,7 @@ describe("Servers: TCP", function () {
       },
     });
 
-    await expect(
-      makeSocketRequest(client1, "cacheTest")
-    ).resolves.toMatchObject({
+    await expect(makeSocketRequest(client1, "cacheTest")).resolves.toMatchObject({
       cacheTestResults: {
         loadResp: {
           key: "cache_test_testKey",
@@ -273,40 +239,19 @@ describe("Servers: TCP", function () {
 
   it("only params sent is a JSON block are used", async () => {
     await expect(
-      makeSocketRequest(
-        client1,
-        JSON.stringify({ action: "cacheTest", params: { key: "someOtherKey" } })
-      )
+      makeSocketRequest(client1, JSON.stringify({ action: "cacheTest", params: { key: "someOtherKey" } })),
     ).rejects.toMatchObject({
       value: "The value field is required.",
     });
   });
 
   it("will limit how many simultaneous connection a client can have", async () => {
-    client1.write(
-      JSON.stringify({ action: "sleep", params: { sleepDuration: 500 } }) +
-        "\r\n"
-    );
-    client1.write(
-      JSON.stringify({ action: "sleep", params: { sleepDuration: 600 } }) +
-        "\r\n"
-    );
-    client1.write(
-      JSON.stringify({ action: "sleep", params: { sleepDuration: 700 } }) +
-        "\r\n"
-    );
-    client1.write(
-      JSON.stringify({ action: "sleep", params: { sleepDuration: 800 } }) +
-        "\r\n"
-    );
-    client1.write(
-      JSON.stringify({ action: "sleep", params: { sleepDuration: 900 } }) +
-        "\r\n"
-    );
-    client1.write(
-      JSON.stringify({ action: "sleep", params: { sleepDuration: 1000 } }) +
-        "\r\n"
-    );
+    client1.write(JSON.stringify({ action: "sleep", params: { sleepDuration: 500 } }) + "\r\n");
+    client1.write(JSON.stringify({ action: "sleep", params: { sleepDuration: 600 } }) + "\r\n");
+    client1.write(JSON.stringify({ action: "sleep", params: { sleepDuration: 700 } }) + "\r\n");
+    client1.write(JSON.stringify({ action: "sleep", params: { sleepDuration: 800 } }) + "\r\n");
+    client1.write(JSON.stringify({ action: "sleep", params: { sleepDuration: 900 } }) + "\r\n");
+    client1.write(JSON.stringify({ action: "sleep", params: { sleepDuration: 1000 } }) + "\r\n");
 
     let responses = [];
 
@@ -352,14 +297,12 @@ describe("Servers: TCP", function () {
       let msg = {
         action: "cacheTest",
         params: {
-          key: uuid.v4(),
-          value: Array(10).fill(uuid.v4()).join(""),
+          key: randomUUID(),
+          value: Array(10).fill(randomUUID()).join(""),
         },
       };
 
-      await expect(
-        makeSocketRequest(client1, JSON.stringify(msg))
-      ).rejects.toMatchObject({
+      await expect(makeSocketRequest(client1, JSON.stringify(msg))).rejects.toMatchObject({
         code: "008",
         message: "Data length is too big (64 received/449 max)",
       });
@@ -373,9 +316,7 @@ describe("Servers: TCP", function () {
     });
 
     it("will parse /newline data delimiter", async () => {
-      await expect(
-        makeSocketRequest(client1, JSON.stringify({ action: "status" }), "\n")
-      ).resolves.toMatchObject({
+      await expect(makeSocketRequest(client1, JSON.stringify({ action: "status" }), "\n")).resolves.toMatchObject({
         context: "response",
       });
     });
@@ -383,9 +324,7 @@ describe("Servers: TCP", function () {
     it("will parse custom `^]` data delimiter", async () => {
       api.config.servers.tcp.delimiter = "^]";
 
-      await expect(
-        makeSocketRequest(client1, JSON.stringify({ action: "status" }), "^]")
-      ).resolves.toMatchObject({
+      await expect(makeSocketRequest(client1, JSON.stringify({ action: "status" }), "^]")).resolves.toMatchObject({
         context: "response",
       });
     });
@@ -396,22 +335,18 @@ describe("Servers: TCP", function () {
       api.chatRoom.addMiddleware({
         name: "join chat middleware",
         join: (connection, room, callback) => {
-          api.chatRoom
-            .emit(room, "message", `I have entered the room: ${connection.id}`)
-            .then((_) => {
-              callback();
-            });
+          api.chatRoom.emit(room, "message", `I have entered the room: ${connection.id}`).then((_) => {
+            callback();
+          });
         },
       });
 
       api.chatRoom.addMiddleware({
         name: "leave chat middleware",
         leave: (connection, room, callback) => {
-          api.chatRoom
-            .emit(room, "message", `I have left the room: ${connection.id}`)
-            .then((_) => {
-              callback();
-            });
+          api.chatRoom.emit(room, "message", `I have left the room: ${connection.id}`).then((_) => {
+            callback();
+          });
         },
       });
     });
@@ -440,9 +375,7 @@ describe("Servers: TCP", function () {
     });
 
     it("clients are in the default room", async () => {
-      await expect(
-        makeSocketRequest(client1, "roomView defaultRoom")
-      ).resolves.toMatchObject({
+      await expect(makeSocketRequest(client1, "roomView defaultRoom")).resolves.toMatchObject({
         data: {
           room: "defaultRoom",
         },
@@ -450,9 +383,7 @@ describe("Servers: TCP", function () {
     });
 
     it("clients can view additional info about rooms they are in", async () => {
-      await expect(
-        makeSocketRequest(client1, "roomView defaultRoom")
-      ).resolves.toMatchObject({
+      await expect(makeSocketRequest(client1, "roomView defaultRoom")).resolves.toMatchObject({
         data: {
           membersCount: 3,
         },
@@ -462,15 +393,11 @@ describe("Servers: TCP", function () {
     it("rooms can be changed", async () => {
       await makeSocketRequest(client1, "roomJoin otherRoom");
 
-      await expect(
-        makeSocketRequest(client1, "roomLeave defaultRoom")
-      ).resolves.toMatchObject({
+      await expect(makeSocketRequest(client1, "roomLeave defaultRoom")).resolves.toMatchObject({
         status: "OK",
       });
 
-      await expect(
-        makeSocketRequest(client1, "roomView otherRoom")
-      ).resolves.toMatchObject({
+      await expect(makeSocketRequest(client1, "roomView otherRoom")).resolves.toMatchObject({
         data: {
           room: "otherRoom",
         },
@@ -480,9 +407,7 @@ describe("Servers: TCP", function () {
     it("connections in the first room see the count go down", async () => {
       await makeSocketRequest(client1, "roomJoin otherRoom");
       await makeSocketRequest(client1, "roomLeave defaultRoom");
-      await expect(
-        makeSocketRequest(client2, "roomView defaultRoom")
-      ).resolves.toMatchObject({
+      await expect(makeSocketRequest(client2, "roomView defaultRoom")).resolves.toMatchObject({
         data: {
           room: "defaultRoom",
           membersCount: 2,
@@ -497,11 +422,9 @@ describe("Servers: TCP", function () {
     });
 
     it("Server can disconnect a client", async () => {
-      await expect(makeSocketRequest(client1, "status")).resolves.toMatchObject(
-        {
-          id: "test-server",
-        }
-      );
+      await expect(makeSocketRequest(client1, "status")).resolves.toMatchObject({
+        id: "test-server",
+      });
 
       expect(client1.readable).toBeTruthy();
       expect(client1.writable).toBeTruthy();

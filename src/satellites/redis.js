@@ -1,5 +1,5 @@
 import async from "async";
-import uuid from "uuid";
+import { randomUUID } from "crypto";
 
 /**
  * Redis manager class.
@@ -202,7 +202,7 @@ class RedisManager {
   }
 
   _doCluster(method, args, connectionId, callback) {
-    let requestId = uuid.v4();
+    let requestId = randomUUID();
     let payload = {
       messageType: "do",
       serverId: this.api.id,
