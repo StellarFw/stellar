@@ -63,9 +63,7 @@ export const test = {
     tcp() {
       return {
         enabled: true,
-        port: process.env.PORT
-          ? process.env.PORT
-          : 25001 + parseInt(process.env.VITEST_WORKER_ID || "0"),
+        port: process.env.PORT ? process.env.PORT : 25001 + parseInt(process.env.VITEST_WORKER_ID || "0"),
         secure: false,
       };
     },

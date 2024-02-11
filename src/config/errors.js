@@ -137,9 +137,7 @@ export default {
       dataLengthTooLarge(maxLength, receivedLength) {
         return {
           code: "008",
-          message: api.i18n.localize(
-            `Data length is too big (${maxLength} received/${receivedLength} max)`,
-          ),
+          message: api.i18n.localize(`Data length is too big (${maxLength} received/${receivedLength} max)`),
         };
       },
 
@@ -203,9 +201,7 @@ export default {
       verbNotAllowed(connection, verb) {
         return {
           code: "014",
-          message: connection.localize(
-            `Verb not found or not allowed (${verb})`,
-          ),
+          message: connection.localize(`Verb not found or not allowed (${verb})`),
         };
       },
 
@@ -226,9 +222,7 @@ export default {
       connectionNotInRoom(connection, room) {
         return {
           code: "016",
-          message: connection.localize(
-            `Connection (${connection.id}) not in room (${room})`,
-          ),
+          message: connection.localize(`Connection (${connection.id}) not in room (${room})`),
         };
       },
 
@@ -239,9 +233,7 @@ export default {
       connectionAlreadyInRoom(connection, room) {
         return {
           code: "017",
-          message: connection.localize(
-            `Connection (${connection.id}) already in room (${room})`,
-          ),
+          message: connection.localize(`Connection (${connection.id}) already in room (${room})`),
         };
       },
 

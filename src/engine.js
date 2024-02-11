@@ -40,12 +40,9 @@ export default class Engine {
    * @param satellite Satellite instance to be normalized.
    */
   static normalizeInitializerPriority(satellite) {
-    satellite.loadPriority =
-      satellite.loadPriority || Engine.defaultPriorities.load;
-    satellite.startPriority =
-      satellite.startPriority || Engine.defaultPriorities.start;
-    satellite.stopPriority =
-      satellite.stopPriority || Engine.defaultPriorities.stop;
+    satellite.loadPriority = satellite.loadPriority || Engine.defaultPriorities.load;
+    satellite.startPriority = satellite.startPriority || Engine.defaultPriorities.start;
+    satellite.stopPriority = satellite.stopPriority || Engine.defaultPriorities.stop;
   }
 
   /**
@@ -297,16 +294,10 @@ export default class Engine {
       self.api.status = "shutting_down";
 
       // log a shutting down message
-      self.api.log(
-        "Shutting down open servers and stopping task processing",
-        "alert",
-      );
+      self.api.log("Shutting down open servers and stopping task processing", "alert");
 
       // if this is the second shutdown we need remove the `finalStopInitializer` callback
-      if (
-        self.stopSatellites[self.stopSatellites.length - 1].name ===
-        "finalStopInitializer"
-      ) {
+      if (self.stopSatellites[self.stopSatellites.length - 1].name === "finalStopInitializer") {
         self.stopSatellites.pop();
       }
 
@@ -337,9 +328,7 @@ export default class Engine {
       });
 
       // iterate all satellites and stop them
-      async.series(self.stopSatellites, (errors) =>
-        Engine.fatalError(self.api, errors, "stop"),
-      );
+      async.series(self.stopSatellites, (errors) => Engine.fatalError(self.api, errors, "stop"));
     } else if (self.api.status === "shutting_down") {
       // double sigterm; ignore it
     } else {
@@ -443,9 +432,7 @@ export default class Engine {
       this.satellites[initializer] = new Satellite();
 
       // add it to array
-      this.initialSatellites.push((next) =>
-        this.satellites[initializer].load(this.api, next),
-      );
+      this.initialSatellites.push((next) => this.satellites[initializer].load(this.api, next));
     }
 
     // execute stage0 satellites in series
@@ -558,25 +545,16 @@ export default class Engine {
         // normalize satellite priorities
         Engine.normalizeInitializerPriority(this.satellites[initializer]);
         loadSatellitesRankings[this.satellites[initializer].loadPriority] =
-          loadSatellitesRankings[this.satellites[initializer].loadPriority] ||
-          [];
+          loadSatellitesRankings[this.satellites[initializer].loadPriority] || [];
         startSatellitesRankings[this.satellites[initializer].startPriority] =
-          startSatellitesRankings[this.satellites[initializer].startPriority] ||
-          [];
+          startSatellitesRankings[this.satellites[initializer].startPriority] || [];
         stopSatellitesRankings[this.satellites[initializer].stopPriority] =
-          stopSatellitesRankings[this.satellites[initializer].stopPriority] ||
-          [];
+          stopSatellitesRankings[this.satellites[initializer].stopPriority] || [];
 
         // push loader state function to ranked arrays
-        loadSatellitesRankings[this.satellites[initializer].loadPriority].push(
-          loadFunction,
-        );
-        startSatellitesRankings[
-          this.satellites[initializer].startPriority
-        ].push(startFunction);
-        stopSatellitesRankings[this.satellites[initializer].stopPriority].push(
-          stopFunction,
-        );
+        loadSatellitesRankings[this.satellites[initializer].loadPriority].push(loadFunction);
+        startSatellitesRankings[this.satellites[initializer].startPriority].push(startFunction);
+        stopSatellitesRankings[this.satellites[initializer].stopPriority].push(stopFunction);
       }
     };
 
@@ -593,15 +571,9 @@ export default class Engine {
     }
 
     // organize final array to match the satellites priorities
-    this.loadSatellites = Engine.flattenOrderedInitializer(
-      loadSatellitesRankings,
-    );
-    this.startSatellites = Engine.flattenOrderedInitializer(
-      startSatellitesRankings,
-    );
-    this.stopSatellites = Engine.flattenOrderedInitializer(
-      stopSatellitesRankings,
-    );
+    this.loadSatellites = Engine.flattenOrderedInitializer(loadSatellitesRankings);
+    this.startSatellites = Engine.flattenOrderedInitializer(startSatellitesRankings);
+    this.stopSatellites = Engine.flattenOrderedInitializer(stopSatellitesRankings);
 
     // on the end of loading all satellites set engine like initialized
     this.loadSatellites.push(() => {
@@ -609,9 +581,7 @@ export default class Engine {
     });
 
     // start initialization process
-    async.series(this.loadSatellites, (errors) =>
-      Engine.fatalError(this.api, errors, "stage1"),
-    );
+    async.series(this.loadSatellites, (errors) => Engine.fatalError(this.api, errors, "stage1"));
   }
 
   /**
@@ -652,8 +622,6 @@ export default class Engine {
     }
 
     // start all initializers
-    async.series(this.startSatellites, (err) =>
-      Engine.fatalError(this.api, err, "stage2"),
-    );
+    async.series(this.startSatellites, (err) => Engine.fatalError(this.api, err, "stage2"));
   }
 }

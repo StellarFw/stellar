@@ -47,10 +47,7 @@ class RoutesManager {
     let self = this;
 
     // check if the connection contains an action and that action are defined on the current context
-    if (
-      connection.params.action === undefined ||
-      self.api.actions.actions[connection.params.action] === undefined
-    ) {
+    if (connection.params.action === undefined || self.api.actions.actions[connection.params.action] === undefined) {
       // get HTTP request method
       let method = connection.rawConnection.method.toLowerCase();
 
@@ -64,25 +61,18 @@ class RoutesManager {
         let route = self.routes[method][i];
 
         // check if exists an URL match
-        let match = self.matchURL(
-          pathParts,
-          route.path,
-          route.matchTrailingPathParts,
-        );
+        let match = self.matchURL(pathParts, route.path, route.matchTrailingPathParts);
 
         if (match.match === true) {
           if (route.apiVersion) {
-            connection.params.apiVersion =
-              connection.param.apiVersion || route.apiVersion;
+            connection.params.apiVersion = connection.param.apiVersion || route.apiVersion;
           }
 
           // decode URL params
           for (let param in match.params) {
             try {
               let decodedName = decodeURIComponent(param.replace(/\+/g, " "));
-              let decodedValue = decodeURIComponent(
-                match.params[param].replace(/\+g/, " "),
-              );
+              let decodedValue = decodeURIComponent(match.params[param].replace(/\+g/, " "));
               connection.params[decodedName] = decodedValue;
             } catch (e) {
               // malformed URL
@@ -119,10 +109,7 @@ class RoutesManager {
       matchParts.pop();
     }
 
-    if (
-      matchParts.length !== pathParts.length &&
-      matchTrailingPathParts !== true
-    ) {
+    if (matchParts.length !== pathParts.length && matchTrailingPathParts !== true) {
       return response;
     }
 
@@ -130,10 +117,7 @@ class RoutesManager {
       let matchPart = matchParts[i];
       let pathPart = pathParts[i];
 
-      if (
-        matchTrailingPathParts === true &&
-        parseInt(i) === matchPart.len - 1
-      ) {
+      if (matchTrailingPathParts === true && parseInt(i) === matchPart.len - 1) {
         for (let j in pathParts) {
           if (j > i) {
             pathPart = `${pathPart}/${pathParts[j]}`;
@@ -148,10 +132,7 @@ class RoutesManager {
         response.params[variable] = pathPart;
       } else if (matchPart[0] === ":" && matchPart.indexOf("(") >= 0) {
         variable = matchPart.replace(":", "").split("(")[0];
-        regexp = matchPart.substring(
-          matchPart.indexOf("(") + 1,
-          matchPart.length - 1,
-        );
+        regexp = matchPart.substring(matchPart.indexOf("(") + 1, matchPart.length - 1);
         var matches = pathPart.match(new RegExp(regexp, "g"));
         if (matches) {
           response.params[variable] = pathPart;
@@ -159,11 +140,7 @@ class RoutesManager {
           return response;
         }
       } else {
-        if (
-          pathPart === null ||
-          pathPart === undefined ||
-          pathParts[i].toLowerCase() !== matchPart.toLowerCase()
-        ) {
+        if (pathPart === null || pathPart === undefined || pathParts[i].toLowerCase() !== matchPart.toLowerCase()) {
           return response;
         }
       }
@@ -183,13 +160,7 @@ class RoutesManager {
    * @param apiVersion                API version
    * @param matchTrailingPathParts
    */
-  registerRoute(
-    method,
-    path,
-    action,
-    apiVersion,
-    matchTrailingPathParts = false,
-  ) {
+  registerRoute(method, path, action, apiVersion, matchTrailingPathParts = false) {
     let self = this;
 
     self.routes[method].push({
@@ -242,17 +213,12 @@ class RoutesManager {
     }
 
     // remove duplicated entries on postVariables
-    self.api.params.postVariables = this.api.utils.arrayUniqueify(
-      self.api.params.postVariables,
-    );
+    self.api.params.postVariables = this.api.utils.arrayUniqueify(self.api.params.postVariables);
 
     // log the number of loaded routes
     self.api.log(`${counter} routes loaded`, "debug");
 
-    if (
-      self.api.config.servers.web &&
-      self.api.config.servers.web.simpleRouting === true
-    ) {
+    if (self.api.config.servers.web && self.api.config.servers.web.simpleRouting === true) {
       let simplePaths = [];
 
       // iterate all registered actions
@@ -267,10 +233,7 @@ class RoutesManager {
       }
 
       // log the number of simple routes loaded
-      self.api.log(
-        `${simplePaths.length} simple routes loaded from action names`,
-        "debug",
-      );
+      self.api.log(`${simplePaths.length} simple routes loaded from action names`, "debug");
       self.api.log("routes: ", "debug", self.routes);
     }
   }

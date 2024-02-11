@@ -63,10 +63,7 @@ class RedisManager {
     // subscription handlers
 
     this.subscriptionHandlers["do"] = (message) => {
-      if (
-        !message.connectionId ||
-        this.api.connections.connections[message.connectionId]
-      ) {
+      if (!message.connectionId || this.api.connections.connections[message.connectionId]) {
         let cmdParts = message.method.split(".");
         let cmd = cmdParts.shift();
         if (cmd !== "api") {
@@ -92,10 +89,7 @@ class RedisManager {
         if (method) {
           method.apply(null, args);
         } else {
-          this.api.log(
-            `RP method '${cmdParts.join(".")}' not found`,
-            "warning",
-          );
+          this.api.log(`RP method '${cmdParts.join(".")}' not found`, "warning");
         }
       }
     };
@@ -136,9 +130,7 @@ class RedisManager {
             done();
           });
         } else {
-          this.clients[r] = this.api.config.redis[r].constructor(
-            this.api.config.redis[r].args,
-          );
+          this.clients[r] = this.api.config.redis[r].constructor(this.api.config.redis[r].args);
 
           this.clients[r].on("error", (error) => {
             this.api.log(`Redis connection ${r} error`, "error", error);
@@ -287,12 +279,7 @@ export default class {
         return next(error);
       }
 
-      api.redis._doCluster(
-        "api.log",
-        `Stellar member ${api.id} has joined the cluster`,
-        null,
-        null,
-      );
+      api.redis._doCluster("api.log", `Stellar member ${api.id} has joined the cluster`, null, null);
 
       // finish the loading
       process.nextTick(next);
@@ -314,12 +301,7 @@ export default class {
     }
 
     // inform the cluster of stellar leaving
-    api.redis._doCluster(
-      "api.log",
-      `Stellar member ${api.id} has left the cluster`,
-      null,
-      null,
-    );
+    api.redis._doCluster("api.log", `Stellar member ${api.id} has left the cluster`, null, null);
 
     // unsubscribe stellar instance and finish the stop method execution
     process.nextTick(() => {

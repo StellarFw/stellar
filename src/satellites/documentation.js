@@ -83,13 +83,9 @@ class DocumentationGenerator {
 
       // iterate all action versions
       for (let versionNumber in self.api.actions.actions[actionName]) {
-        if (
-          self.api.actions.actions[actionName][versionNumber].toDocument !==
-          false
-        ) {
+        if (self.api.actions.actions[actionName][versionNumber].toDocument !== false) {
           count++;
-          actions[actionName][versionNumber] =
-            self.api.actions.actions[actionName][versionNumber];
+          actions[actionName][versionNumber] = self.api.actions.actions[actionName][versionNumber];
         }
       }
 
@@ -133,9 +129,7 @@ class DocumentationGenerator {
       // iterate all versions
       for (let versionNumber in actions[actionName]) {
         // get action object
-        let action = self._prepareActionToPrint(
-          actions[actionName][versionNumber],
-        );
+        let action = self._prepareActionToPrint(actions[actionName][versionNumber]);
 
         // push the version number
         action.version = versionNumber;
@@ -147,11 +141,7 @@ class DocumentationGenerator {
       const generatedHtml = generator.render(data);
 
       // output the result to the temp folder
-      fs.writeFileSync(
-        `${self.docsFolder}/action_${actionName}.html`,
-        generatedHtml,
-        "utf8",
-      );
+      fs.writeFileSync(`${self.docsFolder}/action_${actionName}.html`, generatedHtml, "utf8");
     }
 
     // build the index.html
@@ -264,18 +254,9 @@ class DocumentationGenerator {
    */
   _copyResourceFiles() {
     let self = this;
-    this.api.utils.copyFile(
-      `${self.staticFolder}/reset.css`,
-      `${self.docsFolder}/reset.css`,
-    );
-    this.api.utils.copyFile(
-      `${self.staticFolder}/style.css`,
-      `${self.docsFolder}/style.css`,
-    );
-    this.api.utils.copyFile(
-      `${self.staticFolder}/highlight.js`,
-      `${self.docsFolder}/highlight.js`,
-    );
+    this.api.utils.copyFile(`${self.staticFolder}/reset.css`, `${self.docsFolder}/reset.css`);
+    this.api.utils.copyFile(`${self.staticFolder}/style.css`, `${self.docsFolder}/style.css`);
+    this.api.utils.copyFile(`${self.staticFolder}/highlight.js`, `${self.docsFolder}/highlight.js`);
   }
 }
 

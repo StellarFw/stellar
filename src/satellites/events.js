@@ -108,14 +108,8 @@ class EventsManager {
     }
 
     // validate run
-    if (
-      listenerObj.run === undefined ||
-      typeof listenerObj.run !== "function"
-    ) {
-      this.api.log(
-        "invalid listener - missing run property or not a function",
-        "warning",
-      );
+    if (listenerObj.run === undefined || typeof listenerObj.run !== "function") {
+      this.api.log("invalid listener - missing run property or not a function", "warning");
       return false;
     }
 
@@ -127,10 +121,7 @@ class EventsManager {
     // the event property can be an array, when the listener supports multiple
     // events, so we need to iterate it. When the event property is an string we
     // must convert it to an array in order to simplify the implementation
-    const events =
-      typeof listenerObj.event === "string"
-        ? [listenerObj.event]
-        : listenerObj.event;
+    const events = typeof listenerObj.event === "string" ? [listenerObj.event] : listenerObj.event;
 
     // iterate the events array. There is no need to change the event name,
     // because we don't use it when we execute the listener
@@ -206,10 +197,7 @@ class EventsManager {
       // remove old listeners
       this.fileListeners.get(path).forEach((listener) => {
         // an listener can support multiple events, so we need iterate all
-        const events =
-          typeof listener.event === "string"
-            ? [listener.event]
-            : listener.event;
+        const events = typeof listener.event === "string" ? [listener.event] : listener.event;
 
         for (const event of events) {
           // get array of functions
@@ -247,11 +235,9 @@ class EventsManager {
       }
 
       // get all listeners files
-      this.api.utils
-        .recursiveDirectoryGlob(listenersFolderPath, "js")
-        .forEach((listenerPath) => {
-          this._loadFile(listenerPath);
-        });
+      this.api.utils.recursiveDirectoryGlob(listenersFolderPath, "js").forEach((listenerPath) => {
+        this._loadFile(listenerPath);
+      });
     });
 
     // end listeners loading

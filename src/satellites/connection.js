@@ -111,22 +111,13 @@ class Connections {
   }
 
   apply(connectionId, method, args, callback) {
-    if (
-      args === undefined &&
-      callback === undefined &&
-      typeof method === "function"
-    ) {
+    if (args === undefined && callback === undefined && typeof method === "function") {
       callback = method;
       args = null;
       method = null;
     }
 
-    this.api.redis._doCluster(
-      "api.connections.applyCatch",
-      [connectionId, method, args],
-      connectionId,
-      callback,
-    );
+    this.api.redis._doCluster("api.connections.applyCatch", [connectionId, method, args], connectionId, callback);
   }
 
   applyCatch(connectionId, method, args, callback) {
@@ -195,10 +186,7 @@ class Connection {
 
     // execute the middleware
     this.api.connections.globalMiddleware.forEach((middlewareName) => {
-      if (
-        typeof this.api.connections.middleware[middlewareName].create ===
-        "function"
-      ) {
+      if (typeof this.api.connections.middleware[middlewareName].create === "function") {
         this.api.connections.middleware[middlewareName].create(this);
       }
     });
@@ -235,9 +223,7 @@ class Connection {
     enforcedConnectionProperties.forEach((req) => {
       if (data[req] === null || data[req] === undefined) {
         if (this.api.config.general.enforceConnectionProperties === true) {
-          throw new Error(
-            `${req} is required to create a new connection object`,
-          );
+          throw new Error(`${req} is required to create a new connection object`);
         } else {
           data[req] = 0; // could be a random uuid as well?
         }
@@ -285,9 +271,7 @@ class Connection {
    * @param message
    */
   sendMessage(message) {
-    throw new Error(
-      `I should be replaced with a connection-specific method [${message}]`,
-    );
+    throw new Error(`I should be replaced with a connection-specific method [${message}]`);
   }
 
   /**
@@ -296,9 +280,7 @@ class Connection {
    * @param path
    */
   sendFile(path) {
-    throw new Error(
-      `I should be replaced with a connection-specific method [${path}]`,
-    );
+    throw new Error(`I should be replaced with a connection-specific method [${path}]`);
   }
 
   /**
@@ -316,10 +298,7 @@ class Connection {
 
     // execute the destroy middleware
     this.api.connections.globalMiddleware.forEach((middlewareName) => {
-      if (
-        typeof this.api.connections.middleware[middlewareName].destroy ===
-        "function"
-      ) {
+      if (typeof this.api.connections.middleware[middlewareName].destroy === "function") {
         this.api.connections.middleware[middlewareName].destroy(this);
       }
     });

@@ -49,8 +49,7 @@ export default {
         httpHeaders: {
           "X-Powered-By": api.config.general.serverName,
           "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods":
-            "HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS, TRACE",
+          "Access-Control-Allow-Methods": "HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS, TRACE",
           "Access-Control-Allow-Headers": "Content-Type",
         },
 
@@ -183,9 +182,7 @@ export const test = {
   servers: {
     web() {
       return {
-        port: process.env.PORT
-          ? process.env.PORT
-          : 18080 + parseInt(process.env.VITEST_WORKER_ID || "0"),
+        port: process.env.PORT ? process.env.PORT : 18080 + parseInt(process.env.VITEST_WORKER_ID || "0"),
       };
     },
   },

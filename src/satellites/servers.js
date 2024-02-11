@@ -38,9 +38,7 @@ class Servers {
     let jobs = [];
 
     // get the list of servers to load
-    let serversFiles = this.api.utils.getFiles(
-      path.resolve(`${__dirname}/../servers`),
-    );
+    let serversFiles = this.api.utils.getFiles(path.resolve(`${__dirname}/../servers`));
 
     for (let k in serversFiles) {
       // get server filename

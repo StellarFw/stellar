@@ -33,9 +33,7 @@ class Hash {
    */
   generateSalt(rounds = this.api.config.general.saltRounds) {
     return new Promise((resolve, reject) => {
-      bcrypt.genSalt(rounds, (error, salt) =>
-        error ? reject(error) : resolve(salt),
-      );
+      bcrypt.genSalt(rounds, (error, salt) => (error ? reject(error) : resolve(salt)));
     });
   }
 
@@ -64,9 +62,7 @@ class Hash {
 
     // create a new promise and generate the hash
     return new Promise((resolve, reject) => {
-      bcrypt.hash(data, config.salt || config.saltLength, (error, hash) =>
-        error ? reject(error) : resolve(hash),
-      );
+      bcrypt.hash(data, config.salt || config.saltLength, (error, hash) => (error ? reject(error) : resolve(hash)));
     });
   }
 
@@ -96,9 +92,7 @@ class Hash {
    */
   compare(plainData, hash) {
     return new Promise((resolve, reject) => {
-      bcrypt.compare(plainData, hash, (error, equal) =>
-        error ? reject(error) : resolve(equal),
-      );
+      bcrypt.compare(plainData, hash, (error, equal) => (error ? reject(error) : resolve(equal)));
     });
   }
 

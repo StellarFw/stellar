@@ -77,23 +77,16 @@ class Models {
       modelOrig = modelOrig(this.api);
     }
 
-    const dataStoreToUse =
-      modelOrig.datastore || this.api.config.models.defaultDatastore;
+    const dataStoreToUse = modelOrig.datastore || this.api.config.models.defaultDatastore;
 
     // cerate a new model objects to merge the model into the default model properties defied in the configurations file
-    const newModel = mergeDeepRight(
-      this.api.config.models.defaultModelPropsForDatastore[dataStoreToUse],
-      modelOrig,
-    );
+    const newModel = mergeDeepRight(this.api.config.models.defaultModelPropsForDatastore[dataStoreToUse], modelOrig);
 
     // Execute the `add` event to allow other modules modify this model before it
     // gets compiled.
-    const { model } = await this.api.events.fire(
-      `core.models.add.${modelName}`,
-      {
-        model: newModel,
-      },
-    );
+    const { model } = await this.api.events.fire(`core.models.add.${modelName}`, {
+      model: newModel,
+    });
 
     // When there is no identity property defined we use the file basename.
     if (!model.identity) {
@@ -123,19 +116,12 @@ class Models {
       this._watchForChanges(modelFile);
 
       try {
-        const model = await this.preProcessModelData(
-          modelBasename,
-          (await import(modelFile)).default,
-        );
+        const model = await this.preProcessModelData(modelBasename, (await import(modelFile)).default);
         result.push(model);
 
         this.api.log(`Model loaded: ${modelBasename}`, "debug");
       } catch (error) {
-        this.api.log(
-          `Model error (${modelBasename}): ${error.message}`,
-          "error",
-          error,
-        );
+        this.api.log(`Model error (${modelBasename}): ${error.message}`, "error", error);
       }
     }
 
@@ -149,17 +135,12 @@ class Models {
     let allModels = [];
 
     for (const [, modulePath] of this.api.modules.modulesPaths) {
-      const modelFiles = this.api.utils.recursiveDirectoryGlob(
-        `${modulePath}/models`,
-      );
+      const modelFiles = this.api.utils.recursiveDirectoryGlob(`${modulePath}/models`);
       const processedModels = await this.processModelsFiles(modelFiles);
       allModels = [...allModels, ...processedModels];
     }
 
-    return allModels.reduce(
-      (result, model) => ({ ...result, [model.identity]: model }),
-      {},
-    );
+    return allModels.reduce((result, model) => ({ ...result, [model.identity]: model }), {});
   }
 
   /**
@@ -179,10 +160,7 @@ class Models {
     // watch for changes on the model file
     this.api.configs.watchFileAndAct(file, () => {
       // log a information message
-      this.api.log(
-        `\r\n\r\n*** rebooting due to model change (${file}) ***\r\n\r\n`,
-        "info",
-      );
+      this.api.log(`\r\n\r\n*** rebooting due to model change (${file}) ***\r\n\r\n`, "info");
 
       // remove require cache
       delete require.cache[require.resolve(file)];
@@ -233,9 +211,7 @@ class Models {
       }
 
       // replace the static value with the module instance
-      this.api.config.models.adapters[key] = (
-        await this.api.utils.require(moduleName)
-      ).default;
+      this.api.config.models.adapters[key] = (await this.api.utils.require(moduleName)).default;
 
       // force all adapters to use the key specific by the user.
       this.api.config.models.adapters[key].identity = key;

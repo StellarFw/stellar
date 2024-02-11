@@ -42,10 +42,7 @@ class StaticFile {
   searchPath(connection, counter = 0) {
     let self = this;
 
-    if (
-      self.searchLocations.length === 0 ||
-      counter >= self.searchLocations.length
-    ) {
+    if (self.searchLocations.length === 0 || counter >= self.searchLocations.length) {
       return null;
     } else {
       return self.searchLocations[counter];
@@ -63,25 +60,17 @@ class StaticFile {
     let self = this;
 
     if (!connection.params.file || !self.searchPath(connection, counter)) {
-      self.sendFileNotFound(
-        connection,
-        self.api.config.errors.fileNotProvided(connection),
-        callback,
-      );
+      self.sendFileNotFound(connection, self.api.config.errors.fileNotProvided(connection), callback);
     } else {
       let file = null;
 
       if (!path.isAbsolute(connection.params.file)) {
-        file = path.normalize(
-          `${self.searchPath(connection, counter)}/${connection.params.file}`,
-        );
+        file = path.normalize(`${self.searchPath(connection, counter)}/${connection.params.file}`);
       } else {
         file = connection.params.file;
       }
 
-      if (
-        file.indexOf(path.normalize(self.searchPath(connection, counter))) !== 0
-      ) {
+      if (file.indexOf(path.normalize(self.searchPath(connection, counter))) !== 0) {
         self.get(connection, callback, counter + 1);
       } else {
         self.checkExistence(file, async (exists, truePath) => {
@@ -95,14 +84,7 @@ class StaticFile {
               error,
             } = await self.sendFile(truePath, connection);
             if (callback) {
-              callback(
-                connectionObj,
-                error,
-                fileStream,
-                mime,
-                length,
-                lastModified,
-              );
+              callback(connectionObj, error, fileStream, mime, length, lastModified);
             }
           } else {
             self.get(connection, callback, counter + 1);
@@ -140,10 +122,7 @@ class StaticFile {
         lastModified,
       };
     } catch (error) {
-      return this.sendFileNotFound(
-        connection,
-        this.api.config.errors.fileReadError(connection, String(error)),
-      );
+      return this.sendFileNotFound(connection, this.api.config.errors.fileReadError(connection, String(error)));
     }
   }
 
@@ -259,9 +238,7 @@ export default class {
 
     // load in the explicit public paths first
     if (api.config.general.paths !== undefined) {
-      api.staticFile.searchLocations.push(
-        path.normalize(api.config.general.paths.public),
-      );
+      api.staticFile.searchLocations.push(path.normalize(api.config.general.paths.public));
     }
 
     // finish satellite loading

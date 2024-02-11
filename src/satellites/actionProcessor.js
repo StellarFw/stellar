@@ -107,9 +107,7 @@ class ActionProcessor {
     } else if (status === "unknown_action") {
       error = self.api.config.errors.unknownAction(this.action);
     } else if (status === "unsupported_server_type") {
-      error = self.api.config.errors.unsupportedServerType(
-        self.connection.type,
-      );
+      error = self.api.config.errors.unsupportedServerType(self.connection.type);
     } else if (status === "validator_errors") {
       error = self.api.config.errors.invalidParams(self.validatorErrors);
     } else if (status === "response_timeout") {
@@ -159,16 +157,10 @@ class ActionProcessor {
 
     let filteredParams = {};
     for (let i in self.params) {
-      if (
-        self.api.config.general.filteredParams &&
-        self.api.config.general.filteredParams.indexOf(i) >= 0
-      ) {
+      if (self.api.config.general.filteredParams && self.api.config.general.filteredParams.indexOf(i) >= 0) {
         filteredParams[i] = "[FILTERED]";
       } else if (typeof self.params[i] === "string") {
-        filteredParams[i] = self.params[i].substring(
-          0,
-          self.api.config.logger.maxLogStringLength,
-        );
+        filteredParams[i] = self.params[i].substring(0, self.api.config.logger.maxLogStringLength);
       } else {
         filteredParams[i] = self.params[i];
       }
@@ -206,13 +198,8 @@ class ActionProcessor {
     let self = this;
 
     // if the action is private this can only be executed internally
-    if (
-      self.actionTemplate.private === true &&
-      self.connection.type !== "internal"
-    ) {
-      callback(
-        self.api.config.errors.privateActionCalled(self.actionTemplate.name),
-      );
+    if (self.actionTemplate.private === true && self.connection.type !== "internal") {
+      callback(self.api.config.errors.privateActionCalled(self.actionTemplate.name));
       return;
     }
 
@@ -227,9 +214,7 @@ class ActionProcessor {
     }
 
     processorsNames.forEach((name) => {
-      if (
-        typeof self.api.actions.middleware[name].preProcessor === "function"
-      ) {
+      if (typeof self.api.actions.middleware[name].preProcessor === "function") {
         processors.push((next) => {
           self.api.actions.middleware[name].preProcessor(self, next);
         });
@@ -256,9 +241,7 @@ class ActionProcessor {
     }
 
     processorNames.forEach((name) => {
-      if (
-        typeof self.api.actions.middleware[name].postProcessor === "function"
-      ) {
+      if (typeof self.api.actions.middleware[name].postProcessor === "function") {
         processors.push((next) => {
           self.api.actions.middleware[name].postProcessor(self, next);
         });
@@ -294,11 +277,7 @@ class ActionProcessor {
       // format the input to the requested type
       if (props.format && this.params[key]) {
         if (typeof props.format === "function") {
-          self.params[key] = props.format.call(
-            this.api,
-            this.params[key],
-            this,
-          );
+          self.params[key] = props.format.call(this.api, this.params[key], this);
         } else if (props.format === "integer") {
           self.params[key] = Number.parseInt(self.params[key]);
         } else if (props.format === "float") {
@@ -308,10 +287,7 @@ class ActionProcessor {
         }
 
         if (Number.isNaN(self.params[key])) {
-          self.validatorErrors.set(
-            key,
-            self.api.config.errors.paramInvalidType(key, props.format),
-          );
+          self.validatorErrors.set(key, self.api.config.errors.paramInvalidType(key, props.format));
         }
       }
 
@@ -319,9 +295,7 @@ class ActionProcessor {
       // system
       if (props.required === true) {
         // FIXME: this will throw an error when the validator is a function
-        props.validator = !props.validator
-          ? "required"
-          : `required|${props.validator}`;
+        props.validator = !props.validator ? "required" : `required|${props.validator}`;
       }
 
       // add the field to the validation hash
@@ -354,37 +328,27 @@ class ActionProcessor {
     if (self.api.actions.versions[self.action]) {
       if (!self.params.apiVersion) {
         self.params.apiVersion =
-          self.api.actions.versions[self.action][
-            self.api.actions.versions[self.action].length - 1
-          ];
+          self.api.actions.versions[self.action][self.api.actions.versions[self.action].length - 1];
       }
-      self.actionTemplate =
-        self.api.actions.actions[self.action][self.params.apiVersion];
+      self.actionTemplate = self.api.actions.actions[self.action][self.params.apiVersion];
     }
 
     if (self.api.status !== "running") {
       self.completeAction("server_shutting_down");
-    } else if (
-      self.getPendingActionCount(self.connection) >
-      self.api.config.general.simultaneousActions
-    ) {
+    } else if (self.getPendingActionCount(self.connection) > self.api.config.general.simultaneousActions) {
       self.completeAction("too_many_requests");
     } else if (!self.action || !self.actionTemplate) {
       self.completeAction("unknown_action");
     } else if (
       self.actionTemplate.blockedConnectionTypes &&
-      self.actionTemplate.blockedConnectionTypes.indexOf(
-        self.connection.type,
-      ) >= 0
+      self.actionTemplate.blockedConnectionTypes.indexOf(self.connection.type) >= 0
     ) {
       self.completeAction("unsupported_server_type");
     } else {
       try {
         self.runAction();
       } catch (err) {
-        self.api.exceptionHandlers.action(err, self, () =>
-          self.completeAction("server_error"),
-        );
+        self.api.exceptionHandlers.action(err, self, () => self.completeAction("server_error"));
       }
     }
   }

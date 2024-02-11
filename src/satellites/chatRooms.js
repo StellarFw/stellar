@@ -67,9 +67,7 @@ class ChatRooms {
     this.globalMiddleware.push(data.name);
 
     // sort the globalMiddleware by priority
-    this.globalMiddleware.sort((a, b) =>
-      this.middleware[a].priority > this.middleware[b].priority ? 1 : -1,
-    );
+    this.globalMiddleware.sort((a, b) => (this.middleware[a].priority > this.middleware[b].priority ? 1 : -1));
   }
 
   /**
@@ -94,12 +92,7 @@ class ChatRooms {
    */
   async broadcast(connection, room, message) {
     // we need the room name and the message to send
-    if (
-      !room ||
-      room.length === 0 ||
-      message === null ||
-      message.length === 0
-    ) {
+    if (!room || room.length === 0 || message === null || message.length === 0) {
       throw this.api.config.errors.connectionRoomAndMessage(connection);
     }
 
@@ -126,12 +119,7 @@ class ChatRooms {
       let messagePayload = this._generateMessagePayload(payload);
 
       // handle callbacks
-      const newPayload = await this._handleCallbacks(
-        connection,
-        messagePayload.room,
-        "onSayReceive",
-        messagePayload,
-      );
+      const newPayload = await this._handleCallbacks(connection, messagePayload.room, "onSayReceive", messagePayload);
 
       // create the payload to send
       let payloadToSend = {
@@ -166,10 +154,7 @@ class ChatRooms {
 
     // iterate all connection
     for (let i in this.api.connections.connections) {
-      this._incomingMessagePerConnection(
-        this.api.connections.connections[i],
-        messagePayload,
-      );
+      this._incomingMessagePerConnection(this.api.connections.connections[i], messagePayload);
     }
   }
 
@@ -213,16 +198,10 @@ class ChatRooms {
     }
 
     // emit destroy event to the room
-    await this.emit(
-      room,
-      "destroy",
-      this.api.config.errors.connectionRoomHasBeenDeleted(room),
-    );
+    await this.emit(room, "destroy", this.api.config.errors.connectionRoomHasBeenDeleted(room));
 
     // get all room members
-    const members = await this.api.redis.clients.client.hgetall(
-      this.keys.members + room,
-    );
+    const members = await this.api.redis.clients.client.hgetall(this.keys.members + room);
 
     // remove each member from the room
     for (let id in members) {
@@ -240,10 +219,7 @@ class ChatRooms {
    */
   async exists(room) {
     // make a call to the redis server to check if the room exists
-    const bool = await this.api.redis.clients.client.sismember(
-      this.keys.rooms,
-      room,
-    );
+    const bool = await this.api.redis.clients.client.sismember(this.keys.rooms, room);
     return bool === 1 || bool === true;
   }
 
@@ -297,11 +273,7 @@ class ChatRooms {
   async join(connectionId, room) {
     // if the connection not exists create a new one in every stellar instance and return
     if (!this.api.connections.connections[connectionId]) {
-      return this.api.redis.doCluster(
-        "api.chatRoom.addMember",
-        [connectionId, room],
-        connectionId,
-      );
+      return this.api.redis.doCluster("api.chatRoom.addMember", [connectionId, room], connectionId);
     }
 
     // get connection object
@@ -326,11 +298,7 @@ class ChatRooms {
     let memberDetails = this._generateMemberDetails(connection);
 
     // add member to the room
-    await this.api.redis.clients.client.hset(
-      this.keys.members + room,
-      connection.id,
-      JSON.stringify(memberDetails),
-    );
+    await this.api.redis.clients.client.hset(this.keys.members + room, connection.id, JSON.stringify(memberDetails));
 
     // push the new room to the connection object
     connection.rooms.push(room);
@@ -348,11 +316,7 @@ class ChatRooms {
     // if the connection does not exists on the connections array perform a remove
     // member on the cluster
     if (this.api.connections.connections[connectionId] === undefined) {
-      return this.api.redis.doCluster(
-        "api.chatRoom.leave",
-        [connectionId, room],
-        connectionId,
-      );
+      return this.api.redis.doCluster("api.chatRoom.leave", [connectionId, room], connectionId);
     }
 
     // get connection
@@ -375,10 +339,7 @@ class ChatRooms {
     await this._handleCallbacks(connection, room, "leave", null);
 
     // remove the user
-    await this.api.redis.clients.client.hdel(
-      this.keys.members + room,
-      connection.id,
-    );
+    await this.api.redis.clients.client.hdel(this.keys.members + room, connection.id);
 
     // get the room index
     let index = connection.rooms.indexOf(room);
@@ -529,12 +490,7 @@ class ChatRooms {
 
     try {
       // apply the middleware
-      const newMessagePayload = await this._handleCallbacks(
-        connection,
-        messagePayload.room,
-        "say",
-        messagePayload,
-      );
+      const newMessagePayload = await this._handleCallbacks(connection, messagePayload.room, "say", messagePayload);
 
       // send a message to the connection
       connection.sendMessage(newMessagePayload, "say");

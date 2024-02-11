@@ -4,9 +4,7 @@ import { EventEmitter } from "events";
  * This function is called when the method is not implemented.
  */
 let methodNotDefined = () => {
-  throw new Error(
-    "The containing method should be defined for this server type",
-  );
+  throw new Error("The containing method should be defined for this server type");
 };
 
 /**
@@ -156,19 +154,9 @@ export default class GenericServer extends EventEmitter {
    * @param connection Connection object.
    */
   processFile(connection) {
-    this.api.staticFile.get(
-      connection,
-      (connection, error, fileStream, mime, length, lastModified) => {
-        this.sendFile(
-          connection,
-          error,
-          fileStream,
-          mime,
-          length,
-          lastModified,
-        );
-      },
-    );
+    this.api.staticFile.get(connection, (connection, error, fileStream, mime, length, lastModified) => {
+      this.sendFile(connection, error, fileStream, mime, length, lastModified);
+    });
   }
 
   /**

@@ -63,27 +63,19 @@ export default class Tcp extends GenericServer {
     let self = this;
 
     if (self.options.secure === false) {
-      self.server = net.createServer(
-        self.api.config.servers.tcp.serverOptions,
-        (rawConnection) => {
-          self._handleConnection(rawConnection);
-        },
-      );
+      self.server = net.createServer(self.api.config.servers.tcp.serverOptions, (rawConnection) => {
+        self._handleConnection(rawConnection);
+      });
     } else {
-      self.server = tls.createServer(
-        self.api.config.servers.tcp.serverOptions,
-        (rawConnection) => {
-          self._handleConnection(rawConnection);
-        },
-      );
+      self.server = tls.createServer(self.api.config.servers.tcp.serverOptions, (rawConnection) => {
+        self._handleConnection(rawConnection);
+      });
     }
 
     // on server error
     self.server.on("error", (e) => {
       return callback(
-        new Error(
-          `Cannot start tcp server @ ${self.options.bindIP}:${self.options.port} => ${e.message}`,
-        ),
+        new Error(`Cannot start tcp server @ ${self.options.bindIP}:${self.options.port} => ${e.message}`),
       );
     });
 
@@ -114,9 +106,7 @@ export default class Tcp extends GenericServer {
 
     // if is an error message serialize the object
     if (message.error) {
-      message.error = self.api.config.errors.serializers.servers.tcp(
-        message.error,
-      );
+      message.error = self.api.config.errors.serializers.servers.tcp(message.error);
     }
 
     if (connection.respondingTo) {
@@ -150,9 +140,7 @@ export default class Tcp extends GenericServer {
     try {
       connection.rawConnection.end(
         `${JSON.stringify({
-          status: connection.localize(
-            self.api.config.servers.tcp.goodbeyMessage,
-          ),
+          status: connection.localize(self.api.config.servers.tcp.goodbeyMessage),
           context: "api",
         })}\r\n`,
       );
@@ -202,10 +190,7 @@ export default class Tcp extends GenericServer {
           let bufferLen = Buffer.byteLength(line, "utf8");
 
           if (bufferLen > self.api.config.servers.tcp.maxDataLength) {
-            let error = self.api.config.errors.dataLengthTooLarge(
-              self.api.config.servers.tcp.maxDataLength,
-              bufferLen,
-            );
+            let error = self.api.config.errors.dataLengthTooLarge(self.api.config.servers.tcp.maxDataLength, bufferLen);
             self.log(error, "error");
             return self.sendMessage(connection, {
               status: "error",
@@ -228,26 +213,17 @@ export default class Tcp extends GenericServer {
         if (self._checkBreakChars(chunk)) {
           connection.destroy();
         } else {
-          connection.rawConnection.socketDataString += chunk
-            .toString("utf-8")
-            .replace(/\r/g, "\n");
+          connection.rawConnection.socketDataString += chunk.toString("utf-8").replace(/\r/g, "\n");
           let index;
 
           // get delimiter
           let delimiter = String(self.api.config.servers.tcp.delimiter);
 
-          while (
-            (index =
-              connection.rawConnection.socketDataString.indexOf(delimiter)) > -1
-          ) {
-            let data = connection.rawConnection.socketDataString.slice(
-              0,
-              index,
+          while ((index = connection.rawConnection.socketDataString.indexOf(delimiter)) > -1) {
+            let data = connection.rawConnection.socketDataString.slice(0, index);
+            connection.rawConnection.socketDataString = connection.rawConnection.socketDataString.slice(
+              index + delimiter.length,
             );
-            connection.rawConnection.socketDataString =
-              connection.rawConnection.socketDataString.slice(
-                index + delimiter.length,
-              );
             data.split(delimiter).forEach(parseLine);
           }
         }

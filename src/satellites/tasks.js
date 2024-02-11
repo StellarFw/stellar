@@ -43,16 +43,11 @@ class TaskSatellite {
       const level = reload ? "info" : "debug";
       const reloadWord = reload ? "(re)" : "";
 
-      this.api.log(
-        `task ${reloadWord}loaded: ${loadedTasksName}, ${fullFilePath}`,
-        level,
-      );
+      this.api.log(`task ${reloadWord}loaded: ${loadedTasksName}, ${fullFilePath}`, level);
     };
 
     // start watch for file changes
-    this.api.configs.watchFileAndAct(fullFilePath, () =>
-      this.loadFile(fullFilePath, true),
-    );
+    this.api.configs.watchFileAndAct(fullFilePath, () => this.loadFile(fullFilePath, true));
 
     // temporary task info
     let task = null;
@@ -178,10 +173,7 @@ class TaskSatellite {
     if (typeof task.name !== "string" || task.name.length < 1) {
       fail("a task is missing 'task.name'");
       return false;
-    } else if (
-      typeof task.description !== "string" ||
-      task.description.length < 1
-    ) {
+    } else if (typeof task.description !== "string" || task.description.length < 1) {
       fail(`Task ${task.name} is missing 'task.description'`);
       return false;
     } else if (typeof task.frequency !== "number") {
@@ -234,11 +226,7 @@ class TaskSatellite {
     if (typeof queue === "function" && callback === undefined) {
       callback = queue;
       queue = self.tasks[taskName].queue;
-    } else if (
-      typeof params === "function" &&
-      callback === undefined &&
-      queue === undefined
-    ) {
+    } else if (typeof params === "function" && callback === undefined && queue === undefined) {
       callback = params;
       queue = self.tasks[taskName].queue;
       params = {};
@@ -262,22 +250,12 @@ class TaskSatellite {
     if (typeof queue === "function" && callback === undefined) {
       callback = queue;
       queue = this.tasks[taskName].queue;
-    } else if (
-      typeof params === "function" &&
-      callback === undefined &&
-      queue === undefined
-    ) {
+    } else if (typeof params === "function" && callback === undefined && queue === undefined) {
       callback = params;
       queue = this.tasks[taskName].queue;
       params = {};
     }
-    self.api.resque.queue.enqueueAt(
-      timestamp,
-      queue,
-      taskName,
-      params,
-      callback,
-    );
+    self.api.resque.queue.enqueueAt(timestamp, queue, taskName, params, callback);
   }
 
   /**
@@ -295,11 +273,7 @@ class TaskSatellite {
     if (typeof queue === "function" && callback === undefined) {
       callback = queue;
       queue = self.tasks[taskName].queue;
-    } else if (
-      typeof params === "function" &&
-      callback === undefined &&
-      queue === undefined
-    ) {
+    } else if (typeof params === "function" && callback === undefined && queue === undefined) {
       callback = params;
       queue = self.tasks[taskName].queue;
       params = {};
@@ -471,10 +445,7 @@ class TaskSatellite {
     self.del(task.queue, taskName, {}, () => {
       self.delDelayed(task.queue, taskName, {}, () => {
         self.enqueueIn(task.frequency, taskName, () => {
-          self.api.log(
-            `re-enqueued recurrent job ${taskName}`,
-            self.api.config.tasks.schedulerLogging.reEnqueue,
-          );
+          self.api.log(`re-enqueued recurrent job ${taskName}`, self.api.config.tasks.schedulerLogging.reEnqueue);
           callback();
         });
       });
@@ -502,10 +473,7 @@ class TaskSatellite {
               return done(error);
             }
             if (toRun === true) {
-              self.api.log(
-                `enqueuing periodic task ${taskName}`,
-                self.api.config.tasks.schedulerLogging.enqueue,
-              );
+              self.api.log(`enqueuing periodic task ${taskName}`, self.api.config.tasks.schedulerLogging.enqueue);
               loadedTasks.push(taskName);
             }
 

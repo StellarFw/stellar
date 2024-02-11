@@ -104,20 +104,16 @@ class Actions {
     // return a promise
     return new Promise((resolve, reject) => {
       // create a new ActionProcessor instance
-      const actionProcessor = new ActionProcessor(
-        this.api,
-        connection,
-        (data) => {
-          // destroy the connection and resolve of reject the promise
-          connection.destroy(() => {
-            if (data.response.error !== undefined) {
-              return reject(data.response.error);
-            }
+      const actionProcessor = new ActionProcessor(this.api, connection, (data) => {
+        // destroy the connection and resolve of reject the promise
+        connection.destroy(() => {
+          if (data.response.error !== undefined) {
+            return reject(data.response.error);
+          }
 
-            resolve(data.response);
-          });
-        },
-      );
+          resolve(data.response);
+        });
+      });
 
       // process the action
       actionProcessor.processAction();
@@ -174,10 +170,7 @@ class Actions {
     }
 
     // if the action not exists create a new entry on the hash map
-    if (
-      this.actions[action.name] === null ||
-      this.actions[action.name] === undefined
-    ) {
+    if (this.actions[action.name] === null || this.actions[action.name] === undefined) {
       this.actions[action.name] = {};
     }
 
@@ -202,10 +195,7 @@ class Actions {
 
     // put the action on correct version slot
     this.actions[action.name][action.version] = action;
-    if (
-      this.versions[action.name] === null ||
-      this.versions[action.name] === undefined
-    ) {
+    if (this.versions[action.name] === null || this.versions[action.name] === undefined) {
       this.versions[action.name] = [];
     }
     this.versions[action.name].push(action.version);
@@ -289,22 +279,14 @@ class Actions {
     if (typeof action.name !== "string" || action.name.length < 1) {
       fail("an action is missing 'action.name'");
       return false;
-    } else if (
-      typeof action.description !== "string" ||
-      action.description.length < 1
-    ) {
+    } else if (typeof action.description !== "string" || action.description.length < 1) {
       fail(`Action ${action.name} is missing 'action.description'`);
       return false;
     } else if (typeof action.run !== "function") {
       fail(`Action ${action.run} has no run method`);
       return false;
-    } else if (
-      self.api.connections !== null &&
-      self.api.connections.allowedVerbs.indexOf(action.name) >= 0
-    ) {
-      fail(
-        `${action.run} is a reserved verb for connections. Choose a new name`,
-      );
+    } else if (self.api.connections !== null && self.api.connections.allowedVerbs.indexOf(action.name) >= 0) {
+      fail(`${action.run} is a reserved verb for connections. Choose a new name`);
       return false;
     } else {
       return true;
@@ -375,9 +357,7 @@ class Actions {
     };
 
     // watch for changes on the middleware file
-    self.api.configs.watchFileAndAct(path, () =>
-      self.loadMiddlewareFromFile(path, true),
-    );
+    self.api.configs.watchFileAndAct(path, () => self.loadMiddlewareFromFile(path, true));
 
     // try load the middleware
     try {
@@ -428,9 +408,7 @@ class Actions {
       if (Array.isArray(group.modules)) {
         // iterate all groups and for each one load the actions
         group.modules.forEach((groupName) => {
-          actions = actions.concat(
-            this.api.modules.moduleActions.get(groupName) || [],
-          );
+          actions = actions.concat(this.api.modules.moduleActions.get(groupName) || []);
         });
       }
 
@@ -542,9 +520,7 @@ class Actions {
     const groupNames = this._checkWhatGroupsArePresent(action.name);
 
     // apply the changes of all founded groups
-    groupNames.forEach((groupName) =>
-      this._applyGroupModToAction(groupName, action),
-    );
+    groupNames.forEach((groupName) => this._applyGroupModToAction(groupName, action));
   }
 
   /**
@@ -592,17 +568,13 @@ export default class {
     // iterate all modules and load all actions
     for (const [moduleName, modulePath] of api.modules.modulesPaths) {
       // load modules middleware
-      const middlewarePaths = api.utils.recursiveDirectoryGlob(
-        `${modulePath}/middleware`,
-      );
+      const middlewarePaths = api.utils.recursiveDirectoryGlob(`${modulePath}/middleware`);
       for (const path of middlewarePaths) {
         await api.actions.loadMiddlewareFromFile(path);
       }
 
       // get all files from the module "actions" folder
-      const actionFiles = api.utils.recursiveDirectoryGlob(
-        `${modulePath}/actions`,
-      );
+      const actionFiles = api.utils.recursiveDirectoryGlob(`${modulePath}/actions`);
       for (const actionFile of actionFiles) {
         await api.actions.loadFile(actionFile, moduleName);
       }
@@ -618,9 +590,7 @@ export default class {
         api.actions.loadModifier(modifierDef.actions);
 
         // when the modifier file changes we must reload the entire server
-        api.configs.watchFileAndAct(modPath, () =>
-          api.commands.restart.call(api._self),
-        );
+        api.configs.watchFileAndAct(modPath, () => api.commands.restart.call(api._self));
       }
     }
 

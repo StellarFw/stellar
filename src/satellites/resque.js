@@ -63,10 +63,7 @@ class ResqueManager {
     // we do this because the lint error
     let Queue = NR.queue;
 
-    this.queue = new Queue(
-      { connection: this.connectionDetails },
-      this.api.tasks.jobs,
-    );
+    this.queue = new Queue({ connection: this.connectionDetails }, this.api.tasks.jobs);
     this.queue.on("error", (error) => {
       this.api.log(error, "error", "[api.resque.scheduler]");
     });
@@ -97,34 +94,19 @@ class ResqueManager {
     });
 
     // define the handler for the on error event
-    self.scheduler.on("error", (error) =>
-      self.api.log(error, "error", "[api.resque.scheduler]"),
-    );
+    self.scheduler.on("error", (error) => self.api.log(error, "error", "[api.resque.scheduler]"));
 
     // start the scheduler
     self.scheduler.connect(() => {
       // define some handlers to the scheduler events
-      self.scheduler.on("start", () =>
-        self.api.log("resque scheduler started", self.schedulerLogging.start),
-      );
-      self.scheduler.on("end", () =>
-        self.api.log("resque scheduler ended", self.schedulerLogging.end),
-      );
-      self.scheduler.on("poll", () =>
-        self.api.log("resque scheduler polling", self.schedulerLogging.poll),
-      );
+      self.scheduler.on("start", () => self.api.log("resque scheduler started", self.schedulerLogging.start));
+      self.scheduler.on("end", () => self.api.log("resque scheduler ended", self.schedulerLogging.end));
+      self.scheduler.on("poll", () => self.api.log("resque scheduler polling", self.schedulerLogging.poll));
       self.scheduler.on("working_timestamp", (timestamp) =>
-        self.api.log(
-          `resque scheduler working timestamp ${timestamp}`,
-          self.schedulerLogging.working_timestamp,
-        ),
+        self.api.log(`resque scheduler working timestamp ${timestamp}`, self.schedulerLogging.working_timestamp),
       );
       self.scheduler.on("transferred_job", (timestamp, job) =>
-        self.api.log(
-          `resque scheduler enqueuing job ${timestamp}`,
-          self.schedulerLogging.transferred_job,
-          job,
-        ),
+        self.api.log(`resque scheduler enqueuing job ${timestamp}`, self.schedulerLogging.transferred_job, job),
       );
 
       // start the scheduler
@@ -195,10 +177,7 @@ class ResqueManager {
       }),
     );
     self.multiWorker.on("cleaning_worker", (workerId, worker, pid) =>
-      self.api.log(
-        `worker: cleaning old worker ${worker}, (${pid})`,
-        self.workerLogging.cleaning_worker,
-      ),
+      self.api.log(`worker: cleaning old worker ${worker}, (${pid})`, self.workerLogging.cleaning_worker),
     );
     // for debug: self.multiWorker.on('poll', (queue) => self.api.log(`worker: polling ${queue}`, self.workerLogging.poll))
     self.multiWorker.on("job", (workerId, queue, job) =>
@@ -230,14 +209,10 @@ class ResqueManager {
     self.multiWorker.on("failure", (workerId, queue, job, failure) =>
       self.api.exceptionHandlers.task(failure, queue, job),
     );
-    self.multiWorker.on("error", (workerId, queue, job, error) =>
-      self.api.exceptionHandlers.task(error, queue, job),
-    );
+    self.multiWorker.on("error", (workerId, queue, job, error) => self.api.exceptionHandlers.task(error, queue, job));
 
     // multiWorker emitters
-    self.multiWorker.on("internalError", (error) =>
-      self.api.log(error, self.workerLogging.internalError),
-    );
+    self.multiWorker.on("internalError", (error) => self.api.log(error, self.workerLogging.internalError));
     // for debug: self.multiWorker.on('multiWorkerAction', (verb, delay) => self.api.log(`*** checked for worker status: ${verb} (event loop delay: ${delay}ms)`, self.workerLogging.multiWorkerAction))
 
     if (self.api.config.tasks.minTaskProcessors > 0) {
@@ -318,10 +293,7 @@ export default class {
    * @param next  Callback function.
    */
   start(api, next) {
-    if (
-      api.config.tasks.minTaskProcessors === 0 &&
-      api.config.tasks.maxTaskProcessors > 0
-    ) {
+    if (api.config.tasks.minTaskProcessors === 0 && api.config.tasks.maxTaskProcessors > 0) {
       api.config.tasks.minTaskProcessors = 1;
     }
 

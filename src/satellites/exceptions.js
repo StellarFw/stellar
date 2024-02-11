@@ -30,22 +30,14 @@ class ExceptionsManager {
         extraMessages.push(`Uncaught error from action: ${name}\n`);
 
         extraMessages.push("Connection details:");
-        const relevantDetails = [
-          "action",
-          "remoteIP",
-          "type",
-          "params",
-          "room",
-        ];
+        const relevantDetails = ["action", "remoteIP", "type", "params", "room"];
         for (let detailName of relevantDetails) {
           if (
             objects.connection[detailName] !== null &&
             objects.connection[detailName] !== undefined &&
             typeof objects.connection[detailName] !== "function"
           ) {
-            extraMessages.push(
-              `    ${detailName}: ${JSON.stringify(objects.connection[detailName])}`,
-            );
+            extraMessages.push(`    ${detailName}: ${JSON.stringify(objects.connection[detailName])}`);
           }
         }
 
@@ -56,9 +48,7 @@ class ExceptionsManager {
           `Uncaught error from task: ${name} on queue ${objects.queue} (worker #${objects.workerId})\n`,
         );
         try {
-          extraMessages.push(
-            `    arguments: ${JSON.stringify(objects.task.args)}`,
-          );
+          extraMessages.push(`    arguments: ${JSON.stringify(objects.task.args)}`);
         } catch (e) {
           // ignore error
         }
@@ -141,13 +131,7 @@ class ExceptionsManager {
     }
 
     // report the error
-    self.report(
-      err,
-      "action",
-      simpleName,
-      { connection: data.connection },
-      "error",
-    );
+    self.report(err, "action", simpleName, { connection: data.connection }, "error");
 
     // remove already processed responses
     data.response = {};

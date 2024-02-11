@@ -136,10 +136,7 @@ class CacheManager {
 
     // save the new key and value
     const keyToSave = this.redisPrefix + key;
-    await this.api.redis.clients.client.set(
-      keyToSave,
-      JSON.stringify(cacheObj),
-    );
+    await this.api.redis.clients.client.set(keyToSave, JSON.stringify(cacheObj));
 
     // if the new cache entry has been saved define the expire date if needed
     if (expireTimeSeconds) {
@@ -160,9 +157,7 @@ class CacheManager {
 
     try {
       // get the cache entry from redis server
-      cacheObj = await this.api.redis.clients.client.get(
-        this.redisPrefix + key,
-      );
+      cacheObj = await this.api.redis.clients.client.get(this.redisPrefix + key);
     } catch (e) {
       this.api.log(e, "error");
     }
@@ -179,10 +174,7 @@ class CacheManager {
       throw new Error("Object not found");
     }
 
-    if (
-      cacheObj.expireTimestamp >= new Date().getTime() ||
-      cacheObj.expireTimestamp === null
-    ) {
+    if (cacheObj.expireTimestamp >= new Date().getTime() || cacheObj.expireTimestamp === null) {
       const lastReadAt = cacheObj.readAt;
       let expireTimeSeconds;
 
@@ -192,13 +184,10 @@ class CacheManager {
       if (cacheObj.expireTimestamp) {
         // define the new expire time if requested
         if (options.expireTimeMS) {
-          cacheObj.expireTimestamp =
-            new Date().getTime() + options.expireTimeMS;
+          cacheObj.expireTimestamp = new Date().getTime() + options.expireTimeMS;
           expireTimeSeconds = Math.ceil(options.expireTimeMS / 1000);
         } else {
-          expireTimeSeconds = Math.floor(
-            (cacheObj.expireTimestamp - new Date().getTime()) / 1000,
-          );
+          expireTimeSeconds = Math.floor((cacheObj.expireTimestamp - new Date().getTime()) / 1000);
         }
       }
 
@@ -214,16 +203,10 @@ class CacheManager {
         throw new Error("Object locked");
       }
 
-      await this.api.redis.clients.client.set(
-        this.redisPrefix + key,
-        JSON.stringify(cacheObj),
-      );
+      await this.api.redis.clients.client.set(this.redisPrefix + key, JSON.stringify(cacheObj));
 
       if (typeof expireTimeSeconds === "number") {
-        await this.api.redis.clients.client.expire(
-          this.redisPrefix + key,
-          expireTimeSeconds,
-        );
+        await this.api.redis.clients.client.expire(this.redisPrefix + key, expireTimeSeconds);
       }
 
       /// return an object with the last time that the resource was read and they content
@@ -299,10 +282,7 @@ class CacheManager {
 
     // set an expire date for the lock
     try {
-      await this.api.redis.clients.client.expire(
-        lockKey,
-        Math.ceil(expireTimeMS / 1000),
-      );
+      await this.api.redis.clients.client.expire(lockKey, Math.ceil(expireTimeMS / 1000));
     } catch (e) {
       return false;
     }
@@ -342,9 +322,7 @@ class CacheManager {
    */
   async checkLock(key, retry, startTime = new Date().getTime()) {
     // get the cache entry
-    const lockedBy = await this.api.redis.clients.client.get(
-      this.lockPrefix + key,
-    );
+    const lockedBy = await this.api.redis.clients.client.get(this.lockPrefix + key);
 
     // if the lock name is equals to this instance lock name, the resource can be used
     if (lockedBy === this.lockName || lockedBy === null) {
@@ -387,9 +365,7 @@ class CacheManager {
    */
   async pop(key) {
     // pop the item from Redis
-    const object = await this.api.redis.clients.client.lpop(
-      this.redisPrefix + key,
-    );
+    const object = await this.api.redis.clients.client.lpop(this.redisPrefix + key);
 
     // if the object not exist return null
     if (!object) {

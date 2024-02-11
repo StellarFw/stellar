@@ -24,9 +24,7 @@ class TestServer extends GenericServer {
       };
 
       if (data.response.error) {
-        data.response.error = api.config.errors.serializers.servers.helper(
-          data.response.error,
-        );
+        data.response.error = api.config.errors.serializers.servers.helper(data.response.error);
       }
 
       for (var k in data.params) {

@@ -104,10 +104,7 @@ class Validator {
         const ruleParameters = this.rules[fieldName][ruleName];
 
         // if the property has undefined only implicit validators can be applied
-        if (
-          value === undefined &&
-          Validator.implicitValidators.indexOf(ruleName) === -1
-        ) {
+        if (value === undefined && Validator.implicitValidators.indexOf(ruleName) === -1) {
           break;
         }
 
@@ -124,10 +121,7 @@ class Validator {
           if (typeof funcResponse === "string") {
             errors.set(fieldName, funcResponse);
           } else if (funcResponse === false) {
-            errors.set(
-              fieldName,
-              `The ${fieldName} field do not match with the validator function.`,
-            );
+            errors.set(fieldName, `The ${fieldName} field do not match with the validator function.`);
           }
 
           continue;
@@ -144,9 +138,7 @@ class Validator {
         // execute the correspondent validator and if the response if `false` a
         // failure message will be added to the errors hash. The exec methods
         // also can return
-        if (
-          !this[`validator${ruleNormalized}`](value, ruleParameters, fieldName)
-        ) {
+        if (!this[`validator${ruleNormalized}`](value, ruleParameters, fieldName)) {
           this._addFailure(fieldName, ruleName, ruleParameters, errors);
           continue;
         }
@@ -214,9 +206,7 @@ class Validator {
 
     // if there is no message for the validator throw an error
     if (message === undefined) {
-      throw new Error(
-        `No error message was been specified for the '${rule}' validator`,
-      );
+      throw new Error(`No error message was been specified for the '${rule}' validator`);
     }
 
     // replace the fields on the error message
@@ -291,9 +281,7 @@ class Validator {
    */
   _requireParameterCount(count, parameters, rule) {
     if (!parameters || parameters.length < count) {
-      throw new InvalidArgumentException(
-        `Validation rule ${rule} requires at least ${count} parameters.`,
-      );
+      throw new InvalidArgumentException(`Validation rule ${rule} requires at least ${count} parameters.`);
     }
   }
 
@@ -810,9 +798,7 @@ class Validator {
    * @returns {boolean}
    */
   validatorUrl(value) {
-    return /^(http|ftp|https):\/\/[\w-]+(\.[\w-]*)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?$/.test(
-      value,
-    );
+    return /^(http|ftp|https):\/\/[\w-]+(\.[\w-]*)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?$/.test(value);
   }
 
   // --------------------------------------------------------------------------- [Replacers]

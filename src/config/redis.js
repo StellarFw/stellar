@@ -13,10 +13,7 @@ let password = process.env.REDIS_PASS || null;
  */
 export default {
   redis() {
-    if (
-      process.env.FAKEREDIS === "false" ||
-      process.env.REDIS_HOST !== undefined
-    ) {
+    if (process.env.FAKEREDIS === "false" || process.env.REDIS_HOST !== undefined) {
       return {
         _toExpand: false,
 

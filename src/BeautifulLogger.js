@@ -24,22 +24,17 @@ export default class BeautifulLogger extends Transport {
     this.json = options.json || false;
     this.colorize = options.colorize || false;
     this.prettyPrint = options.prettyPrint || false;
-    this.timestamp =
-      typeof options.timestamp !== "undefined" ? options.timestamp : false;
+    this.timestamp = typeof options.timestamp !== "undefined" ? options.timestamp : false;
     this.showLevel = options.showLevel === undefined ? true : options.showLevel;
     this.label = options.label || null;
     this.logstash = options.logstash || false;
     this.depth = options.depth || null;
     this.align = options.align || false;
-    this.stderrLevels = BeautifulLogger.setStderrLevels(
-      options.stderrLevels,
-      options.debugStdout,
-    );
+    this.stderrLevels = BeautifulLogger.setStderrLevels(options.stderrLevels, options.debugStdout);
     this.eol = options.eol || os.EOL;
 
     if (this.json) {
-      this.stringify =
-        options.stringify || ((obj) => JSON.stringify(obj, null, 2));
+      this.stringify = options.stringify || ((obj) => JSON.stringify(obj, null, 2));
     }
   }
 
@@ -82,9 +77,7 @@ export default class BeautifulLogger extends Transport {
       -2,
     )} ${`0${data.getHours()}`.slice(-2)}:${`0${data.getMinutes()}`.slice(
       -2,
-    )}:${`0${data.getSeconds()}`.slice(-2)}.${`00${data.getMilliseconds()}`.slice(
-      -3,
-    )}`;
+    )}:${`0${data.getSeconds()}`.slice(-2)}.${`00${data.getMilliseconds()}`.slice(-3)}`;
   }
 
   /**

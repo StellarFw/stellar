@@ -83,11 +83,7 @@ class Modules {
     let modules = self.api.config.modules;
 
     // check if the private module folder exists
-    if (
-      this.api.utils.directoryExists(
-        `${self.api.scope.rootPath}/modules/private`,
-      )
-    ) {
+    if (this.api.utils.directoryExists(`${self.api.scope.rootPath}/modules/private`)) {
       modules.push("private");
     }
 
@@ -107,9 +103,7 @@ class Modules {
 
       // get module manifest file content
       try {
-        const manifest = await this.api.utils.readJsonFile(
-          `${path}/manifest.json`,
-        );
+        const manifest = await this.api.utils.readJsonFile(`${path}/manifest.json`);
 
         // save the module config on the engine instance
         self.activeModules.set(manifest.id, manifest);
@@ -118,9 +112,7 @@ class Modules {
         self.modulesPaths.set(manifest.id, path);
       } catch (e) {
         next(
-          new Error(
-            `There is an invalid module active, named "${moduleName}", fix this to start Stellar normally.`,
-          ),
+          new Error(`There is an invalid module active, named "${moduleName}", fix this to start Stellar normally.`),
         );
         break;
       }
@@ -162,10 +154,7 @@ class Modules {
 
     // if the `package.json` file already exists and Stellar isn't starting with
     // the `update` flag return now
-    if (
-      this.api.utils.fileExists(`${scope.rootPath}/package.json`) &&
-      !scope.args.update
-    ) {
+    if (this.api.utils.fileExists(`${scope.rootPath}/package.json`) && !scope.args.update) {
       return next();
     }
 
@@ -177,10 +166,7 @@ class Modules {
       // check if the module have NPM dependencies
       if (manifest.npmDependencies !== undefined) {
         // merge the two hashes
-        npmDependencies = this.api.utils.hashMerge(
-          npmDependencies,
-          manifest.npmDependencies,
-        );
+        npmDependencies = this.api.utils.hashMerge(npmDependencies, manifest.npmDependencies);
       }
     });
 
@@ -196,11 +182,7 @@ class Modules {
     // generate project.json file
     const packageJsonPath = `${self.api.scope.rootPath}/package.json`;
     this.api.utils.removePath(packageJsonPath);
-    fs.writeFileSync(
-      packageJsonPath,
-      JSON.stringify(projectJson, null, 2),
-      "utf8",
-    );
+    fs.writeFileSync(packageJsonPath, JSON.stringify(projectJson, null, 2), "utf8");
 
     self.api.log("updating NPM packages", "info");
 
@@ -211,10 +193,7 @@ class Modules {
     exec(npmCommand, (error) => {
       // if an error occurs finish the process
       if (error) {
-        self.api.log(
-          "An error occurs during the NPM install command",
-          "emergency",
-        );
+        self.api.log("An error occurs during the NPM install command", "emergency");
         process.exit(1);
       }
 

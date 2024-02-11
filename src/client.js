@@ -74,9 +74,7 @@ class Build {
 
     // send an event for each room, and store the Promise on the array
     this.rooms.forEach((room) => {
-      work.push(
-        this.client.send({ event: "event", params: { room, event, data } }),
-      );
+      work.push(this.client.send({ event: "event", params: { room, event, data } }));
     });
 
     // return an array of Promises
@@ -155,9 +153,7 @@ const StellarClient = function (opts, client) {
 
   // this must print out an error when the Promise object can't be found
   if (Promise === undefined || typeof Promise !== "function") {
-    error(
-      "The browser does not support Promises, you must load a polyfill before load Stellar client lib",
-    );
+    error("The browser does not support Promises, you must load a polyfill before load Stellar client lib");
   }
 };
 
@@ -255,9 +251,7 @@ StellarClient.prototype.configure = function () {
   return new Promise((resolve) => {
     // join to all default rooms
     if (this.options.rooms) {
-      this.options.rooms.forEach((room) =>
-        this.send({ event: "roomAdd", room }),
-      );
+      this.options.rooms.forEach((room) => this.send({ event: "roomAdd", room }));
     }
 
     // request the connection details
@@ -461,9 +455,7 @@ StellarClient.prototype.action = function (action, params = {}) {
       if (isFunction(handler)) {
         handler.call(this, params, next, reject);
       } else {
-        warn(
-          `Invalid interceptor of type ${typeof handler}, must be a function`,
-        );
+        warn(`Invalid interceptor of type ${typeof handler}, must be a function`);
         next();
       }
     };

@@ -101,9 +101,7 @@ export class Utils {
   }
 
   readJsonFile(filePath) {
-    return this.readFile(filePath).then((buffer) =>
-      JSON.parse(buffer.toString()),
-    );
+    return this.readFile(filePath).then((buffer) => JSON.parse(buffer.toString()));
   }
 
   /**
@@ -170,8 +168,7 @@ export class Utils {
       if (this.isPlainObject(a[i])) {
         // can't be added into above condition, or empty objects will overwrite and not merge
         // also make sure empty objects are created
-        c[i] =
-          Object.keys(a[i]).length > 0 ? this.hashMerge(c[i], a[i], arg) : {};
+        c[i] = Object.keys(a[i]).length > 0 ? this.hashMerge(c[i], a[i], arg) : {};
       } else {
         if (typeof a[i] === "function") {
           response = a[i](arg);
@@ -228,16 +225,7 @@ export class Utils {
    * @returns {boolean}
    */
   isPlainObject(o) {
-    let safeTypes = [
-      Boolean,
-      Number,
-      String,
-      Function,
-      Array,
-      Date,
-      RegExp,
-      Buffer,
-    ];
+    let safeTypes = [Boolean, Number, String, Function, Array, Date, RegExp, Buffer];
     let safeInstances = ["boolean", "number", "string", "function"];
     let expandPreventMatchKey = "_toExpand"; // set `_toExpand = false` within an object if you don't want to expand it
     let i;
@@ -339,10 +327,7 @@ export class Utils {
   }
 
   isError(e) {
-    return (
-      this.isObject(e) &&
-      (this.objectToString(e) === "[object Error]" || e instanceof Error)
-    );
+    return this.isObject(e) && (this.objectToString(e) === "[object Error]" || e instanceof Error);
   }
 
   /**
@@ -467,9 +452,7 @@ export class Utils {
     return Object.create(
       Object.getPrototypeOf(obj),
       Object.getOwnPropertyNames(obj).reduce((memo, name) => {
-        return (
-          (memo[name] = Object.getOwnPropertyDescriptor(obj, name)) && memo
-        );
+        return (memo[name] = Object.getOwnPropertyDescriptor(obj, name)) && memo;
       }, {}),
     );
   }

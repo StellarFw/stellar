@@ -91,10 +91,7 @@ class ConfigManager {
     }
 
     // the watch for files change only works on development mode
-    if (
-      this.api.config.general.developmentMode !== true ||
-      this._watchedFiles.indexOf(file) > 0
-    ) {
+    if (this.api.config.general.developmentMode !== true || this._watchedFiles.indexOf(file) > 0) {
       return;
     }
 
@@ -103,10 +100,7 @@ class ConfigManager {
 
     // say to the FS to start watching for changes in this file with an interval of 1 seconds
     fs.watchFile(file, { interval: 1000 }, (curr, prev) => {
-      if (
-        curr.mtime > prev.mtime &&
-        this.api.config.general.developmentMode === true
-      ) {
+      if (curr.mtime > prev.mtime && this.api.config.general.developmentMode === true) {
         process.nextTick(async () => {
           let cleanPath = file;
 
@@ -134,10 +128,7 @@ class ConfigManager {
    * @private
    */
   _rebootCallback(file) {
-    this.api.log(
-      `\r\n\r\n*** rebooting due to config change (${file}) ***\r\n\r\n`,
-      "info",
-    );
+    this.api.log(`\r\n\r\n*** rebooting due to config change (${file}) ***\r\n\r\n`, "info");
     // TODO: do we really need this when using ESM modules?
     // delete require.cache[ require.resolve(file) ]
     this.api.commands.restart.call(this.api._self);
@@ -152,15 +143,10 @@ class ConfigManager {
 
     // read project manifest
     try {
-      this.api.config = await this.api.utils.readJsonFile(
-        `${this.api.scope.rootPath}/manifest.json`,
-      );
+      this.api.config = await this.api.utils.readJsonFile(`${this.api.scope.rootPath}/manifest.json`);
     } catch (e) {
       // when the project manifest doesn't exists the user is informed and the engine instance is terminated
-      this.api.log(
-        "Project `manifest.json` file does not exists.",
-        "emergency",
-      );
+      this.api.log("Project `manifest.json` file does not exists.", "emergency");
 
       // finish process (we can not stop the Engine because it can not be run)
       process.exit(1);
@@ -171,18 +157,12 @@ class ConfigManager {
 
     // load all the configs from the modules
     for (const moduleName of this.api.config.modules) {
-      await this.loadConfigDirectory(
-        `${this.api.scope.rootPath}/modules/${moduleName}/config`,
-        isToWatch,
-      );
+      await this.loadConfigDirectory(`${this.api.scope.rootPath}/modules/${moduleName}/config`, isToWatch);
     }
 
     // load the config files from the current universe if exists the platform
     // should be reloaded when the project configs changes
-    await this.loadConfigDirectory(
-      `${this.api.scope.rootPath}/config`,
-      isToWatch,
-    );
+    await this.loadConfigDirectory(`${this.api.scope.rootPath}/config`, isToWatch);
   }
 
   /**
@@ -206,18 +186,10 @@ class ConfigManager {
         // attempt configuration file load
         let localConfig = await import(file);
         if (localConfig.default) {
-          this.api.config = this.api.utils.hashMerge(
-            this.api.config,
-            localConfig.default,
-            this.api,
-          );
+          this.api.config = this.api.utils.hashMerge(this.api.config, localConfig.default, this.api);
         }
         if (localConfig[this.api.env]) {
-          this.api.config = this.api.utils.hashMerge(
-            this.api.config,
-            localConfig[this.api.env],
-            this.api,
-          );
+          this.api.config = this.api.utils.hashMerge(this.api.config, localConfig[this.api.env], this.api);
         }
 
         // configuration file load success: clear retries and errors since progress
@@ -234,11 +206,7 @@ class ConfigManager {
         // inability to progress
         loadErrors[file] = error.toString();
         if (++loadRetries === limit - i) {
-          throw new Error(
-            `Unable to load configurations, errors: ${JSON.stringify(
-              loadErrors,
-            )}`,
-          );
+          throw new Error(`Unable to load configurations, errors: ${JSON.stringify(loadErrors)}`);
         }
         // adjust configuration files list: remove and push failed configuration to the end of the list and continue
         // with next file at same index

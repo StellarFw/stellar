@@ -64,11 +64,7 @@ class Pids {
    */
   writePidFile() {
     let self = this;
-    fs.writeFileSync(
-      `${self.path}/${self.title}`,
-      self.pid.toString(),
-      "ascii",
-    );
+    fs.writeFileSync(`${self.path}/${self.title}`, self.pid.toString(), "ascii");
   }
 
   /**
