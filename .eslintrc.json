@@ -14,7 +14,7 @@
     "plugin:prettier/recommended"
   ],
 
-  "ignorePatterns": ["**/node_modules", "**/dits"],
+  "ignorePatterns": ["**/node_modules", "**/dits", "src/client.js"],
   "plugins": ["@typescript-eslint", "prettier", "unused-imports"],
   "rules": {
     "prettier/prettier": "error",

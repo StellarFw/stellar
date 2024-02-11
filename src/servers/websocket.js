@@ -2,7 +2,7 @@ import fs from "fs";
 import util from "util";
 import path from "path";
 import Primus from "primus";
-import UglifyJS from "uglify-es";
+import UglifyJS from "uglify-js";
 import GenericServer from "../genericServer";
 
 // server type
