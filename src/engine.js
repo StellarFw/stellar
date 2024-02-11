@@ -124,8 +124,6 @@ export default class Engine {
       restart: null,
     },
 
-    _self: null,
-
     log: null,
 
     scope: {},
@@ -178,23 +176,18 @@ export default class Engine {
    * @param scope Initial scope
    */
   constructor(scope) {
-    let self = this;
-
     // save current execution scope
-    self.api.scope = scope;
+    this.api.scope = scope;
 
     // define args if them are not already defined
-    if (!self.api.scope.args) {
-      self.api.scope.args = {};
+    if (!this.api.scope.args) {
+      this.api.scope.args = {};
     }
-
-    // save the engine reference for external calls
-    self.api._self = self;
 
     // define a dummy logger
     //
     // this only should print error, emergency levels
-    self.api.log = (msg, level = "info") => {
+    this.api.log = (msg, level = "info") => {
       // if we are on test environment don't use the console
       if (process.env.NODE_ENV === "test") {
         return;
@@ -210,28 +203,19 @@ export default class Engine {
     };
 
     // define the available engine commands
-    self.api.commands = {
-      initialize: self.initialize,
-      start: self.start,
-      stop: self.stop,
-      restart: self.restart,
+    this.api.commands = {
+      initialize: this.initialize,
+      start: this.start,
+      stop: this.stop,
+      restart: this.restart,
     };
   }
 
   // --------------------------------------------------------------------------- [State Manager Functions]
 
   initialize(callback = null) {
-    let self = this;
-
-    // if this function has called outside of the Engine the 'this'
-    // variable has an invalid reference
-    if (this._self) {
-      self = this._self;
-    }
-    self.api._self = self;
-
     // print current execution path
-    self.api.log(`Current universe "${self.api.scope.rootPath}"`, "info");
+    this.api.log(`Current universe "${this.api.scope.rootPath}"`, "info");
 
     // execute the stage 0
     this.stage0(callback);
@@ -243,33 +227,24 @@ export default class Engine {
    * @param callback This function is called when the Engine finish their startup.
    */
   start(callback = null) {
-    let self = this;
-
-    // if this function has called outside of the Engine the 'this'
-    // variable has an invalid reference
-    if (this._self) {
-      self = this._self;
-    }
-    self.api._self = self;
-
     // reset start counter
     startCount = 0;
 
     // check if the engine was already initialized
-    if (self.api.status !== "init_stage0") {
-      return self.initialize((error, api) => {
+    if (this.api.status !== "init_stage0") {
+      return this.initialize((error, api) => {
         // if an error occurs we stop here
         if (error) {
           return callback(error, api);
         }
 
         // start stage1 loading method
-        self.stage1(callback);
+        this.stage1(callback);
       });
     }
 
     // start stage1 loading method
-    return self.stage1(callback);
+    return this.stage1(callback);
   }
 
   /**
@@ -281,45 +256,37 @@ export default class Engine {
    * @param callback Callback function to be executed at the stop end execution.
    */
   stop(callback = null) {
-    let self = this;
-
-    // if this function has called outside of the Engine the 'this'
-    // variable has an invalid reference
-    if (this._self) {
-      self = this._self;
-    }
-
-    if (self.api.status === "running") {
+    if (this.api.status === "running") {
       // stop Engine
-      self.api.status = "shutting_down";
+      this.api.status = "shutting_down";
 
       // log a shutting down message
-      self.api.log("Shutting down open servers and stopping task processing", "alert");
+      this.api.log("Shutting down open servers and stopping task processing", "alert");
 
       // if this is the second shutdown we need remove the `finalStopInitializer` callback
-      if (self.stopSatellites[self.stopSatellites.length - 1].name === "finalStopInitializer") {
-        self.stopSatellites.pop();
+      if (this.stopSatellites[this.stopSatellites.length - 1].name === "finalStopInitializer") {
+        this.stopSatellites.pop();
       }
 
       // add the final callback
-      self.stopSatellites.push(function finalStopInitializer(next) {
+      this.stopSatellites.push((next) => {
         // stop watch for file changes
-        self.api.configs.unwatchAllFiles();
+        this.api.configs.unwatchAllFiles();
 
         // clear cluster PIDs
-        self.api.pids.clearPidFile();
+        this.api.pids.clearPidFile();
 
         // log a shutdown message
-        self.api.log("Stellar has been stopped", "alert");
-        self.api.log("***", "debug");
+        this.api.log("Stellar has been stopped", "alert");
+        this.api.log("***", "debug");
 
         // mark server as stopped
-        self.api.status = "stopped";
+        this.api.status = "stopped";
 
         // execute the callback on the next tick
         process.nextTick(() => {
           if (callback !== null) {
-            callback(null, self.api);
+            callback(null, this.api);
           }
         });
 
@@ -328,16 +295,16 @@ export default class Engine {
       });
 
       // iterate all satellites and stop them
-      async.series(self.stopSatellites, (errors) => Engine.fatalError(self.api, errors, "stop"));
-    } else if (self.api.status === "shutting_down") {
+      async.series(this.stopSatellites, (errors) => Engine.fatalError(this.api, errors, "stop"));
+    } else if (this.api.status === "shutting_down") {
       // double sigterm; ignore it
     } else {
       // we can shutdown the Engine if it is not running
-      self.api.log("Cannot shutdown Stellar, not running", "error");
+      this.api.log("Cannot shutdown Stellar, not running", "error");
 
       // exists a callback?
       if (callback !== null) {
-        callback(null, self.api);
+        callback(null, this.api);
       }
     }
   }
@@ -350,50 +317,42 @@ export default class Engine {
    * @param callback Callback function to be executed at the restart end.s
    */
   restart(callback = null) {
-    let self = this;
-
-    // if this function has called outside of the Engine the 'this'
-    // variable has an invalid reference
-    if (this._self) {
-      self = this._self;
-    }
-
-    if (self.api.status === "running") {
+    if (this.api.status === "running") {
       // stop the engine
-      self.stop((err) => {
+      this.stop((err) => {
         // log error if present
         if (err) {
-          self.api.log(err, "error");
+          this.api.log(err, "error");
         }
 
         // start the engine again
-        self.stage2(function (err) {
+        this.stage2(function (err) {
           if (err) {
-            self.api.log(err, "error");
+            this.api.log(err, "error");
           }
 
           // log a restart message
-          self.api.log("*** Stellar Restarted ***", "info");
+          this.api.log("*** Stellar Restarted ***", "info");
 
           // exists a callback
           if (callback !== null) {
-            callback(null, self.api);
+            callback(null, this.api);
           }
         });
       });
     } else {
-      self.stage2((err) => {
+      this.stage2((err) => {
         // log any encountered error
         if (err) {
-          self.api.log(err, "error");
+          this.api.log(err, "error");
         }
 
         // log a restart message
-        self.api.log("*** Stellar Restarted ***", "info");
+        this.api.log("*** Stellar Restarted ***", "info");
 
         // exists a callback
         if (callback !== null) {
-          callback(null, self.api);
+          callback(null, this.api);
         }
       });
     }

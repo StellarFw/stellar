@@ -45,13 +45,10 @@ class ResqueManager {
    * @param api API reference object.
    */
   constructor(api) {
-    let self = this;
-
-    // save the API object reference
-    self.api = api;
+    this.api = api;
 
     // define the connection details, we can use the redis property from the tasks
-    self.connectionDetails = { redis: api.redis.clients.tasks };
+    this.connectionDetails = { redis: api.redis.clients.tasks };
   }
 
   /**
@@ -76,41 +73,39 @@ class ResqueManager {
    * @param callback  Callback function.
    */
   startScheduler(callback) {
-    let self = this;
-
     // check if the scheduler are enabled
-    if (self.api.config.tasks.scheduler !== true) {
+    if (this.api.config.tasks.scheduler !== true) {
       return callback();
     }
 
     // get the scheduler logger
-    self.schedulerLogging = self.api.config.tasks.schedulerLogging;
+    this.schedulerLogging = this.api.config.tasks.schedulerLogging;
 
     // create a new scheduler instance
     let Scheduler = NR.scheduler;
-    self.scheduler = new Scheduler({
-      connection: self.connectionDetails,
-      timeout: self.api.config.tasks.timeout,
+    this.scheduler = new Scheduler({
+      connection: this.connectionDetails,
+      timeout: this.api.config.tasks.timeout,
     });
 
     // define the handler for the on error event
-    self.scheduler.on("error", (error) => self.api.log(error, "error", "[api.resque.scheduler]"));
+    this.scheduler.on("error", (error) => this.api.log(error, "error", "[api.resque.scheduler]"));
 
     // start the scheduler
-    self.scheduler.connect(() => {
+    this.scheduler.connect(() => {
       // define some handlers to the scheduler events
-      self.scheduler.on("start", () => self.api.log("resque scheduler started", self.schedulerLogging.start));
-      self.scheduler.on("end", () => self.api.log("resque scheduler ended", self.schedulerLogging.end));
-      self.scheduler.on("poll", () => self.api.log("resque scheduler polling", self.schedulerLogging.poll));
-      self.scheduler.on("working_timestamp", (timestamp) =>
-        self.api.log(`resque scheduler working timestamp ${timestamp}`, self.schedulerLogging.working_timestamp),
+      this.scheduler.on("start", () => this.api.log("resque scheduler started", this.schedulerLogging.start));
+      this.scheduler.on("end", () => this.api.log("resque scheduler ended", this.schedulerLogging.end));
+      this.scheduler.on("poll", () => this.api.log("resque scheduler polling", this.schedulerLogging.poll));
+      this.scheduler.on("working_timestamp", (timestamp) =>
+        this.api.log(`resque scheduler working timestamp ${timestamp}`, this.schedulerLogging.working_timestamp),
       );
-      self.scheduler.on("transferred_job", (timestamp, job) =>
-        self.api.log(`resque scheduler enqueuing job ${timestamp}`, self.schedulerLogging.transferred_job, job),
+      this.scheduler.on("transferred_job", (timestamp, job) =>
+        this.api.log(`resque scheduler enqueuing job ${timestamp}`, this.schedulerLogging.transferred_job, job),
       );
 
       // start the scheduler
-      self.scheduler.start();
+      this.scheduler.start();
 
       // execute the callback function
       callback();
@@ -123,17 +118,15 @@ class ResqueManager {
    * @param callback Callback function.
    */
   stopScheduler(callback) {
-    let self = this;
-
     // if the scheduler not exists execute the callback function and return
-    if (!self.scheduler) {
+    if (!this.scheduler) {
       callback();
       return;
     }
 
     // finish the scheduler execution
-    self.scheduler.end(() => {
-      self.scheduler = null;
+    this.scheduler.end(() => {
+      this.scheduler = null;
       callback();
     });
   }
@@ -144,79 +137,77 @@ class ResqueManager {
    * @param callback
    */
   startMultiWorker(callback) {
-    let self = this;
-
-    self.workerLogging = self.api.config.tasks.workerLogging;
-    self.schedulerLogging = self.api.config.tasks.schedulerLogging;
+    this.workerLogging = this.api.config.tasks.workerLogging;
+    this.schedulerLogging = this.api.config.tasks.schedulerLogging;
 
     // create a new multiworker instance
     let MultiWorker = NR.multiWorker;
-    self.multiWorker = new MultiWorker(
+    this.multiWorker = new MultiWorker(
       {
-        connection: self.connectionDetails,
-        queues: self.api.config.tasks.queues,
-        timeout: self.api.config.tasks.timeout,
-        checkTimeout: self.api.config.tasks.checkTimeout,
-        minTaskProcessors: self.api.config.tasks.minTaskProcessors,
-        maxTaskProcessors: self.api.config.tasks.maxTaskProcessors,
-        maxEventLoopDelay: self.api.config.tasks.maxEventLoopDelay,
-        toDisconnectProcessors: self.api.config.tasks.toDisconnectProcessors,
+        connection: this.connectionDetails,
+        queues: this.api.config.tasks.queues,
+        timeout: this.api.config.tasks.timeout,
+        checkTimeout: this.api.config.tasks.checkTimeout,
+        minTaskProcessors: this.api.config.tasks.minTaskProcessors,
+        maxTaskProcessors: this.api.config.tasks.maxTaskProcessors,
+        maxEventLoopDelay: this.api.config.tasks.maxEventLoopDelay,
+        toDisconnectProcessors: this.api.config.tasks.toDisconnectProcessors,
       },
-      self.api.tasks.jobs,
+      this.api.tasks.jobs,
     );
 
     // normal worker emitters
-    self.multiWorker.on("start", (workerId) =>
-      self.api.log("worker: started", self.workerLogging.start, {
+    this.multiWorker.on("start", (workerId) =>
+      this.api.log("worker: started", this.workerLogging.start, {
         workerId: workerId,
       }),
     );
-    self.multiWorker.on("end", (workerId) =>
-      self.api.log("worker: ended", self.workerLogging.end, {
+    this.multiWorker.on("end", (workerId) =>
+      this.api.log("worker: ended", this.workerLogging.end, {
         workerId: workerId,
       }),
     );
-    self.multiWorker.on("cleaning_worker", (workerId, worker, pid) =>
-      self.api.log(`worker: cleaning old worker ${worker}, (${pid})`, self.workerLogging.cleaning_worker),
+    this.multiWorker.on("cleaning_worker", (workerId, worker, pid) =>
+      this.api.log(`worker: cleaning old worker ${worker}, (${pid})`, this.workerLogging.cleaning_worker),
     );
-    // for debug: self.multiWorker.on('poll', (queue) => self.api.log(`worker: polling ${queue}`, self.workerLogging.poll))
-    self.multiWorker.on("job", (workerId, queue, job) =>
-      self.api.log(`worker: working job ${queue}`, self.workerLogging.job, {
+    // for debug: this.multiWorker.on('poll', (queue) => this.api.log(`worker: polling ${queue}`, this.workerLogging.poll))
+    this.multiWorker.on("job", (workerId, queue, job) =>
+      this.api.log(`worker: working job ${queue}`, this.workerLogging.job, {
         workerId: workerId,
         job: { class: job.class, queue: job.queue },
       }),
     );
-    self.multiWorker.on("reEnqueue", (workerId, queue, job, plugin) =>
-      self.api.log("worker: reEnqueue job", self.workerLogging.reEnqueue, {
+    this.multiWorker.on("reEnqueue", (workerId, queue, job, plugin) =>
+      this.api.log("worker: reEnqueue job", this.workerLogging.reEnqueue, {
         workerId: workerId,
         plugin: plugin,
         job: { class: job.class, queue: job.queue },
       }),
     );
-    self.multiWorker.on("success", (workerId, queue, job, result) =>
-      self.api.log(`worker: job success ${queue}`, self.workerLogging.success, {
+    this.multiWorker.on("success", (workerId, queue, job, result) =>
+      this.api.log(`worker: job success ${queue}`, this.workerLogging.success, {
         workerId: workerId,
         job: { class: job.class, queue: job.queue },
         result: result,
       }),
     );
-    self.multiWorker.on("pause", (workerId) =>
-      self.api.log("worker: paused", self.workerLogging.pause, {
+    this.multiWorker.on("pause", (workerId) =>
+      this.api.log("worker: paused", this.workerLogging.pause, {
         workerId: workerId,
       }),
     );
 
-    self.multiWorker.on("failure", (workerId, queue, job, failure) =>
-      self.api.exceptionHandlers.task(failure, queue, job),
+    this.multiWorker.on("failure", (workerId, queue, job, failure) =>
+      this.api.exceptionHandlers.task(failure, queue, job),
     );
-    self.multiWorker.on("error", (workerId, queue, job, error) => self.api.exceptionHandlers.task(error, queue, job));
+    this.multiWorker.on("error", (workerId, queue, job, error) => this.api.exceptionHandlers.task(error, queue, job));
 
     // multiWorker emitters
-    self.multiWorker.on("internalError", (error) => self.api.log(error, self.workerLogging.internalError));
-    // for debug: self.multiWorker.on('multiWorkerAction', (verb, delay) => self.api.log(`*** checked for worker status: ${verb} (event loop delay: ${delay}ms)`, self.workerLogging.multiWorkerAction))
+    this.multiWorker.on("internalError", (error) => this.api.log(error, this.workerLogging.internalError));
+    // for debug: this.multiWorker.on('multiWorkerAction', (verb, delay) => this.api.log(`*** checked for worker status: ${verb} (event loop delay: ${delay}ms)`, this.workerLogging.multiWorkerAction))
 
-    if (self.api.config.tasks.minTaskProcessors > 0) {
-      self.multiWorker.start(() => {
+    if (this.api.config.tasks.minTaskProcessors > 0) {
+      this.multiWorker.start(() => {
         if (typeof callback === "function") {
           callback();
         }
@@ -234,11 +225,9 @@ class ResqueManager {
    * @param callback Callback function.
    */
   stopMultiWorker(callback) {
-    let self = this;
-
-    if (self.api.config.tasks.minTaskProcessors > 0) {
-      self.multiWorker.stop(() => {
-        self.api.log("task workers stopped");
+    if (this.api.config.tasks.minTaskProcessors > 0) {
+      this.multiWorker.stop(() => {
+        this.api.log("task workers stopped");
         callback();
       });
     } else {

@@ -31,10 +31,7 @@ class RoutesManager {
    * @param api API reference.
    */
   constructor(api) {
-    let self = this;
-
-    // save the API object reference
-    self.api = api;
+    this.api = api;
   }
 
   /**
@@ -44,24 +41,22 @@ class RoutesManager {
    * @param pathParts     URI parts.
    */
   processRoute(connection, pathParts) {
-    let self = this;
-
     // check if the connection contains an action and that action are defined on the current context
-    if (connection.params.action === undefined || self.api.actions.actions[connection.params.action] === undefined) {
+    if (connection.params.action === undefined || this.api.actions.actions[connection.params.action] === undefined) {
       // get HTTP request method
       let method = connection.rawConnection.method.toLowerCase();
 
       // if its a 'head' request change it to a 'get'
-      if (method === "head" && !self.routes.head) {
+      if (method === "head" && !this.routes.head) {
         method = "get";
       }
 
       // iterate all registered routes
-      for (let i in self.routes[method]) {
-        let route = self.routes[method][i];
+      for (let i in this.routes[method]) {
+        let route = this.routes[method][i];
 
         // check if exists an URL match
-        let match = self.matchURL(pathParts, route.path, route.matchTrailingPathParts);
+        let match = this.matchURL(pathParts, route.path, route.matchTrailingPathParts);
 
         if (match.match === true) {
           if (route.apiVersion) {
@@ -161,9 +156,7 @@ class RoutesManager {
    * @param matchTrailingPathParts
    */
   registerRoute(method, path, action, apiVersion, matchTrailingPathParts = false) {
-    let self = this;
-
-    self.routes[method].push({
+    this.routes[method].push({
       path: path,
       matchTrailingPathParts: matchTrailingPathParts,
       action: action,
@@ -177,7 +170,6 @@ class RoutesManager {
    * @param rawRoutes
    */
   loadRoutes(rawRoutes) {
-    let self = this;
     let counter = 0;
 
     // iterate all objects
@@ -190,8 +182,8 @@ class RoutesManager {
 
         if (method === "all") {
           // iterate all http methods
-          self.api.routes.verbs.forEach((verb) => {
-            self.api.routes.registerRoute(
+          this.api.routes.verbs.forEach((verb) => {
+            this.api.routes.registerRoute(
               verb,
               route.path,
               route.action,
@@ -200,7 +192,7 @@ class RoutesManager {
             );
           });
         } else {
-          self.api.routes.registerRoute(
+          this.api.routes.registerRoute(
             method,
             route.path,
             route.action,
@@ -213,28 +205,28 @@ class RoutesManager {
     }
 
     // remove duplicated entries on postVariables
-    self.api.params.postVariables = this.api.utils.arrayUniqueify(self.api.params.postVariables);
+    this.api.params.postVariables = this.api.utils.arrayUniqueify(this.api.params.postVariables);
 
     // log the number of loaded routes
-    self.api.log(`${counter} routes loaded`, "debug");
+    this.api.log(`${counter} routes loaded`, "debug");
 
-    if (self.api.config.servers.web && self.api.config.servers.web.simpleRouting === true) {
+    if (this.api.config.servers.web && this.api.config.servers.web.simpleRouting === true) {
       let simplePaths = [];
 
       // iterate all registered actions
-      for (let action in self.api.actions.actions) {
+      for (let action in this.api.actions.actions) {
         // push the action name to the simples paths
         simplePaths.push(`/${action}`);
 
         // iterate all verbs
-        self.verbs.forEach((verb) => {
-          self.registerRoute(verb, `/${action}`, action);
+        this.verbs.forEach((verb) => {
+          this.registerRoute(verb, `/${action}`, action);
         });
       }
 
       // log the number of simple routes loaded
-      self.api.log(`${simplePaths.length} simple routes loaded from action names`, "debug");
-      self.api.log("routes: ", "debug", self.routes);
+      this.api.log(`${simplePaths.length} simple routes loaded from action names`, "debug");
+      this.api.log("routes: ", "debug", this.routes);
     }
   }
 
@@ -245,10 +237,8 @@ class RoutesManager {
    * folder we load that file.
    */
   async loadModulesRoutes() {
-    let self = this;
-
     // iterate all active modules
-    for (const modulePath in self.api.modules.modulesPaths) {
+    for (const modulePath in this.api.modules.modulesPaths) {
       try {
         // build the file path
         let path = `${modulePath}/routes.json`;
@@ -257,15 +247,15 @@ class RoutesManager {
         fs.accessSync(path, fs.F_OK);
 
         // load the routes on the engine
-        self.loadRoutes(await import(path));
+        this.loadRoutes(await import(path));
       } catch (e) {
         // do nothing
       }
     }
 
     // check if we have some routes on the config object
-    if (self.api.config.routes) {
-      self.loadRoutes(self.api.config.routes);
+    if (this.api.config.routes) {
+      this.loadRoutes(this.api.config.routes);
     }
   }
 }

@@ -79,8 +79,6 @@ class EventsManager {
    * @param priority  Priority.
    */
   listener(event, fn, priority) {
-    let self = this;
-
     // build a listener object
     let listener = {
       event: event,
@@ -89,7 +87,7 @@ class EventsManager {
     };
 
     // insert the listener
-    self._listenerObj(listener);
+    this._listenerObj(listener);
   }
 
   /**

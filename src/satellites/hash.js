@@ -55,10 +55,8 @@ class Hash {
    * @return {Promise}
    */
   hash(data, _config = {}) {
-    let self = this;
-
     // build the configs object
-    let config = self._getConfigs(_config);
+    let config = this._getConfigs(_config);
 
     // create a new promise and generate the hash
     return new Promise((resolve, reject) => {
@@ -74,10 +72,8 @@ class Hash {
    * @returns {String}  Returns hashed data
    */
   hashSync(data, _config = {}) {
-    let self = this;
-
     // build the configs object
-    let config = self._getConfigs(_config);
+    let config = this._getConfigs(_config);
 
     // hash the data with the bcrypt
     return bcrypt.hashSync(data, config.salt || config.saltLength);
@@ -117,13 +113,11 @@ class Hash {
    * @private
    */
   _getConfigs(_configs = {}) {
-    let self = this;
-
     return this.api.utils.hashMerge(
       {
-        salt: self.api.config.general.salt,
-        saltRounds: self.api.config.general.saltRounds,
-        saltLength: self.api.config.general.saltLength,
+        salt: this.api.config.general.salt,
+        saltRounds: this.api.config.general.saltRounds,
+        saltLength: this.api.config.general.saltLength,
       },
       _configs,
     );

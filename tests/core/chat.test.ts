@@ -1,11 +1,4 @@
-import {
-  describe,
-  beforeAll,
-  afterAll,
-  it,
-  afterEach,
-  beforeEach,
-} from "vitest";
+import { describe, beforeAll, afterAll, it, afterEach, beforeEach } from "vitest";
 
 import Engine from "../../src/engine";
 import { expect } from "vitest";
@@ -22,14 +15,14 @@ describe("Core: Chat", () => {
           api = a;
           done();
         });
-      })
+      }),
   );
 
   afterAll(
     () =>
       new Promise((done) => {
         engine.stop(done);
-      })
+      }),
   );
 
   afterEach(async () => {
@@ -58,9 +51,7 @@ describe("Core: Chat", () => {
   });
 
   it("server cannot create already existing room", async () => {
-    await expect(api.chatRoom.create("defaultRoom")).rejects.toThrowError(
-      "Room (defaultRoom) already exists"
-    );
+    await expect(api.chatRoom.create("defaultRoom")).rejects.toThrowError("Room (defaultRoom) already exists");
   });
 
   it("can enumerate all the rooms in the system", async () => {
@@ -69,11 +60,7 @@ describe("Core: Chat", () => {
     await api.chatRoom.create("otherRoom");
 
     // request the list of rooms
-    await expect(api.chatRoom.list()).resolves.toEqual([
-      "defaultRoom",
-      "newRoom",
-      "otherRoom",
-    ]);
+    await expect(api.chatRoom.list()).resolves.toEqual(["defaultRoom", "newRoom", "otherRoom"]);
   });
 
   it("server can destroy a existing room", async () => {
@@ -86,7 +73,7 @@ describe("Core: Chat", () => {
 
   it("server can not destroy a non existing room", async () => {
     await expect(api.chatRoom.destroy("nonExistingRoom")).rejects.toThrowError(
-      "Room (nonExistingRoom) does not exists"
+      "Room (nonExistingRoom) does not exists",
     );
   });
 
@@ -115,10 +102,8 @@ describe("Core: Chat", () => {
     await api.chatRoom.join(client.id, "defaultRoom");
 
     // try add the client to the same room
-    await expect(
-      api.chatRoom.join(client.id, "defaultRoom")
-    ).rejects.toThrowError(
-      `Connection (${client.id}) already in room (defaultRoom)`
+    await expect(api.chatRoom.join(client.id, "defaultRoom")).rejects.toThrowError(
+      `Connection (${client.id}) already in room (defaultRoom)`,
     );
 
     await client.destroy();
@@ -131,9 +116,7 @@ describe("Core: Chat", () => {
     expect(client.rooms).toHaveLength(0);
 
     // add the client to a non-existing room
-    await expect(
-      api.chatRoom.join(client.id, "noExists")
-    ).rejects.toMatchObject({
+    await expect(api.chatRoom.join(client.id, "noExists")).rejects.toMatchObject({
       code: "019",
     });
 
@@ -143,9 +126,9 @@ describe("Core: Chat", () => {
   it("server will not remove a member not in a room", async () => {
     const client = api.helpers.connection();
 
-    await expect(
-      api.chatRoom.leave(client.id, "noExists")
-    ).rejects.toThrowError(`Connection (${client.id}) not in room (noExists)`);
+    await expect(api.chatRoom.leave(client.id, "noExists")).rejects.toThrowError(
+      `Connection (${client.id}) not in room (noExists)`,
+    );
 
     await client.destroy();
   });
@@ -156,9 +139,7 @@ describe("Core: Chat", () => {
     // add the client to a room
     await api.chatRoom.join(client.id, "defaultRoom");
 
-    await expect(
-      api.chatRoom.leave(client.id, "defaultRoom")
-    ).resolves.toBeTruthy();
+    await expect(api.chatRoom.leave(client.id, "defaultRoom")).resolves.toBeTruthy();
 
     await client.destroy();
   });

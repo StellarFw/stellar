@@ -36,20 +36,18 @@ class Params {
    * @returns {*}
    */
   buildPostVariables() {
-    let self = this;
-
     let i, j;
     let postVariables = [];
 
     // push the global safe params for the 'postVariables'
-    self.globalSafeParams.forEach((p) => postVariables.push(p));
+    this.globalSafeParams.forEach((p) => postVariables.push(p));
 
     // iterate all actions files
-    for (i in self.api.actions.actions) {
+    for (i in this.api.actions.actions) {
       // iterate all actions definitions
-      for (j in self.api.actions.actions[i]) {
+      for (j in this.api.actions.actions[i]) {
         // get current action
-        let action = self.api.actions.actions[i][j];
+        let action = this.api.actions.actions[i][j];
 
         // iterate all inputs keys and add it to postVariables
         for (let key in action.inputs) {
@@ -59,9 +57,9 @@ class Params {
     }
 
     // remove the duplicated entries
-    self.postVariables = this.api.utils.arrayUniqueify(postVariables);
+    this.postVariables = this.api.utils.arrayUniqueify(postVariables);
 
-    return self.postVariables;
+    return this.postVariables;
   }
 }
 

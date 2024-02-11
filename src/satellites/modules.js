@@ -77,13 +77,11 @@ class Modules {
    * activeModules property.
    */
   async loadModules(next) {
-    let self = this;
-
     // get active modules
-    let modules = self.api.config.modules;
+    let modules = this.api.config.modules;
 
     // check if the private module folder exists
-    if (this.api.utils.directoryExists(`${self.api.scope.rootPath}/modules/private`)) {
+    if (this.api.utils.directoryExists(`${this.api.scope.rootPath}/modules/private`)) {
       modules.push("private");
     }
 
@@ -99,17 +97,17 @@ class Modules {
     // load all modules declared in the manifest file
     for (const moduleName of modules) {
       // build the full path
-      const path = `${self.api.scope.rootPath}/modules/${moduleName}`;
+      const path = `${this.api.scope.rootPath}/modules/${moduleName}`;
 
       // get module manifest file content
       try {
         const manifest = await this.api.utils.readJsonFile(`${path}/manifest.json`);
 
         // save the module config on the engine instance
-        self.activeModules.set(manifest.id, manifest);
+        this.activeModules.set(manifest.id, manifest);
 
         // save the module full path
-        self.modulesPaths.set(manifest.id, path);
+        this.modulesPaths.set(manifest.id, path);
       } catch (e) {
         next(
           new Error(`There is an invalid module active, named "${moduleName}", fix this to start Stellar normally.`),
@@ -128,10 +126,8 @@ class Modules {
    * @param next    Callback function.
    */
   processNpmDependencies(next) {
-    let self = this;
-
     // don't use NPM on test environment (otherwise the tests will fail)
-    if (self.api.env === "test") {
+    if (this.api.env === "test") {
       return next();
     }
 
@@ -162,7 +158,7 @@ class Modules {
     let npmDependencies = {};
 
     // iterate all active modules
-    self.activeModules.forEach((manifest) => {
+    this.activeModules.forEach((manifest) => {
       // check if the module have NPM dependencies
       if (manifest.npmDependencies !== undefined) {
         // merge the two hashes
@@ -180,11 +176,11 @@ class Modules {
     };
 
     // generate project.json file
-    const packageJsonPath = `${self.api.scope.rootPath}/package.json`;
+    const packageJsonPath = `${this.api.scope.rootPath}/package.json`;
     this.api.utils.removePath(packageJsonPath);
     fs.writeFileSync(packageJsonPath, JSON.stringify(projectJson, null, 2), "utf8");
 
-    self.api.log("updating NPM packages", "info");
+    this.api.log("updating NPM packages", "info");
 
     // check the command to be executed
     const npmCommand = scope.args.update ? "npm update" : "npm install";
@@ -193,12 +189,12 @@ class Modules {
     exec(npmCommand, (error) => {
       // if an error occurs finish the process
       if (error) {
-        self.api.log("An error occurs during the NPM install command", "emergency");
+        this.api.log("An error occurs during the NPM install command", "emergency");
         process.exit(1);
       }
 
       // load a success message
-      self.api.log("NPM dependencies updated!", "info");
+      this.api.log("NPM dependencies updated!", "info");
 
       // finish the loading process
       next();

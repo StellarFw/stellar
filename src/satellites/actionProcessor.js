@@ -90,26 +90,25 @@ class ActionProcessor {
    * @param status
    */
   completeAction(status) {
-    let self = this;
     let error = null;
 
     // define the action status
-    self.actionStatus = String(status);
+    this.actionStatus = String(status);
 
     if (status instanceof Error) {
       error = status;
     } else if (status === "server_error") {
-      error = self.api.config.errors.serverErrorMessage;
+      error = this.api.config.errors.serverErrorMessage;
     } else if (status === "server_shutting_down") {
-      error = self.api.config.errors.serverShuttingDown;
+      error = this.api.config.errors.serverShuttingDown;
     } else if (status === "too_many_requests") {
-      error = self.api.config.errors.tooManyPendingActions();
+      error = this.api.config.errors.tooManyPendingActions();
     } else if (status === "unknown_action") {
-      error = self.api.config.errors.unknownAction(this.action);
+      error = this.api.config.errors.unknownAction(this.action);
     } else if (status === "unsupported_server_type") {
-      error = self.api.config.errors.unsupportedServerType(self.connection.type);
+      error = this.api.config.errors.unsupportedServerType(this.connection.type);
     } else if (status === "validator_errors") {
-      error = self.api.config.errors.invalidParams(self.validatorErrors);
+      error = this.api.config.errors.invalidParams(this.validatorErrors);
     } else if (status === "response_timeout") {
       error = this.api.config.errors.responseTimeout(this.action);
     } else if (status) {
@@ -128,17 +127,17 @@ class ActionProcessor {
       }
     }
 
-    self.incrementPendingActions(-1);
-    self.duration = new Date().getTime() - self.actionStartTime;
+    this.incrementPendingActions(-1);
+    this.duration = new Date().getTime() - this.actionStartTime;
 
-    process.nextTick(function () {
-      if (typeof self.callback === "function") {
-        self.callback(self);
+    process.nextTick(() => {
+      if (typeof this.callback === "function") {
+        this.callback(this);
       }
     });
 
-    self.working = false;
-    self.logAction(error);
+    this.working = false;
+    this.logAction(error);
   }
 
   /**
@@ -147,30 +146,29 @@ class ActionProcessor {
    * @param error
    */
   logAction(error) {
-    let self = this;
     let logLevel = "info";
 
     // check if the action have a specific log level
-    if (self.actionTemplate && self.actionTemplate.logLevel) {
-      logLevel = self.actionTemplate.logLevel;
+    if (this.actionTemplate && this.actionTemplate.logLevel) {
+      logLevel = this.actionTemplate.logLevel;
     }
 
     let filteredParams = {};
-    for (let i in self.params) {
-      if (self.api.config.general.filteredParams && self.api.config.general.filteredParams.indexOf(i) >= 0) {
+    for (let i in this.params) {
+      if (this.api.config.general.filteredParams && this.api.config.general.filteredParams.indexOf(i) >= 0) {
         filteredParams[i] = "[FILTERED]";
-      } else if (typeof self.params[i] === "string") {
-        filteredParams[i] = self.params[i].substring(0, self.api.config.logger.maxLogStringLength);
+      } else if (typeof this.params[i] === "string") {
+        filteredParams[i] = this.params[i].substring(0, this.api.config.logger.maxLogStringLength);
       } else {
-        filteredParams[i] = self.params[i];
+        filteredParams[i] = this.params[i];
       }
     }
 
     let logLine = {
-      to: self.connection.remoteIP,
-      action: self.action,
+      to: this.connection.remoteIP,
+      action: this.action,
       params: JSON.stringify(filteredParams),
-      duration: self.duration,
+      duration: this.duration,
     };
 
     if (error) {
@@ -186,7 +184,7 @@ class ActionProcessor {
     }
 
     // log the action execution
-    self.api.log(`[ action @  ${self.connection.type}]`, logLevel, logLine);
+    this.api.log(`[ action @  ${this.connection.type}]`, logLevel, logLine);
   }
 
   /**
@@ -195,28 +193,26 @@ class ActionProcessor {
    * @param callback Callback function.
    */
   preProcessAction(callback) {
-    let self = this;
-
     // if the action is private this can only be executed internally
-    if (self.actionTemplate.private === true && self.connection.type !== "internal") {
-      callback(self.api.config.errors.privateActionCalled(self.actionTemplate.name));
+    if (this.actionTemplate.private === true && this.connection.type !== "internal") {
+      callback(this.api.config.errors.privateActionCalled(this.actionTemplate.name));
       return;
     }
 
     let processors = [];
-    let processorsNames = self.api.actions.globalMiddleware.slice(0);
+    let processorsNames = this.api.actions.globalMiddleware.slice(0);
 
     // get action processor names
-    if (self.actionTemplate.middleware) {
-      self.actionTemplate.middleware.forEach((m) => {
+    if (this.actionTemplate.middleware) {
+      this.actionTemplate.middleware.forEach((m) => {
         processorsNames.push(m);
       });
     }
 
     processorsNames.forEach((name) => {
-      if (typeof self.api.actions.middleware[name].preProcessor === "function") {
+      if (typeof this.api.actions.middleware[name].preProcessor === "function") {
         processors.push((next) => {
-          self.api.actions.middleware[name].preProcessor(self, next);
+          this.api.actions.middleware[name].preProcessor(this, next);
         });
       }
     });
@@ -230,20 +226,19 @@ class ActionProcessor {
    * @param callback
    */
   postProcessAction(callback) {
-    let self = this;
     let processors = [];
-    let processorNames = self.api.actions.globalMiddleware.slice(0);
+    let processorNames = this.api.actions.globalMiddleware.slice(0);
 
-    if (self.actionTemplate.middleware) {
-      self.actionTemplate.middleware.forEach((m) => {
+    if (this.actionTemplate.middleware) {
+      this.actionTemplate.middleware.forEach((m) => {
         processorNames.push(m);
       });
     }
 
     processorNames.forEach((name) => {
-      if (typeof self.api.actions.middleware[name].postProcessor === "function") {
+      if (typeof this.api.actions.middleware[name].postProcessor === "function") {
         processors.push((next) => {
-          self.api.actions.middleware[name].postProcessor(self, next);
+          this.api.actions.middleware[name].postProcessor(this, next);
         });
       }
     });
@@ -255,39 +250,37 @@ class ActionProcessor {
    * Validate call params with the action requirements.
    */
   validateParams() {
-    let self = this;
-
     // hash who contains all the field to be validated
     const toValidate = {};
 
     // iterate inputs definitions of the called action
-    for (let key in self.actionTemplate.inputs) {
+    for (let key in this.actionTemplate.inputs) {
       // get input properties
-      let props = self.actionTemplate.inputs[key];
+      let props = this.actionTemplate.inputs[key];
 
       // default
-      if (self.params[key] === undefined && props.default !== undefined) {
+      if (this.params[key] === undefined && props.default !== undefined) {
         if (typeof props.default === "function") {
-          self.params[key] = props.default(self.api, self);
+          this.params[key] = props.default(this.api, this);
         } else {
-          self.params[key] = props.default;
+          this.params[key] = props.default;
         }
       }
 
       // format the input to the requested type
       if (props.format && this.params[key]) {
         if (typeof props.format === "function") {
-          self.params[key] = props.format.call(this.api, this.params[key], this);
+          this.params[key] = props.format.call(this.api, this.params[key], this);
         } else if (props.format === "integer") {
-          self.params[key] = Number.parseInt(self.params[key]);
+          this.params[key] = Number.parseInt(this.params[key]);
         } else if (props.format === "float") {
-          self.params[key] = Number.parseFloat(self.params[key]);
+          this.params[key] = Number.parseFloat(this.params[key]);
         } else if (props.format === "string") {
-          self.params[key] = String(self.params[key]);
+          this.params[key] = String(this.params[key]);
         }
 
-        if (Number.isNaN(self.params[key])) {
-          self.validatorErrors.set(key, self.api.config.errors.paramInvalidType(key, props.format));
+        if (Number.isNaN(this.params[key])) {
+          this.validatorErrors.set(key, this.api.config.errors.paramInvalidType(key, props.format));
         }
       }
 
@@ -306,9 +299,9 @@ class ActionProcessor {
 
     // execute all validators. If there is found some error on the validations,
     // the error map must be attributed to `validatorErrors`
-    let response = this.api.validator.validate(self.params, toValidate);
+    let response = this.api.validator.validate(this.params, toValidate);
     if (response !== true) {
-      self.validatorErrors = response;
+      this.validatorErrors = response;
     }
   }
 
@@ -316,39 +309,37 @@ class ActionProcessor {
    * Process the action.
    */
   processAction() {
-    let self = this;
-
     // initialize the processing environment
-    self.actionStartTime = new Date().getTime();
-    self.working = true;
-    self.incrementTotalActions();
-    self.incrementPendingActions();
-    self.action = self.params.action;
+    this.actionStartTime = new Date().getTime();
+    this.working = true;
+    this.incrementTotalActions();
+    this.incrementPendingActions();
+    this.action = this.params.action;
 
-    if (self.api.actions.versions[self.action]) {
-      if (!self.params.apiVersion) {
-        self.params.apiVersion =
-          self.api.actions.versions[self.action][self.api.actions.versions[self.action].length - 1];
+    if (this.api.actions.versions[this.action]) {
+      if (!this.params.apiVersion) {
+        this.params.apiVersion =
+          this.api.actions.versions[this.action][this.api.actions.versions[this.action].length - 1];
       }
-      self.actionTemplate = self.api.actions.actions[self.action][self.params.apiVersion];
+      this.actionTemplate = this.api.actions.actions[this.action][this.params.apiVersion];
     }
 
-    if (self.api.status !== "running") {
-      self.completeAction("server_shutting_down");
-    } else if (self.getPendingActionCount(self.connection) > self.api.config.general.simultaneousActions) {
-      self.completeAction("too_many_requests");
-    } else if (!self.action || !self.actionTemplate) {
-      self.completeAction("unknown_action");
+    if (this.api.status !== "running") {
+      this.completeAction("server_shutting_down");
+    } else if (this.getPendingActionCount(this.connection) > this.api.config.general.simultaneousActions) {
+      this.completeAction("too_many_requests");
+    } else if (!this.action || !this.actionTemplate) {
+      this.completeAction("unknown_action");
     } else if (
-      self.actionTemplate.blockedConnectionTypes &&
-      self.actionTemplate.blockedConnectionTypes.indexOf(self.connection.type) >= 0
+      this.actionTemplate.blockedConnectionTypes &&
+      this.actionTemplate.blockedConnectionTypes.indexOf(this.connection.type) >= 0
     ) {
-      self.completeAction("unsupported_server_type");
+      this.completeAction("unsupported_server_type");
     } else {
       try {
-        self.runAction();
+        this.runAction();
       } catch (err) {
-        self.api.exceptionHandlers.action(err, self, () => self.completeAction("server_error"));
+        this.api.exceptionHandlers.action(err, this, () => this.completeAction("server_error"));
       }
     }
   }

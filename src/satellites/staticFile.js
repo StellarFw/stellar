@@ -26,10 +26,7 @@ class StaticFile {
    * @param api API object reference.
    */
   constructor(api) {
-    let self = this;
-
-    // save API reference object
-    self.api = api;
+    this.api = api;
   }
 
   /**
@@ -40,12 +37,10 @@ class StaticFile {
    * @returns {*}
    */
   searchPath(connection, counter = 0) {
-    let self = this;
-
-    if (self.searchLocations.length === 0 || counter >= self.searchLocations.length) {
+    if (this.searchLocations.length === 0 || counter >= this.searchLocations.length) {
       return null;
     } else {
-      return self.searchLocations[counter];
+      return this.searchLocations[counter];
     }
   }
 
@@ -57,23 +52,21 @@ class StaticFile {
    * @param counter
    */
   async get(connection, callback, counter = 0) {
-    let self = this;
-
-    if (!connection.params.file || !self.searchPath(connection, counter)) {
-      self.sendFileNotFound(connection, self.api.config.errors.fileNotProvided(connection), callback);
+    if (!connection.params.file || !this.searchPath(connection, counter)) {
+      this.sendFileNotFound(connection, this.api.config.errors.fileNotProvided(connection), callback);
     } else {
       let file = null;
 
       if (!path.isAbsolute(connection.params.file)) {
-        file = path.normalize(`${self.searchPath(connection, counter)}/${connection.params.file}`);
+        file = path.normalize(`${this.searchPath(connection, counter)}/${connection.params.file}`);
       } else {
         file = connection.params.file;
       }
 
-      if (file.indexOf(path.normalize(self.searchPath(connection, counter))) !== 0) {
-        self.get(connection, callback, counter + 1);
+      if (file.indexOf(path.normalize(this.searchPath(connection, counter))) !== 0) {
+        this.get(connection, callback, counter + 1);
       } else {
-        self.checkExistence(file, async (exists, truePath) => {
+        this.checkExistence(file, async (exists, truePath) => {
           if (exists) {
             const {
               connection: connectionObj,
@@ -82,12 +75,12 @@ class StaticFile {
               length,
               lastModified,
               error,
-            } = await self.sendFile(truePath, connection);
+            } = await this.sendFile(truePath, connection);
             if (callback) {
               callback(connectionObj, error, fileStream, mime, length, lastModified);
             }
           } else {
-            self.get(connection, callback, counter + 1);
+            this.get(connection, callback, counter + 1);
           }
         });
       }
@@ -153,8 +146,6 @@ class StaticFile {
    * @param callback
    */
   checkExistence(file, callback) {
-    let self = this;
-
     fs.stat(file, (error, stats) => {
       // if exists an error execute the callback
       // function and return
@@ -163,15 +154,15 @@ class StaticFile {
       }
 
       if (stats.isDirectory()) {
-        let indexPath = `${file}/${self.api.config.general.directoryFileType}`;
-        self.checkExistence(indexPath, callback);
+        let indexPath = `${file}/${this.api.config.general.directoryFileType}`;
+        this.checkExistence(indexPath, callback);
       } else if (stats.isSymbolicLink()) {
         fs.readlink(file, (error, truePath) => {
           if (error) {
             callback(false, file);
           } else {
             truePath = path.normalize(truePath);
-            self.checkExistence(truePath, callback);
+            this.checkExistence(truePath, callback);
           }
         });
       } else if (stats.isFile()) {
@@ -206,9 +197,7 @@ class StaticFile {
    * @param success
    */
   logRequest(file, connection, length, duration, success) {
-    let self = this;
-
-    self.api.log(`[ file @ ${connection.type}]`, "debug", {
+    this.api.log(`[ file @ ${connection.type}]`, "debug", {
       to: connection.remoteIP,
       file: file,
       size: length,

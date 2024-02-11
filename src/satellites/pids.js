@@ -36,24 +36,22 @@ class Pids {
    * Init the pid manager.
    */
   init() {
-    let self = this;
-
     // set the process id
-    self.pid = process.pid;
+    this.pid = process.pid;
 
     // save pids folder to syntax sugar
-    self.path = self.api.config.general.paths.pid;
+    this.path = this.api.config.general.paths.pid;
 
     // define the process name
     if (cluster.isMaster) {
-      self.title = `stellar-${self._sanitizeId()}`;
+      this.title = `stellar-${this._sanitizeId()}`;
     } else {
-      self.title = self._sanitizeId();
+      this.title = this._sanitizeId();
     }
 
     // create the 'pids' directory if not exists
     try {
-      fs.mkdirSync(self.path);
+      fs.mkdirSync(this.path);
     } catch (e) {
       // ignore error
     }
@@ -63,20 +61,17 @@ class Pids {
    * Write pid file.
    */
   writePidFile() {
-    let self = this;
-    fs.writeFileSync(`${self.path}/${self.title}`, self.pid.toString(), "ascii");
+    fs.writeFileSync(`${this.path}/${this.title}`, this.pid.toString(), "ascii");
   }
 
   /**
    * Clear pid file.
    */
   clearPidFile() {
-    let self = this;
-
     try {
-      fs.unlinkSync(`${self.path}/${self.title}`);
+      fs.unlinkSync(`${this.path}/${this.title}`);
     } catch (e) {
-      self.api.log("Unable to remove pidfile", "error", e);
+      this.api.log("Unable to remove pidfile", "error", e);
     }
   }
 
@@ -89,8 +84,7 @@ class Pids {
    * @private
    */
   _sanitizeId() {
-    let self = this;
-    let pidfile = self.api.id;
+    let pidfile = this.api.id;
 
     pidfile = pidfile.replace(/:/g, "-");
     pidfile = pidfile.replace(/\s/g, "-");

@@ -95,10 +95,8 @@ class TaskSatellite {
    * @private
    */
   _jobWrapper(taskName) {
-    let self = this;
-
     // get task object
-    let task = self.tasks[taskName];
+    let task = this.tasks[taskName];
 
     // get tasks plugins
     let plugins = task.plugins || [];
@@ -122,30 +120,26 @@ class TaskSatellite {
     return {
       plugins: plugins,
       pluginsOptions: pluginOptions,
-      perform: function () {
-        // get the task arguments
-        let args = Array.prototype.slice.call(arguments);
-
+      perform: (...args) => {
         // get the callback function
         let cb = args.pop();
 
-        // if there is no arguments
         if (args.length === 0) {
           args.push({});
         }
 
         // enqueue the task again
         args.push((error, resp) => {
-          self.enqueueRecurrentJob(taskName, () => {
+          this.enqueueRecurrentJob(taskName, () => {
             cb(error, resp);
           });
         });
 
         // add the API object at the begin of the arguments array
-        args.unshift(self.api);
+        args.unshift(this.api);
 
         // execute the task
-        self.tasks[taskName].run.apply(self, args);
+        this.tasks[taskName].run.apply(this, args);
       },
     };
   }
@@ -165,10 +159,8 @@ class TaskSatellite {
    * @private
    */
   _validateTask(task) {
-    let self = this;
-
     // function to be executed in case of the task validation fails
-    let fail = (msg) => self.api.log(`${msg}; exiting`, "emerg");
+    let fail = (msg) => this.api.log(`${msg}; exiting`, "emerg");
 
     if (typeof task.name !== "string" || task.name.length < 1) {
       fail("a task is missing 'task.name'");
@@ -196,16 +188,14 @@ class TaskSatellite {
    * Iterate all active modules to load their tasks, if exists.
    */
   async loadModulesTasks() {
-    let self = this;
-
-    for (const modulePath of self.api.modules.modulesPaths.values()) {
+    for (const modulePath of this.api.modules.modulesPaths.values()) {
       // build the task folder path for the current module
       let tasksFolder = `${modulePath}/tasks`;
 
       // load task files
       const taskFiles = this.api.utils.recursiveDirectoryGlob(tasksFolder);
       for (const taskFile of taskFiles) {
-        await self.loadFile(taskFile);
+        await this.loadFile(taskFile);
       }
     }
   }
@@ -221,18 +211,16 @@ class TaskSatellite {
    * @param  {Function} callback Callback function.
    */
   enqueue(taskName, params, queue, callback) {
-    let self = this;
-
     if (typeof queue === "function" && callback === undefined) {
       callback = queue;
-      queue = self.tasks[taskName].queue;
+      queue = this.tasks[taskName].queue;
     } else if (typeof params === "function" && callback === undefined && queue === undefined) {
       callback = params;
-      queue = self.tasks[taskName].queue;
+      queue = this.tasks[taskName].queue;
       params = {};
     }
 
-    self.api.resque.queue.enqueue(queue, taskName, params, callback);
+    this.api.resque.queue.enqueue(queue, taskName, params, callback);
   }
 
   /**
@@ -245,8 +233,6 @@ class TaskSatellite {
    * @param  {Function} callback  Callback function.
    */
   enqueueAt(timestamp, taskName, params, queue, callback) {
-    let self = this;
-
     if (typeof queue === "function" && callback === undefined) {
       callback = queue;
       queue = this.tasks[taskName].queue;
@@ -255,7 +241,7 @@ class TaskSatellite {
       queue = this.tasks[taskName].queue;
       params = {};
     }
-    self.api.resque.queue.enqueueAt(timestamp, queue, taskName, params, callback);
+    this.api.resque.queue.enqueueAt(timestamp, queue, taskName, params, callback);
   }
 
   /**
@@ -268,18 +254,16 @@ class TaskSatellite {
    * @param  {Function} callback Callback function.
    */
   enqueueIn(time, taskName, params, queue, callback) {
-    let self = this;
-
     if (typeof queue === "function" && callback === undefined) {
       callback = queue;
-      queue = self.tasks[taskName].queue;
+      queue = this.tasks[taskName].queue;
     } else if (typeof params === "function" && callback === undefined && queue === undefined) {
       callback = params;
-      queue = self.tasks[taskName].queue;
+      queue = this.tasks[taskName].queue;
       params = {};
     }
 
-    self.api.resque.queue.enqueueIn(time, queue, taskName, params, callback);
+    this.api.resque.queue.enqueueIn(time, queue, taskName, params, callback);
   }
 
   /**
@@ -292,8 +276,7 @@ class TaskSatellite {
    * @param  {Function} callback Callback function.
    */
   del(queue, taskName, args, count, callback) {
-    let self = this;
-    self.api.resque.queue.del(queue, taskName, args, count, callback);
+    this.api.resque.queue.del(queue, taskName, args, count, callback);
   }
 
   /**
@@ -305,8 +288,7 @@ class TaskSatellite {
    * @param  {Function} callback Callback function.
    */
   delDelayed(queue, taskName, args, callback) {
-    let self = this;
-    self.api.resque.queue.delDelayed(queue, taskName, args, callback);
+    this.api.resque.queue.delDelayed(queue, taskName, args, callback);
   }
 
   /**
@@ -318,8 +300,7 @@ class TaskSatellite {
    * @param  {Function} callback Callback function.
    */
   scheduledAt(queue, taskName, args, callback) {
-    let self = this;
-    self.api.resque.queue.scheduledAt(queue, taskName, args, callback);
+    this.api.resque.queue.scheduledAt(queue, taskName, args, callback);
   }
 
   stats(callback) {
@@ -354,8 +335,7 @@ class TaskSatellite {
    * @param  {Function} callback Callback function.
    */
   locks(callback) {
-    let self = this;
-    self.api.resque.queue.locks(callback);
+    this.api.resque.queue.locks(callback);
   }
 
   /**
@@ -365,63 +345,51 @@ class TaskSatellite {
    * @param  {Function} callback Callback function.
    */
   delLock(lock, callback) {
-    let self = this;
-    self.api.resque.queue.delLock(lock, callback);
+    this.api.resque.queue.delLock(lock, callback);
   }
 
   timestamps(callback) {
-    let self = this;
-    self.api.resque.queue.timestamps(callback);
+    this.api.resque.queue.timestamps(callback);
   }
 
   delayedAt(timestamp, callback) {
-    let self = this;
-    self.api.resque.queue.delayedAt(timestamp, callback);
+    this.api.resque.queue.delayedAt(timestamp, callback);
   }
 
   allDelayed(callback) {
-    let self = this;
-    self.api.resque.queue.allDelayed(callback);
+    this.api.resque.queue.allDelayed(callback);
   }
 
   workers(callback) {
-    let self = this;
-    self.api.resque.queue.workers(callback);
+    this.api.resque.queue.workers(callback);
   }
 
   workingOn(workerName, queues, callback) {
-    let self = this;
-    self.api.resque.queue.workingOn(workerName, queues, callback);
+    this.api.resque.queue.workingOn(workerName, queues, callback);
   }
 
   allWorkingOn(callback) {
-    let self = this;
-    self.api.resque.queue.allWorkingOn(callback);
+    this.api.resque.queue.allWorkingOn(callback);
   }
 
   failedCount(callback) {
-    let self = this;
-    self.api.resque.queue.failedCount(callback);
+    this.api.resque.queue.failedCount(callback);
   }
 
   failed(start, stop, callback) {
-    let self = this;
-    self.api.resque.queue.failed(start, stop, callback);
+    this.api.resque.queue.failed(start, stop, callback);
   }
 
   removeFailed(failedJob, callback) {
-    let self = this;
-    self.api.resque.queue.removeFailed(failedJob, callback);
+    this.api.resque.queue.removeFailed(failedJob, callback);
   }
 
   retryAndRemoveFailed(failedJob, callback) {
-    let self = this;
-    self.api.resque.queue.retryAndRemoveFailed(failedJob, callback);
+    this.api.resque.queue.retryAndRemoveFailed(failedJob, callback);
   }
 
   cleanOldWorkers(age, callback) {
-    let self = this;
-    self.api.resque.queue.cleanOldWorkers(age, callback);
+    this.api.resque.queue.cleanOldWorkers(age, callback);
   }
 
   /**
@@ -431,10 +399,8 @@ class TaskSatellite {
    * @param callback Callback function.
    */
   enqueueRecurrentJob(taskName, callback) {
-    let self = this;
-
     // get task object
-    let task = self.tasks[taskName];
+    let task = this.tasks[taskName];
 
     // if it isn't a periodic task execute the callback function and return
     if (task.frequency <= 0) {
@@ -442,10 +408,10 @@ class TaskSatellite {
       return;
     }
 
-    self.del(task.queue, taskName, {}, () => {
-      self.delDelayed(task.queue, taskName, {}, () => {
-        self.enqueueIn(task.frequency, taskName, () => {
-          self.api.log(`re-enqueued recurrent job ${taskName}`, self.api.config.tasks.schedulerLogging.reEnqueue);
+    this.del(task.queue, taskName, {}, () => {
+      this.delDelayed(task.queue, taskName, {}, () => {
+        this.enqueueIn(task.frequency, taskName, () => {
+          this.api.log(`re-enqueued recurrent job ${taskName}`, this.api.config.tasks.schedulerLogging.reEnqueue);
           callback();
         });
       });
@@ -458,22 +424,21 @@ class TaskSatellite {
    * @param callback  Callback function.
    */
   enqueueAllRecurrentJobs(callback) {
-    let self = this;
     let jobs = [];
     let loadedTasks = [];
 
-    Object.keys(self.tasks).forEach((taskName) => {
+    Object.keys(this.tasks).forEach((taskName) => {
       // get task object
-      let task = self.tasks[taskName];
+      let task = this.tasks[taskName];
 
       if (task.frequency > 0) {
         jobs.push((done) => {
-          self.enqueue(taskName, (error, toRun) => {
+          this.enqueue(taskName, (error, toRun) => {
             if (error) {
               return done(error);
             }
             if (toRun === true) {
-              self.api.log(`enqueuing periodic task ${taskName}`, self.api.config.tasks.schedulerLogging.enqueue);
+              this.api.log(`enqueuing periodic task ${taskName}`, this.api.config.tasks.schedulerLogging.enqueue);
               loadedTasks.push(taskName);
             }
 
@@ -498,8 +463,7 @@ class TaskSatellite {
    * @param callback  Callback function.
    */
   stopRecurrentJob(taskName, callback) {
-    let self = this;
-    let task = self.tasks[taskName];
+    let task = this.tasks[taskName];
 
     // if isn't a recurrent task execute the callback and return
     if (task.frequency <= 0) {
@@ -510,9 +474,9 @@ class TaskSatellite {
     let removedCount = 0;
 
     // remove the task from the recurrent queue
-    self.del(task.queue, task.name, {}, 1, (_, count) => {
+    this.del(task.queue, task.name, {}, 1, (_, count) => {
       removedCount = removedCount + count;
-      self.delDelayed(task.queue, task.name, {}, (error, timestamps) => {
+      this.delDelayed(task.queue, task.name, {}, (error, timestamps) => {
         removedCount = removedCount + timestamps.length;
         callback(error, removedCount);
       });
@@ -525,14 +489,12 @@ class TaskSatellite {
    * @param callback  Callback function.
    */
   details(callback) {
-    let self = this;
-
     let result = { queues: {}, workers: {} };
     let jobs = [];
 
     // push all the workers to the result var
     jobs.push((done) => {
-      self.api.tasks.allWorkingOn((error, workers) => {
+      this.api.tasks.allWorkingOn((error, workers) => {
         if (error) {
           return done(error);
         }
@@ -542,7 +504,7 @@ class TaskSatellite {
 
     // push all the queue to the result var
     jobs.push((done) => {
-      self.api.resque.queue.queues((error, queues) => {
+      this.api.resque.queue.queues((error, queues) => {
         if (error) {
           return done(error);
         }
@@ -550,7 +512,7 @@ class TaskSatellite {
 
         queues.forEach((queue) => {
           queueJobs.push((qDone) => {
-            self.resque.queue.length(queue, (error, length) => {
+            this.resque.queue.length(queue, (error, length) => {
               if (error) {
                 return qDone(error);
               }

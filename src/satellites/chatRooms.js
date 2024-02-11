@@ -550,12 +550,12 @@ export default class {
     if (api.config.general.startingChatRooms) {
       for (let room in api.config.general.startingChatRooms) {
         api.log(`ensuring the existence of the chatRoom: ${room}`);
-        work.then((_) => api.chatRoom.create(room)).catch((_) => {});
+        work.then(() => api.chatRoom.create(room)).catch(() => {});
       }
     }
 
     // end the initializer starting
-    work.then((_) => {
+    work.then(() => {
       next();
     });
   }

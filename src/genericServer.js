@@ -63,10 +63,8 @@ export default class GenericServer extends EventEmitter {
    * @param data Connection data.
    */
   buildConnection(data) {
-    let self = this;
-
     let details = {
-      type: self.type,
+      type: this.type,
       id: data.id,
       remotePort: data.remotePort,
       remoteIP: data.remoteAddress,
@@ -74,7 +72,7 @@ export default class GenericServer extends EventEmitter {
     };
 
     // if the server canChat enable the flag on the connection
-    if (self.attributes.canChat === true) {
+    if (this.attributes.canChat === true) {
       details.canChat = true;
     }
 
@@ -84,49 +82,49 @@ export default class GenericServer extends EventEmitter {
     }
 
     // get connection class
-    let ConnectionClass = self.api.connection;
+    let ConnectionClass = this.api.connection;
 
     // create a new connection instance
-    let connection = new ConnectionClass(self.api, details);
+    let connection = new ConnectionClass(this.api, details);
 
     // define sendMessage method
     connection.sendMessage = (message) => {
-      self.sendMessage(connection, message);
+      this.sendMessage(connection, message);
     };
 
     // define sendFile method
     connection.sendFile = (path) => {
       connection.params.file = path;
-      self.processFile(connection);
+      this.processFile(connection);
     };
 
     // emit the new connection object
-    self.emit("connection", connection);
+    this.emit("connection", connection);
 
     // check if the lod for this type of connection is active
-    if (self.attributes.logConnections === true) {
-      self.log("new connection", "info", { to: connection.remoteIP });
+    if (this.attributes.logConnections === true) {
+      this.log("new connection", "info", { to: connection.remoteIP });
     }
 
     // bidirectional connection can have a welcome message
-    if (self.attributes.sendWelcomeMessage === true) {
+    if (this.attributes.sendWelcomeMessage === true) {
       connection.sendMessage({
-        welcome: self.api.config.general.welcomeMessage,
+        welcome: this.api.config.general.welcomeMessage,
         context: "api",
       });
     }
 
-    if (typeof self.attributes.sendWelcomeMessage === "number") {
+    if (typeof this.attributes.sendWelcomeMessage === "number") {
       setTimeout(() => {
         try {
           connection.sendMessage({
-            welcome: self.api.config.general.welcomeMessage,
+            welcome: this.api.config.general.welcomeMessage,
             context: "api",
           });
         } catch (e) {
-          self.api.log.error(e);
+          this.api.log.error(e);
         }
-      }, self.attributes.sendWelcomeMessage);
+      }, this.attributes.sendWelcomeMessage);
     }
   }
 
@@ -136,12 +134,10 @@ export default class GenericServer extends EventEmitter {
    * @param connection Connection object.
    */
   processAction(connection) {
-    let self = this;
-
     // create a new action processor instance for this request
     const ActionProcessor = this.api.actionProcessor;
-    let actionProcessor = new ActionProcessor(self.api, connection, (data) => {
-      self.emit("actionComplete", data);
+    let actionProcessor = new ActionProcessor(this.api, connection, (data) => {
+      this.emit("actionComplete", data);
     });
 
     // process the request
@@ -187,21 +183,20 @@ export default class GenericServer extends EventEmitter {
    * @param data      Additional data to be printed out.
    */
   log(message, severity, data) {
-    let self = this;
-    self.api.log(`[Server: ${this.type}] ${message}`, severity, data);
+    this.api.log(`[Server: ${this.type}] ${message}`, severity, data);
   }
 
   /**
    * Invoked as part of boot.
    */
-  start(_next) {
+  start() {
     methodNotDefined();
   }
 
   /**
    * Invoked as part of shutdown.
    */
-  stop(_next) {
+  stop() {
     methodNotDefined();
   }
 
@@ -211,7 +206,7 @@ export default class GenericServer extends EventEmitter {
    * @param connection  Connection object.
    * @param message     Message be sent back to the client.
    */
-  sendMessage(_connection, _message) {
+  sendMessage() {
     methodNotDefined();
   }
 
@@ -221,7 +216,7 @@ export default class GenericServer extends EventEmitter {
    * @param connection  Connection object.
    * @param reason      Reason for disconnection.
    */
-  goodbye(_connection, _reason) {
+  goodbye() {
     methodNotDefined();
   }
 }

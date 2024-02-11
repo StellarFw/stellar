@@ -43,39 +43,37 @@ export default class Web extends GenericServer {
     // call the super constructor
     super(api, type, options, attributes);
 
-    let self = this;
+    this.fingerprinter = new BrowserFingerprint(this.api.config.servers.web.fingerprintOptions);
 
-    this.fingerprinter = new BrowserFingerprint(self.api.config.servers.web.fingerprintOptions);
-
-    if (["api", "file"].indexOf(self.api.config.servers.web.rootEndpointType) < 0) {
+    if (["api", "file"].indexOf(this.api.config.servers.web.rootEndpointType) < 0) {
       throw new Error("api.config.servers.web.rootEndpointType can only be 'api' or 'file'.");
     }
 
     // -------------------------------------------------------------------------------------------------------- [EVENTS]
-    self.on("connection", (connection) => {
-      self._determineRequestParams(connection, (requestMode) => {
+    this.on("connection", (connection) => {
+      this._determineRequestParams(connection, (requestMode) => {
         switch (requestMode) {
           case "api":
-            self.processAction(connection);
+            this.processAction(connection);
             break;
           case "file":
-            self.processFile(connection);
+            this.processFile(connection);
             break;
           case "options":
-            self._respondToOptions(connection);
+            this._respondToOptions(connection);
             break;
           case "client-lib":
-            self.processClientLib(connection);
+            this.processClientLib(connection);
             break;
           case "trace":
-            self._respondToTrace(connection);
+            this._respondToTrace(connection);
         }
       });
     });
 
     // event to be executed after the action completion
-    self.on("actionComplete", (data) => {
-      self._completeResponse(data);
+    this.on("actionComplete", (data) => {
+      this._completeResponse(data);
     });
   }
 
@@ -87,44 +85,42 @@ export default class Web extends GenericServer {
    * @param next  Callback function.
    */
   async start(next) {
-    let self = this;
-
     // check if id to create a HTTP or a HTTPS server
-    if (self.options.secure === false) {
+    if (this.options.secure === false) {
       let http = await import("http");
-      self.server = http.createServer((req, res) => {
-        self._handleRequest(req, res);
+      this.server = http.createServer((req, res) => {
+        this._handleRequest(req, res);
       });
     } else {
       let https = await import("https");
-      self.server = https.createServer(self.api.config.servers.web.serverOptions, (req, res) => {
-        self._handleRequest(req, res);
+      this.server = https.createServer(this.api.config.servers.web.serverOptions, (req, res) => {
+        this._handleRequest(req, res);
       });
     }
 
     let bootAttempts = 0;
 
-    self.server.on("error", (e) => {
+    this.server.on("error", (e) => {
       bootAttempts++;
 
-      if (bootAttempts < self.api.config.servers.web.bootAttempts) {
-        self.log(`cannot boot web server; trying again [${String(e)}]`, "error");
+      if (bootAttempts < this.api.config.servers.web.bootAttempts) {
+        this.log(`cannot boot web server; trying again [${String(e)}]`, "error");
 
         if (bootAttempts === 1) {
-          self._cleanSocket(self.options.bindIP, self.options.port);
+          this._cleanSocket(this.options.bindIP, this.options.port);
         }
 
         setTimeout(() => {
-          self.log("attempting to boot again...");
-          self.server.listen(self.options.port, self.options.bindIP);
+          this.log("attempting to boot again...");
+          this.server.listen(this.options.port, this.options.bindIP);
         }, 1000);
       } else {
-        return next(new Error(`Cannot start web server @ ${self.options.bindIP}:${self.options.port} => ${e.message}`));
+        return next(new Error(`Cannot start web server @ ${this.options.bindIP}:${this.options.port} => ${e.message}`));
       }
     });
 
-    self.server.listen(self.options.port, self.options.bindIP, () => {
-      self.chmodSocket(self.options.bindIP, self.options.port);
+    this.server.listen(this.options.port, this.options.bindIP, () => {
+      this.chmodSocket(this.options.bindIP, this.options.port);
       next();
     });
   }
@@ -135,10 +131,8 @@ export default class Web extends GenericServer {
    * @param next  Callback function.
    */
   stop(next) {
-    let self = this;
-
     // close the server socket
-    self.server.close();
+    this.server.close();
 
     // execute the callback function
     process.nextTick(() => {
@@ -153,8 +147,6 @@ export default class Web extends GenericServer {
    * @param message     Message to be sent.
    */
   sendMessage(connection, message) {
-    let self = this;
-
     // response string
     let stringResponse = "";
 
@@ -165,7 +157,7 @@ export default class Web extends GenericServer {
     }
 
     // clean HTTP headers
-    self._cleanHeaders(connection);
+    this._cleanHeaders(connection);
 
     // get the response headers
     let headers = connection.rawConnection.responseHeaders;
@@ -174,7 +166,7 @@ export default class Web extends GenericServer {
     let responseHttpCode = parseInt(connection.rawConnection.responseHttpCode);
 
     // send the response to the client (use compression if active)
-    self.sendWithCompression(connection, responseHttpCode, headers, stringResponse);
+    this.sendWithCompression(connection, responseHttpCode, headers, stringResponse);
   }
 
   /**
@@ -320,14 +312,13 @@ export default class Web extends GenericServer {
    * @param fileLength          File size in bytes, only needed if is to send a file.
    */
   sendWithCompression(connection, responseHttpCode, headers, stringResponse, fileStream, fileLength) {
-    let self = this;
     let compressor, stringEncoder;
     let acceptEncoding = connection.rawConnection.req.headers["accept-encoding"];
 
     // Note: this is not a conformant accept-encoding parser.
     // https://nodejs.org/api/zlib.html#zlib_zlib_createinflate_options
     // See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3
-    if (self.api.config.servers.web.compress === true) {
+    if (this.api.config.servers.web.compress === true) {
       if (acceptEncoding.match(/\bdeflate\b/)) {
         headers.push(["Content-Encoding", "deflate"]);
         compressor = zlib.createDeflate();
@@ -378,7 +369,7 @@ export default class Web extends GenericServer {
    *
    * @param connection
    */
-  goodbye(_connection) {
+  goodbye() {
     // disconnect handlers
   }
 
@@ -392,8 +383,6 @@ export default class Web extends GenericServer {
    * @private
    */
   _handleRequest(req, res) {
-    let self = this;
-
     // get the client fingerprint
     const { fingerprint, headersHash } = this.fingerprinter.fingerprint(req);
 
@@ -413,8 +402,8 @@ export default class Web extends GenericServer {
     responseHeaders.push(["Content-Type", "application/json; charset=utf-8"]);
 
     // push all the default headers to the response object
-    for (i in self.api.config.servers.web.httpHeaders) {
-      responseHeaders.push([i, self.api.config.servers.web.httpHeaders[i]]);
+    for (i in this.api.config.servers.web.httpHeaders) {
+      responseHeaders.push([i, this.api.config.servers.web.httpHeaders[i]]);
     }
 
     // get the client IP
@@ -458,7 +447,7 @@ export default class Web extends GenericServer {
       }
     }
 
-    self.buildConnection({
+    this.buildConnection({
       // will emit 'connection'
       rawConnection: {
         req: req,
@@ -497,10 +486,8 @@ export default class Web extends GenericServer {
    * @private
    */
   _determineRequestParams(connection, callback) {
-    let self = this;
-
     // determine if is a file or an api request
-    let requestMode = self.api.config.servers.web.rootEndpointType;
+    let requestMode = this.api.config.servers.web.rootEndpointType;
     let pathname = connection.rawConnection.parsedURL.pathname;
     let pathParts = pathname.split("/");
     let matcherLength, i;
@@ -515,24 +502,24 @@ export default class Web extends GenericServer {
       pathParts.pop();
     }
 
-    if (pathParts[0] && pathParts[0] === self.api.config.servers.web.urlPathForActions) {
+    if (pathParts[0] && pathParts[0] === this.api.config.servers.web.urlPathForActions) {
       requestMode = "api";
       pathParts.shift();
-    } else if (pathParts[0] && pathParts[0] === self.api.config.servers.websocket.clientJsName) {
+    } else if (pathParts[0] && pathParts[0] === this.api.config.servers.websocket.clientJsName) {
       requestMode = "client-lib";
       pathParts.shift();
-    } else if (pathParts[0] && pathParts[0] === self.api.config.servers.web.urlPathForFiles) {
+    } else if (pathParts[0] && pathParts[0] === this.api.config.servers.web.urlPathForFiles) {
       requestMode = "file";
       pathParts.shift();
-    } else if (pathParts[0] && pathname.indexOf(self.api.config.servers.web.urlPathForActions) === 0) {
+    } else if (pathParts[0] && pathname.indexOf(this.api.config.servers.web.urlPathForActions) === 0) {
       requestMode = "api";
-      matcherLength = self.api.config.servers.web.urlPathForActions.split("/").length;
+      matcherLength = this.api.config.servers.web.urlPathForActions.split("/").length;
       for (i = 0; i < matcherLength - 1; i++) {
         pathParts.shift();
       }
-    } else if (pathParts[0] && pathname.indexOf(self.api.config.servers.web.urlPathForFiles) === 0) {
+    } else if (pathParts[0] && pathname.indexOf(this.api.config.servers.web.urlPathForFiles) === 0) {
       requestMode = "file";
-      matcherLength = self.api.config.servers.web.urlPathForFiles.split("/").length;
+      matcherLength = this.api.config.servers.web.urlPathForFiles.split("/").length;
       for (i = 0; i < matcherLength - 1; i++) {
         pathParts.shift();
       }
@@ -562,7 +549,7 @@ export default class Web extends GenericServer {
         typeof connection.rawConnection.parsedURL.search === "string" ? connection.rawConnection.parsedURL.search : "";
 
       let search = connection.rawConnection.parsedURL.search.slice(1);
-      self._fillParamsFromWebRequest(connection, qs.parse(search, self.api.config.servers.web.queryParseOptions));
+      this._fillParamsFromWebRequest(connection, qs.parse(search, this.api.config.servers.web.queryParseOptions));
 
       connection.rawConnection.params.query = connection.rawConnection.parsedURL.query;
 
@@ -573,37 +560,37 @@ export default class Web extends GenericServer {
       ) {
         connection.rawConnection.form = new formidable.IncomingForm();
 
-        for (i in self.api.config.servers.web.formOptions) {
-          connection.rawConnection.form[i] = self.api.config.servers.web.formOptions[i];
+        for (i in this.api.config.servers.web.formOptions) {
+          connection.rawConnection.form[i] = this.api.config.servers.web.formOptions[i];
         }
 
         connection.rawConnection.form.parse(connection.rawConnection.req, (error, fields, files) => {
           if (error) {
-            self.log(`error processing form: ${String(error)}`, "error");
+            this.log(`error processing form: ${String(error)}`, "error");
             connection.error = new Error("There was an error processing this form.");
           } else {
             connection.rawConnection.params.body = fields;
             connection.rawConnection.params.files = files;
-            self._fillParamsFromWebRequest(connection, files);
-            self._fillParamsFromWebRequest(connection, fields);
+            this._fillParamsFromWebRequest(connection, files);
+            this._fillParamsFromWebRequest(connection, fields);
           }
 
-          if (self.api.config.servers.web.queryRouting !== true) {
+          if (this.api.config.servers.web.queryRouting !== true) {
             connection.params.action = null;
           }
 
           // process route
-          self.api.routes.processRoute(connection, pathParts);
+          this.api.routes.processRoute(connection, pathParts);
 
           callback(requestMode);
         });
       } else {
-        if (self.api.config.servers.web.queryRouting !== true) {
+        if (this.api.config.servers.web.queryRouting !== true) {
           connection.params.action = null;
         }
 
         // process route
-        self.api.routes.processRoute(connection, pathParts);
+        this.api.routes.processRoute(connection, pathParts);
 
         callback(requestMode);
       }
@@ -613,7 +600,7 @@ export default class Web extends GenericServer {
       }
 
       if (connection.params.file === "" || connection.params.file[connection.params.file.length - 1] === "/") {
-        connection.params.file = connection.params.file + self.api.config.general.directoryFileType;
+        connection.params.file = connection.params.file + this.api.config.general.directoryFileType;
       }
       callback(requestMode);
     } else if (requestMode === "client-lib") {
@@ -622,18 +609,16 @@ export default class Web extends GenericServer {
   }
 
   processClientLib(connection) {
-    let self = this;
-
     // client lib
     let file = path.normalize(
-      `${self.api.config.general.paths.public + path.sep + self.api.config.servers.websocket.clientJsName}.js`,
+      `${this.api.config.general.paths.public + path.sep + this.api.config.servers.websocket.clientJsName}.js`,
     );
 
     // define the file to be loaded
     connection.params.file = file;
 
     // process like a file
-    self.processFile(connection);
+    this.processFile(connection);
   }
 
   /**
@@ -839,12 +824,10 @@ export default class Web extends GenericServer {
    * @private
    */
   _respondToOptions(connection = null) {
-    let self = this;
-
     // inform the allowed methods
     if (
-      !self.api.config.servers.web.httpHeaders["Access-Control-Allow-Methods"] &&
-      !self._extractHeader(connection, "Access-Control-Allow-Methods")
+      !this.api.config.servers.web.httpHeaders["Access-Control-Allow-Methods"] &&
+      !this._extractHeader(connection, "Access-Control-Allow-Methods")
     ) {
       let methods = "HEAD, GET, POST, PUT, DELETE, OPTIONS, TRACE";
       connection.rawConnection.responseHeaders.push(["Access-Control-Allow-Methods", methods]);
@@ -852,15 +835,15 @@ export default class Web extends GenericServer {
 
     // inform the allowed origins
     if (
-      !self.api.config.servers.web.httpHeaders["Access-Control-Allow-Origin"] &&
-      !self._extractHeader(connection, "Access-Control-Allow-Origin")
+      !this.api.config.servers.web.httpHeaders["Access-Control-Allow-Origin"] &&
+      !this._extractHeader(connection, "Access-Control-Allow-Origin")
     ) {
       var origin = "*";
       connection.rawConnection.responseHeaders.push(["Access-Control-Allow-Origin", origin]);
     }
 
     // send the message to client
-    self.sendMessage(connection, "");
+    this.sendMessage(connection, "");
   }
 
   /**
@@ -870,14 +853,12 @@ export default class Web extends GenericServer {
    * @private
    */
   _respondToTrace(connection) {
-    let self = this;
-
     // build the request information
-    let data = self._buildRequesterInformation(connection);
+    let data = this._buildRequesterInformation(connection);
 
     // build the response string and send it to the client
-    let stringResponse = JSON.stringify(data, null, self.api.config.servers.web.padding);
-    self.sendMessage(connection, stringResponse);
+    let stringResponse = JSON.stringify(data, null, this.api.config.servers.web.padding);
+    this.sendMessage(connection, stringResponse);
   }
 
   /**
@@ -888,14 +869,12 @@ export default class Web extends GenericServer {
    * @private
    */
   _cleanSocket(bindIP, port) {
-    let self = this;
-
     if (!bindIP && port.indexOf("/") >= 0) {
       fs.unlink(port, (error) => {
         if (error) {
-          self.log(`cannot remove stale socket @${port}:${error}`, "error");
+          this.log(`cannot remove stale socket @${port}:${error}`, "error");
         } else {
-          self.log(`removed stale unix socket @${port}`);
+          this.log(`removed stale unix socket @${port}`);
         }
       });
     }

@@ -19,31 +19,26 @@ class I18n {
    * @param api   API reference.
    */
   constructor(api) {
-    let self = this;
-
-    // save api reference
-    self.api = api;
+    this.api = api;
 
     // save i18n instance
-    self.i18n = i18n;
+    this.i18n = i18n;
   }
 
   /**
    * Configure i18n.
    */
   configure() {
-    let self = this;
-
     // @todo - copy all modules locale folder to a temp folder '/tmp/locale'
 
     // create locale folder (remove first if exists)
-    let localePath = `${self.api.config.general.paths.temp}/locale`;
+    let localePath = `${this.api.config.general.paths.temp}/locale`;
     this.api.utils.removeDirectory(localePath);
     this.api.utils.mkdir(localePath);
 
     // iterate all modules
-    for (let module in self.api.modules.activeModules.keys()) {
-      let localePath = `${self.api.scope.rootPath}/modules/${module}/locale`;
+    for (let module in this.api.modules.activeModules.keys()) {
+      let localePath = `${this.api.scope.rootPath}/modules/${module}/locale`;
 
       // check if the folder exists
       if (this.api.utils.directoryExists(localePath)) {
@@ -52,16 +47,16 @@ class I18n {
     }
 
     // get i18n configs
-    let options = self.api.config.i18n;
+    let options = this.api.config.i18n;
 
     // define locale folder
     options.directory = localePath;
 
     // configure application
-    self.i18n.configure(options);
+    this.i18n.configure(options);
 
     // setting the current locale globally
-    self.i18n.setLocale(self.api.config.i18n.defaultLocale);
+    this.i18n.setLocale(this.api.config.i18n.defaultLocale);
   }
 
   /**
@@ -69,7 +64,7 @@ class I18n {
    *
    * @param connection  Client connection object.
    */
-  determineConnectionLocale(_connection) {
+  determineConnectionLocale() {
     return this.api.config.i18n.defaultLocale;
   }
 
@@ -79,10 +74,8 @@ class I18n {
    * @param connection  Client connection object.
    */
   invokeConnectionLocale(connection) {
-    let self = this;
-
     // split the command by '.'
-    let cmdParts = self.api.config.i18n.determineConnectionLocale.split(".");
+    let cmdParts = this.api.config.i18n.determineConnectionLocale.split(".");
 
     // get the first array position
     let cmd = cmdParts.shift();
@@ -93,10 +86,10 @@ class I18n {
     }
 
     // execute method
-    let locale = eval(`self.api.${cmdParts.join(".")}(connection)`);
+    let locale = eval(`this.api.${cmdParts.join(".")}(connection)`);
 
     // set locale
-    self.i18n.setLocale(connection, locale);
+    this.i18n.setLocale(connection, locale);
   }
 
   /**
@@ -107,18 +100,16 @@ class I18n {
    * @returns {*}     Localized message.
    */
   localize(message, options) {
-    let self = this;
-
     // the arguments should be an array
     if (!Array.isArray(message)) {
       message = [message];
     }
 
     if (!options) {
-      options = self.i18n;
+      options = this.i18n;
     }
 
-    return self.i18n.__.apply(options, message);
+    return this.i18n.__.apply(options, message);
   }
 }
 

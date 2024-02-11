@@ -28,19 +28,17 @@ class DocumentationGenerator {
    * @param api
    */
   constructor(api) {
-    let self = this;
-
     // save API reference object
-    self.api = api;
+    this.api = api;
 
     // unsure the public folder exists
-    this.api.utils.createFolder(self.api.config.general.paths.public);
+    this.api.utils.createFolder(this.api.config.general.paths.public);
 
     // build docs folder path
-    self.docsFolder = `${self.api.config.general.paths.public}/docs`;
+    this.docsFolder = `${this.api.config.general.paths.public}/docs`;
 
     // build static folder path
-    self.staticFolder = `${__dirname}/../../staticFiles/docs`;
+    this.staticFolder = `${__dirname}/../../staticFiles/docs`;
   }
 
   /**
@@ -70,22 +68,20 @@ class DocumentationGenerator {
    * @private
    */
   _getActionToGenerateDoc() {
-    let self = this;
-
     // array to store the actions
     let actions = {};
 
     // iterate all actions
-    for (let actionName in self.api.actions.actions) {
+    for (let actionName in this.api.actions.actions) {
       let count = 0;
 
       actions[actionName] = {};
 
       // iterate all action versions
-      for (let versionNumber in self.api.actions.actions[actionName]) {
-        if (self.api.actions.actions[actionName][versionNumber].toDocument !== false) {
+      for (let versionNumber in this.api.actions.actions[actionName]) {
+        if (this.api.actions.actions[actionName][versionNumber].toDocument !== false) {
           count++;
-          actions[actionName][versionNumber] = self.api.actions.actions[actionName][versionNumber];
+          actions[actionName][versionNumber] = this.api.actions.actions[actionName][versionNumber];
         }
       }
 
@@ -100,23 +96,21 @@ class DocumentationGenerator {
   /**
    * Generate the documentation.
    */
-  generateDocumentation() {
-    let self = this;
-
+  async generateDocumentation() {
     // remove docs directory
-    this.api.utils.removeDirectory(self.docsFolder);
+    this.api.utils.removeDirectory(this.docsFolder);
 
     // create the directory again
-    this.api.utils.createFolder(self.docsFolder);
+    this.api.utils.createFolder(this.docsFolder);
 
     // get actions to generate documentation
-    let actions = self._getActionToGenerateDoc();
+    let actions = this._getActionToGenerateDoc();
 
     // object with the template data
     let data = { actions: Object.keys(actions) };
 
     // get base template
-    let generator = require(`${self.staticFolder}/action.html.js`);
+    let generator = await import(`${this.staticFolder}/action.html.js`);
 
     // iterate all loaded actions
     for (let actionName in actions) {
@@ -129,7 +123,7 @@ class DocumentationGenerator {
       // iterate all versions
       for (let versionNumber in actions[actionName]) {
         // get action object
-        let action = self._prepareActionToPrint(actions[actionName][versionNumber]);
+        let action = this._prepareActionToPrint(actions[actionName][versionNumber]);
 
         // push the version number
         action.version = versionNumber;
@@ -141,11 +135,11 @@ class DocumentationGenerator {
       const generatedHtml = generator.render(data);
 
       // output the result to the temp folder
-      fs.writeFileSync(`${self.docsFolder}/action_${actionName}.html`, generatedHtml, "utf8");
+      fs.writeFileSync(`${this.docsFolder}/action_${actionName}.html`, generatedHtml, "utf8");
     }
 
     // build the index.html
-    self._buildIndexFile();
+    await this._buildIndexFile();
 
     // copy resource files
     this._copyResourceFiles();
@@ -156,26 +150,24 @@ class DocumentationGenerator {
    *
    * @private
    */
-  _buildIndexFile() {
-    let self = this;
-
+  async _buildIndexFile() {
     // build data object
     let data = {
-      actions: Object.keys(self._getActionToGenerateDoc()),
+      actions: Object.keys(this._getActionToGenerateDoc()),
       project: {},
     };
-    data.project.name = self.api.config.name;
-    data.project.description = self.api.config.description;
-    data.project.version = self.api.config.version;
+    data.project.name = this.api.config.name;
+    data.project.description = this.api.config.description;
+    data.project.version = this.api.config.version;
 
     // append the tasks information
     data.tasks = this._getTasksInformation();
 
-    const generator = require(`${self.staticFolder}/index.html.js`);
+    const generator = await import(`${this.staticFolder}/index.html.js`);
     const contentGenerated = generator.render(data);
 
     // save index.html file on final docs folder
-    fs.writeFileSync(`${self.docsFolder}/index.html`, contentGenerated, "utf8");
+    fs.writeFileSync(`${this.docsFolder}/index.html`, contentGenerated, "utf8");
   }
 
   /**
@@ -253,10 +245,9 @@ class DocumentationGenerator {
    * @private
    */
   _copyResourceFiles() {
-    let self = this;
-    this.api.utils.copyFile(`${self.staticFolder}/reset.css`, `${self.docsFolder}/reset.css`);
-    this.api.utils.copyFile(`${self.staticFolder}/style.css`, `${self.docsFolder}/style.css`);
-    this.api.utils.copyFile(`${self.staticFolder}/highlight.js`, `${self.docsFolder}/highlight.js`);
+    this.api.utils.copyFile(`${this.staticFolder}/reset.css`, `${this.docsFolder}/reset.css`);
+    this.api.utils.copyFile(`${this.staticFolder}/style.css`, `${this.docsFolder}/style.css`);
+    this.api.utils.copyFile(`${this.staticFolder}/highlight.js`, `${this.docsFolder}/highlight.js`);
   }
 }
 
@@ -278,7 +269,7 @@ export default class {
    * @param api   API reference object.
    * @param next  Callback function.
    */
-  load(api, next) {
+  async load(api, next) {
     // if the documentation generation was disabled finish now
     if (api.config.general.generateDocumentation !== true) {
       next();
@@ -286,7 +277,7 @@ export default class {
     }
 
     // build the documentation
-    new DocumentationGenerator(api).generateDocumentation();
+    await new DocumentationGenerator(api).generateDocumentation();
 
     // finish the satellite loading
     next();

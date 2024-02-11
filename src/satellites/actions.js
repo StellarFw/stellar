@@ -127,18 +127,16 @@ class Actions {
    *  - status: give information about the name and the server status.
    */
   loadSystemActions() {
-    let self = this;
-
     // only load this if the system actions are enabled
     //
     // @see api.configs.enableSystemActions
-    if (self.api.config.enableSystemActions !== true) {
+    if (this.api.config.enableSystemActions !== true) {
       return;
     }
 
     // add an action to give some information about the server status
-    self.versions.status = [1];
-    self.actions.status = {
+    this.versions.status = [1];
+    this.actions.status = {
       1: {
         name: "status",
         description: "Is a system action to show the server status",
@@ -255,10 +253,8 @@ class Actions {
    * @param action  Action object to be validated.
    */
   validateAction(action) {
-    let self = this;
-
     // fail function
-    let fail = (msg) => self.api.log(msg, "error");
+    let fail = (msg) => this.api.log(msg, "error");
 
     // initialize inputs property
     if (action.inputs === undefined) {
@@ -285,7 +281,7 @@ class Actions {
     } else if (typeof action.run !== "function") {
       fail(`Action ${action.run} has no run method`);
       return false;
-    } else if (self.api.connections !== null && self.api.connections.allowedVerbs.indexOf(action.name) >= 0) {
+    } else if (this.api.connections !== null && this.api.connections.allowedVerbs.indexOf(action.name) >= 0) {
       fail(`${action.run} is a reserved verb for connections. Choose a new name`);
       return false;
     } else {
@@ -299,8 +295,6 @@ class Actions {
    * @param data  Middleware to be added.
    */
   addMiddleware(data) {
-    let self = this;
-
     // middleware require a name
     if (!data.name) {
       throw new Error("middleware.name is required");
@@ -308,14 +302,14 @@ class Actions {
 
     // if there is no defined priority use the default
     if (!data.priority) {
-      data.priority = self.api.config.general.defaultMiddlewarePriority;
+      data.priority = this.api.config.general.defaultMiddlewarePriority;
     }
 
     // ensure the priority is a number
     data.priority = Number(data.priority);
 
     // save the new middleware
-    self.middleware[data.name] = data;
+    this.middleware[data.name] = data;
 
     // if this is a local middleware return now
     if (data.global !== true) {
@@ -323,11 +317,11 @@ class Actions {
     }
 
     // push the new middleware to the global list
-    self.globalMiddleware.push(data.name);
+    this.globalMiddleware.push(data.name);
 
     // sort the global middleware array
-    self.globalMiddleware.sort((a, b) => {
-      if (self.middleware[a].priority > self.middleware[b].priority) {
+    this.globalMiddleware.sort((a, b) => {
+      if (this.middleware[a].priority > this.middleware[b].priority) {
         return 1;
       }
 
@@ -336,8 +330,6 @@ class Actions {
   }
 
   async loadMiddlewareFromFile(path, reload = false) {
-    let self = this;
-
     /**
      * Function to log the load ou reload message
      *
@@ -353,11 +345,11 @@ class Actions {
         msg = `middleware loaded: ${middleware.name}, ${path}`;
       }
 
-      self.api.log(msg, level);
+      this.api.log(msg, level);
     };
 
     // watch for changes on the middleware file
-    self.api.configs.watchFileAndAct(path, () => self.loadMiddlewareFromFile(path, true));
+    this.api.configs.watchFileAndAct(path, () => this.loadMiddlewareFromFile(path, true));
 
     // try load the middleware
     try {
@@ -370,13 +362,13 @@ class Actions {
         let middleware = collection[index];
 
         // try load middleware object
-        self.addMiddleware(middleware);
+        this.addMiddleware(middleware);
 
         // send a log message
         loadMessage(middleware);
       }
     } catch (error) {
-      self.api.exceptionHandlers.loader(path, error);
+      this.api.exceptionHandlers.loader(path, error);
     }
   }
 

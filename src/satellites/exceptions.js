@@ -92,10 +92,8 @@ class ExceptionsManager {
    * @param severity
    */
   report(err, type, name, objects, severity = "error") {
-    let self = this;
-
-    for (let i in self.reporters) {
-      self.reporters[i](err, type, name, objects, severity);
+    for (let i in this.reporters) {
+      this.reporters[i](err, type, name, objects, severity);
     }
   }
 
@@ -106,9 +104,8 @@ class ExceptionsManager {
    * @param err
    */
   loader(fullFilePath, err) {
-    let self = this;
     let name = `loader ${fullFilePath}`;
-    self.report(err, "loader", name, { fullFilePath: fullFilePath }, "alert");
+    this.report(err, "loader", name, { fullFilePath: fullFilePath }, "alert");
   }
 
   /**
@@ -119,7 +116,6 @@ class ExceptionsManager {
    * @param next
    */
   action(err, data, next) {
-    let self = this;
     let simpleName;
 
     // try get the action name. Sometimes this can be impossible so we use the
@@ -131,7 +127,7 @@ class ExceptionsManager {
     }
 
     // report the error
-    self.report(err, "action", simpleName, { connection: data.connection }, "error");
+    this.report(err, "action", simpleName, { connection: data.connection }, "error");
 
     // remove already processed responses
     data.response = {};
@@ -150,8 +146,6 @@ class ExceptionsManager {
    * @param workerId
    */
   task(error, queue, task, workerId) {
-    let self = this;
-
     let simpleName;
 
     try {
@@ -160,7 +154,7 @@ class ExceptionsManager {
       simpleName = error.message;
     }
 
-    self.api.exceptionHandlers.report(
+    this.api.exceptionHandlers.report(
       error,
       "task",
       `task:${simpleName}`,
@@ -170,7 +164,7 @@ class ExceptionsManager {
         queue: queue,
         workerId: workerId,
       },
-      self.api.config.tasks.workerLogging.failure,
+      this.api.config.tasks.workerLogging.failure,
     );
   }
 }

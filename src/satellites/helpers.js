@@ -115,7 +115,6 @@ class Helpers {
    * @param next        Callback function.
    */
   runAction(actionName, input, next) {
-    let self = this;
     let connection;
 
     if (typeof input === "function" && !next) {
@@ -126,7 +125,7 @@ class Helpers {
     if (input.id && input.type === "testServer") {
       connection = input;
     } else {
-      connection = self.connection();
+      connection = this.connection();
       connection.params = input;
     }
     connection.params.action = actionName;
@@ -137,7 +136,7 @@ class Helpers {
     }
 
     process.nextTick(() => {
-      self.api.servers.servers.testServer.processAction(connection);
+      this.api.servers.servers.testServer.processAction(connection);
     });
   }
 
