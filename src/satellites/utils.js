@@ -373,8 +373,9 @@ export class Utils {
       }
     });
 
-    // remove current directory
-    fs.rmdirSync(path);
+    try {
+      fs.rmdirSync(path);
+    } catch (_) {}
   }
 
   /**

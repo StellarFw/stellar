@@ -1029,7 +1029,7 @@ export default class Web extends GenericServer {
     if (!bindIP && port.indexOf("/") >= 0) {
       fs.unlink(port, (error) => {
         if (error) {
-          self.log(`cannot remove stale socket @${port}:${error}`);
+          self.log(`cannot remove stale socket @${port}:${error}`, "error");
         } else {
           self.log(`removed stale unix socket @${port}`);
         }

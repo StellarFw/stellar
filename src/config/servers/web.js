@@ -1,8 +1,8 @@
-import os from 'os'
+import os from "os";
 
 export default {
   servers: {
-    web (api) {
+    web(api) {
       return {
         // ---------------------------------------------------------------------
         // Enable server?
@@ -31,7 +31,7 @@ export default {
         // If this property are defined to '0.0.0.0' we listen for all on the
         // IPv4 and IPv6.
         // ---------------------------------------------------------------------
-        bindIP: '0.0.0.0',
+        bindIP: "0.0.0.0",
 
         // ---------------------------------------------------------------------
         // Port ot Socket Path.
@@ -47,10 +47,11 @@ export default {
         // By default this tells CORS to allow request from any origin.
         // ---------------------------------------------------------------------
         httpHeaders: {
-          'X-Powered-By': api.config.general.serverName,
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS, TRACE',
-          'Access-Control-Allow-Headers': 'Content-Type'
+          "X-Powered-By": api.config.general.serverName,
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods":
+            "HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS, TRACE",
+          "Access-Control-Allow-Headers": "Content-Type",
         },
 
         // ---------------------------------------------------------------------
@@ -59,7 +60,7 @@ export default {
         // Using a call format like REST is treated as an action call too.
         // IE: /api?action=generateNumber == /api/generateNumber
         // ---------------------------------------------------------------------
-        urlPathForActions: 'api',
+        urlPathForActions: "api",
 
         // ---------------------------------------------------------------------
         // Route that static files will be served from.
@@ -67,14 +68,14 @@ export default {
         // path relative to project root to server static content from, set to
         // `null` to disable the file server entirely.
         // ---------------------------------------------------------------------
-        urlPathForFiles: 'public',
+        urlPathForFiles: "public",
 
         // ---------------------------------------------------------------------
         // When visiting the root URL, should visitors see 'api' or 'file'?
         //
         // Visitors can always visit /api and /public as normal.
         // ---------------------------------------------------------------------
-        rootEndpointType: 'file',
+        rootEndpointType: "file",
 
         // ---------------------------------------------------------------------
         // Simple routing also adds an 'all' route which matches /api/:action
@@ -107,13 +108,13 @@ export default {
         // (browser-fingerprint)
         // ---------------------------------------------------------------------
         fingerprintOptions: {
-          cookieKey: 'sessionID',
+          cookieKey: "sessionID",
           toSetCookie: true,
           onlyStaticElements: false,
           settings: {
-            path: '/',
-            expires: 3600000
-          }
+            path: "/",
+            expires: 3600000,
+          },
         },
 
         // ---------------------------------------------------------------------
@@ -122,7 +123,7 @@ export default {
         formOptions: {
           uploadDir: os.tmpdir(),
           keepExtensions: false,
-          maxFieldsSize: 1024 * 1024 * 100
+          maxFieldsSize: 1024 * 1024 * 100,
         },
 
         // ---------------------------------------------------------------------
@@ -137,7 +138,7 @@ export default {
         // ---------------------------------------------------------------------
         metadataOptions: {
           serverInformation: true,
-          requesterInformation: true
+          requesterInformation: true,
         },
 
         // ---------------------------------------------------------------------
@@ -172,8 +173,20 @@ export default {
         // When true, an ETAG Header will be provided with each requested static
         // file for caching reasons.
         // ---------------------------------------------------------------------
-        enableEtag: true
-      }
-    }
-  }
-}
+        enableEtag: true,
+      };
+    },
+  },
+};
+
+export const test = {
+  servers: {
+    web() {
+      return {
+        port: process.env.PORT
+          ? process.env.PORT
+          : 18080 + parseInt(process.env.VITEST_WORKER_ID || "0"),
+      };
+    },
+  },
+};

@@ -1,6 +1,6 @@
 export default {
   servers: {
-    tcp () {
+    tcp() {
       return {
         // ---------------------------------------------------------------------
         // Enable server?
@@ -30,7 +30,7 @@ export default {
         //
         // Use 0.0.0.0 for all.
         // ---------------------------------------------------------------------
-        bindIP: '0.0.0.0',
+        bindIP: "0.0.0.0",
 
         // ---------------------------------------------------------------------
         // Enable TCP KeepAlive
@@ -42,7 +42,7 @@ export default {
         // ---------------------------------------------------------------------
         // Delimiter string for incoming messages
         // ---------------------------------------------------------------------
-        delimiter: '\n',
+        delimiter: "\n",
 
         // ---------------------------------------------------------------------
         // Maximum incoming message string length in Bytes (use 0 for Infinity)
@@ -52,20 +52,22 @@ export default {
         // ---------------------------------------------------------------------
         // What message to send down to a client who request a `quit`
         // ---------------------------------------------------------------------
-        goodbyeMessage: 'Bye!'
-      }
-    }
-  }
-}
+        goodbyeMessage: "Bye!",
+      };
+    },
+  },
+};
 
 export const test = {
   servers: {
-    tcp () {
+    tcp() {
       return {
         enabled: true,
-        port: 5001,
-        secure: false
-      }
-    }
-  }
-}
+        port: process.env.PORT
+          ? process.env.PORT
+          : 25001 + parseInt(process.env.VITEST_WORKER_ID || "0"),
+        secure: false,
+      };
+    },
+  },
+};
