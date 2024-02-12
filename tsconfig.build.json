@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+
+    "declaration": true,
+    "stripInternal": true,
+    "sourceMap": false,
+    "allowJs": true
+  },
+  "exclude": ["./tests"]
+}

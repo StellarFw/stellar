@@ -20,7 +20,7 @@
   ],
   "scripts": {
     "dev": "rm -rf dist && ts-node-dev --transpile-only --no-deps ./src/engine",
-    "build": "rm -rf dist && ./node_modules/.bin/tsc --sourceMap false --declaration",
+    "build": "rm -rf lib && ./node_modules/.bin/tsc -p tsconfig.build.json",
     "pretest": "pnpm build",
     "test": "vitest",
     "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
@@ -48,7 +48,7 @@
     "should": "^13.0.0",
     "source-map-support": "^0.5.0",
     "st-formidable": "^1.0.18",
-    "sywac": "^1.2.0",
+    "sywac": "git://github.com/binarymist/sywac.git#55f2ea8b9cab7724f2677bf0fac2024a30d8a057",
     "uglify-js": "^3.17.4",
     "waterline": "0.15.2",
     "winston": "^2.1.1",
