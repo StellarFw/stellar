@@ -1,12 +1,12 @@
 {
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "./src",
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"rootDir": "./src",
 
-    "declaration": true,
-    "stripInternal": true,
-    "sourceMap": false,
-    "allowJs": true
-  },
-  "exclude": ["./tests"]
+		"declaration": true,
+		"stripInternal": true,
+		"sourceMap": true,
+		"allowJs": true
+	},
+	"exclude": ["./tests"]
 }

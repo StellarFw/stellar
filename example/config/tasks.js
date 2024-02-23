@@ -1,17 +1,16 @@
-exports.default = {
+export default {
+	tasks(api) {
+		return {
+			workerLogging: {
+				success: "debug",
+				start: "debug",
+				end: "debug",
+			},
 
-  tasks (api) {
-    return {
-      workerLogging: {
-        success: 'debug',
-        start: 'debug',
-        end: 'debug'
-      },
-
-      scheduler: true,
-      maxTaskProcessors: 1,
-      checkTimeout: 1000,
-      redis: api.config.redis
-    }
-  }
-}
+			scheduler: true,
+			maxTaskProcessors: 1,
+			checkTimeout: 1000,
+			redis: api.config.redis,
+		};
+	},
+};

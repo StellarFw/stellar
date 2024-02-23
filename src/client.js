@@ -1,5 +1,3 @@
-"use strict";
-
 /* global Primus fetch Headers Request */
 
 // ----------------------------------------------------------------------------- [Util Functions]

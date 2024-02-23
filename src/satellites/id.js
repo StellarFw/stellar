@@ -1,4 +1,6 @@
 import cluster from "cluster";
+import { fetchJsonFile } from "../utils.js";
+import { resolve } from "path";
 
 /**
  * Setup the server ID.
@@ -12,73 +14,74 @@ import cluster from "cluster";
  * - or one can be generated automatically using the external server IP.
  */
 export default class {
-  /**
-   * Load priority.
-   *
-   * @type {number}
-   */
-  loadPriority = 100;
+	/**
+	 * Load priority.
+	 *
+	 * @type {number}
+	 */
+	loadPriority = 100;
 
-  /**
-   * Start priority.
-   *
-   * @type {number}
-   */
-  startPriority = 2;
+	/**
+	 * Start priority.
+	 *
+	 * @type {number}
+	 */
+	startPriority = 2;
 
-  /**
-   * Initializer load functions.
-   *
-   * @param api   API reference.
-   * @param next  Callback.
-   */
-  async load(api, next) {
-    const argv = api.scope.args;
+	/**
+	 * Initializer load functions.
+	 *
+	 * @param api   API reference.
+	 * @param next  Callback.
+	 */
+	async load(api, next) {
+		const argv = api.scope.args;
 
-    if (argv.title) {
-      api.id = argv.title;
-    } else if (process.env.STELLAR_TITLE) {
-      api.id = process.env.STELLAR_TITLE;
-    } else if (!api.config.general.id) {
-      // get servers external IP
-      let externalIP = api.utils.getExternalIPAddress();
+		if (argv.title) {
+			api.id = argv.title;
+		} else if (process.env.STELLAR_TITLE) {
+			api.id = process.env.STELLAR_TITLE;
+		} else if (!api.config.general.id) {
+			// get servers external IP
+			let externalIP = api.utils.getExternalIPAddress();
 
-      if (externalIP === false) {
-        let message = " * Error fetching this host external IP address; setting id base to 'stellar'";
+			if (externalIP === false) {
+				let message = " * Error fetching this host external IP address; setting id base to 'stellar'";
 
-        try {
-          api.log(message, "crit");
-        } catch (e) {
-          console.log(message);
-        }
-      }
+				try {
+					api.log(message, "crit");
+				} catch (e) {
+					console.log(message);
+				}
+			}
 
-      api.id = externalIP;
-      if (cluster.isWorker) {
-        api.id += `:${process.pid}`;
-      }
-    } else {
-      api.id = api.config.general.id;
-    }
+			api.id = externalIP;
+			if (cluster.isWorker) {
+				api.id += `:${process.pid}`;
+			}
+		} else {
+			api.id = api.config.general.id;
+		}
 
-    // save Stellar version
-    api.stellarVersion = (await import("../../package.json")).version;
+		// save Stellar version
+		const pkgMetadataPath = resolve(import.meta.dirname, "../../package.json");
+		api.stellarVersion = (await fetchJsonFile(pkgMetadataPath)).version;
 
-    // finish the initializer load
-    next();
-  }
+		// finish the initializer load
+		next();
+	}
 
-  /**
-   * Initializer start function.
-   *
-   * @param api   API reference.
-   * @param next  Callback.
-   */
-  start(api, next) {
-    // print out the server ID
-    api.log(`server ID: ${api.id}`, "notice");
+	/**
+	 * Initializer start function.
+	 *
+	 * @param api   API reference.
+	 * @param next  Callback.
+	 */
+	start(api, next) {
+		// print out the server ID
+		api.log(`server ID: ${api.id}`, "notice");
 
-    // finish the initializer start
-    next();
-  }
+		// finish the initializer start
+		next();
+	}
 }

@@ -1,9 +1,9 @@
-function renderMenuItems (actions) {
-  return actions.map(action => `<li><a href="./action_${action}.html">${action}</a></li>`).join('')
+function renderMenuItems(actions) {
+	return actions.map((action) => `<li><a href="./action_${action}.html">${action}</a></li>`).join("");
 }
 
-function renderInputs (inputs) {
-  return `<table class="table">
+function renderInputs(inputs) {
+	return `<table class="table">
   <thead>
   <tr>
     <th>Field Name</th>
@@ -14,23 +14,27 @@ function renderInputs (inputs) {
   </thead>
 
   <tbody>
-  ${inputs.map(input => `
+  ${inputs
+		.map(
+			(input) => `
   <tr>
     <td>${input.name}</td>
     <td>${input.description}</td>
     <td>${input.default}</td>
     <td>
       <ul class="validators">
-        ${input.validators ? input.validators.map(validator => `<li class="${validator.type}">${validator.value}</li>`).join('') : ''}
+        ${input.validators ? input.validators.map((validator) => `<li class="${validator.type}">${validator.value}</li>`).join("") : ""}
       </ul>
     </td>
-  </tr>`).join('')}
+  </tr>`,
+		)
+		.join("")}
   </tbody>
-</table>`
+</table>`;
 }
 
-function renderActionVersion (action) {
-  return `
+function renderActionVersion(action) {
+	return `
   <h3 class="action-version">Version: ${action.version}</h3>
 
   <!-- action description -->
@@ -45,11 +49,13 @@ function renderActionVersion (action) {
     <div class="panel-header">Inputs</div>
 
     <div class="panel-block">
-      ${action.inputs ? renderInputs(action.inputs) : '<p>No inputs!</p>'}
+      ${action.inputs ? renderInputs(action.inputs) : "<p>No inputs!</p>"}
     </div>
   </div>
 
-  ${action.outputExample ? `
+  ${
+		action.outputExample
+			? `
   <div class="panel">
     <div class="panel-header">
       Output Example
@@ -60,11 +66,13 @@ function renderActionVersion (action) {
         <code class="json">${action.outputExample}</code>
       </pre>
     </div>
-  </div>` : ''}
-  `
+  </div>`
+			: ""
+	}
+  `;
 }
 
-exports.render = data => `
+export const render = (data) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -91,7 +99,7 @@ exports.render = data => `
   <div class="main">
     <h1 class="action-title">${data.actionName}</h1>
 
-    ${data.actionVersions.map(action => renderActionVersion(action)).join('')}
+    ${data.actionVersions.map((action) => renderActionVersion(action)).join("")}
   </div>
 </div>
 
@@ -126,4 +134,4 @@ exports.render = data => `
 
 </body>
 </html>
-`
+`;

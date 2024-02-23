@@ -1,7 +1,7 @@
 export default {
-  example(api) {
-    return {
-      exampleConfig: "exampleValue",
-    };
-  },
+	example(api) {
+		return {
+			exampleConfig: "exampleValue",
+		};
+	},
 };

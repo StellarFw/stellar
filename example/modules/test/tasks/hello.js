@@ -1,13 +1,13 @@
-export const sayHello = {
-  name: "sayHello",
-  description: "I say hello",
+export default {
+	name: "sayHello",
+	description: "I say hello",
 
-  queue: "default",
-  frequency: 1000,
+	queue: "default",
+	frequency: 1000,
 
-  run(api, params, next) {
-    api.log("hello", "debug");
+	run(api, params, next) {
+		api.log("hello", "debug");
 
-    next();
-  },
+		next();
+	},
 };
