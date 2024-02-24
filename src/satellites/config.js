@@ -29,7 +29,7 @@ class ConfigManager {
 	/**
 	 * Start the config execution.
 	 */
-	async execute(next) {
+	async execute() {
 		// init the execution environment
 		this._setupEnvironment();
 
@@ -38,9 +38,6 @@ class ConfigManager {
 
 		// load manifest file, and core, project and modules configs
 		await this._loadConfigs();
-
-		// finish the config execution on the next tick
-		process.nextTick(next);
 	}
 
 	/**
@@ -234,23 +231,18 @@ export default class {
 	 * Load satellite function.
 	 *
 	 * @param api   API object reference.
-	 * @param next  Callback function.
 	 */
-	load(api, next) {
-		// put the config instance available on the API object
+	async load(api) {
 		api.configs = new ConfigManager(api);
-
-		// start the config manager execution
-		api.configs.execute(next);
+		await api.configs.execute();
 	}
 
 	/**
 	 * Start satellite function.
 	 *
 	 * @param api   Api object reference.
-	 * @param next  Callback function.
 	 */
-	start(api, next) {
+	async start(api) {
 		// print out the current environment
 		api.log(`environment: ${api.env}`, "notice");
 
@@ -260,16 +252,10 @@ export default class {
 				"alert",
 			);
 		}
-
-		// finish the satellite start
-		next();
 	}
 
-	stop(api, next) {
+	async stop(api) {
 		// stop watching all files
 		api.configs.unwatchAllFiles();
-
-		// finish the satellite stop
-		next();
 	}
 }

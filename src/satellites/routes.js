@@ -277,15 +277,9 @@ export default class {
 	 * Initializer loading function.
 	 *
 	 * @param api   API reference.
-	 * @param next  Callback function.
 	 */
-	async load(api, next) {
-		// put the routes manager available to all platform
+	async load(api) {
 		api.routes = new RoutesManager(api);
-
-		// load routes from the config file
 		await api.routes.loadModulesRoutes();
-
-		next();
 	}
 }

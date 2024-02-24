@@ -530,29 +530,20 @@ export default class {
 	 * Load the logic intro the API object.
 	 *
 	 * @param api   API reference.
-	 * @param next  Callback function.
 	 */
-	async load(api, next) {
+	async load(api) {
 		api.tasks = new TaskSatellite(api);
 		await api.tasks.loadModulesTasks();
-		next();
 	}
 
 	/**
 	 * Satellite start function.
 	 *
 	 * @param api   API object reference.
-	 * @param next  Callback function.
 	 */
-	async start(api, next) {
+	async start(api) {
 		if (api.config.tasks.scheduler === true) {
-			try {
-				await api.tasks.enqueueAllRecurrentJobs();
-			} catch (error) {
-				next(error);
-			}
+			await api.tasks.enqueueAllRecurrentJobs();
 		}
-
-		next();
 	}
 }

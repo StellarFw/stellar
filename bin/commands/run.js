@@ -52,37 +52,30 @@ class RunCommand extends Command {
 	/**
 	 * Execute the command.
 	 */
-	exec() {
-		// whether the `--cluster` options is defined we stop this command and load
-		// the startCluster
+	async exec() {
+		// whether the `--cluster` options is defined we stop this command and load the startCluster
 		if (this.args.cluster === true) {
-			return require("./startCluster").handler(this.args);
+			const { handler } = await import("./startCluster.js");
+			return handler(this.args);
 		}
 
-		// number of ms to wait to do a force shutdown if the Stellar won't stop
-		// gracefully
+		// number of ms to wait to do a force shutdown if the Stellar won't stop gracefully
 		if (process.env.STELLAR_SHUTDOWN_TIMEOUT) {
 			this.shutdownTimeout = parseInt(process.env.STELLAR_SHUTDOWN_TIMEOUT);
 		}
 
-		// if the process is a worker we need configure it to communicate with the
-		// parent
+		// if the process is a worker we need configure it to communicate with the parent
 		if (cluster.isWorker) {
-			// set the communication behavior
 			process.on("message", (msg) => {
 				switch (msg) {
-					// start the server
 					case "start":
 						this.startServer();
 						break;
-					// stop the server
 					case "stop":
 						this.stopServer();
 						break;
-					// stop process
-					//
-					// in cluster, we cannot re-bind the port, so kill this worker, and
-					// then let the cluster start a new worker
+					// in cluster mode, we cannot re-bind the port, so kill this worker, and
+					// then let the cluster start a new one
 					case "stopProcess":
 					case "restart":
 						this.stopProcess();
@@ -108,7 +101,6 @@ class RunCommand extends Command {
 					},
 				});
 
-				// finish the process on the next tick
 				process.nextTick(process.exit);
 			});
 
@@ -135,7 +127,6 @@ class RunCommand extends Command {
 		process.on("SIGTERM", () => this.stopProcess());
 		process.on("SIGUSR2", () => this.restartServer());
 
-		// start the server!
 		this.startServer();
 	}
 
@@ -143,79 +134,42 @@ class RunCommand extends Command {
 
 	/**
 	 * Start the server execution.
-	 *
-	 * @param callback Callback function.
 	 */
-	startServer(callback) {
-		// update the server state
+	async startServer() {
 		this._updateServerState("starting");
 
 		// start the engine
-		this.engine.start((error, _) => {
-			if (error) {
-				this.api.log(error);
-				process.exit(1);
-				return;
-			}
+		try {
+			await this.engine.start();
+		} catch (error) {
+			this.api.log(error);
+			process.exit(1);
+		}
 
-			// update the server state
-			this._updateServerState("started");
+		this._updateServerState("started");
 
-			// start check for the engine internal state
-			this._checkForInternalStop();
+		// start check for the engine internal state
+		this._checkForInternalStop();
 
-			// execute the callback function
-			if (typeof callback === "function") {
-				callback(null, this.api);
-			}
-		});
+		return this.api;
 	}
 
 	/**
 	 * Stop server.
-	 *
-	 * @param callback Callback function.
 	 */
-	stopServer(callback) {
-		// update the server state
+	async stopServer() {
 		this._updateServerState("stopping");
-
-		// call the server stop function
-		this.engine.stop((_) => {
-			// update the server state
-			this._updateServerState("stopped");
-
-			// execute the callback function
-			if (typeof callback === "function") {
-				callback(null, this.api);
-			}
-		});
+		await this.engine.stop();
+		this._updateServerState("stopped");
 	}
 
 	/**
 	 * Restart the server.
-	 *
-	 * @param callback Callback function.
 	 */
-	restartServer(callback) {
-		// update the server state
+	async restartServer() {
 		this._updateServerState("restarting");
-
-		// restart the server
-		this.engine.restart((error, _) => {
-			// if an error occurs throw it
-			if (error) {
-				throw error;
-			}
-
-			// update the server state
-			this._updateServerState("started");
-
-			// execute the callback function
-			if (typeof callback === "function") {
-				callback(null, this.api);
-			}
-		});
+		await this.engine.restart();
+		this._updateServerState("started");
 	}
 
 	// --------------------------------------------------------------------------- [Process]
@@ -223,12 +177,12 @@ class RunCommand extends Command {
 	/**
 	 * Stop the process.
 	 */
-	stopProcess() {
+	async stopProcess() {
 		// put a time limit to shutdown the server
 		setTimeout(() => process.exit(1), this.shutdownTimeout);
 
-		// stop the server
-		this.stopServer(() => process.nextTick(() => process.exit()));
+		await this.stopServer();
+		process.exit();
 	}
 
 	// --------------------------------------------------------------------------- [Helpers]
@@ -248,7 +202,6 @@ class RunCommand extends Command {
 	 * Check if the engine stops.
 	 */
 	_checkForInternalStop() {
-		// clear timeout
 		clearTimeout(this.checkForInternalStopTimer);
 
 		// if the engine executing stops finish the process
@@ -256,8 +209,7 @@ class RunCommand extends Command {
 			process.exit(0);
 		}
 
-		// create a new timeout
-		this.checkForInternalStopTimer = setTimeout((_) => {
+		this.checkForInternalStopTimer = setTimeout(() => {
 			this._checkForInternalStop();
 		}, this.shutdownTimeout);
 	}

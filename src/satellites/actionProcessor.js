@@ -437,13 +437,8 @@ export default class {
 	 * Satellite loading function.
 	 *
 	 * @param api   API reference object.
-	 * @param next  Callback function.
 	 */
-	load(api, next) {
-		// load action processor to the API
+	async load(api) {
 		api.actionProcessor = ActionProcessor;
-
-		// finish the load
-		next();
 	}
 }

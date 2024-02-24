@@ -1,6 +1,6 @@
-import path from "path";
-import async from "async";
+import path, { join } from "path";
 import { Utils as UtilsClass } from "./satellites/utils.js";
+import { ensureNoTsHeaderOrSpecFiles, safeGlob } from "./utils/file.js";
 
 // FIXME: this is a temporary workaround, we must make this more professional
 const Utils = new UtilsClass();
@@ -209,149 +209,87 @@ export default class Engine {
 
 	// --------------------------------------------------------------------------- [State Manager Functions]
 
-	initialize(callback = null) {
-		// print current execution path
+	async initialize() {
 		this.api.log(`Current universe "${this.api.scope.rootPath}"`, "info");
+		await this.stage0();
 
-		// execute the stage 0
-		this.stage0(callback);
+		return this.api;
 	}
 
 	/**
 	 * Start engine execution.
-	 *
-	 * @param callback This function is called when the Engine finish their startup.
 	 */
-	start(callback = null) {
-		// reset start counter
+	async start() {
 		startCount = 0;
 
-		// check if the engine was already initialized
+		// in the case of the engine not have been initialized do it now
 		if (this.api.status !== "init_stage0") {
-			return this.initialize((error, api) => {
-				// if an error occurs we stop here
-				if (error) {
-					return callback(error, api);
-				}
-
-				// start stage1 loading method
-				this.stage1(callback);
-			});
+			await this.initialize();
 		}
 
-		// start stage1 loading method
-		return this.stage1(callback);
+		await this.stage1();
+
+		return this.api;
 	}
 
 	/**
 	 * Stop the Engine execution.
 	 *
-	 * This method try shutdown the engine in a non violent way, this
-	 * starts to execute all the stop method on the supported satellites.
-	 *
-	 * @param callback Callback function to be executed at the stop end execution.
+	 * This method try shutdown the engine in a non violent way, this starts to execute all the stop method on the
+	 * supported satellites.
 	 */
-	stop(callback = null) {
-		if (this.api.status === "running") {
-			// stop Engine
-			this.api.status = "shutting_down";
-
-			// log a shutting down message
-			this.api.log("Shutting down open servers and stopping task processing", "alert");
-
-			// if this is the second shutdown we need remove the `finalStopInitializer` callback
-			if (this.stopSatellites[this.stopSatellites.length - 1].name === "finalStopInitializer") {
-				this.stopSatellites.pop();
-			}
-
-			// add the final callback
-			this.stopSatellites.push((next) => {
-				// stop watch for file changes
-				this.api.configs.unwatchAllFiles();
-
-				// clear cluster PIDs
-				this.api.pids.clearPidFile();
-
-				// log a shutdown message
-				this.api.log("Stellar has been stopped", "alert");
-				this.api.log("***", "debug");
-
-				// mark server as stopped
-				this.api.status = "stopped";
-
-				// execute the callback on the next tick
-				process.nextTick(() => {
-					if (callback !== null) {
-						callback(null, this.api);
-					}
-				});
-
-				// async callback
-				next();
-			});
-
-			// iterate all satellites and stop them
-			async.series(this.stopSatellites, (errors) => Engine.fatalError(this.api, errors, "stop"));
-		} else if (this.api.status === "shutting_down") {
+	async stop() {
+		if (this.api.status === "shutting_down") {
 			// double sigterm; ignore it
-		} else {
-			// we can shutdown the Engine if it is not running
+			return;
+		} else if (this.api.status !== "running") {
 			this.api.log("Cannot shutdown Stellar, not running", "error");
-
-			// exists a callback?
-			if (callback !== null) {
-				callback(null, this.api);
-			}
+			return;
 		}
+
+		// change the status, so we know when we are already shutting down
+		this.api.status = "shutting_down";
+		this.api.log("Shutting down open servers and stopping task processing", "alert");
+
+		// iterate all satellites and stop them
+		try {
+			for (const stopFn of this.stopSatellites) {
+				await stopFn?.();
+			}
+		} catch (error) {
+			return Engine.fatalError(this.api, error, "stop");
+		}
+
+		this.api.configs.unwatchAllFiles();
+		this.api.pids.clearPidFile();
+		this.api.log("Stellar has been stopped", "alert");
+		this.api.status = "stopped";
 	}
 
 	/**
 	 * Restart the Stellar Engine.
 	 *
 	 * This execute a stop action and execute the stage2 load actions.
-	 *
-	 * @param callback Callback function to be executed at the restart end.s
 	 */
-	restart(callback = null) {
+	async restart() {
+		// when Stellar is fully running try stop it first
 		if (this.api.status === "running") {
-			// stop the engine
-			this.stop((err) => {
-				// log error if present
-				if (err) {
-					this.api.log(err, "error");
-				}
-
-				// start the engine again
-				this.stage2(function (err) {
-					if (err) {
-						this.api.log(err, "error");
-					}
-
-					// log a restart message
-					this.api.log("*** Stellar Restarted ***", "info");
-
-					// exists a callback
-					if (callback !== null) {
-						callback(null, this.api);
-					}
-				});
-			});
-		} else {
-			this.stage2((err) => {
-				// log any encountered error
-				if (err) {
-					this.api.log(err, "error");
-				}
-
-				// log a restart message
-				this.api.log("*** Stellar Restarted ***", "info");
-
-				// exists a callback
-				if (callback !== null) {
-					callback(null, this.api);
-				}
-			});
+			try {
+				await this.stop();
+			} catch (error) {
+				this.api.log(error, "error");
+				throw error;
+			}
 		}
+
+		try {
+			await this.stage2();
+		} catch (error) {
+			this.api.log(error, "error");
+			throw error;
+		}
+
+		this.api.log("*** Stellar Restarted ***", "info");
 	}
 
 	// --------------------------------------------------------------------------- [States Functions]
@@ -362,42 +300,30 @@ export default class Engine {
 	 * Steps:
 	 *  - executes the initial satellites;
 	 *  - call stage1
-	 *
-	 * @param callback This callback only are executed at the end of stage2.
 	 */
-	async stage0(callback = null) {
-		// set the state
+	async stage0() {
 		this.api.status = "init_stage0";
 
 		// we need to load the config first
 		let initialSatellites = [
-			path.resolve(`${import.meta.dirname}/satellites/utils.js`),
-			path.resolve(`${import.meta.dirname}/satellites/config.js`),
+			join(import.meta.dirname, "satellites", "utils.js"),
+			join(import.meta.dirname, "satellites", "config.js"),
 		];
 
 		for (const file of initialSatellites) {
-			// get full file name
 			let filename = file.replace(/^.*[\\\/]/, "");
 
-			// get the first part of the file name
-			let initializer = filename.split(".")[0];
-
 			// get the initializer
+			let initializer = filename.split(".")[0];
 			const Satellite = (await import(file)).default;
 			this.satellites[initializer] = new Satellite();
 
-			// add it to array
-			this.initialSatellites.push((next) => this.satellites[initializer].load(this.api, next));
-		}
-
-		// execute stage0 satellites in series
-		async.series(this.initialSatellites, (error) => {
-			callback(error, this.api);
-
-			if (error) {
+			try {
+				await this.satellites[initializer].load(this.api);
+			} catch (error) {
 				Engine.fatalError(this.api, error, "stage0");
 			}
-		});
+		}
 	}
 
 	/**
@@ -408,10 +334,8 @@ export default class Engine {
 	 *  - load satellites;
 	 *  - mark Engine like initialized;
 	 *  - call stage2.
-	 *
-	 * @param callback This callback only is executed at the stage2 end.
 	 */
-	async stage1(callback = null) {
+	async stage1() {
 		// put the status in the next stage
 		this.api.status = "init_stage1";
 
@@ -425,74 +349,48 @@ export default class Engine {
 
 		// function to load the satellites in the right place
 		let loadSatellitesInPlace = async (satellitesFiles) => {
-			// iterate all files
 			for (let key in satellitesFiles) {
 				let f = satellitesFiles[key];
 
 				// get satellite normalized file name and
 				let file = path.normalize(f);
 				let initializer = path.basename(f).split(".")[0];
-				let ext = file.split(".").pop();
-
-				// only load files with the `.js` extension
-				if (ext !== "js") {
-					continue;
-				}
 
 				// get initializer module and instantiate it
 				const Satellite = (await import(file)).default;
 				this.satellites[initializer] = new Satellite();
 
-				// initializer load function
-				let loadFunction = (next) => {
-					// check if the initializer have a load function
-					if (typeof this.satellites[initializer].load === "function") {
-						this.api.log(` > load: ${initializer}`, "debug");
-
-						// call `load` property
-						this.satellites[initializer].load(this.api, (err) => {
-							if (!err) {
-								this.api.log(`   loaded: ${initializer}`, "debug");
-							}
-							next(err);
-						});
-					} else {
-						next();
+				// generate Satellite's load function
+				let loadFunction = async () => {
+					if (typeof this.satellites[initializer].load !== "function") {
+						return;
 					}
+
+					this.api.log(` > load: ${initializer}`, "debug");
+					await this.satellites[initializer].load(this.api);
+					this.api.log(`   loaded: ${initializer}`, "debug");
 				};
 
-				// initializer start function
-				let startFunction = (next) => {
-					// check if the initializer have a start function
-					if (typeof this.satellites[initializer].start === "function") {
-						this.api.log(` > start: ${initializer}`, "debug");
-
-						// execute start routine
-						this.satellites[initializer].start(this.api, (err) => {
-							if (!err) {
-								this.api.log(`   started: ${initializer}`, "debug");
-							}
-							next(err);
-						});
-					} else {
-						next();
+				// generate Satellite's start function
+				let startFunction = async () => {
+					if (typeof this.satellites[initializer].start !== "function") {
+						return;
 					}
+
+					this.api.log(` > start: ${initializer}`, "debug");
+					await this.satellites[initializer].start(this.api);
+					this.api.log(`   started: ${initializer}`, "debug");
 				};
 
-				// initializer stop function
-				let stopFunction = (next) => {
-					if (typeof this.satellites[initializer].stop === "function") {
-						this.api.log(` > stop: ${initializer}`, "debug");
-
-						this.satellites[initializer].stop(this.api, (err) => {
-							if (!err) {
-								this.api.log(`   stopped: ${initializer}`, "debug");
-							}
-							next(err);
-						});
-					} else {
-						next();
+				// generate Satellite's stop function
+				let stopFunction = async () => {
+					if (typeof this.satellites[initializer].stop !== "function") {
+						return;
 					}
+
+					this.api.log(` > stop: ${initializer}`, "debug");
+					await this.satellites[initializer].stop(this.api);
+					this.api.log(`   stopped: ${initializer}`, "debug");
 				};
 
 				// normalize satellite priorities
@@ -511,15 +409,19 @@ export default class Engine {
 			}
 		};
 
-		// get an array with all satellites
-		await loadSatellitesInPlace(Utils.getFiles(`${import.meta.dirname}/satellites`));
+		// load all the core satellites
+		const files = await safeGlob(join(import.meta.dirname, "satellites", "**/*(*.js|*.ts)"));
+		const filteredFiles = ensureNoTsHeaderOrSpecFiles(files);
+		await loadSatellitesInPlace(filteredFiles);
 
 		// load satellites from all the active modules
 		for (const moduleName of this.api.config.modules) {
-			let moduleSatellitePaths = `${this.api.scope.rootPath}/modules/${moduleName}/satellites`;
+			let moduleSatellitePath = join(this.api.scope.rootPath, "modules", moduleName, "stellites");
 
-			if (Utils.directoryExists(moduleSatellitePaths)) {
-				await loadSatellitesInPlace(Utils.getFiles(moduleSatellitePaths));
+			if (Utils.directoryExists(moduleSatellitePath)) {
+				const files = await safeGlob(join(moduleSatellitePath, "**/*(*.js|*.ts)"));
+				const filteredFiles = ensureNoTsHeaderOrSpecFiles(files);
+				await loadSatellitesInPlace(Utils.getFiles(filteredFiles));
 			}
 		}
 
@@ -528,13 +430,15 @@ export default class Engine {
 		this.startSatellites = Engine.flattenOrderedInitializer(startSatellitesRankings);
 		this.stopSatellites = Engine.flattenOrderedInitializer(stopSatellitesRankings);
 
-		// on the end of loading all satellites set engine like initialized
-		this.loadSatellites.push(() => {
-			this.stage2(callback);
-		});
+		try {
+			for (const loadFn of this.loadSatellites) {
+				await loadFn();
+			}
+		} catch (error) {
+			Engine.fatalError(this.api, error, "state1");
+		}
 
-		// start initialization process
-		async.series(this.loadSatellites, (errors) => Engine.fatalError(this.api, errors, "stage1"));
+		await this.stage2();
 	}
 
 	/**
@@ -543,38 +447,26 @@ export default class Engine {
 	 * Steps:
 	 *  - start satellites;
 	 *  - mark Engine as running.
-	 *
-	 *  @param callback
 	 */
-	stage2(callback = null) {
-		// put the engine in the stage2 state
+	async stage2() {
 		this.api.status = "init_stage2";
 
-		if (startCount === 0) {
-			this.startSatellites.push((next) => {
-				// set the state
-				this.api.status = "running";
-
-				this.api.bootTime = new Date().getTime();
-				if (startCount === 0) {
-					this.api.log(`** Server Started @ ${new Date()} ***`, "alert");
-				} else {
-					this.api.log(`** Server Restarted @ ${new Date()} ***`, "alert");
-				}
-
-				// increment the number of starts
-				startCount++;
-
-				// call the callback if it's present
-				if (callback !== null) {
-					callback(null, this.api);
-				}
-
-				next();
-			});
+		try {
+			for (const startFn of this.startSatellites) {
+				await startFn();
+			}
+		} catch (error) {
+			Engine.fatalError(this.api, error, "stage2");
 		}
 
-		// start all initializers
-		async.series(this.startSatellites, (err) => Engine.fatalError(this.api, err, "stage2"));
+		if (startCount === 0) {
+			this.api.status = "running";
+			this.api.bootTime = new Date().getTime();
+			this.api.log(`** Server Started @ ${new Date()} **`, "alert");
+		} else {
+			this.api.log(`** Server Restarted @ ${new Date()} **`, "alert");
+		}
+
+		startCount++;
 	}
 }

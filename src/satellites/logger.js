@@ -12,7 +12,7 @@ export default class {
 		});
 	}
 
-	async load(api, next) {
+	async load(api) {
 		// try to create the logs folder
 		try {
 			await this.createLogsFolder(api);
@@ -45,7 +45,5 @@ export default class {
 		const logLevels = Object.keys(api.logger.levels);
 		api.log("*** starting Stellar ***", "notice");
 		api.log("Logger loaded. Possible levels include: ", "debug", logLevels);
-
-		next();
 	}
 }

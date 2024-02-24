@@ -160,12 +160,8 @@ export default class {
 	 * Satellite load function.
 	 *
 	 * @param api     API reference
-	 * @param next    Callback function
 	 */
-	load(api, next) {
-		// put the exception handlers available in all platform
+	async load(api) {
 		api.exceptionHandlers = new ExceptionsManager(api);
-
-		next();
 	}
 }

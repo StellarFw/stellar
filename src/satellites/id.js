@@ -32,9 +32,8 @@ export default class {
 	 * Initializer load functions.
 	 *
 	 * @param api   API reference.
-	 * @param next  Callback.
 	 */
-	async load(api, next) {
+	async load(api) {
 		const argv = api.scope.args;
 
 		if (argv.title) {
@@ -66,22 +65,14 @@ export default class {
 		// save Stellar version
 		const pkgMetadataPath = resolve(import.meta.dirname, "../../package.json");
 		api.stellarVersion = (await fetchJsonFile(pkgMetadataPath)).version;
-
-		// finish the initializer load
-		next();
 	}
 
 	/**
 	 * Initializer start function.
 	 *
 	 * @param api   API reference.
-	 * @param next  Callback.
 	 */
-	start(api, next) {
-		// print out the server ID
+	async start(api) {
 		api.log(`server ID: ${api.id}`, "notice");
-
-		// finish the initializer start
-		next();
 	}
 }

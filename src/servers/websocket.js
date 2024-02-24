@@ -72,10 +72,8 @@ export default class WebSocketServer extends GenericServer {
 
 	/**
 	 * Shutdown the websocket server.
-	 *
-	 * @param callback Callback
 	 */
-	stop(callback) {
+	async stop() {
 		// disable the server
 		this.active = false;
 
@@ -85,9 +83,6 @@ export default class WebSocketServer extends GenericServer {
 				connection.destroy();
 			});
 		}
-
-		// execute the callback on the next tick
-		process.nextTick(callback);
 	}
 
 	/**

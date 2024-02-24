@@ -259,22 +259,17 @@ export default class {
 	 * Satellite load methods.
 	 *
 	 * @param api   API reference object.
-	 * @param next  Callback function.
 	 */
-	load(api, next) {
-		// put resque manager available to the entire platform
+	load(api) {
 		api.resque = new ResqueManager(api);
-
-		next();
 	}
 
 	/**
 	 * Satellite start function.
 	 *
 	 * @param api   API reference object.
-	 * @param next  Callback function.
 	 */
-	async start(api, next) {
+	async start(api) {
 		if (api.config.tasks.minTaskProcessors === 0 && api.config.tasks.maxTaskProcessors > 0) {
 			api.config.tasks.minTaskProcessors = 1;
 		}
@@ -283,21 +278,16 @@ export default class {
 		await api.resque.startQueue();
 		await api.resque.startScheduler();
 		await api.resque.startMultiWorker();
-
-		next();
 	}
 
 	/**
 	 * Satellite stop function.
 	 *
 	 * @param api   API reference object.
-	 * @param next  Callback function.
 	 */
-	async stop(api, next) {
+	async stop(api) {
 		await api.resque.stopScheduler();
 		await api.resque.stopMultiWorker();
 		await api.resque.queue.end();
-
-		next();
 	}
 }

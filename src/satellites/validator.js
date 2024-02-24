@@ -933,13 +933,9 @@ export default class {
 	 * Satellite load function.
 	 *
 	 * @param api   API reference object.
-	 * @param next  Callback function.
 	 */
-	async load(api, next) {
+	async load(api) {
 		await fetchMessages();
-
-		// load validator logic into the API object
 		api.validator = new Validator(api);
-		next();
 	}
 }

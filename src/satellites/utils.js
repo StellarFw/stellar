@@ -614,8 +614,7 @@ export default class {
 	 */
 	loadPriority = 0;
 
-	load(api, next) {
+	async load(api) {
 		api.utils = new Utils(api);
-		next();
 	}
 }

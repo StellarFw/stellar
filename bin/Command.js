@@ -53,28 +53,16 @@ export class Command {
 	/**
 	 * Initialize a Stellar instance when requested.
 	 */
-	_initializeStellar() {
-		return new Promise((resolve, reject) => {
-			// build the scope
-			const scope = this._buildScope();
+	async _initializeStellar() {
+		const scope = this._buildScope();
 
-			// create a new engine instance and save it
-			this.engine = new Engine(scope);
+		// create a new engine instance and save it
+		this.engine = new Engine(scope);
 
-			// initialize the engine
-			this.engine.initialize((error, api) => {
-				// if an error occurs reject the promise and return
-				if (error) {
-					return reject(error);
-				}
+		// initialize the engine
+		this.api = await this.engine.initialize();
 
-				// otherwise, store the API reference
-				this.api = api;
-
-				// resolve the promise
-				resolve(this.api);
-			});
-		});
+		return this.api;
 	}
 
 	/**

@@ -252,12 +252,9 @@ export default class {
 	 * Satellite loading function.
 	 *
 	 * @param api   API reference object.
-	 * @param next  Callback function.
 	 */
-	async load(api, next) {
+	async load(api) {
 		api.events = new EventsManager(api);
 		await api.events.loadListeners();
-
-		next();
 	}
 }

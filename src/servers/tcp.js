@@ -1,6 +1,7 @@
 import net from "net";
 import tls from "tls";
 import GenericServer from "../genericServer.js";
+import { sleep } from "../utils.js";
 
 // server type
 let type = "tcp";
@@ -85,11 +86,9 @@ export default class Tcp extends GenericServer {
 
 	/**
 	 * Stop server.
-	 *
-	 * @param next
 	 */
-	stop(next) {
-		this._gracefulShutdown(next);
+	async stop() {
+		await this._gracefulShutdown();
 	}
 
 	/**
@@ -380,11 +379,10 @@ export default class Tcp extends GenericServer {
 	 *
 	 * We will wait a while to Stellar try response to the pending connections.
 	 *
-	 * @param next              Callback.
 	 * @param alreadyShutdown   Informs if the server was already shutdown.
 	 * @private
 	 */
-	_gracefulShutdown(next, alreadyShutdown = false) {
+	async _gracefulShutdown(alreadyShutdown = false) {
 		// if the server isn't already shutdown do it now
 		if (!alreadyShutdown || alreadyShutdown === false) {
 			this.server.close();
@@ -410,16 +408,18 @@ export default class Tcp extends GenericServer {
 			}
 		});
 
-		if (pendingConnections > 0) {
-			this.log(
-				`waiting on shutdown, there are still ${pendingConnections} connected clients waiting on a response`,
-				"notice",
-			);
-			setTimeout(() => {
-				this._gracefulShutdown(next, true);
-			}, 1000);
-		} else if (typeof next === "function") {
-			next();
-		}
+		return new Promise(async (resolve) => {
+			if (pendingConnections > 0) {
+				this.log(
+					`waiting on shutdown, there are still ${pendingConnections} connected clients waiting on a response`,
+					"notice",
+				);
+
+				await sleep(1000);
+				this._gracefulShutdown(true);
+			} else {
+				resolve();
+			}
+		});
 	}
 }

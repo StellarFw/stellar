@@ -1,6 +1,5 @@
 // module dependencies
 import path from "path";
-import async from "async";
 
 /**
  * Manager for server instances.
@@ -92,36 +91,20 @@ class Servers {
 
 	/**
 	 * Stop all running servers.
-	 *
-	 * @param next  Callback function.
 	 */
-	stopServers(next) {
-		// array with the jobs to stop all servers
-		let jobs = [];
-
-		Object.keys(this.servers).forEach((serverName) => {
-			// get server instance
+	async stopServers() {
+		for (const serverName of Object.keys(this.servers)) {
 			let server = this.servers[serverName];
 
 			// check if the server are enable
 			if ((server && server.options.enable === true) || !server) {
-				jobs.push((done) => {
-					this.api.log(`Stopping server: ${serverName}`, "notice");
+				this.api.log(`Stopping server: ${serverName}`, "notice");
 
-					// call the server stop method
-					server.stop((error) => {
-						if (error) {
-							return done(error);
-						}
-						this.api.log(`Server stopped ${serverName}`, "debug");
-						return done();
-					});
-				});
+				// call the server stop method
+				await server.stop();
+				this.api.log(`Server stopped ${serverName}`, "debug");
 			}
-		});
-
-		// execute all jobs
-		async.series(jobs, next);
+		}
 	}
 }
 
@@ -138,27 +121,21 @@ export default class {
 
 	stopPriority = 100;
 
-	async load(api, next) {
-		// instance the server manager
+	async load(api) {
 		api.servers = new Servers(api);
-
 		await api.servers.loadServers();
-
-		next();
 	}
 
 	/**
 	 * Satellite starting function.
 	 *
 	 * @param api   API object reference.
-	 * @param next  Callback function.
 	 */
-	async start(api, next) {
+	async start(api) {
 		await api.servers.startServers();
-		next();
 	}
 
-	stop(api, next) {
-		api.servers.stopServers(next);
+	async stop(api) {
+		await api.servers.stopServers();
 	}
 }

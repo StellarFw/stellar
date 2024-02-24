@@ -214,7 +214,7 @@ class Actions {
 	async loadFile(fullFilePath, moduleName, reload = false) {
 		// watch for changes on the action file
 		this.api.configs.watchFileAndAct(fullFilePath, async () => {
-			// reload file
+			// reload the changed action file
 			await this.loadFile(fullFilePath, moduleName, true);
 
 			// reload post variables
@@ -547,9 +547,8 @@ export default class {
 	 * Initializer load function.
 	 *
 	 * @param api   API reference
-	 * @param next  Callback function
 	 */
-	async load(api, next) {
+	async load(api) {
 		// add the actions class to the api
 		api.actions = new Actions(api);
 
@@ -586,7 +585,5 @@ export default class {
 		}
 
 		api.actions._applyGroupModifications();
-
-		next();
 	}
 }

@@ -73,10 +73,9 @@ class Modules {
 	/**
 	 * Load all active modules into memory.
 	 *
-	 * The private module is always loaded even if not present on the
-	 * activeModules property.
+	 * The private module is always loaded even if not present on the activeModules property.
 	 */
-	async loadModules(next) {
+	async loadModules() {
 		// get active modules
 		let modules = this.api.config.modules;
 
@@ -85,13 +84,9 @@ class Modules {
 			modules.push("private");
 		}
 
-		// this config is required. If doesn't exists or is an empty array
-		// an exception should be raised.
+		// this config is required. If doesn't exists or is an empty array an exception should be raised.
 		if (modules === undefined || modules.length === 0) {
-			next(new Error("At least one module needs to be active."));
-
-			// engine don't finish the starting wet, soo we need to finish the process
-			process.exit(1);
+			throw new Error("At least one module needs to be active.");
 		}
 
 		// load all modules declared in the manifest file
@@ -109,10 +104,9 @@ class Modules {
 				// save the module full path
 				this.modulesPaths.set(manifest.id, path);
 			} catch (e) {
-				next(
-					new Error(`There is an invalid module active, named "${moduleName}", fix this to start Stellar normally.`),
+				throw new Error(
+					`There is an invalid module active, named "${moduleName}", fix this to start Stellar normally.`,
 				);
-				break;
 			}
 		}
 	}
@@ -120,15 +114,12 @@ class Modules {
 	/**
 	 * Process all NPM dependencies.
 	 *
-	 * The npm install command only is executed if the package.json
-	 * file are not present.
-	 *
-	 * @param next    Callback function.
+	 * The npm install command only is executed if the package.json file are not present.
 	 */
-	processNpmDependencies(next) {
+	processNpmDependencies() {
 		// don't use NPM on test environment (otherwise the tests will fail)
 		if (this.api.env === "test") {
-			return next();
+			return;
 		}
 
 		// get scope variable
@@ -151,7 +142,7 @@ class Modules {
 		// if the `package.json` file already exists and Stellar isn't starting with
 		// the `update` flag return now
 		if (this.api.utils.fileExists(`${scope.rootPath}/package.json`) && !scope.args.update) {
-			return next();
+			return;
 		}
 
 		// global npm dependencies
@@ -187,18 +178,16 @@ class Modules {
 		const npmCommand = scope.args.update ? "npm update" : "npm install";
 
 		// run npm command
-		exec(npmCommand, (error) => {
-			// if an error occurs finish the process
-			if (error) {
-				this.api.log("An error occurs during the NPM install command", "emergency");
-				process.exit(1);
-			}
+		return new Promise((resolve, reject) => {
+			exec(npmCommand, (error) => {
+				if (error) {
+					this.api.log("An error occurs during the NPM install command", "emergency");
+					return reject(error);
+				}
 
-			// load a success message
-			this.api.log("NPM dependencies updated!", "info");
-
-			// finish the loading process
-			next();
+				this.api.log("NPM dependencies updated!", "info");
+				resolve();
+			});
 		});
 	}
 }
@@ -219,13 +208,10 @@ export default class {
 	 * Initializer load function.
 	 *
 	 * @param api   API reference.
-	 * @param next  Callback function.
 	 */
-	async load(api, next) {
+	async load(api) {
 		api.modules = new Modules(api);
-
-		await api.modules.loadModules(next);
-
-		api.modules.processNpmDependencies(next);
+		await api.modules.loadModules();
+		await api.modules.processNpmDependencies();
 	}
 }

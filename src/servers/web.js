@@ -129,17 +129,9 @@ export default class Web extends GenericServer {
 
 	/**
 	 * Stop server.
-	 *
-	 * @param next  Callback function.
 	 */
-	stop(next) {
-		// close the server socket
-		this.server.close();
-
-		// execute the callback function
-		process.nextTick(() => {
-			next();
-		});
+	async stop() {
+		await this.server.close();
 	}
 
 	/**

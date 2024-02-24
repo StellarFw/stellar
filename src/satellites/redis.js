@@ -61,7 +61,6 @@ class RedisManager {
 		this.api = api;
 
 		// subscription handlers
-
 		this.subscriptionHandlers["do"] = async (message) => {
 			if (!message.connectionId || this.api.connections.connections[message.connectionId]) {
 				let cmdParts = message.method.split(".");
@@ -266,38 +265,31 @@ export default class {
 	 * Initializer load method.
 	 *
 	 * @param api   API reference.
-	 * @param next  Callback
 	 */
-	async load(api, next) {
-		// put the redis manager available
+	async load(api) {
 		api.redis = new RedisManager(api);
 		await api.redis.initialize();
-
-		next();
 	}
 
-	async start(api, next) {
+	async start(api) {
 		await api.redis.doCluster("api.log", [`Stellar member ${api.id} has joined the cluster`]);
-
-		next();
 	}
 
 	/**
 	 * Stop initializer.
 	 *
 	 * @param api   API reference.
-	 * @param next  Callback.
 	 */
-	async stop(api, next) {
+	async stop(api) {
 		await api.redis.clients.subscriber.unsubscribe();
 		api.redis.status.subscribed = false;
 
 		await api.redis.doCluster("api.log", [`Stellar member ${api.id} has left the cluster`]);
 
 		// give sometime to allow the message to propagate though the cluster
-		await sleep(api.configs.redis.stopTimeout);
+		await sleep(api.config.redis.stopTimeout);
 
-		const keys = keys(api.redis.clients);
+		const keys = Object.keys(api.redis.clients);
 		for (const i in keys) {
 			const client = api.redis.clients[keys[i]];
 
@@ -311,8 +303,6 @@ export default class {
 		}
 
 		// give some time to close the connection
-		await sleep(api.configs.redis.stopTimeout);
-
-		next();
+		await sleep(api.config.redis.stopTimeout);
 	}
 }

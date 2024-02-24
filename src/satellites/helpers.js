@@ -38,9 +38,8 @@ class TestServer extends GenericServer {
 		});
 	}
 
-	start(next) {
+	start() {
 		this.api.log("loading the testServer", "warning");
-		next();
 	}
 
 	stop(next) {
@@ -92,7 +91,7 @@ class Helpers {
 		return this.api.connections.connections[id];
 	}
 
-	initialize(api, options, next) {
+	async initialize(api, options) {
 		let type = "testServer";
 		let attributes = {
 			canChat: true,
@@ -102,7 +101,7 @@ class Helpers {
 			verbs: api.connections.allowedVerbs,
 		};
 
-		next(new TestServer(api, type, options, attributes));
+		return new TestServer(api, type, options, attributes);
 	}
 
 	/**
@@ -172,35 +171,23 @@ export default class {
 	 * Satellite loading function.
 	 *
 	 * @param api   API object reference.
-	 * @param next  Callback function.
 	 */
-	load(api, next) {
+	async load(api) {
 		if (api.env === "test") {
-			// put the helpers available to all platform
 			api.helpers = new Helpers(api);
 		}
-
-		// finish the satellite load
-		next();
 	}
 
 	/**
 	 * Satellite starting function.
 	 *
 	 * @param api   API object reference.
-	 * @param next  Callback function.
 	 */
-	start(api, next) {
+	async start(api) {
 		if (api.env === "test") {
-			api.helpers.initialize(api, {}, (serverObject) => {
-				api.servers.servers.testServer = serverObject;
-				api.servers.servers.testServer.start(() => next());
-			});
-
-			return;
+			const serverObject = api.helpers.initialize(api, {});
+			api.servers.servers.testServer = serverObject;
+			await api.servers.servers.testServer.start();
 		}
-
-		// finish the satellite start
-		next();
 	}
 }

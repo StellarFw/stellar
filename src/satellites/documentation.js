@@ -268,18 +268,14 @@ export default class {
 	 * Satellite loading function.
 	 *
 	 * @param api   API reference object.
-	 * @param next  Callback function.
 	 */
-	async load(api, next) {
+	async load(api) {
 		// if the documentation generation was disabled finish now
 		if (api.config.general.generateDocumentation !== true) {
-			next();
 			return;
 		}
 
 		// build the documentation
 		await new DocumentationGenerator(api).generateDocumentation();
-
-		next();
 	}
 }

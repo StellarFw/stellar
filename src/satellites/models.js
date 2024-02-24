@@ -247,33 +247,26 @@ export default class {
 	 * Initializer loading function.
 	 *
 	 * @param api   API reference.
-	 * @param next  Callback function.
 	 */
-	load(api, next) {
-		// expose models class on the engine
+	async load(api) {
 		api.models = new Models(api);
-
-		// finish the initializer loading
-		next();
 	}
 
 	/**
 	 * Initializer start function.
 	 *
 	 * @param api   API reference.
-	 * @param next  Callback function.
 	 */
-	start(api, next) {
-		api.models.createNewInstance().then(next);
+	async start(api) {
+		await api.models.createNewInstance();
 	}
 
 	/**
 	 * Initializer stop function.
 	 *
 	 * @param api   API reference.
-	 * @param next  Callback function.
 	 */
-	stop(api, next) {
-		api.models.finish().then(next);
+	async stop(api) {
+		await api.models.finish();
 	}
 }

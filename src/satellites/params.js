@@ -75,16 +75,9 @@ export default class {
 	 * Action to the executed on the initializer loading.
 	 *
 	 * @param api   Api reference.
-	 * @param next  Callback function.
 	 */
-	load(api, next) {
-		// put the params API available to all platform
+	async load(api) {
 		api.params = new Params(api);
-
-		// build the post variables
 		api.params.buildPostVariables();
-
-		// finish the initializer execution
-		next();
 	}
 }
