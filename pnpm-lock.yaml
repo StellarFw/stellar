@@ -94,6 +94,9 @@ devDependencies:
   '@types/node':
     specifier: ^20.11.16
     version: 20.11.16
+  '@types/primus':
+    specifier: ^7.3.9
+    version: 7.3.9
   '@typescript-eslint/eslint-plugin':
     specifier: ^6.21.0
     version: 6.21.0(@typescript-eslint/parser@6.21.0)(eslint@8.56.0)(typescript@5.3.3)
@@ -739,6 +742,12 @@ packages:
     resolution: {integrity: sha512-gKb0enTmRCzXSSUJDq6/sPcqrfCv2mkkG6Jt/clpn5eiCbKTY+SgZUxo+p8ZKMof5dCp9vHQUAB7wOUTod22wQ==}
     dependencies:
       undici-types: 5.26.5
+
+  /@types/primus@7.3.9:
+    resolution: {integrity: sha512-5dZ/vciGvoNxXzbDksgu3OUQ00SOQMleKVNDA7HgsB/qlhL/HayKreKCrchO+nMjGU2NHpy90g80cdzCeevxKg==}
+    dependencies:
+      '@types/node': 20.11.16
+    dev: true
 
   /@types/semver@7.5.7:
     resolution: {integrity: sha512-/wdoPq1QqkSj9/QOeKkFquEuPzQbHTWAMPH/PaUMB+JuR31lXhlWXRZ52IpfDYVlDOUBvX09uBrPwxGT1hjNBg==}

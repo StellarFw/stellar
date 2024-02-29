@@ -205,11 +205,11 @@ export default class WebSocketServer extends GenericServer {
 		let libSource = this.server.library();
 		let clientSource = this._compileClientJS();
 
-		clientSource =
-			`;;;\r\n` +
-			`(function(exports){ \r\n${clientSource}\r\n` +
-			`exports.StellarClient = StellarClient; \r\n` +
-			`})(typeof exports === 'undefined' ? window : exports);`;
+		// clientSource =
+		// 	`;;;\r\n` +
+		// 	`(function(exports){ \r\n${clientSource}\r\n` +
+		// 	`exports.StellarClient = StellarClient; \r\n` +
+		// 	`})(typeof exports === 'undefined' ? window : exports);`;
 
 		// minify the client lib code using Uglify
 		if (minimize) {
