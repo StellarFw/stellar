@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import path, { join } from "path";
 import { Utils as UtilsClass } from "./satellites/utils.js";

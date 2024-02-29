@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import { Queue, Scheduler, MultiWorker } from "node-resque";
 import { filterObjectForLogging } from "../utils.js";

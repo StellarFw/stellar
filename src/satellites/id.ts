@@ -42,10 +42,10 @@ export default class {
 			api.id = process.env.STELLAR_TITLE;
 		} else if (!api.config.general.id) {
 			// get servers external IP
-			let externalIP = api.utils.getExternalIPAddress();
+			const externalIP = api.utils.getExternalIPAddress();
 
 			if (externalIP === false) {
-				let message = " * Error fetching this host external IP address; setting id base to 'stellar'";
+				const message = " * Error fetching this host external IP address; setting id base to 'stellar'";
 
 				try {
 					api.log(message, "crit");

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import { randomUUID } from "crypto";
 import { API } from "./interfaces/api.interface";
@@ -37,7 +38,7 @@ export class Connection implements ConnectionDetails {
 	/**
 	 * Connection parameters.
 	 */
-	public params: any = {};
+	public params: Record<string, unknown> = {};
 
 	/**
 	 * Connection fingerprint.
@@ -79,7 +80,7 @@ export class Connection implements ConnectionDetails {
 	/**
 	 * Raw connection.
 	 */
-	public rawConnection: any = null;
+	public rawConnection: unknown = null;
 
 	/**
 	 * Is used to mark the connection as destroyed.
@@ -157,7 +158,7 @@ export class Connection implements ConnectionDetails {
 	 *
 	 * @param message Message to be sent to the connection.
 	 */
-	public sendMessage(message: any) {
+	public sendMessage(message: string) {
 		throw new Error(`I should be replaced with a connection-specific method [${message}]`);
 	}
 
@@ -220,7 +221,7 @@ export class Connection implements ConnectionDetails {
 	 *
 	 * @return Connection The current instance.
 	 */
-	public set(key: string, value: any) {
+	public set(key: string, value: unknown) {
 		this[key] = value;
 		return this;
 	}
@@ -231,7 +232,7 @@ export class Connection implements ConnectionDetails {
 	 * @param verb      Verb to be executed.
 	 * @param words     Words are optional.
 	 */
-	public async verbs(verb: string, words: string | Array<string> = []): Promise<any> {
+	public async verbs(verb: string, words: string | Array<string> = []): Promise<unknown> {
 		const server = this.api.servers.servers.get(this.type);
 
 		let key;
@@ -314,7 +315,7 @@ export class Connection implements ConnectionDetails {
 				return this.api.chatRoom.broadcast(this, room, words.join(" "));
 			} else if (verb === "event") {
 				// get the vent information
-				const { room, event, data } = words.shift() as any;
+				const { room, event, data } = words.shift();
 
 				// execute the event on the event system
 				this.api.events.fire(`event.${event}`, { room, data });
