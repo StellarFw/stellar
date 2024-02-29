@@ -12,9 +12,9 @@
 		"rootDir": ".",
 		"outDir": "lib",
 		"declaration": true,
-		"paths": {
-			"@stellar/*": ["./src/*"]
-		},
+		// "paths": {
+		// 	"@stellar/*": ["./src/*"]
+		// },
 		"types": ["node"]
 	},
 	"exclude": ["./example/**/*"],

@@ -30,7 +30,7 @@ function redBold(s) {
 		.showHelpByDefault()
 		.outputSettings({ maxWidth: 73 })
 		.style({
-			usagePrefix: (str) => yellow(str.slice(0, 6)) + " " + white(str.slice(7)),
+			usagePrefix: (str) => `${yellow(str.slice(0, 6))} ${white(str.slice(7))}`,
 			usageCommandPlaceholder: (str) => white(str),
 			usagePositionals: (str) => white(str),
 			usageArgsPlaceholder: (str) => white(str),

@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import fs from "fs/promises";
 import { fetchJsonFile } from "../utils.js";
 import { join } from "path";
@@ -54,11 +56,11 @@ class RoutesManager {
 			}
 
 			// iterate all registered routes
-			for (let i in this.routes[method]) {
-				let route = this.routes[method][i];
+			for (const i in this.routes[method]) {
+				const route = this.routes[method][i];
 
 				// check if exists an URL match
-				let match = this.matchURL(pathParts, route.path, route.matchTrailingPathParts);
+				const match = this.matchURL(pathParts, route.path, route.matchTrailingPathParts);
 
 				if (match.match === true) {
 					if (route.apiVersion) {
@@ -66,10 +68,10 @@ class RoutesManager {
 					}
 
 					// decode URL params
-					for (let param in match.params) {
+					for (const param in match.params) {
 						try {
-							let decodedName = decodeURIComponent(param.replace(/\+/g, " "));
-							let decodedValue = decodeURIComponent(match.params[param].replace(/\+g/, " "));
+							const decodedName = decodeURIComponent(param.replace(/\+/g, " "));
+							const decodedValue = decodeURIComponent(match.params[param].replace(/\+g/, " "));
 							connection.params[decodedName] = decodedValue;
 						} catch (e) {
 							// malformed URL
@@ -93,8 +95,8 @@ class RoutesManager {
 	 * @returns {{match: boolean, params: {}}}
 	 */
 	matchURL(pathParts, match, matchTrailingPathParts) {
-		let response = { match: false, params: {} };
-		let matchParts = match.split("/");
+		const response = { match: false, params: {} };
+		const matchParts = match.split("/");
 		let regexp = "";
 		let variable = "";
 
@@ -110,12 +112,12 @@ class RoutesManager {
 			return response;
 		}
 
-		for (let i in matchParts) {
-			let matchPart = matchParts[i];
+		for (const i in matchParts) {
+			const matchPart = matchParts[i];
 			let pathPart = pathParts[i];
 
 			if (matchTrailingPathParts === true && parseInt(i) === matchPart.len - 1) {
-				for (let j in pathParts) {
+				for (const j in pathParts) {
 					if (j > i) {
 						pathPart = `${pathPart}/${pathParts[j]}`;
 					}
@@ -130,7 +132,7 @@ class RoutesManager {
 			} else if (matchPart[0] === ":" && matchPart.indexOf("(") >= 0) {
 				variable = matchPart.replace(":", "").split("(")[0];
 				regexp = matchPart.substring(matchPart.indexOf("(") + 1, matchPart.length - 1);
-				var matches = pathPart.match(new RegExp(regexp, "g"));
+				const matches = pathPart.match(new RegExp(regexp, "g"));
 				if (matches) {
 					response.params[variable] = pathPart;
 				} else {
@@ -175,12 +177,12 @@ class RoutesManager {
 		let counter = 0;
 
 		// iterate all objects
-		for (let i in rawRoutes) {
+		for (const i in rawRoutes) {
 			// get http method in lower case
-			let method = i.toLowerCase();
+			const method = i.toLowerCase();
 
-			for (let j in rawRoutes[i]) {
-				let route = rawRoutes[i][j];
+			for (const j in rawRoutes[i]) {
+				const route = rawRoutes[i][j];
 
 				if (method === "all") {
 					// iterate all http methods
@@ -213,10 +215,10 @@ class RoutesManager {
 		this.api.log(`${counter} routes loaded`, "debug");
 
 		if (this.api.config.servers.web && this.api.config.servers.web.simpleRouting === true) {
-			let simplePaths = [];
+			const simplePaths = [];
 
 			// iterate all registered actions
-			for (let action in this.api.actions.actions) {
+			for (const action in this.api.actions.actions) {
 				// push the action name to the simples paths
 				simplePaths.push(`/${action}`);
 

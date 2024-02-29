@@ -1,3 +1,4 @@
+// @ts-nocheck
 import path, { join } from "path";
 import { Utils as UtilsClass } from "./satellites/utils.js";
 import { ensureNoTsHeaderOrSpecFiles, safeGlob } from "./utils/file.js";
@@ -48,11 +49,11 @@ export default class Engine {
 	 * @returns {Array}   New ordered array.
 	 */
 	static flattenOrderedInitializer(collection) {
-		let keys = [];
-		let output = [];
+		const keys = [];
+		const output = [];
 
 		// get keys from the collection
-		for (var key in collection) {
+		for (const key in collection) {
 			keys.push(parseInt(key));
 		}
 
@@ -70,12 +71,10 @@ export default class Engine {
 	/**
 	 * Print fatal error on the console and exit from the engine execution.
 	 *
-	 * @private
-	 * @param api     API instance.
 	 * @param errors  String or array with the fatal error(s).
 	 * @param type    String with the error type.
 	 */
-	static fatalError(api, errors, type) {
+	private async fatalError(errors, type) {
 		// if errors variables if not defined return
 		if (!errors) {
 			return;
@@ -88,15 +87,14 @@ export default class Engine {
 
 		// log an emergency message
 		console.log(errors);
-		api.log(`Error with satellite step: ${type}`, "emerg");
+		this.api.log(`Error with satellite step: ${type}`, "emerg");
 
 		// log all the errors
-		errors.forEach((err) => api.log(err, "emerg"));
+		errors.forEach((err) => this.api.log(err, "emerg"));
 
 		// finish the process execution
-		api.commands.stop.call(api, () => {
-			process.exit(1);
-		});
+		await this.stop();
+		process.exit(1);
 	}
 
 	// --------------------------------------------------------------------------- [Class]
@@ -257,7 +255,7 @@ export default class Engine {
 				await stopFn?.();
 			}
 		} catch (error) {
-			return Engine.fatalError(this.api, error, "stop");
+			return this.fatalError(error, "stop");
 		}
 
 		this.api.configs.unwatchAllFiles();
@@ -305,23 +303,23 @@ export default class Engine {
 		this.api.status = "init_stage0";
 
 		// we need to load the config first
-		let initialSatellites = [
+		const initialSatellites = [
 			join(import.meta.dirname, "satellites", "utils.js"),
 			join(import.meta.dirname, "satellites", "config.js"),
 		];
 
 		for (const file of initialSatellites) {
-			let filename = file.replace(/^.*[\\\/]/, "");
+			const filename = file.replace(/^.*[\\\/]/, "");
 
 			// get the initializer
-			let initializer = filename.split(".")[0];
+			const initializer = filename.split(".")[0];
 			const Satellite = (await import(file)).default;
 			this.satellites[initializer] = new Satellite();
 
 			try {
 				await this.satellites[initializer].load(this.api);
 			} catch (error) {
-				Engine.fatalError(this.api, error, "stage0");
+				this.fatalError(error, "stage0");
 			}
 		}
 	}
@@ -340,28 +338,28 @@ export default class Engine {
 		this.api.status = "init_stage1";
 
 		// ranked object for all stages
-		let loadSatellitesRankings = {};
-		let startSatellitesRankings = {};
-		let stopSatellitesRankings = {};
+		const loadSatellitesRankings = {};
+		const startSatellitesRankings = {};
+		const stopSatellitesRankings = {};
 
 		// reset satellites arrays
 		this.satellites = {};
 
 		// function to load the satellites in the right place
-		let loadSatellitesInPlace = async (satellitesFiles) => {
-			for (let key in satellitesFiles) {
-				let f = satellitesFiles[key];
+		const loadSatellitesInPlace = async (satellitesFiles) => {
+			for (const key in satellitesFiles) {
+				const f = satellitesFiles[key];
 
 				// get satellite normalized file name and
-				let file = path.normalize(f);
-				let initializer = path.basename(f).split(".")[0];
+				const file = path.normalize(f);
+				const initializer = path.basename(f).split(".")[0];
 
 				// get initializer module and instantiate it
 				const Satellite = (await import(file)).default;
 				this.satellites[initializer] = new Satellite();
 
 				// generate Satellite's load function
-				let loadFunction = async () => {
+				const loadFunction = async () => {
 					if (typeof this.satellites[initializer].load !== "function") {
 						return;
 					}
@@ -372,7 +370,7 @@ export default class Engine {
 				};
 
 				// generate Satellite's start function
-				let startFunction = async () => {
+				const startFunction = async () => {
 					if (typeof this.satellites[initializer].start !== "function") {
 						return;
 					}
@@ -383,7 +381,7 @@ export default class Engine {
 				};
 
 				// generate Satellite's stop function
-				let stopFunction = async () => {
+				const stopFunction = async () => {
 					if (typeof this.satellites[initializer].stop !== "function") {
 						return;
 					}
@@ -416,7 +414,7 @@ export default class Engine {
 
 		// load satellites from all the active modules
 		for (const moduleName of this.api.config.modules) {
-			let moduleSatellitePath = join(this.api.scope.rootPath, "modules", moduleName, "stellites");
+			const moduleSatellitePath = join(this.api.scope.rootPath, "modules", moduleName, "stellites");
 
 			if (Utils.directoryExists(moduleSatellitePath)) {
 				const files = await safeGlob(join(moduleSatellitePath, "**/*(*.js|*.ts)"));
@@ -435,7 +433,7 @@ export default class Engine {
 				await loadFn();
 			}
 		} catch (error) {
-			Engine.fatalError(this.api, error, "state1");
+			this.fatalError(error, "state1");
 		}
 
 		await this.stage2();
@@ -456,7 +454,7 @@ export default class Engine {
 				await startFn();
 			}
 		} catch (error) {
-			Engine.fatalError(this.api, error, "stage2");
+			this.fatalError(error, "stage2");
 		}
 
 		if (startCount === 0) {

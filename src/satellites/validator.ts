@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { resolve } from "path";
 
 import { fetchJsonFile } from "../utils.js";
@@ -162,7 +164,7 @@ class Validator {
 	 */
 	_normalizeRuleName(ruleName) {
 		// convert snake to camel case
-		let camelCase = this.api.utils.snakeToCamel(ruleName);
+		const camelCase = this.api.utils.snakeToCamel(ruleName);
 
 		// capitalize the first letter
 		return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
@@ -417,7 +419,7 @@ class Validator {
 	 */
 	validatorConfirmed(value, args, key) {
 		// build the confirmation field name
-		let confirmationFieldName = `${key}_confirmation`;
+		const confirmationFieldName = `${key}_confirmation`;
 
 		// check if the confirmation field are not present
 		if (this.params[confirmationFieldName] === undefined) {
@@ -522,7 +524,7 @@ class Validator {
 	 */
 	validatorInteger(value) {
 		// try parse to pin
-		let parsedValue = Number.parseInt(value);
+		const parsedValue = Number.parseInt(value);
 
 		// check if is a number
 		return Number.isInteger(parsedValue);
@@ -546,7 +548,7 @@ class Validator {
 	 */
 	validatorJson(value) {
 		try {
-			let o = JSON.parse(value);
+			const o = JSON.parse(value);
 
 			if (o && typeof o === "object" && o !== null) {
 				return true;
@@ -679,9 +681,9 @@ class Validator {
 		this._requireParameterCount(1, args, "required_with");
 
 		// check if one of the parameters are present
-		for (let index in args) {
+		for (const index in args) {
 			// get parameter name
-			let paramName = args[index];
+			const paramName = args[index];
 
 			// check if the value is filled
 			if (this.params[paramName] !== undefined) {
@@ -704,9 +706,9 @@ class Validator {
 		this._requireParameterCount(2, args, "required_with_all");
 
 		// check if all the parameters are present
-		for (let index in args) {
+		for (const index in args) {
 			// get parameter name
-			let paramName = args[index];
+			const paramName = args[index];
 
 			if (this.params[paramName] === undefined) {
 				return true;
@@ -729,9 +731,9 @@ class Validator {
 		this._requireParameterCount(1, args, "required_without");
 
 		// if one of the fields are not present the field under validation is required
-		for (let index in args) {
+		for (const index in args) {
 			// get parameter name
-			let paramName = args[index];
+			const paramName = args[index];
 
 			if (this.params[paramName] === undefined) {
 				return this.validatorFilled(value);
@@ -752,9 +754,9 @@ class Validator {
 	validatorRequiredWithoutAll(value, args) {
 		this._requireParameterCount(2, args, "required_without_all");
 
-		for (let index in args) {
+		for (const index in args) {
 			// get parameter name
-			let paramName = args[index];
+			const paramName = args[index];
 
 			// if one of the fields are not present we can stop right here
 			if (this.params[paramName] !== undefined) {
@@ -787,7 +789,7 @@ class Validator {
 	validatorSize(value, args) {
 		this._requireParameterCount(1, args, "size");
 
-		let length = parseInt(args[0]);
+		const length = parseInt(args[0]);
 
 		if (typeof value === "string" || value instanceof Array) {
 			return value.length === length;

@@ -1,40 +1,28 @@
 import { describe, beforeAll, afterAll, it } from "vitest";
 
-import Engine from "../../src/engine";
+import Engine from "../../lib/engine";
 import { expect } from "vitest";
+import { API } from "../../src/interfaces/api.interface";
 
-const engine = new Engine({ rootPath: process.cwd() + "/example" });
+const engine = new Engine({ rootPath: `${process.cwd()}/example` });
 
-let api = null;
+let api: API;
 
 describe("Test: RunAction", () => {
-  beforeAll(
-    () =>
-      new Promise((done) => {
-        engine.start((error, a) => {
-          api = a;
-          done();
-        });
-      })
-  );
+	beforeAll(async () => {
+		api = await engine.start();
+	});
 
-  afterAll(
-    () =>
-      new Promise((done) => {
-        engine.stop(done);
-      })
-  );
+	afterAll(() => engine.stop());
 
-  it("can run the task manually", async () => {
-    const response = await new Promise((resolve, reject) => {
-      api.helpers.runTask(
-        "runAction",
-        { action: "randomNumber" },
-        (error, response) => (!!error ? reject(error) : resolve(response))
-      );
-    });
+	it("can run the task manually", async () => {
+		const response = await new Promise((resolve, reject) => {
+			api.helpers.runTask("runAction", { action: "randomNumber" }, (error, response) =>
+				!!error ? reject(error) : resolve(response),
+			);
+		});
 
-    expect(response.number).toBeGreaterThan(0);
-    expect(response.number).toBeLessThan(1);
-  });
+		expect(response.number).toBeGreaterThan(0);
+		expect(response.number).toBeLessThan(1);
+	});
 });

@@ -1,5 +1,5 @@
+// @ts-nocheck
 import { randomUUID } from "crypto";
-
 import GenericServer from "../genericServer.js";
 
 class TestServer extends GenericServer {
@@ -28,7 +28,7 @@ class TestServer extends GenericServer {
 				data.response.error = api.config.errors.serializers.servers.helper(data.response.error);
 			}
 
-			for (var k in data.params) {
+			for (const k in data.params) {
 				data.response.requesterInformation.receivedParams[k] = data.params[k];
 			}
 
@@ -79,7 +79,7 @@ class Helpers {
 	}
 
 	connection() {
-		let id = randomUUID();
+		const id = randomUUID();
 
 		this.api.servers.servers.testServer.buildConnection({
 			id: id,
@@ -91,9 +91,9 @@ class Helpers {
 		return this.api.connections.connections[id];
 	}
 
-	async initialize(api, options) {
-		let type = "testServer";
-		let attributes = {
+	initialize(api, options) {
+		const type = "testServer";
+		const attributes = {
 			canChat: true,
 			logConnections: false,
 			logExits: false,

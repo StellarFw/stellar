@@ -90,5 +90,9 @@
 	},
 	"bin": {
 		"stellar": "./bin/stellar"
+	},
+	"exports": {
+		".": "./src/engine.ts",
+		"./*": "./src/*"
 	}
 }

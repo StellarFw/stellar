@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { randomUUID } from "crypto";
 import { sleep } from "../utils.js";
 
@@ -63,15 +64,15 @@ class RedisManager {
 		// subscription handlers
 		this.subscriptionHandlers["do"] = async (message) => {
 			if (!message.connectionId || this.api.connections.connections[message.connectionId]) {
-				let cmdParts = message.method.split(".");
-				let cmd = cmdParts.shift();
+				const cmdParts = message.method.split(".");
+				const cmd = cmdParts.shift();
 				if (cmd !== "api") {
 					throw new Error("cannot operate on a method outside of the api object");
 				}
 
 				// only allow to call the log method for security reasons
 				const callableApi = Object.assign(api, { log: this.api.log });
-				let method = this.api.utils.stringToHash(callableApi, cmdParts.join("."));
+				const method = this.api.utils.stringToHash(callableApi, cmdParts.join("."));
 
 				let args = message.args ?? [];
 				if (!Array.isArray(args)) {
@@ -98,7 +99,7 @@ class RedisManager {
 	}
 
 	async initialize() {
-		let connectionNames = ["client", "subscriber", "tasks"];
+		const connectionNames = ["client", "subscriber", "tasks"];
 
 		for (const r of connectionNames) {
 			if (this.api.config.redis[r].buildNew === true) {
@@ -176,9 +177,9 @@ class RedisManager {
 	 * @param payload Payload to be published.
 	 */
 	async publish(payload) {
-		let channel = this.api.config.general.channel;
-		let connection = this.api.redis.clients.client;
-		let stringPayload = JSON.stringify(payload);
+		const channel = this.api.config.general.channel;
+		const connection = this.api.redis.clients.client;
+		const stringPayload = JSON.stringify(payload);
 
 		if (connection.status !== "close" && connection.status !== "end") {
 			return connection.publish(channel, stringPayload);
@@ -201,8 +202,8 @@ class RedisManager {
 	 * @param {*} waitForResponse
 	 */
 	async doCluster(method, args, connectionId, waitForResponse = false) {
-		let requestId = randomUUID();
-		let payload = {
+		const requestId = randomUUID();
+		const payload = {
 			messageType: "do",
 			serverId: this.api.id,
 			serverToken: this.api.config.general.serverToken,
@@ -231,7 +232,7 @@ class RedisManager {
 	}
 
 	async respondCluster(requestId, response) {
-		let payload = {
+		const payload = {
 			messageType: "doResponse",
 			serverId: this.api.id,
 			serverToken: this.api.config.general.serverToken,

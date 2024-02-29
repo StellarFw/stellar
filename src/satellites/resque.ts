@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Queue, Scheduler, MultiWorker } from "node-resque";
 import { filterObjectForLogging } from "../utils.js";
 
