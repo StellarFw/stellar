@@ -1,10 +1,14 @@
 import { describe, beforeAll, afterAll, it, expect, afterEach, beforeEach } from "vitest";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-imports
+import Primus from "primus";
+
 import Engine from "../../lib/engine";
 import { sleep } from "../../src/utils";
+import { API } from "../../src/interfaces/api.interface";
 const engine = new Engine({ rootPath: `${process.cwd()}/example` });
 
-let api: any = null;
+let api: API;
 
 // clients
 let client1;
@@ -47,10 +51,7 @@ describe("Servers: Web Socket", function () {
 	it("socket client connections should work: client 1", async () => {
 		const data = await client1.connect();
 		expect(data).toMatchObject({
-			context: "response",
-			data: {
-				totalActions: 0,
-			},
+			totalActions: 0,
 		});
 		expect(client1.welcomeMessage).toBe("Hello human! Welcome to Stellar");
 	});
@@ -59,10 +60,7 @@ describe("Servers: Web Socket", function () {
 		const data = await client2.connect();
 
 		expect(data).toMatchObject({
-			context: "response",
-			data: {
-				totalActions: 0,
-			},
+			totalActions: 0,
 		});
 		expect(client2.welcomeMessage).toBe("Hello human! Welcome to Stellar");
 	});
@@ -71,10 +69,7 @@ describe("Servers: Web Socket", function () {
 		const data = await client3.connect();
 
 		expect(data).toMatchObject({
-			context: "response",
-			data: {
-				totalActions: 0,
-			},
+			totalActions: 0,
 		});
 		expect(client3.welcomeMessage).toBe("Hello human! Welcome to Stellar");
 	});

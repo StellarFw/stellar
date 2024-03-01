@@ -1,3 +1,4 @@
+/* eslint-disable */
 // @ts-nocheck
 declare const Headers: unknown;
 declare const Request: unknown;
@@ -5,10 +6,10 @@ declare function fetch(request: any): Promise<any>;
 
 import type Primus from "primus";
 
-export type HandlerFn = (...args: unknown[]) => void;
-export type Interceptor = (params: unknown, next: CallableFunction) => void;
+type HandlerFn = (...args: unknown[]) => void;
+type Interceptor = (params: unknown, next: CallableFunction) => void;
 
-export interface ConnectionDetailsInterface {
+interface ConnectionDetailsInterface {
 	/**
 	 * Type of connection.
 	 */
@@ -20,14 +21,14 @@ export interface ConnectionDetailsInterface {
 	[key: string]: unknown;
 }
 
-export interface ConnectionDetailsResponse {
+interface ConnectionDetailsResponse {
 	data: ConnectionDetailsInterface;
 }
 
 /**
  * Possible states for the client.
  */
-export enum ClientState {
+enum ClientState {
 	Disconnect = "disconnected",
 	Connected = "connected",
 	Reconnecting = "reconnecting",
@@ -144,7 +145,14 @@ class BuildEvent {
 	}
 }
 
-export class StellarClient extends Primus.EventEmitter {
+let BaseClass;
+if (typeof Primus === "undefined") {
+	BaseClass = require("events").EventEmitter;
+} else {
+	BaseClass = Primus.EventEmitter;
+}
+
+class StellarClient extends BaseClass {
 	/**
 	 * Client identifier.
 	 */
@@ -656,3 +664,5 @@ export class StellarClient extends Primus.EventEmitter {
 		});
 	}
 }
+
+StellarClient;

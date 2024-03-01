@@ -46,10 +46,6 @@ jobs:
     container:
       image: node
 
-    services:
-      redis:
-        image: redis
-
     strategy:
       fail-fast: false
       matrix:
@@ -81,9 +77,9 @@ jobs:
         run: pnpm install
       - name: Build Stellar
         run: pnpm build
-      - run: pnpm test
+      - name: Run test suite
+        run: pnpm test
         env:
-          REDIS_HOST: redis
           maxMemoryAlloted: 10000
 
   # build:

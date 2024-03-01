@@ -12,7 +12,6 @@ let api: API;
 describe("Core: API", () => {
 	beforeAll(async () => {
 		api = await engine.start();
-		console.log("🚀 ~ beforeAll ~ api:", api);
 	});
 
 	afterAll(() => engine.stop());
