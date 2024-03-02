@@ -2,10 +2,12 @@
 
 Hi! I'm really excited that you are interested in contributing to Stellar. Before submitting your contribution through, please make sure to take a moment and read through the following guidelines.
 
-- [Pull Request Guidelines](#pull-request-guidelines)
-- [Code Style](#code-style)
-- [Development Setup](#development-setup)
-- [Project Structure](#project-structure)
+- [Stellar Contributing Guide](#stellar-contributing-guide)
+  - [Pull Request Guidelines](#pull-request-guidelines)
+  - [Code Style](#code-style)
+  - [Development Setup](#development-setup)
+  - [Commonly used NPM scripts](#commonly-used-npm-scripts)
+  - [Project Structure](#project-structure)
 
 ## Pull Request Guidelines
 
@@ -22,6 +24,7 @@ Hi! I'm really excited that you are interested in contributing to Stellar. Befor
 - Follow the [code style](#code-style).
 
 - If adding new feature:
+
   - Add accompanying test case.
   - Provide convincing reason to add this feature. Ideally you should open a suggestion issue first and have it greenlighted before working on it.
 
@@ -84,7 +87,7 @@ $ npm test
 
 - **`example`**: contains a sample application to be used in the test environment and as an example for developers.
 
-- **`test`**: contains all testes. The unit testes are written with [Should.js](http://shouldjs.github.io) and run with [Mocha](https://mochajs.org).
+- **`test`**: contains all testes. The unit testes are run using [Vitest](https://vitest.dev/).
 
 - **`src`**: contains the source code, obviously. The codebase is written in ES6.
 
