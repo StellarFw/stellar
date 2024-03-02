@@ -1,13 +1,13 @@
-exports.modModuleTest = {
-  name: 'modModuleTest',
-  description: 'This action is used to test if the mod system supports modules',
+export const modModuleTest = {
+  name: "modModuleTest",
+  description: "This action is used to test if the mod system supports modules",
 
   outputExample: {
-    result: 'OK'
+    result: "OK",
   },
 
-  run (api, action, next) {
-    action.response.result = action.actionTemplate.modProp
-    next()
-  }
-}
+  run(api, action, next) {
+    action.response.result = action.actionTemplate.modProp;
+    next();
+  },
+};

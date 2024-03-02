@@ -1,8 +1,8 @@
-exports.default = {
+export default {
   get: [
-  { path: '/post', action: 'getPosts' },
-  { path: '/post/:id', action: 'getPost' }
+    { path: "/post", action: "getPosts" },
+    { path: "/post/:id", action: "getPost" },
   ],
-  
-  post: [{ path: '/post', action: 'createPost' }]
-}
+
+  post: [{ path: "/post", action: "createPost" }],
+};

@@ -1,53 +1,49 @@
-import winston from 'winston'
+import { mkdir } from "fs/promises";
+import winston from "winston";
 
 export default class {
-  loadPriority = 120
+	loadPriority = 120;
 
-  load (api, next) {
-    let transports = []
+	async createLogsFolder(api) {
+		const logsDir = api.config.general.paths.log;
+		await mkdir(logsDir, {
+			mode: 0o777,
+			recursive: true,
+		});
+	}
 
-    // load all transports
-    for (let i in api.config.logger.transports) {
-      let t = api.config.logger.transports[ i ]
+	async load(api) {
+		// try to create the logs folder
+		try {
+			await this.createLogsFolder(api);
+		} catch (e) {
+			api.log(`Unable to create the logs directory(${api.config.general.paths.log})`, "emerg", e);
+			return api.commands.stop();
+		}
 
-      if (typeof t === 'function') {
-        transports.push(t(api, winston))
-      } else {
-        transports.push(t)
-      }
-    }
+		const loggers = (api.config.logger.loggers || []).map((logger) =>
+			typeof logger === "function" ? logger(api, winston) : logger,
+		);
 
-    // create the logger instance
-    api.logger = new winston.Logger({ transports: transports })
+		// create the logger instance
+		api.logger = new winston.createLogger({
+			transports: loggers,
+			levels: api.config.logger.levels ?? winston.config.syslog.levels,
+		});
 
-    // define the log level
-    if (api.config.logger.levels) {
-      api.logger.setLevels(api.config.logger.levels)
-    } else {
-      api.logger.setLevels(winston.config.syslog.levels)
-    }
+		// define log colors
+		if (api.config.logger.colors) {
+			winston.addColors(api.config.logger.colors);
+		}
 
-    // define log colors
-    if (api.config.logger.colors) {
-      winston.addColors(api.config.logger.colors)
-    }
+		// replace the basic core log function with winston
+		api.log = (msg, level = "info", ...extra) => {
+			let args = [level, msg, ...extra];
+			api.logger.log(...args);
+		};
 
-    // define an helper function to log
-    api.log = function (msg, level = 'info') {
-      let args = [ level, msg ]
-
-      args.push.apply(args, Array.prototype.slice.call(arguments, 2))
-      api.logger.log.apply(api.logger, args)
-    }
-
-    let logLevels = []
-    for (let i in api.logger.levels) {
-      logLevels.push(i)
-    }
-
-    api.log('*** starting Stellar ***', 'notice')
-    api.log('Logger loaded. Possible levels include: ', 'debug', logLevels)
-
-    next()
-  }
+		const logLevels = Object.keys(api.logger.levels);
+		api.log("*** starting Stellar ***", "notice");
+		api.log("Logger loaded. Possible levels include: ", "debug", logLevels);
+	}
 }

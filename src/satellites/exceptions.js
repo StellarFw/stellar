@@ -1,191 +1,167 @@
-import os from 'os'
-
 class ExceptionsManager {
-  /**
-   * API reference.
-   *
-   * @type {null}
-   */
-  api = null;
+	/**
+	 * API reference.
+	 *
+	 * @type {null}
+	 */
+	api = null;
 
-  /**
-   * Array with the exceptions reporters.
-   *
-   * @type {Array}
-   */
-  reporters = []
+	/**
+	 * Array with the exceptions reporters.
+	 *
+	 * @type {Array}
+	 */
+	reporters = [];
 
-  constructor (api) {
-    this.api = api
+	constructor(api) {
+		this.api = api;
 
-    // load default console handler
-    this.reporters.push((err, type, name, objects, severity) => {
-      let output = ''
-      let lines = []
-      let extraMessages = []
+		this.reporters.push(this.consoleReporter.bind(this));
+	}
 
-      if (type === 'loader') {
-        extraMessages.push(`Failed to load ${objects.fullFilePath}\n`)
-      } else if (type === 'action') {
-        extraMessages.push(`Uncaught error from action: ${name}\n`)
+	consoleReporter(error, type, name, objects, severity) {
+		let output = "";
+		let extraMessages = [];
+		const data = error["data"] ?? {};
 
-        extraMessages.push('Connection details:')
-        const relevantDetails = [ 'action', 'remoteIP', 'type', 'params', 'room' ]
-        for (let detailName of relevantDetails) {
-          if (
-            objects.connection[ detailName ] !== null &&
-            objects.connection[ detailName ] !== undefined &&
-            typeof objects.connection[ detailName ] !== 'function'
-          ) {
-            extraMessages.push(`    ${detailName}: ${JSON.stringify(objects.connection[ detailName ])}`)
-          }
-        }
+		if (type === "uncaught") {
+			extraMessages.push(`Uncaught ${name}`);
+		} else if (type === "loader") {
+			extraMessages.push(`Failed to load ${objects.fullFilePath}\n`);
+		} else if (type === "action") {
+			extraMessages.push(`Uncaught error from action: ${name}\n`);
 
-        // push an empty element to create a empty line
-        extraMessages.push('')
-      } else if (type === 'task') {
-        extraMessages.push(`Uncaught error from task: ${name} on queue ${objects.queue} (worker #${objects.workerId})\n`)
-        try {
-          extraMessages.push('    arguments: ' + JSON.stringify(objects.task.args))
-        } catch (e) {
-          // ignore error
-        }
-      } else {
-        extraMessages.push(`Error: ${err.message}\n`)
-        extraMessages.push(`    Type: ${type}`)
-        extraMessages.push(`    Name: ${name}`)
-        extraMessages.push(`    Data: ${JSON.stringify(objects)}`)
-      }
+			extraMessages.push("Connection details:");
+			const relevantDetails = ["action", "remoteIP", "type", "params", "room"];
+			for (let detailName of relevantDetails) {
+				if (
+					objects.connection[detailName] !== null &&
+					objects.connection[detailName] !== undefined &&
+					typeof objects.connection[detailName] !== "function"
+				) {
+					extraMessages.push(`    ${detailName}: ${JSON.stringify(objects.connection[detailName])}`);
+				}
+			}
 
-      // reduce the extra messages into a single string
-      output += extraMessages.reduce((prev, item) => prev + `${item} \n`, '')
+			// push an empty element to create a empty line
+			extraMessages.push("");
+		} else if (type === "task") {
+			extraMessages.push(`Error from Task`);
+			data.name = name;
+			data.queue = objects.queue;
+			data.worker = objects.workerId;
+			data.arguments = objects?.task?.args ? JSON.stringify(objects.task.args[0]) : undefined;
+		} else {
+			extraMessages.push(`Error: ${error.message}\n`);
+			extraMessages.push(`    Type: ${type}`);
+			extraMessages.push(`    Name: ${name}`);
+			extraMessages.push(`    Data: ${JSON.stringify(objects)}`);
+		}
 
-      // FIXME I think that this can be removed, but for now we keep it where in case to be needed
-      // if there is one of the known core exceptions we need to add information
-      // manually to inform the correct error information
-      // if (err.name) { lines.push(`${err.name}: ${err.message}`) }
+		// reduce the extra messages into a single string
+		output += extraMessages.reduce((prev, item) => `${prev}${item} \n`, "");
 
-      // add the stack trace
-      try {
-        lines = lines.concat(err.stack.split(os.EOL))
-      } catch (e) {
-        lines = lines.concat(new Error(err).stack.split(os.EOL))
-      }
+		// when there is a stack trace try to add it to the data object
+		if (error.stack) {
+			data.stack = error.stack;
+		} else {
+			data.stack = error.message ?? error.toString();
+		}
 
-      // reduce the lines array into a single string
-      output += lines.reduce((prev, item) => prev + `${item}\n`, '')
+		// print out the output message
+		try {
+			if (output) {
+				this.api.log(output, severity, data);
+			}
+		} catch (e) {
+			console.log(message, data);
+		}
+	}
 
-      // print out the output message
-      api.log(output, severity)
-    })
-  }
+	/**
+	 * Execute reporters.
+	 *
+	 * @param err
+	 * @param type
+	 * @param name
+	 * @param objects
+	 * @param severity
+	 */
+	report(err, type, name, objects, severity = "error") {
+		for (const reporter of this.reporters) {
+			reporter(err, type, name, objects, severity);
+		}
+	}
 
-  /**
-   * Execute reporters.
-   *
-   * @param err
-   * @param type
-   * @param name
-   * @param objects
-   * @param severity
-   */
-  report (err, type, name, objects, severity = 'error') {
-    let self = this
+	/**
+	 * Loader exception.
+	 *
+	 * @param fullFilePath
+	 * @param err
+	 */
+	loader(fullFilePath, err) {
+		let name = `loader ${fullFilePath}`;
+		this.report(err, "loader", name, { fullFilePath: fullFilePath }, "alert");
+	}
 
-    for (let i in self.reporters) {
-      self.reporters[ i ](err, type, name, objects, severity)
-    }
-  }
+	/**
+	 * Handler for action exceptions.
+	 *
+	 * @param error
+	 * @param data
+	 */
+	action(error, data) {
+		this.report(error, "action", `action: ${data.action.name}`, { ...data, error }, "alert");
+	}
 
-  /**
-   * Loader exception.
-   *
-   * @param fullFilePath
-   * @param err
-   */
-  loader (fullFilePath, err) {
-    let self = this
-    let name = `loader ${fullFilePath}`
-    self.report(err, 'loader', name, { fullFilePath: fullFilePath }, 'alert')
-  }
+	/**
+	 * Exception handler for tasks.
+	 *
+	 * @param error       Error object.
+	 * @param queue       Queue here the error occurs
+	 * @param task
+	 * @param workerId
+	 */
+	task(error, queue, task, workerId) {
+		let simpleName;
 
-  /**
-   * Handler for action exceptions.
-   *
-   * @param err
-   * @param data
-   * @param next
-   */
-  action (err, data, next) {
-    let self = this
-    let simpleName
+		try {
+			simpleName = task["class"];
+		} catch (e) {
+			simpleName = error.message;
+		}
 
-    // try get the action name. Sometimes this can be impossible so we use the
-    // error message instead.
-    try {
-      simpleName = data.action
-    } catch (e) {
-      simpleName = err.message
-    }
-
-    // report the error
-    self.report(err, 'action', simpleName, { connection: data.connection }, 'error')
-
-    // remove already processed responses
-    data.response = {}
-
-    if (typeof next === 'function') { next() }
-  }
-
-  /**
-   * Exception handler for tasks.
-   *
-   * @param error       Error object.
-   * @param queue       Queue here the error occurs
-   * @param task
-   * @param workerId
-   */
-  task (error, queue, task, workerId) {
-    let self = this
-
-    let simpleName
-
-    try {
-      simpleName = task[ 'class' ]
-    } catch (e) {
-      simpleName = error.message
-    }
-
-    self.api.exceptionHandlers.report(error, 'task', `task:${simpleName}`, simpleName, {
-      task: task,
-      queue: queue,
-      workerId: workerId
-    }, self.api.config.tasks.workerLogging.failure)
-  }
+		this.api.exceptionHandlers.report(
+			error,
+			"task",
+			`task:${simpleName}`,
+			{
+				task,
+				queue,
+				workerId,
+			},
+			this.api.config.tasks.workerLogging.failure,
+		);
+	}
 }
 
 /**
  * Satellite definition.
  */
 export default class {
-  /**
-   * Satellite load priority.
-   *
-   * @type {number}
-   */
-  loadPriority = 130
+	/**
+	 * Satellite load priority.
+	 *
+	 * @type {number}
+	 */
+	loadPriority = 130;
 
-  /**
-   * Satellite load function.
-   *
-   * @param api     API reference
-   * @param next    Callback function
-   */
-  load (api, next) {
-    // put the exception handlers available in all platform
-    api.exceptionHandlers = new ExceptionsManager(api)
-
-    // finish the satellite load
-    next()
-  }
+	/**
+	 * Satellite load function.
+	 *
+	 * @param api     API reference
+	 */
+	async load(api) {
+		api.exceptionHandlers = new ExceptionsManager(api);
+	}
 }

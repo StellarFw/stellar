@@ -1,9 +1,9 @@
-exports.default = {
+export default {
 	servers: {
-		tcp (api) {
+		tcp(api) {
 			return {
-				enable: true
-			}
-		}
-	}
-}
+				enable: true,
+			};
+		},
+	},
+};

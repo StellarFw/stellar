@@ -1,0 +1,16 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"rootDir": "./src",
+
+		"declaration": true,
+		"stripInternal": true,
+		"sourceMap": true,
+		// todo: remove after migrate everything to TypeScript
+		"allowJs": true,
+		"strict": false,
+		"noImplicitAny": false,
+		"checkJs": false
+	},
+	"exclude": ["./tests"]
+}

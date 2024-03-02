@@ -1,14 +1,12 @@
-'use strict'
+export default {
+  name: "test",
+  description: "Just to test overwrite protection",
 
-module.exports = [ {
-  name: 'test',
-  description: 'Just to test overwrite protection',
-
-  run (engine, data, next) {
+  run(engine, data, next) {
     // define a response var
-    data.response.string = "overwrite"
+    data.response.string = "overwrite";
 
     // end the action execution
-    next()
-  }
-} ]
+    next();
+  },
+};

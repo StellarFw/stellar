@@ -1,5 +1,5 @@
 // this receives the API reference in case of the developer needs it
-module.exports = api => {
+export default (api) => {
   // this must return an object with the modifications.
   //
   // the key correspond to the modifications sections (like actions)
@@ -16,11 +16,11 @@ module.exports = api => {
         //
         // we also have and action that is part of this group, but we don't need
         // define it here, because the `group` key is defined in it.
-        actions: [ 'modTest' ],
+        actions: ["modTest"],
 
         // we can also add all the action of a module to a group, for that we
         // define the `module` array
-        modules: [ 'test2' ],
+        modules: ["test2"],
 
         // the `metadata` is an hash that contains the modifications to be
         // applied to each action that is part of this group
@@ -35,12 +35,12 @@ module.exports = api => {
         metadata: {
           // in this case we are add a new property named "modProp" with the
           // value of "OK",
-          modProp: 'OK',
+          modProp: "OK",
 
-          '+customProp': [ 'c' ],
-          '-customProp2': [ 'b' ]
-        }
-      }
-    }
-  }
-}
+          "+customProp": ["c"],
+          "-customProp2": ["b"],
+        },
+      },
+    },
+  };
+};

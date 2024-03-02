@@ -1,5 +1,3 @@
-exports.default = {
-
-  consoleLevel: 'debug'
-
-}
+export default {
+	consoleLevel: "debug",
+};

@@ -1,195 +1,141 @@
 // module dependencies
-import path from 'path'
-import async from 'async'
+import path from "path";
 
 /**
  * Manager for server instances.
  */
 class Servers {
-  /**
-   * Engine API instance.
-   * @type {null}
-   */
-  api = null
+	/**
+	 * Engine API instance.
+	 * @type {null}
+	 */
+	api = null;
 
-  /**
-   * Array with all running server instances.
-   *
-   * @type {{}}
-   */
-  servers = {}
+	/**
+	 * Array with all running server instances.
+	 *
+	 * @type {{}}
+	 */
+	servers = {};
 
-  /**
-   * Class constructor.
-   *
-   * @param api engine api instance.
-   */
-  constructor (api) {
-    this.api = api
-  }
+	/**
+	 * Class constructor.
+	 *
+	 * @param api engine api instance.
+	 */
+	constructor(api) {
+		this.api = api;
+	}
 
-  /**
-   * Load all servers.
-   *
-   * @param next  Callback function.
-   */
-  loadServers (next) {
-    let self = this
-    let jobs = []
+	/**
+	 * Load all servers.
+	 */
+	async loadServers() {
+		// get the list of servers to load
+		let serversFiles = this.api.utils.recursiveDirectoryGlob(path.resolve(`${import.meta.dirname}/../servers`));
 
-    // get the list of servers to load
-    let serversFiles = this.api.utils.getFiles(path.resolve(`${__dirname}/../servers`))
+		for (let file of serversFiles) {
+			let parts = file.split(/[\/\\]+/);
+			let serverName = parts[parts.length - 1].split(".")[0];
 
-    for (let k in serversFiles) {
-      // get server filename
-      let file = serversFiles[ k ]
-      let parts = file.split(/[\/\\]+/)
-      let serverName = parts[ (parts.length - 1) ].split('.')[ 0 ]
+			// only load .js files (in debug we also have .map files)
+			if (parts[parts.length - 1].match(".map$")) {
+				continue;
+			}
 
-      // only load .js files (in debug we also have .map files)
-      if (parts[ (parts.length - 1) ].match('\.map$')) { continue }
+			// get server options if exists
+			let options = this.api.config.servers[serverName];
 
-      // get server options if exists
-      let options = self.api.config.servers[ serverName ]
+			// only load the server if it's enabled
+			if (options?.enable === true) {
+				const { default: ServerConstructor } = await import(file);
 
-      // only load the server if that was enabled
-      if (options && options.enable === true) {
-        // get server constructor
-        let ServerConstructor = require(file).default
+				this.servers[serverName] = new ServerConstructor(this.api, options);
+				this.api.log(`Initialized server: ${serverName}`, "debug");
+			}
+		}
+	}
 
-        // push the new job to the queue
-        jobs.push(done => {
-          // instance the new server
-          self.servers[ serverName ] = new ServerConstructor(self.api, options)
+	/**
+	 * Start all the existing servers.
+	 */
+	async startServers() {
+		for (const serverName in this.servers) {
+			let server = this.servers[serverName];
 
-          // log a debug message
-          self.api.log(`Initialized server: ${serverName}`, 'debug')
+			// only load the server if the server is enabled
+			if (server.options.enable !== true) {
+				continue;
+			}
+			let message = `Starting server: ${serverName}`;
 
-          // execute the done function
-          return done()
-        })
-      }
-    }
+			// append the bind IP to log message
+			if (this.api.config.servers[serverName].bindIP) {
+				message += ` @ ${this.api.config.servers[serverName].bindIP}`;
+			}
 
-    // execute all the jobs
-    async.series(jobs, next)
-  }
+			// append the port to log message
+			if (this.api.config.servers[serverName].port) {
+				message += ` @ ${this.api.config.servers[serverName].port}`;
+			}
 
-  /**
-   * Start all the existing servers.
-   *
-   * @param next  Callback function.
-   */
-  startServers (next) {
-    let self = this
+			this.api.log(message, "notice");
+			try {
+				await server.start();
+				this.api.log(`Server started: ${serverName}`, "debug");
+			} catch (error) {
+				this.api.log(`Failed to start server "${serverName}"`, "emerg");
+			}
+		}
+	}
 
-    // array with all jobs
-    let jobs = []
+	/**
+	 * Stop all running servers.
+	 */
+	async stopServers() {
+		for (const serverName of Object.keys(this.servers)) {
+			let server = this.servers[serverName];
 
-    // for each server create a new job
-    Object.keys(self.servers).forEach(serverName => {
-      // get server instance
-      let server = self.servers[ serverName ]
+			// check if the server are enable
+			if ((server && server.options.enable === true) || !server) {
+				this.api.log(`Stopping server: ${serverName}`, "notice");
 
-      // only load the server if the server was enabled
-      if (server.options.enable === true) {
-        let message = `Starting server: ${serverName}`
-
-        // append the bind IP to log message
-        if (self.api.config.servers[ serverName ].bindIP) {
-          message += ` @ ${self.api.config.servers[ serverName ].bindIP}`
-        }
-
-        // append the port to log message
-        if (self.api.config.servers[ serverName ].port) {
-          message += ` @ ${self.api.config.servers[ serverName ].port}`
-        }
-
-        // push a new job
-        jobs.push(done => {
-          self.api.log(message, 'notice')
-          server.start(error => {
-            if (error) { return done(error) }
-            self.api.log(`Server started: ${serverName}`, 'debug')
-            return done()
-          })
-        })
-      }
-    })
-
-    // process all the jobs
-    async.series(jobs, next)
-  }
-
-  /**
-   * Stop all running servers.
-   *
-   * @param next  Callback function.
-   */
-  stopServers (next) {
-    let self = this
-
-    // array with the jobs to stop all servers
-    let jobs = []
-
-    Object.keys(self.servers).forEach(serverName => {
-      // get server instance
-      let server = self.servers[ serverName ]
-
-      // check if the server are enable
-      if ((server && server.options.enable === true) || !server) {
-        jobs.push(done => {
-          self.api.log(`Stopping server: ${serverName}`, 'notice')
-
-          // call the server stop method
-          server.stop(error => {
-            if (error) { return done(error) }
-            self.api.log(`Server stopped ${serverName}`, 'debug')
-            return done()
-          })
-        })
-      }
-    })
-
-    // execute all jobs
-    async.series(jobs, next)
-  }
+				// call the server stop method
+				await server.stop();
+				this.api.log(`Server stopped ${serverName}`, "debug");
+			}
+		}
+	}
 }
 
 export default class {
-  /**
-   * This should be loaded after all engine
-   * loading satellites.
-   *
-   * @type {number}
-   */
-  loadPriority = 550
+	/**
+	 * This should be loaded after all engine
+	 * loading satellites.
+	 *
+	 * @type {number}
+	 */
+	loadPriority = 550;
 
-  startPriority = 900
+	startPriority = 900;
 
-  stopPriority = 100
+	stopPriority = 100;
 
-  load (api, next) {
-    // instance the server manager
-    api.servers = new Servers(api)
+	async load(api) {
+		api.servers = new Servers(api);
+		await api.servers.loadServers();
+	}
 
-    // load enabled servers
-    api.servers.loadServers(next)
-  }
+	/**
+	 * Satellite starting function.
+	 *
+	 * @param api   API object reference.
+	 */
+	async start(api) {
+		await api.servers.startServers();
+	}
 
-  /**
-   * Satellite starting function.
-   *
-   * @param api   API object reference.
-   * @param next  Callback function.
-   */
-  start (api, next) {
-    // start servers
-    api.servers.startServers(next)
-  }
-
-  stop (api, next) {
-    // stop servers
-    api.servers.stopServers(next)
-  }
+	async stop(api) {
+		await api.servers.stopServers();
+	}
 }

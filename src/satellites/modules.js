@@ -1,200 +1,195 @@
-import fs from 'fs'
-import { exec } from 'child_process'
+import fs from "fs";
+import { exec } from "child_process";
 
 /**
  * This class is responsible to manage all modules, process
  * the NPM dependencies.
  */
 class Modules {
-  /**
-   * API reference object.
-   *
-   * @type {null}
-   */
-  api = null
+	/**
+	 * API reference object.
+	 *
+	 * @type {null}
+	 */
+	api = null;
 
-  /**
-   * Map with the active modules.
-   *
-   * Keys are the modules slugs and the values are
-   * their manifests.
-   *
-   * @type {Map}
-   */
-  activeModules = new Map()
+	/**
+	 * Map with the active modules.
+	 *
+	 * Keys are the modules slugs and the values are
+	 * their manifests.
+	 *
+	 * @type {Map}
+	 */
+	activeModules = new Map();
 
-  /**
-   * Map with the modules paths.
-   *
-   * @type {Map}
-   */
-  modulesPaths = new Map()
+	/**
+	 * Map with the modules paths.
+	 *
+	 * @type {Map}
+	 */
+	modulesPaths = new Map();
 
-  /**
-   * This map contains all the actions who are part of each module.
-   *
-   * @type {Map}
-   */
-  moduleActions = new Map()
+	/**
+	 * This map contains all the actions who are part of each module.
+	 *
+	 * @type {Map}
+	 */
+	moduleActions = new Map();
 
-  /**
-   * Create a new class instance.
-   *
-   * @param api
-   */
-  constructor (api) { this.api = api }
+	/**
+	 * Create a new class instance.
+	 *
+	 * @param api
+	 */
+	constructor(api) {
+		this.api = api;
+	}
 
-  /**
-   * Register a new action name for a module.
-   *
-   * @param {string} moduleName Module name
-   * @param {string|array} value Array of action name to be stored.
-   */
-  regModuleAction (moduleName, value) {
-    // first, check there is already a slot to store the actions of this module
-    if (!this.moduleActions.has(moduleName)) {
-      this.moduleActions.set(moduleName, [ ])
-    }
+	/**
+	 * Register a new action name for a module.
+	 *
+	 * @param {string} moduleName Module name
+	 * @param {string|array} value Array of action name to be stored.
+	 */
+	regModuleAction(moduleName, value) {
+		// first, check there is already a slot to store the actions of this module
+		if (!this.moduleActions.has(moduleName)) {
+			this.moduleActions.set(moduleName, []);
+		}
 
-    // get the array where the action name must be stored
-    const arrayOfActions = this.moduleActions.get(moduleName)
+		// get the array where the action name must be stored
+		const arrayOfActions = this.moduleActions.get(moduleName);
 
-    if (Array.isArray(value)) {
-      this.moduleActions.set(moduleName, arrayOfActions.concat(value))
-    } else if (this.api.utils.isNonEmptyString(value)) {
-      arrayOfActions.push(value)
-    } else {
-      throw new Error('Value got an invalid state')
-    }
-  }
+		if (Array.isArray(value)) {
+			this.moduleActions.set(moduleName, arrayOfActions.concat(value));
+		} else if (this.api.utils.isNonEmptyString(value)) {
+			arrayOfActions.push(value);
+		} else {
+			throw new Error("Value got an invalid state");
+		}
+	}
 
-  /**
-   * Load all active modules into memory.
-   *
-   * The private module is always loaded even if not present on the
-   * activeModules property.
-   */
-  loadModules (next) {
-    let self = this
+	/**
+	 * Load all active modules into memory.
+	 *
+	 * The private module is always loaded even if not present on the activeModules property.
+	 */
+	async loadModules() {
+		// get active modules
+		let modules = this.api.config.modules;
 
-    // get active modules
-    let modules = self.api.config.modules
+		// check if the private module folder exists
+		if (this.api.utils.directoryExists(`${this.api.scope.rootPath}/modules/private`)) {
+			modules.push("private");
+		}
 
-    // check if the private module folder exists
-    if (this.api.utils.directoryExists(`${self.api.scope.rootPath}/modules/private`)) { modules.push('private') }
+		// this config is required. If doesn't exists or is an empty array an exception should be raised.
+		if (modules === undefined || modules.length === 0) {
+			throw new Error("At least one module needs to be active.");
+		}
 
-    // this config is required. If doesn't exists or is an empty array
-    // an exception should be raised.
-    if (modules === undefined || modules.length === 0) {
-      next(new Error('At least one module needs to be active.'))
+		// load all modules declared in the manifest file
+		for (const moduleName of modules) {
+			// build the full path
+			const path = `${this.api.scope.rootPath}/modules/${moduleName}`;
 
-      // engine don't finish the starting wet, soo we need to finish the process
-      process.exit(1)
-    }
+			// get module manifest file content
+			try {
+				const manifest = await this.api.utils.readJsonFile(`${path}/manifest.json`);
 
-    // load all modules declared in the manifest file
-    for (const moduleName of modules) {
-      // build the full path
-      const path = `${self.api.scope.rootPath}/modules/${moduleName}`
+				// save the module config on the engine instance
+				this.activeModules.set(manifest.id, manifest);
 
-      // get module manifest file content
-      try {
-        const manifest = require(`${path}/manifest.json`)
+				// save the module full path
+				this.modulesPaths.set(manifest.id, path);
+			} catch (e) {
+				throw new Error(
+					`There is an invalid module active, named "${moduleName}", fix this to start Stellar normally.`,
+				);
+			}
+		}
+	}
 
-        // save the module config on the engine instance
-        self.activeModules.set(manifest.id, manifest)
+	/**
+	 * Process all NPM dependencies.
+	 *
+	 * The npm install command only is executed if the package.json file are not present.
+	 */
+	processNpmDependencies() {
+		// don't use NPM on test environment (otherwise the tests will fail)
+		if (this.api.env === "test") {
+			return;
+		}
 
-        // save the module full path
-        self.modulesPaths.set(manifest.id, path)
-      } catch (e) {
-        next(new Error(`There is an invalid module active, named "${moduleName}", fix this to start Stellar normally.`))
-        break
-      }
-    }
-  }
+		// get scope variable
+		const scope = this.api.scope;
 
-  /**
-   * Process all NPM dependencies.
-   *
-   * The npm install command only is executed if the package.json
-   * file are not present.
-   *
-   * @param next    Callback function.
-   */
-  processNpmDependencies (next) {
-    let self = this
+		// check if the stellar is starting in clean mode. If yes we need remove all
+		// temporary files and process every thing again
+		if (scope.args.clean) {
+			// list of temporary files
+			let tempFilesLocations = [
+				`${scope.rootPath}/temp`,
+				`${scope.rootPath}/package.json`,
+				`${scope.rootPath}/node_modules`,
+			];
 
-    // don't use NPM on test environment (otherwise the tests will fail)
-    if (self.api.env === 'test') { return next() }
+			// iterate all temp paths and remove all of them
+			tempFilesLocations.forEach((path) => this.api.utils.removePath(path));
+		}
 
-    // get scope variable
-    const scope = this.api.scope
+		// if the `package.json` file already exists and Stellar isn't starting with
+		// the `update` flag return now
+		if (this.api.utils.fileExists(`${scope.rootPath}/package.json`) && !scope.args.update) {
+			return;
+		}
 
-    // check if the stellar is starting in clean mode. If yes we need remove all
-    // temporary files and process every thing again
-    if (scope.args.clean) {
-      // list of temporary files
-      let tempFilesLocations = [
-        `${scope.rootPath}/temp`,
-        `${scope.rootPath}/package.json`,
-        `${scope.rootPath}/node_modules`
-      ]
+		// global npm dependencies
+		let npmDependencies = {};
 
-      // iterate all temp paths and remove all of them
-      tempFilesLocations.forEach(path => this.api.utils.removePath(path))
-    }
+		// iterate all active modules
+		this.activeModules.forEach((manifest) => {
+			// check if the module have NPM dependencies
+			if (manifest.npmDependencies !== undefined) {
+				// merge the two hashes
+				npmDependencies = this.api.utils.hashMerge(npmDependencies, manifest.npmDependencies);
+			}
+		});
 
-    // if the `package.json` file already exists and Stellar isn't starting with
-    // the `update` flag return now
-    if (this.api.utils.fileExists(`${scope.rootPath}/package.json`) &&
-      !scope.args.update) { return next() }
+		// compile project information
+		let projectJson = {
+			private: true,
+			name: "stellar-dependencies",
+			version: "1.0.0",
+			type: "module",
+			description: "This is automatically generated don't edit",
+			dependencies: npmDependencies,
+		};
 
-    // global npm dependencies
-    let npmDependencies = {}
+		// generate project.json file
+		const packageJsonPath = `${this.api.scope.rootPath}/package.json`;
+		this.api.utils.removePath(packageJsonPath);
+		fs.writeFileSync(packageJsonPath, JSON.stringify(projectJson, null, 2), "utf8");
 
-    // iterate all active modules
-    self.activeModules.forEach(manifest => {
-      // check if the module have NPM dependencies
-      if (manifest.npmDependencies !== undefined) {
-        // merge the two hashes
-        npmDependencies = this.api.utils.hashMerge(npmDependencies, manifest.npmDependencies)
-      }
-    })
+		this.api.log("updating NPM packages", "info");
 
-    // compile project information
-    let projectJson = {
-      private: true,
-      name: 'stellar-dependencies',
-      version: '1.0.0',
-      description: 'This is automatically generated don\'t edit',
-      dependencies: npmDependencies
-    }
+		// check the command to be executed
+		const npmCommand = scope.args.update ? "npm update" : "npm install";
 
-    // generate project.json file
-    const packageJsonPath = `${self.api.scope.rootPath}/package.json`
-    this.api.utils.removePath(packageJsonPath)
-    fs.writeFileSync(packageJsonPath, JSON.stringify(projectJson, null, 2), 'utf8')
+		// run npm command
+		return new Promise((resolve, reject) => {
+			exec(npmCommand, (error) => {
+				if (error) {
+					this.api.log("An error occurs during the NPM install command", "emergency");
+					return reject(error);
+				}
 
-    self.api.log('updating NPM packages', 'info')
-
-    // check the command to be executed
-    const npmCommand = (scope.args.update) ? 'npm update' : 'npm install'
-
-    // run npm command
-    exec(npmCommand, error => {
-      // if an error occurs finish the process
-      if (error) {
-        self.api.log('An error occurs during the NPM install command', 'emergency')
-        process.exit(1)
-      }
-
-      // load a success message
-      self.api.log('NPM dependencies updated!', 'info')
-
-      // finish the loading process
-      next()
-    })
-  }
+				this.api.log("NPM dependencies updated!", "info");
+				resolve();
+			});
+		});
+	}
 }
 
 /**
@@ -202,27 +197,21 @@ class Modules {
  * engine instance.
  */
 export default class {
-  /**
-   * Initializer load priority.
-   *
-   * @type {number}
-   */
-  loadPriority = 1
+	/**
+	 * Initializer load priority.
+	 *
+	 * @type {number}
+	 */
+	loadPriority = 1;
 
-  /**
-   * Initializer load function.
-   *
-   * @param api   API reference.
-   * @param next  Callback function.
-   */
-  load (api, next) {
-    // instantiate the manager
-    api.modules = new Modules(api)
-
-    // load modules into memory
-    api.modules.loadModules(next)
-
-    // process NPM dependencies
-    api.modules.processNpmDependencies(next)
-  }
+	/**
+	 * Initializer load function.
+	 *
+	 * @param api   API reference.
+	 */
+	async load(api) {
+		api.modules = new Modules(api);
+		await api.modules.loadModules();
+		await api.modules.processNpmDependencies();
+	}
 }

@@ -1,4 +1,4 @@
-exports.render = data => `
+export const render = (data) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -17,7 +17,7 @@ exports.render = data => `
     </h1>
 
     <ul class="actionsList">
-      ${data.actions.map(action => `<li><a href="./action_${action}.html">${action}</a></li>`).join('')}
+      ${data.actions.map((action) => `<li><a href="./action_${action}.html">${action}</a></li>`).join("")}
     </ul>
   </aside>
 
@@ -32,7 +32,7 @@ exports.render = data => `
     <!-- project description -->
     <div class="panel">
       <div class="panel-header">Project Description</div>
-      <div class="panel-block">${data.project.description || ''}</div>
+      <div class="panel-block">${data.project.description || ""}</div>
     </div>
 
     <!-- available tasks -->
@@ -48,13 +48,15 @@ exports.render = data => `
             </tr>
           </thead>
           <tbody>
-            ${data.tasks.map(task => `
+            ${data.tasks.map(
+							(task) => `
             <tr>
               <td>${task.name}</td>
               <td>${task.description}</td>
               <td>${task.frequency}</td>
             </tr>
-            `)}
+            `,
+						)}
           </tbody>
         </table>
       </div>
@@ -64,4 +66,4 @@ exports.render = data => `
 
 </body>
 </html>
-`
+`;

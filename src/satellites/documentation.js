@@ -1,255 +1,255 @@
-import fs from 'fs'
+import fs from "fs";
+import { join } from "path";
 
 class DocumentationGenerator {
-  /**
-   * API reference object.
-   *
-   * @type {null}
-   */
-  api = null
+	/**
+	 * API reference object.
+	 *
+	 * @type {null}
+	 */
+	api = null;
 
-  /**
-   * Docs folder path.
-   *
-   * @type {string}
-   */
-  docsFolder = ''
+	/**
+	 * Docs folder path.
+	 *
+	 * @type {string}
+	 */
+	docsFolder = "";
 
-  /**
-   * Static folder path.
-   *
-   * @type {string}
-   */
-  staticFolder = ''
+	/**
+	 * Static folder path.
+	 *
+	 * @type {string}
+	 */
+	staticFolder = "";
 
-  /**
-   * Constructor.
-   *
-   * @param api
-   */
-  constructor (api) {
-    let self = this
+	/**
+	 * Constructor.
+	 *
+	 * @param api
+	 */
+	constructor(api) {
+		// save API reference object
+		this.api = api;
 
-    // save API reference object
-    self.api = api
+		// unsure the public folder exists
+		this.api.utils.createFolder(this.api.config.general.paths.public);
 
-    // unsure the public folder exists
-    this.api.utils.createFolder(self.api.config.general.paths.public)
+		// build docs folder path
+		this.docsFolder = join(this.api.config.general.paths.public, "docs");
 
-    // build docs folder path
-    self.docsFolder = `${self.api.config.general.paths.public}/docs`
+		// build static folder path
+		this.staticFolder = join(import.meta.dirname, `../../staticFiles/docs`);
+	}
 
-    // build static folder path
-    self.staticFolder = `${__dirname}/../../staticFiles/docs`
-  }
+	/**
+	 * Generate an array with all information needed to build the list of tasks.
+	 */
+	_getTasksInformation() {
+		// array to store all the tasks
+		const tasks = [];
 
-  /**
-   * Generate an array with all information needed to build the list of tasks.
-   */
-  _getTasksInformation () {
-    // array to store all the tasks
-    const tasks = []
+		// iterate all registered tasks
+		Object.keys(this.api.tasks.tasks).forEach((key) => {
+			const task = this.api.tasks.tasks[key];
+			tasks.push({
+				name: task.name,
+				description: task.description || "N/A",
+				frequency: task.frequency || "-",
+			});
+		});
 
-    // iterate all registered tasks
-    Object.keys(this.api.tasks.tasks).forEach(key => {
-      const task = this.api.tasks.tasks[key]
-      tasks.push({
-        name: task.name,
-        description: task.description || 'N/A',
-        frequency: task.frequency || '-'
-      })
-    })
+		return tasks;
+	}
 
-    return tasks
-  }
+	/**
+	 * Get all actions who have toDocument different than false.
+	 *
+	 * @returns {{}}  Actions to generate documentation.
+	 * @private
+	 */
+	_getActionToGenerateDoc() {
+		// array to store the actions
+		let actions = {};
 
-  /**
-   * Get all actions who have toDocument different than false.
-   *
-   * @returns {{}}  Actions to generate documentation.
-   * @private
-   */
-  _getActionToGenerateDoc () {
-    let self = this
+		// iterate all actions
+		for (let actionName in this.api.actions.actions) {
+			let count = 0;
 
-    // array to store the actions
-    let actions = {}
+			actions[actionName] = {};
 
-    // iterate all actions
-    for (let actionName in self.api.actions.actions) {
-      let count = 0
+			// iterate all action versions
+			for (let versionNumber in this.api.actions.actions[actionName]) {
+				if (this.api.actions.actions[actionName][versionNumber].toDocument !== false) {
+					count++;
+					actions[actionName][versionNumber] = this.api.actions.actions[actionName][versionNumber];
+				}
+			}
 
-      actions[ actionName ] = {}
+			if (count === 0) {
+				delete actions[actionName];
+			}
+		}
 
-      // iterate all action versions
-      for (let versionNumber in self.api.actions.actions[ actionName ]) {
-        if (self.api.actions.actions[ actionName ][ versionNumber ].toDocument !== false) {
-          count++
-          actions[ actionName ][ versionNumber ] = self.api.actions.actions[ actionName ][ versionNumber ]
-        }
-      }
+		return actions;
+	}
 
-      if (count === 0) { delete actions[ actionName ] }
-    }
+	/**
+	 * Generate the documentation.
+	 */
+	async generateDocumentation() {
+		// remove docs directory
+		this.api.utils.removeDirectory(this.docsFolder);
 
-    return actions
-  }
+		// create the directory again
+		this.api.utils.createFolder(this.docsFolder);
 
-  /**
-   * Generate the documentation.
-   */
-  generateDocumentation () {
-    let self = this
+		// get actions to generate documentation
+		let actions = this._getActionToGenerateDoc();
 
-    // remove docs directory
-    this.api.utils.removeDirectory(self.docsFolder)
+		// object with the template data
+		let data = { actions: Object.keys(actions) };
 
-    // create the directory again
-    this.api.utils.createFolder(self.docsFolder)
+		// get base template
+		const { render } = await import(join(this.staticFolder, `action.html.js`));
 
-    // get actions to generate documentation
-    let actions = self._getActionToGenerateDoc()
+		// iterate all loaded actions
+		for (let actionName in actions) {
+			// set action name
+			data.actionName = actionName;
 
-    // object with the template data
-    let data = { actions: Object.keys(actions) }
+			// initialize array
+			data.actionVersions = [];
 
-    // get base template
-    let generator = require(`${self.staticFolder}/action.html.js`)
+			// iterate all versions
+			for (let versionNumber in actions[actionName]) {
+				// get action object
+				let action = this._prepareActionToPrint(actions[actionName][versionNumber]);
 
-    // iterate all loaded actions
-    for (let actionName in actions) {
-      // set action name
-      data.actionName = actionName
+				// push the version number
+				action.version = versionNumber;
 
-      // initialize array
-      data.actionVersions = []
+				// push the new action to the actionVersions array
+				data.actionVersions.push(action);
+			}
 
-      // iterate all versions
-      for (let versionNumber in actions[ actionName ]) {
-        // get action object
-        let action = self._prepareActionToPrint(actions[ actionName ][ versionNumber ])
+			const generatedHtml = render(data);
 
-        // push the version number
-        action.version = versionNumber
+			// output the result to the temp folder
+			fs.writeFileSync(`${this.docsFolder}/action_${actionName}.html`, generatedHtml, "utf8");
+		}
 
-        // push the new action to the actionVersions array
-        data.actionVersions.push(action)
-      }
+		// build the index.html
+		await this._buildIndexFile();
 
-      const generatedHtml = generator.render(data)
+		// copy resource files
+		this._copyResourceFiles();
+	}
 
-      // output the result to the temp folder
-      fs.writeFileSync(`${self.docsFolder}/action_${actionName}.html`, generatedHtml, 'utf8')
-    }
+	/**
+	 * Build the index.html file.
+	 *
+	 * @private
+	 */
+	async _buildIndexFile() {
+		// build data object
+		let data = {
+			actions: Object.keys(this._getActionToGenerateDoc()),
+			project: {},
+		};
+		data.project.name = this.api.config.name;
+		data.project.description = this.api.config.description;
+		data.project.version = this.api.config.version;
 
-    // build the index.html
-    self._buildIndexFile()
+		// append the tasks information
+		data.tasks = this._getTasksInformation();
 
-    // copy resource files
-    this._copyResourceFiles()
-  }
+		const { render } = await import(join(this.staticFolder, `index.html.js`));
+		const contentGenerated = render(data);
 
-  /**
-   * Build the index.html file.
-   *
-   * @private
-   */
-  _buildIndexFile () {
-    let self = this
+		// save index.html file on final docs folder
+		fs.writeFileSync(`${this.docsFolder}/index.html`, contentGenerated, "utf8");
+	}
 
-    // build data object
-    let data = {
-      actions: Object.keys(self._getActionToGenerateDoc()),
-      project: {}
-    }
-    data.project.name = self.api.config.name
-    data.project.description = self.api.config.description
-    data.project.version = self.api.config.version
+	/**
+	 * Prepare the action to be printed.
+	 *
+	 * @param action
+	 * @returns {{}}
+	 * @private
+	 */
+	_prepareActionToPrint(action) {
+		// create a new object with the data prepared to be printed
+		let output = {};
 
-    // append the tasks information
-    data.tasks = this._getTasksInformation()
+		// action name
+		output.name = action.name;
 
-    const generator = require(`${self.staticFolder}/index.html.js`)
-    const contentGenerated = generator.render(data)
+		// action description
+		output.description = action.description;
 
-    // save index.html file on final docs folder
-    fs.writeFileSync(`${self.docsFolder}/index.html`, contentGenerated, 'utf8')
-  }
+		// action output example
+		if (action.outputExample !== undefined) {
+			output.outputExample = JSON.stringify(action.outputExample, null, 4);
+		}
 
-  /**
-   * Prepare the action to be printed.
-   *
-   * @param action
-   * @returns {{}}
-   * @private
-   */
-  _prepareActionToPrint (action) {
-    // create a new object with the data prepared to be printed
-    let output = {}
+		// action inputs
+		if (action.inputs !== undefined) {
+			output.inputs = [];
 
-    // action name
-    output.name = action.name
+			// iterate all inputs
+			Object.keys(action.inputs).forEach((inputName) => {
+				let newInput = {};
+				let input = action.inputs[inputName];
 
-    // action description
-    output.description = action.description
+				newInput.name = inputName;
+				newInput.description = input.description || "N/A";
+				newInput.default = input.default || "N/A";
 
-    // action output example
-    if (action.outputExample !== undefined) {
-      output.outputExample = JSON.stringify(action.outputExample, null, 4)
-    }
+				newInput.validators = [];
 
-    // action inputs
-    if (action.inputs !== undefined) {
-      output.inputs = []
+				if (!(input.required === undefined || input.required === false)) {
+					newInput.validators.push({ type: "required", value: "required" });
+				}
 
-      // iterate all inputs
-      Object.keys(action.inputs).forEach(inputName => {
-        let newInput = {}
-        let input = action.inputs[ inputName ]
+				// validators
+				if (typeof input.validator === "function") {
+					newInput.validators.push({ type: "function", value: "function" });
+				} else if (input.validator instanceof RegExp) {
+					newInput.validators.push({
+						type: "regex",
+						value: String(input.validator),
+					});
+				} else if (typeof input.validator === "string") {
+					// the validator string can have many validators separated by '|', we need to split them
+					let validators = input.validator.split("|");
 
-        newInput.name = inputName
-        newInput.description = input.description || 'N/A'
-        newInput.default = input.default || 'N/A'
+					for (let index in validators) {
+						newInput.validators.push({
+							type: "validator",
+							value: validators[index],
+						});
+					}
+				}
 
-        newInput.validators = []
+				// push the new input
+				output.inputs.push(newInput);
+			});
+		}
 
-        if (!(input.required === undefined || input.required === false)) {
-          newInput.validators.push({ type: 'required', value: 'required' })
-        }
+		return output;
+	}
 
-        // validators
-        if (typeof input.validator === 'function') {
-          newInput.validators.push({ type: 'function', value: 'function' })
-        } else if (input.validator instanceof RegExp) {
-          newInput.validators.push({ type: 'regex', value: String(input.validator) })
-        } else if (typeof input.validator === 'string') {
-          // the validator string can have many validators separated by '|', we need to split them
-          let validators = input.validator.split('|')
-
-          for (let index in validators) {
-            newInput.validators.push({ type: 'validator', value: validators[ index ] })
-          }
-        }
-
-        // push the new input
-        output.inputs.push(newInput)
-      })
-    }
-
-    return output
-  }
-
-  /**
-   * Copy resource files to final docs folder.
-   *
-   * @private
-   */
-  _copyResourceFiles () {
-    let self = this
-    this.api.utils.copyFile(`${self.staticFolder}/reset.css`, `${self.docsFolder}/reset.css`)
-    this.api.utils.copyFile(`${self.staticFolder}/style.css`, `${self.docsFolder}/style.css`)
-    this.api.utils.copyFile(`${self.staticFolder}/highlight.js`, `${self.docsFolder}/highlight.js`)
-  }
+	/**
+	 * Copy resource files to final docs folder.
+	 *
+	 * @private
+	 */
+	_copyResourceFiles() {
+		this.api.utils.copyFile(`${this.staticFolder}/reset.css`, `${this.docsFolder}/reset.css`);
+		this.api.utils.copyFile(`${this.staticFolder}/style.css`, `${this.docsFolder}/style.css`);
+		this.api.utils.copyFile(`${this.staticFolder}/highlight.js`, `${this.docsFolder}/highlight.js`);
+	}
 }
 
 /**
@@ -257,30 +257,25 @@ class DocumentationGenerator {
  * for all project actions.
  */
 export default class {
-  /**
-   * Satellite load priority.
-   *
-   * @type {number}
-   */
-  loadPriority = 710
+	/**
+	 * Satellite load priority.
+	 *
+	 * @type {number}
+	 */
+	loadPriority = 710;
 
-  /**
-   * Satellite loading function.
-   *
-   * @param api   API reference object.
-   * @param next  Callback function.
-   */
-  load (api, next) {
-    // if the documentation generation was disabled finish now
-    if (api.config.general.generateDocumentation !== true) {
-      next()
-      return
-    }
+	/**
+	 * Satellite loading function.
+	 *
+	 * @param api   API reference object.
+	 */
+	async load(api) {
+		// if the documentation generation was disabled finish now
+		if (api.config.general.generateDocumentation !== true) {
+			return;
+		}
 
-    // build the documentation
-    (new DocumentationGenerator(api)).generateDocumentation()
-
-    // finish the satellite loading
-    next()
-  }
+		// build the documentation
+		await new DocumentationGenerator(api).generateDocumentation();
+	}
 }
