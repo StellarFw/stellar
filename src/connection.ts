@@ -70,12 +70,12 @@ export class Connection implements ConnectionDetails {
 	/**
 	 * Connection remote port.
 	 */
-	public remotePort!: number;
+	public remotePort: number = 0;
 
 	/**
 	 * Remote IP address.
 	 */
-	public remoteIP!: string;
+	public remoteIP: string = "0";
 
 	/**
 	 * Raw connection.
@@ -120,35 +120,33 @@ export class Connection implements ConnectionDetails {
 	 * @param data
 	 */
 	private setup(data) {
-		if (data.id) {
-			this.id = data.id;
-		} else {
-			// generate an unique ID for this connection
-			this.id = randomUUID();
-		}
-
-		this.connectedAt = new Date().getTime();
-
 		const requiredFields = ["type", "rawConnection"];
 		requiredFields.forEach((req) => {
-			if (data[req] === null || data[req] === undefined) {
+			if (!data[req]) {
 				throw new Error(`${req} is required to create a new connection object`);
 			}
-
-			this[req] = data[req];
 		});
 
-		const enforcedConnectionProperties = ["remotePort", "remoteIP"];
-		enforcedConnectionProperties.forEach((req) => {
-			if (data[req] === null || data[req] === undefined) {
-				if (this.api.configs.general.enforceConnectionProperties === true) {
-					throw new Error(`${req} is required to create a new connection object`);
-				} else {
-					data[req] = 0; // TODO: could be a random uuid as well?
-				}
-			}
-			this[req] = data[req];
-		});
+		if (!this.api.config.general.enforceConnectionProperties) {
+			return;
+		}
+
+		// remote port and IP are mandatory in order to create a new connection object
+		if (!data.remotePort && data.remotePort?.toString() !== "0") {
+			throw new Error(`remotePort is required to create a new connection object`);
+		}
+		if (!data.remoteIP && data.remoteIP?.toString() !== "0") {
+			throw new Error(`remoteIP is required to create a new connection object`);
+		}
+
+		this.type = data.type;
+		this.rawConnection = data.rawConnection;
+		this.id = data.id ?? randomUUID();
+		this.fingerprint = data.fingerprint ?? this.id;
+		this.messageId = data.messageId ?? "0";
+
+		this.connectedAt = new Date().getTime();
+		this.canChat = data.canChat;
 
 		this.api.i18n.invokeConnectionLocale(this);
 	}
@@ -233,7 +231,7 @@ export class Connection implements ConnectionDetails {
 	 * @param words     Words are optional.
 	 */
 	public async verbs(verb: string, words: string | Array<string> = []): Promise<unknown> {
-		const server = this.api.servers.servers.get(this.type);
+		const server = this.api.servers.servers[this.type];
 
 		let key;
 		let value;
@@ -308,10 +306,8 @@ export class Connection implements ConnectionDetails {
 					pendingActions: this.pendingActions,
 				};
 			} else if (verb === "say") {
-				// get the room name
 				room = words.shift();
 
-				// broadcast the message on the requested room
 				return this.api.chatRoom.broadcast(this, room, words.join(" "));
 			} else if (verb === "event") {
 				// get the vent information
@@ -324,10 +320,10 @@ export class Connection implements ConnectionDetails {
 				// broadcast the event to the room
 				return this.api.chatRoom.broadcast(this, room, { event, data });
 			} else {
-				throw new Error(this.api.configs.errors.verbNotFound(this, verb));
+				throw new Error(this.api.config.errors.verbNotFound(this, verb));
 			}
 		} else {
-			throw new Error(this.api.configs.errors.verbNotAllowed(this, verb));
+			throw new Error(this.api.config.errors.verbNotAllowed(this, verb));
 		}
 	}
 }

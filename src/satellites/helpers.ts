@@ -83,7 +83,7 @@ class Helpers {
 		const id = randomUUID();
 
 		this.api.servers.servers.testServer.buildConnection({
-			id: id,
+			id,
 			rawConnection: {},
 			remoteAddress: "testServer",
 			remotePort: 0,

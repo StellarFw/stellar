@@ -1,5 +1,3 @@
-import async from "async";
-
 class TaskSatellite {
 	/**
 	 * API reference object.
@@ -362,8 +360,8 @@ class TaskSatellite {
 		this.api.resque.queue.workingOn(workerName, queues, callback);
 	}
 
-	allWorkingOn(callback) {
-		this.api.resque.queue.allWorkingOn(callback);
+	async allWorkingOn() {
+		return this.api.resque.queue.allWorkingOn();
 	}
 
 	failedCount(callback) {
@@ -463,48 +461,20 @@ class TaskSatellite {
 
 	/**
 	 * Get the current task queue state.
-	 *
-	 * @param callback  Callback function.
 	 */
-	details(callback) {
+	async details() {
 		let result = { queues: {}, workers: {} };
-		let jobs = [];
 
 		// push all the workers to the result var
-		jobs.push((done) => {
-			this.api.tasks.allWorkingOn((error, workers) => {
-				if (error) {
-					return done(error);
-				}
-				result.workers = workers;
-			});
-		});
+		result.workers = workers = await this.allWorkingOn();
 
 		// push all the queue to the result var
-		jobs.push((done) => {
-			this.api.resque.queue.queues((error, queues) => {
-				if (error) {
-					return done(error);
-				}
-				let queueJobs = [];
+		const queues = await this.api.resque.queue.queues();
 
-				queues.forEach((queue) => {
-					queueJobs.push((qDone) => {
-						this.resque.queue.length(queue, (error, length) => {
-							if (error) {
-								return qDone(error);
-							}
-							result.queues[queue] = { length: length };
-							return qDone();
-						});
-					});
-				});
-
-				async.series(queueJobs, done);
-			});
-		});
-
-		async.series(jobs, callback);
+		for (const queue of queues) {
+			const length = this.resque.queue.length(queue);
+			result.queues[queue] = { length };
+		}
 	}
 }
 
