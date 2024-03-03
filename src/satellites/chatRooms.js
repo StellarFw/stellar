@@ -1,4 +1,5 @@
-import async from "async";
+import { isNotNil } from "ramda";
+import { clone } from "ramda";
 
 class ChatRooms {
 	/**
@@ -96,31 +97,28 @@ class ChatRooms {
 			throw this.api.config.errors.connectionRoomAndMessage(connection);
 		}
 
-		if (connection.rooms === undefined || connection.rooms.indexOf(room) > -1) {
-			// set id zero for default if there no one present
-			if (connection.id === undefined) {
-				connection.id = 0;
-			}
+		// the connection must be on the room
+		if (connection.room !== undefined && !connection.rooms.includes(room)) {
+			throw this.api.config.errors.connectionNotInRoom(connection, room);
+		}
 
-			// create a new payload
-			let payload = {
-				messageType: "chat",
-				serverToken: this.api.config.general.serverToken,
-				serverId: this.api.id,
-				message,
-				sentAt: new Date().getTime(),
-				connection: {
-					id: connection.id,
-					room: room,
-				},
-			};
+		let payload = {
+			messageType: "chat",
+			serverToken: this.api.config.general.serverToken,
+			serverId: this.api.id,
+			message,
+			sentAt: new Date().getTime(),
+			connection: {
+				id: connection.id ?? 0,
+				room,
+			},
+		};
 
-			// generate the message payload
-			let messagePayload = this._generateMessagePayload(payload);
+		// run the middleware on the message payload
+		const messagePayload = this.generateMessagePayload(payload);
+		const newPayload = await this.runMiddleware(connection, messagePayload.room, "onSayReceive", messagePayload);
 
-			// handle callbacks
-			const newPayload = await this._handleCallbacks(connection, messagePayload.room, "onSayReceive", messagePayload);
-
+		if (isNotNil(newPayload)) {
 			// create the payload to send
 			let payloadToSend = {
 				messageType: "chat",
@@ -134,13 +132,8 @@ class ChatRooms {
 				},
 			};
 
-			// send the payload to redis
-			this.api.redis.publish(payloadToSend);
-			return;
+			await this.api.redis.publish(payloadToSend);
 		}
-
-		// when the connection isn't on the room, throw an exception
-		throw this.api.config.errors.connectionNotInRoom(connection, room);
 	}
 
 	/**
@@ -149,12 +142,11 @@ class ChatRooms {
 	 * @param message Incoming message to be processed.
 	 */
 	incomingMessage(message) {
-		// generate the message payload
-		let messagePayload = this._generateMessagePayload(message);
+		let messagePayload = this.generateMessagePayload(message);
 
-		// iterate all connection
-		for (let i in this.api.connections.connections) {
-			this._incomingMessagePerConnection(this.api.connections.connections[i], messagePayload);
+		for (let connectionId in this.api.connections.connections) {
+			const connection = this.api.connections.connections[connectionId];
+			this.incomingMessagePerConnection(connection, messagePayload);
 		}
 	}
 
@@ -271,36 +263,28 @@ class ChatRooms {
 	 * @param room          Room name where the client must be added.
 	 */
 	async join(connectionId, room) {
-		// if the connection not exists create a new one in every stellar instance and return
-		if (!this.api.connections.connections[connectionId]) {
-			return this.api.redis.doCluster("api.chatRoom.addMember", [connectionId, room], connectionId);
-		}
-
-		// get connection object
 		let connection = this.api.connections.connections[connectionId];
 
+		// if the connection not exists create a new one in every stellar instance and return
+		if (!connection) {
+			return this.api.redis.doCluster("api.chatRoom.join", [connectionId, room], connectionId, true);
+		}
+
 		// verifies that the connection is already within the room, if yes return now
-		if (connection.rooms.indexOf(room) > -1) {
+		if (connection.rooms.includes(room)) {
 			throw this.api.config.errors.connectionAlreadyInRoom(connection, room);
 		}
 
-		// check if the room exists
 		const found = await this.exists(room);
-
 		if (!found) {
 			throw this.api.config.errors.connectionRoomNotExist(room);
 		}
 
-		// wait for callback
-		await this._handleCallbacks(connection, room, "join", null);
-
-		// generate the member details
-		let memberDetails = this._generateMemberDetails(connection);
+		await this.runMiddleware(connection, room, "join", null);
 
 		// add member to the room
+		let memberDetails = this.generateMemberDetails(connection);
 		await this.api.redis.clients.client.hset(this.keys.members + room, connection.id, JSON.stringify(memberDetails));
-
-		// push the new room to the connection object
 		connection.rooms.push(room);
 
 		return true;
@@ -336,7 +320,7 @@ class ChatRooms {
 		}
 
 		// passes the response by the middleware
-		await this._handleCallbacks(connection, room, "leave", null);
+		await this.runMiddleware(connection, room, "leave", null);
 
 		// remove the user
 		await this.api.redis.clients.client.hdel(this.keys.members + room, connection.id);
@@ -361,7 +345,7 @@ class ChatRooms {
 	 * @returns {{id: *, joinedAt: number, host: *}}
 	 * @private
 	 */
-	_generateMemberDetails(connection) {
+	generateMemberDetails(connection) {
 		return {
 			id: connection.id,
 			joinedAt: new Date().getTime(),
@@ -376,7 +360,7 @@ class ChatRooms {
 	 * @returns {{message: *, room: *, from: *, context: string, sendAt: *}}
 	 * @private
 	 */
-	_generateMessagePayload(message) {
+	generateMessagePayload(message) {
 		return {
 			message: message.message,
 			room: message.connection.room,
@@ -397,63 +381,29 @@ class ChatRooms {
 	 * @param messagePayload    Message payload.
 	 * @private
 	 */
-	_handleCallbacks(connection, room, direction, messagePayload) {
-		const jobs = [];
+	async runMiddleware(connection, room, direction, messagePayload) {
 		let newMessagePayload;
 
-		// if the message payload are defined create a clone
 		if (messagePayload) {
-			newMessagePayload = this.api.utils.objClone(messagePayload);
+			newMessagePayload = clone(messagePayload);
 		}
 
-		// apply global middleware
-		this.globalMiddleware.forEach((name) => {
-			// get middleware object
-			let m = this.middleware[name];
+		// apply the global middleware
+		for (const name of this.globalMiddleware) {
+			let middlewareEntry = this.middleware[name];
 
-			// the middleware should be a function
-			if (typeof m[direction] !== "function") {
-				return;
+			if (typeof middlewareEntry[direction] !== "function") {
+				continue;
 			}
 
-			// push a new job to the queue
-			jobs.push((callback) => {
-				if (messagePayload) {
-					m[direction](connection, room, newMessagePayload, (error, data) => {
-						if (data) {
-							newMessagePayload = data;
-						}
-						callback(error, data);
-					});
-					return;
-				}
+			if (messagePayload) {
+				newMessagePayload = (await middlewareEntry[direction](connection, room, newMessagePayload)) ?? null;
+			} else {
+				await middlewareEntry[direction](connection, room);
+			}
+		}
 
-				// execute the middleware without the payload
-				m[direction](connection, room, callback);
-			});
-		});
-
-		return new Promise((resolve, reject) => {
-			// execute all middleware
-			async.series(jobs, (error, data) => {
-				while (data.length > 0) {
-					let thisData = data.shift();
-
-					// change the new message object to the next middleware use it
-					if (thisData) {
-						newMessagePayload = thisData;
-					}
-				}
-
-				// execute the next middleware
-				if (error) {
-					return reject(error);
-				}
-
-				// resolve the promise
-				resolve(newMessagePayload);
-			});
-		});
+		return newMessagePayload;
 	}
 
 	/**
@@ -477,20 +427,14 @@ class ChatRooms {
 	 * @param messagePayload  Message payload to be sent.
 	 * @private
 	 */
-	async _incomingMessagePerConnection(connection, messagePayload) {
-		// check if the connection can chat
-		if (connection.canChat !== true) {
-			return;
-		}
-
-		// check if the connection made part of the room
-		if (connection.rooms.indexOf(messagePayload.room) < 0) {
+	async incomingMessagePerConnection(connection, messagePayload) {
+		// in order to process the message the connections needs to be able to chat and be present on the target room
+		if (!connection.canChat || !connection.rooms.includes(messagePayload.room)) {
 			return;
 		}
 
 		try {
-			// apply the middleware
-			const newMessagePayload = await this._handleCallbacks(connection, messagePayload.room, "say", messagePayload);
+			const newMessagePayload = await this.runMiddleware(connection, messagePayload.room, "say", messagePayload);
 
 			// send a message to the connection
 			connection.sendMessage(newMessagePayload, "say");

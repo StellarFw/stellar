@@ -77,46 +77,36 @@ class Actions {
 	 *
 	 * @param actionName  Name of the action to be called.
 	 * @param params      Action parameters.
-	 * @return Promise
 	 */
-	call(actionName, params = {}) {
-		// get connection class
+	async call(actionName, params = {}) {
 		const ConnectionClass = this.api.connection;
+		const ActionProcessor = this.api.actionProcessor;
 
-		// create a new connection object
+		// create a new connection object and set connection params and the action that must be called
 		const connection = new ConnectionClass(this.api, {
 			type: "internal",
 			remotePort: 0,
 			remoteIP: 0,
 			rawConnection: {},
+			canChat: false,
 		});
 
-		// set connection params
 		connection.params = params;
-
-		// set action who must be called
 		connection.params.action = actionName;
 
-		// get action processor class
-		const ActionProcessor = this.api.actionProcessor;
+		// process the action and return the resolved state
+		try {
+			const actionInstance = new ActionProcessor(this.api, connection);
+			const data = await actionInstance.processAction();
 
-		// return a promise
-		return new Promise((resolve, reject) => {
-			// create a new ActionProcessor instance
-			const actionProcessor = new ActionProcessor(this.api, connection, (data) => {
-				// destroy the connection and resolve of reject the promise
-				connection.destroy(() => {
-					if (data.response.error !== undefined) {
-						return reject(data.response.error);
-					}
+			if (data.response.error) {
+				throw data.response.error;
+			}
 
-					resolve(data.response);
-				});
-			});
-
-			// process the action
-			actionProcessor.processAction();
-		});
+			return data.response;
+		} finally {
+			await connection.destroy();
+		}
 	}
 
 	/**
@@ -139,9 +129,8 @@ class Actions {
 			1: {
 				name: "status",
 				description: "Is a system action to show the server status",
-				run: (api, action, next) => {
-					// finish the action execution
-					next();
+				run: (api, action) => {
+					return null;
 				},
 			},
 		};

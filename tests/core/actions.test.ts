@@ -1,4 +1,4 @@
-import { describe, beforeAll, afterAll, it, expect } from "vitest";
+import { describe, beforeAll, afterAll, it, expect, test } from "vitest";
 
 import Engine from "../../lib/engine";
 import { API } from "../../src/interfaces/api.interface";
@@ -12,6 +12,15 @@ describe("Core: Actions", () => {
 	});
 
 	afterAll(() => engine.stop());
+
+	test("can execute actions that resolves with the response object", async () => {
+		const response = await api.actions.call("sumANumber", {
+			a: 5,
+			b: 20,
+		});
+
+		expect(response.result).toBe(25);
+	});
 
 	// ----------------------------------------------------------- [Internal Call]
 
@@ -100,11 +109,11 @@ describe("Core: Actions", () => {
 		return expect(api.actions.call("promiseAction")).resolves.toHaveProperty("success", `It's working!`);
 	});
 
-	it("is possible using a foreign promise to finish an action", (done) => {
+	it("is possible using a foreign promise to finish an action", () => {
 		return expect(api.actions.call("internalCallPromise")).resolves.toHaveProperty("result", `4 + 5 = 9`);
 	});
 
-	it("can handle promise rejections and exceptions", (done) => {
+	it("can handle promise rejections and exceptions", () => {
 		return expect(api.actions.call("errorPromiseAction")).rejects.toHaveProperty("message", "This is an error");
 	});
 

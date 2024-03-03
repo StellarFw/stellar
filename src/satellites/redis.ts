@@ -182,7 +182,7 @@ class RedisManager {
 		const connection = this.api.redis.clients.client;
 		const stringPayload = JSON.stringify(payload);
 
-		if (connection.status !== "close" && connection.status !== "end") {
+		if (connection.connected) {
 			return connection.publish(channel, stringPayload);
 		} else {
 			this.api.log(`cannot send message, redis disconnected`, "error", {

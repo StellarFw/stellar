@@ -30,7 +30,7 @@ describe("Core: Event", () => {
 	});
 
 	it("event.listener", () => {
-		api.events.listener("prog", (api, params, next) => {});
+		api.events.listener("prog", (api, params) => {});
 		expect(api.events.events.has("prog")).toBeTruthy();
 	});
 
@@ -46,7 +46,7 @@ describe("Core: Event", () => {
 		expect(
 			api.events._listenerObj({
 				event: "example",
-				run: (api, params, next) => {},
+				run: (api, params) => {},
 			}),
 		).toBeTruthy();
 	});
@@ -54,8 +54,8 @@ describe("Core: Event", () => {
 	it("listeners can have a priority value", () => {
 		api.events.listener(
 			"prog",
-			(api, params, next) => {
-				next();
+			async (api, params) => {
+				return {};
 			},
 			200,
 		);
@@ -63,8 +63,8 @@ describe("Core: Event", () => {
 	});
 
 	it("listeners have a default priority", () => {
-		api.events.listener("prog", (api, params, next) => {
-			next();
+		api.events.listener("prog", async (api, params) => {
+			return {};
 		});
 
 		expect(api.events.events.get("prog")[0].priority).toBe(api.config.general.defaultListenerPriority);
@@ -74,17 +74,15 @@ describe("Core: Event", () => {
 		api.events.listener(
 			"prog",
 			(api, params, next) => {
-				params.value += "1";
-				next();
+				return { value: `${params.value}1` };
 			},
 			10,
 		);
 
 		api.events.listener(
 			"prog",
-			(api, params, next) => {
-				params.value += "0";
-				next();
+			(api, params) => {
+				return { value: `${params.value}0` };
 			},
 			5,
 		);
@@ -100,6 +98,35 @@ describe("Core: Event", () => {
 	it("can execute a multiply event", async () => {
 		await expect(api.events.fire("multiple", { value: "raw" })).resolves.toMatchObject({
 			value: "raw_mod",
+		});
+	});
+
+	describe("with a listener that changes the passed data to 100", () => {
+		beforeAll(() => {
+			api.events.listener(
+				"testListener",
+				(api, params) => {
+					// modifying the parameters isn't expected, but we shouldn't believe on the developers good sense, so we need
+					// to check if we protect the original data from being modified
+					try {
+						params.value = "other-value";
+						return { value: 1000000 };
+					} catch {
+						return { value: 100 };
+					}
+				},
+				5,
+			);
+		});
+
+		afterAll(() => {
+			api.events.cleanListenersForEvent("testListener");
+		});
+
+		it("passing data to the fire event doesn't change the original data", async () => {
+			const originalData = { value: "sample-data" };
+			await expect(api.events.fire("testListener", originalData)).resolves.toMatchObject({ value: 100 });
+			expect(originalData.value).toBe("sample-data");
 		});
 	});
 });

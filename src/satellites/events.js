@@ -1,5 +1,5 @@
-import async from "async";
 import { join } from "path";
+import { clone } from "ramda";
 
 /**
  * Class to manage events.
@@ -46,27 +46,22 @@ class EventsManager {
 	 * @param eventName   Event to fire.
 	 * @param data        Params to pass to the listeners.
 	 */
-	fire(eventName, data) {
+	async fire(eventName, data) {
 		// variable to store listener response data
-		let responseData = data;
+		let responseData = clone(data);
 
-		// build a new promise and return them
-		return new Promise((resolve) => {
-			// if there is no listeners for the event finish the promise now
-			if (!this.events.has(eventName)) {
-				resolve(responseData);
-			}
+		// if there is no listeners for the event finish the promise now
+		if (!this.events.has(eventName)) {
+			return responseData;
+		}
 
-			// execute the listeners async in series
-			async.each(
-				this.events.get(eventName),
-				(listener, callback) => listener.run(this.api, responseData, callback),
-				() => {
-					// resolve the promise returning the response data
-					resolve(responseData);
-				},
-			);
-		});
+		// execute the listeners async in series
+		const listeners = this.events.get(eventName);
+		for (const listener of listeners) {
+			responseData = await listener.run(this.api, responseData);
+		}
+
+		return responseData;
 	}
 
 	/**
@@ -88,6 +83,15 @@ class EventsManager {
 
 		// insert the listener
 		this._listenerObj(listener);
+	}
+
+	/**
+	 * Remove all listeners for the given event.
+	 *
+	 * @param {string} event event name which all it's listeners will be removed
+	 */
+	cleanListenersForEvent(event) {
+		this.events.delete(event);
 	}
 
 	/**

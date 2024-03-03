@@ -1,6 +1,5 @@
 import fs from "fs/promises";
 import path from "path";
-import Mocha from "mocha";
 
 import { Command } from "../Command.js";
 import { getAppModules } from "../utils.js";
