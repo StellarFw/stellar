@@ -133,15 +133,11 @@ export default class GenericServer extends EventEmitter {
 	 *
 	 * @param connection Connection object.
 	 */
-	processAction(connection) {
-		// create a new action processor instance for this request
+	async processAction(connection) {
 		const ActionProcessor = this.api.actionProcessor;
-		let actionProcessor = new ActionProcessor(this.api, connection, (data) => {
-			this.emit("actionComplete", data);
-		});
-
-		// process the request
-		actionProcessor.processAction();
+		const actionProcessor = new ActionProcessor(this.api, connection);
+		const data = await actionProcessor.processAction();
+		this.emit("actionComplete", data);
 	}
 
 	/**

@@ -119,8 +119,8 @@ describe("Servers: HTTP", function () {
 					name: "stringErrorTestAction",
 					description: "stringErrorTestAction",
 					version: 1,
-					run: function (api, data, next) {
-						next("broken");
+					run: function (api, data) {
+						throw "broken";
 					},
 				},
 			};
@@ -131,8 +131,8 @@ describe("Servers: HTTP", function () {
 					name: "errorErrorTestAction",
 					description: "errorErrorTestAction",
 					version: 1,
-					run: function (api, data, next) {
-						next(new Error("broken"));
+					run: function (api, data) {
+						throw new Error("broken");
 					},
 				},
 			};
@@ -143,8 +143,8 @@ describe("Servers: HTTP", function () {
 					name: "complexErrorTestAction",
 					description: "complexErrorTestAction",
 					version: 1,
-					run: function (api, data, next) {
-						next({ error: "broken", reason: "stuff" });
+					run: function (api, data) {
+						throw { error: "broken", reason: "stuff" };
 					},
 				},
 			};
@@ -283,9 +283,8 @@ describe("Servers: HTTP", function () {
 					name: "paramTestAction",
 					description: "Returns connection.rawConnection.params",
 					version: 1,
-					run: (api, action, next) => {
-						action.response = action.connection.rawConnection.params;
-						next();
+					run: (api, action) => {
+						return action.connection.rawConnection.params;
 					},
 				},
 			};
@@ -359,13 +358,12 @@ describe("Servers: HTTP", function () {
 					name: "headerTestAction",
 					description: "Test action",
 					version: 1,
-					run: (api, action, next) => {
+					run: (api, action) => {
 						action.connection.rawConnection.responseHeaders.push(["thing", "A"]);
 						action.connection.rawConnection.responseHeaders.push(["thing", "B"]);
 						action.connection.rawConnection.responseHeaders.push(["thing", "C"]);
 						action.connection.rawConnection.responseHeaders.push(["Set-Cookie", "value_1=1"]);
 						action.connection.rawConnection.responseHeaders.push(["Set-Cookie", "value_2=2"]);
-						next();
 					},
 				},
 			};

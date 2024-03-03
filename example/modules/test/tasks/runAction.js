@@ -5,9 +5,9 @@ export const sayHello = {
 	queue: "default",
 	frequency: 0,
 
-	run(api, params = {}, next) {
+	run(api, params = {}) {
 		// execute the requested action
-		api.actions
+		return api.actions
 			.call(params.action, params)
 			.then((response) => {
 				// log the task call
@@ -15,7 +15,7 @@ export const sayHello = {
 					params: JSON.stringify(params),
 				});
 
-				next(null, response);
+				return response;
 			})
 			.catch((error) => {
 				// log the error
@@ -23,7 +23,7 @@ export const sayHello = {
 					params: JSON.stringify(params),
 				});
 
-				next(error, null);
+				throw error;
 			});
 	},
 };

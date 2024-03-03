@@ -30,29 +30,27 @@ describe("Core: API", () => {
 					name: "versionedAction",
 					description: "A test action",
 					version: 1,
-					run: (api, action, next) => {
+					run: (api, action) => {
 						action.response.version = 1;
-						next();
 					},
 				},
 				"2": {
 					name: "versionedAction",
 					description: "A test action",
 					version: 2,
-					run: (api, action, next) => {
+					run: (api, action) => {
 						action.response.version = 2;
-						next();
 					},
 				},
 				"3": {
 					name: "versionedAction",
 					description: "A test action",
 					version: 3,
-					run: (api, action, next) => {
+					run: (api, action) => {
 						const complexError = {
 							reason: { msg: "description" },
 						};
-						next(complexError);
+						throw complexError;
 					},
 				},
 			};
@@ -138,9 +136,8 @@ describe("Core: API", () => {
 						},
 					},
 
-					run: (api, connection, next) => {
+					run: (api, connection) => {
 						connection.response.params = connection.params;
-						next();
 					},
 				},
 			};

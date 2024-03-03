@@ -129,9 +129,8 @@ class Actions {
 			1: {
 				name: "status",
 				description: "Is a system action to show the server status",
-				run: (api, action, next) => {
-					// finish the action execution
-					next();
+				run: (api, action) => {
+					return null;
 				},
 			},
 		};

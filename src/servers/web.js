@@ -9,6 +9,8 @@ import formidable from "st-formidable";
 import GenericServer from "../genericServer.js";
 import BrowserFingerprint from "browser_fingerprint";
 import { randomUUID } from "crypto";
+import { last } from "ramda";
+import { sleep } from "../../example/modules/test/actions/sleep.js";
 
 // server type
 let type = "web";
@@ -48,33 +50,6 @@ export default class Web extends GenericServer {
 		if (["api", "file"].indexOf(this.api.config.servers.web.rootEndpointType) < 0) {
 			throw new Error("api.config.servers.web.rootEndpointType can only be 'api' or 'file'.");
 		}
-
-		// -------------------------------------------------------------------------------------------------------- [EVENTS]
-		this.on("connection", (connection) => {
-			this._determineRequestParams(connection, (requestMode) => {
-				switch (requestMode) {
-					case "api":
-						this.processAction(connection);
-						break;
-					case "file":
-						this.processFile(connection);
-						break;
-					case "options":
-						this._respondToOptions(connection);
-						break;
-					case "client-lib":
-						this.processClientLib(connection);
-						break;
-					case "trace":
-						this._respondToTrace(connection);
-				}
-			});
-		});
-
-		// event to be executed after the action completion
-		this.on("actionComplete", (data) => {
-			this._completeResponse(data);
-		});
 	}
 
 	// ------------------------------------------------------------------------------------------------ [REQUIRED METHODS]
@@ -98,32 +73,56 @@ export default class Web extends GenericServer {
 
 		let bootAttempts = 0;
 
-		return new Promise((resolve, reject) => {
-			this.server.on("error", (e) => {
-				bootAttempts++;
+		this.server.on("error", async (e) => {
+			bootAttempts++;
 
-				if (bootAttempts < this.api.config.servers.web.bootAttempts) {
-					this.log(`cannot boot web server; trying again [${String(e)}]`, "error");
+			if (bootAttempts < this.api.config.servers.web.bootAttempts) {
+				this.log(`cannot boot web server; trying again [${String(e)}]`, "error");
 
-					if (bootAttempts === 1) {
-						this._cleanSocket(this.options.bindIP, this.options.port);
-					}
-
-					setTimeout(() => {
-						this.log("attempting to boot again...");
-						this.server.listen(this.options.port, this.options.bindIP);
-					}, 1000);
-				} else {
-					return reject(
-						new Error(`Cannot start web server @ ${this.options.bindIP}:${this.options.port} => ${e.message}`),
-					);
+				if (bootAttempts === 1) {
+					this._cleanSocket(this.options.bindIP, this.options.port);
 				}
-			});
 
+				await sleep(1000);
+				this.log("attempting to boot again...");
+				this.server.listen(this.options.port, this.options.bindIP);
+			} else {
+				return new Error(`Cannot start web server @ ${this.options.bindIP}:${this.options.port} => ${e.message}`);
+			}
+		});
+
+		await new Promise((resolve) => {
 			this.server.listen(this.options.port, this.options.bindIP, () => {
 				this.chmodSocket(this.options.bindIP, this.options.port);
-				resolve();
+				resolve(null);
 			});
+		});
+
+		this.on("connection", async (connection) => {
+			const requestMode = await this.determineRequestParams(connection);
+
+			switch (requestMode) {
+				case "api":
+					this.processAction(connection);
+					break;
+				case "file":
+					this.processFile(connection);
+					break;
+				case "options":
+					this._respondToOptions(connection);
+					break;
+				case "client-lib":
+					this.processClientLib(connection);
+					break;
+				case "trace":
+					this._respondToTrace(connection);
+			}
+		});
+
+		// event to be executed after the action completion
+		this.on("actionComplete", (data) => {
+			console.log("🚀 ~ Web ~ this.on ~ data:", data);
+			this._completeResponse(data);
 		});
 	}
 
@@ -476,10 +475,9 @@ export default class Web extends GenericServer {
 	 * Determine the request params.
 	 *
 	 * @param connection  Client connection object.
-	 * @param callback    Callback function.
 	 * @private
 	 */
-	_determineRequestParams(connection, callback) {
+	async determineRequestParams(connection) {
 		// determine if is a file or an api request
 		let requestMode = this.api.config.servers.web.rootEndpointType;
 		let pathname = connection.rawConnection.parsedURL.pathname;
@@ -492,7 +490,7 @@ export default class Web extends GenericServer {
 		}
 
 		// if exist an empty part on the end of the path, remove it
-		if (pathParts[pathParts.length - 1] === "") {
+		if (last(pathParts) === "") {
 			pathParts.pop();
 		}
 
@@ -520,18 +518,19 @@ export default class Web extends GenericServer {
 		}
 
 		// split parsed URL by '.'
-		var extensionParts = connection.rawConnection.parsedURL.pathname.split(".");
-
+		const extensionParts = connection.rawConnection.parsedURL.pathname.split(".");
 		if (extensionParts.length > 1) {
-			connection.extension = extensionParts[extensionParts.length - 1];
+			connection.extension = last(extensionParts);
 		}
 
 		// OPTIONS
 		if (connection.rawConnection.method === "OPTIONS") {
 			requestMode = "options";
-			callback(requestMode);
-		} else if (requestMode === "api") {
-			// API
+			return requestMode;
+		}
+
+		// API
+		if (requestMode === "api") {
 			// enable trace mode
 			if (connection.rawConnection.method === "TRACE") {
 				requestMode = "trace";
@@ -558,26 +557,28 @@ export default class Web extends GenericServer {
 					connection.rawConnection.form[i] = this.api.config.servers.web.formOptions[i];
 				}
 
-				connection.rawConnection.form.parse(connection.rawConnection.req, (error, fields, files) => {
-					if (error) {
-						this.log(`error processing form: ${String(error)}`, "error");
-						connection.error = new Error("There was an error processing this form.");
-					} else {
-						connection.rawConnection.params.body = fields;
-						connection.rawConnection.params.files = files;
-						this._fillParamsFromWebRequest(connection, files);
-						this._fillParamsFromWebRequest(connection, fields);
-					}
-
-					if (this.api.config.servers.web.queryRouting !== true) {
-						connection.params.action = null;
-					}
-
-					// process route
-					this.api.routes.processRoute(connection, pathParts);
-
-					callback(requestMode);
+				const { fields, files } = await new Promise((resolve) => {
+					connection.rawConnection.form.parse(connection.rawConnection.req, (error, fields, files) => {
+						if (error) {
+							this.log(`error processing form: ${String(error)}`, "error");
+							connection.error = new Error("There was an error processing this form.");
+						}
+						resolve({ fields, files });
+					});
 				});
+
+				connection.rawConnection.params.body = fields;
+				connection.rawConnection.params.files = files;
+				this._fillParamsFromWebRequest(connection, files);
+				this._fillParamsFromWebRequest(connection, fields);
+
+				if (this.api.config.servers.web.queryRouting !== true) {
+					connection.params.action = null;
+				}
+
+				// process route
+				this.api.routes.processRoute(connection, pathParts);
+				return requestMode;
 			} else {
 				if (this.api.config.servers.web.queryRouting !== true) {
 					connection.params.action = null;
@@ -585,20 +586,32 @@ export default class Web extends GenericServer {
 
 				// process route
 				this.api.routes.processRoute(connection, pathParts);
-
-				callback(requestMode);
+				return requestMode;
 			}
-		} else if (requestMode === "file") {
+		}
+
+		// FILE
+		if (requestMode === "file") {
+			this.api.routes.processRoute(connection, pathParts);
 			if (!connection.params.file) {
 				connection.params.file = pathParts.join(path.sep);
 			}
 
-			if (connection.params.file === "" || connection.params.file[connection.params.file.length - 1] === "/") {
+			if (connection.params.file === "" || last(connection.params.file) === "/") {
 				connection.params.file = connection.params.file + this.api.config.general.directoryFileType;
 			}
-			callback(requestMode);
-		} else if (requestMode === "client-lib") {
-			callback(requestMode);
+
+			try {
+				connection.params.file = decodeURIComponent(connection.params.file);
+			} catch (e) {
+				connection.error = new Error(`There was an error decoding URI: ${e}`);
+			}
+			return requestMode;
+		}
+
+		// CLIENT LIBRARY
+		if (requestMode === "client-lib") {
+			return requestMode;
 		}
 	}
 
@@ -823,7 +836,7 @@ export default class Web extends GenericServer {
 			!this.api.config.servers.web.httpHeaders["Access-Control-Allow-Methods"] &&
 			!this._extractHeader(connection, "Access-Control-Allow-Methods")
 		) {
-			let methods = "HEAD, GET, POST, PUT, DELETE, OPTIONS, TRACE";
+			const methods = "HEAD, GET, POST, PUT, DELETE, OPTIONS, TRACE";
 			connection.rawConnection.responseHeaders.push(["Access-Control-Allow-Methods", methods]);
 		}
 
