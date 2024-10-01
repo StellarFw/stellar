@@ -3,29 +3,19 @@ import { createFolder, folderIsEmpty, generateFileFromTemplate } from "../utils.
 
 class InitCommand extends Command {
 	constructor() {
-		// execute the super class constructor method
 		super();
 
-		// command description
 		this.flags = "init";
-		// this.flags = 'init [--name] <name>'
 		this.desc = "Create a new Stellar project";
-		// this.paramsDesc = 'Project name'
-		this.setup = (sywac) => {
-			sywac
-				.string("--name <name>", {
-					// group: 'Required:',
-					desc: "Project name",
-					required: true,
-				})
-				.string("--version <version>", {
-					desc: "Project version",
-					defaultValue: "1.0.0",
-				})
-				.boolean("--dockerIt", {
-					desc: "Create a dockerfile for the new project",
-				});
-		};
+	}
+
+	buildCommand() {
+		const command = super.buildCommand();
+
+		return command
+			.requiredOption("--name <name>", "Project name")
+			.option("--version <version>", "Project version")
+			.option("--dockerIt", "Create a dockerfile for the new project");
 	}
 
 	/**
@@ -57,8 +47,8 @@ class InitCommand extends Command {
 		await generateFileFromTemplate("gitignore", {}, `${process.cwd()}/.gitignore`);
 
 		// create modules folder
-		await createFolder(process.cwd() + "/modules");
-		let privateModulePath = process.cwd() + "/modules/private";
+		await createFolder(`${process.cwd()}/modules`);
+		let privateModulePath = `${process.cwd()}/modules/private`;
 		await createFolder(privateModulePath);
 		await generateFileFromTemplate("privateModule", {}, `${privateModulePath}/manifest.json`);
 		await createFolder(`${privateModulePath}/actions`);
@@ -66,7 +56,7 @@ class InitCommand extends Command {
 		await createFolder(`${privateModulePath}/config`);
 
 		// create config folder
-		await createFolder(process.cwd() + "/config");
+		await createFolder(`${process.cwd()}/config`);
 
 		// check if we need create a dockerfile
 		if (this.args.dockerIt) {
@@ -81,4 +71,4 @@ class InitCommand extends Command {
 	}
 }
 
-export default new InitCommand();
+export default new InitCommand().buildCommand();

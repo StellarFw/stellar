@@ -7,15 +7,15 @@ import { resolve } from "path";
  * @returns {*|String}
  */
 export function getCurrentUniverse() {
-  return process.cwd();
+	return process.cwd();
 }
 
 /**
  * read the manifest.json file to get the active modules and return them.
  */
 export async function getAppModules() {
-  const manifest = await readFile(`${getCurrentUniverse()}/manifest.json`);
-  return JSON.parse(manifest).modules || [];
+	const manifest = await readFile(`${getCurrentUniverse()}/manifest.json`);
+	return JSON.parse(manifest).modules || [];
 }
 
 /**
@@ -25,12 +25,12 @@ export async function getAppModules() {
  * @returns {boolean}
  */
 export async function exists(path) {
-  try {
-    await access(path, fs.F_OK);
-    return true;
-  } catch (e) {}
+	try {
+		await access(path, fs.F_OK);
+		return true;
+	} catch (e) {}
 
-  return false;
+	return false;
 }
 
 /**
@@ -39,9 +39,9 @@ export async function exists(path) {
  * @param path Path to check.
  */
 export async function createFolderIfNotExists(path) {
-  if (!(await exists(path))) {
-    await createFolder(path);
-  }
+	if (!(await exists(path))) {
+		await createFolder(path);
+	}
 }
 
 /**
@@ -50,30 +50,30 @@ export async function createFolderIfNotExists(path) {
  * @param path   Directory path.
  */
 export async function removeDirectory(path) {
-  let filesList;
+	let filesList;
 
-  // get directory files
-  try {
-    filesList = await readdir(path);
-  } catch (e) {
-    return;
-  }
+	// get directory files
+	try {
+		filesList = await readdir(path);
+	} catch (e) {
+		return;
+	}
 
-  // iterate all folders and files on the directory
-  for (const file of filesList) {
-    // get full file path
-    let filePath = `${path}/${file}`;
+	// iterate all folders and files on the directory
+	for (const file of filesList) {
+		// get full file path
+		let filePath = `${path}/${file}`;
 
-    // check if it's a file
-    if ((await stat(filePath)).isFile()) {
-      await unlink(filePath);
-    } else {
-      await removeDirectory(filePath);
-    }
-  }
+		// check if it's a file
+		if ((await stat(filePath)).isFile()) {
+			await unlink(filePath);
+		} else {
+			await removeDirectory(filePath);
+		}
+	}
 
-  // remove current directory
-  await rmdir(path);
+	// remove current directory
+	await rmdir(path);
 }
 
 /**
@@ -84,18 +84,18 @@ export async function removeDirectory(path) {
  * @param path  Path to be removed.
  */
 export async function removePath(path) {
-  // if the path don't exists return
-  if (!(await exists(path))) {
-    return;
-  }
+	// if the path don't exists return
+	if (!(await exists(path))) {
+		return;
+	}
 
-  // if the path is a file remote it and return
-  if ((await stat(path)).isFile()) {
-    return await unlink(path);
-  }
+	// if the path is a file remote it and return
+	if ((await stat(path)).isFile()) {
+		return await unlink(path);
+	}
 
-  // remove all the directory content
-  await removeDirectory(path);
+	// remove all the directory content
+	await removeDirectory(path);
 }
 
 /**
@@ -105,7 +105,7 @@ export async function removePath(path) {
  * @returns {boolean}
  */
 export function moduleExists(moduleName) {
-  return exists(`${getCurrentUniverse()}/modules/${moduleName}`);
+	return exists(`${getCurrentUniverse()}/modules/${moduleName}`);
 }
 
 /**
@@ -116,7 +116,7 @@ export function moduleExists(moduleName) {
  * @returns {*}
  */
 export async function createFile(path, content) {
-  return writeFile(path, content, "utf8");
+	return writeFile(path, content, "utf8");
 }
 
 /**
@@ -126,7 +126,7 @@ export async function createFile(path, content) {
  * @returns {*}
  */
 export async function getTemplate(name) {
-  return import(`${import.meta.dirname}/templates/${name}`);
+	return import(`${import.meta.dirname}/templates/${name}`);
 }
 
 /**
@@ -136,10 +136,10 @@ export async function getTemplate(name) {
  * @returns {boolean} True if the folder is empty, false otherwise.
  */
 export async function folderIsEmpty(path) {
-  let list = await readdir(path);
-  list = list.filter((item) => !/(^|\/)\.[^\/\.]/g.test(item));
+	let list = await readdir(path);
+	list = list.filter((item) => !/(^|\/)\.[^\/\.]/g.test(item));
 
-  return list.length <= 0;
+	return list.length <= 0;
 }
 
 /**
@@ -148,13 +148,13 @@ export async function folderIsEmpty(path) {
  * @param path
  */
 export async function createFolder(path) {
-  try {
-    await mkdir(path);
-  } catch (e) {
-    if (e.code !== "EEXIST") {
-      throw e;
-    }
-  }
+	try {
+		await mkdir(path);
+	} catch (e) {
+		if (e.code !== "EEXIST") {
+			throw e;
+		}
+	}
 }
 
 /**
@@ -168,9 +168,9 @@ export async function createFolder(path) {
  * @param outputPath    Output file path
  */
 export async function generateFileFromTemplate(templateName, data, outputPath) {
-  const templateModule = await getTemplate(templateName);
-  const generatedContent = templateModule.render(data);
-  await createFile(outputPath, generatedContent);
+	const templateModule = await getTemplate(templateName);
+	const generatedContent = templateModule.render(data);
+	await createFile(outputPath, generatedContent);
 }
 
 /**
@@ -179,9 +179,9 @@ export async function generateFileFromTemplate(templateName, data, outputPath) {
  * @returns
  */
 export async function getStellarMetadata() {
-  const stellarPackageMetadataText = await readFile(resolve(import.meta.dirname, "../package.json"), {
-    encoding: "utf8",
-  });
+	const stellarPackageMetadataText = await readFile(resolve(import.meta.dirname, "../package.json"), {
+		encoding: "utf8",
+	});
 
-  return JSON.parse(stellarPackageMetadataText);
+	return JSON.parse(stellarPackageMetadataText);
 }

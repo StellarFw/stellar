@@ -3,7 +3,6 @@ import { exists, generateFileFromTemplate } from "../utils.js";
 
 class dockerItCommand extends Command {
 	constructor() {
-		// execute the super class constructor method
 		super(false);
 
 		// command
@@ -16,7 +15,7 @@ class dockerItCommand extends Command {
 	 */
 	async exec() {
 		// see if a dockerfile already exists
-		if (await exists(process.cwd() + "/dockerfile")) {
+		if (await exists(`${process.cwd()}/dockerfile`)) {
 			this.printError("A dockerfile already exists");
 			return false;
 		}
@@ -31,4 +30,4 @@ class dockerItCommand extends Command {
 	}
 }
 
-export default new dockerItCommand();
+export default new dockerItCommand().buildCommand();
