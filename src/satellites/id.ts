@@ -5,8 +5,6 @@ import { resolve } from "path";
 /**
  * Setup the server ID.
  *
- * TODO: we can use the args from the engine to avoid using sywac here.
- *
  * This ID, can be configured using:
  * - the 'api.config.general.id' configuration;
  * - '--title' option on the command line;

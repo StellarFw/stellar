@@ -61,4 +61,4 @@ class ConsoleCommand extends Command {
 	}
 }
 
-export default new ConsoleCommand();
+export default new ConsoleCommand().buildCommand();

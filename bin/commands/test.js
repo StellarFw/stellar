@@ -1,9 +1,6 @@
-import fs from "fs/promises";
-import path from "path";
-import Mocha from "mocha";
-
+import { createVitest } from "vitest/node";
 import { Command } from "../Command.js";
-import { getAppModules } from "../utils.js";
+import { getAppModules, getCurrentUniverse } from "../utils.js";
 
 import Engine from "../../lib/engine.js";
 
@@ -15,10 +12,8 @@ import Engine from "../../lib/engine.js";
 class TestCommand extends Command {
 	/**
 	 * Create a new TestCommand instance.
-	 *
-	 * @param args  Command arguments.
 	 */
-	constructor(args) {
+	constructor() {
 		// execute the super class constructor method
 		super();
 
@@ -39,48 +34,24 @@ class TestCommand extends Command {
 	/**
 	 * Execute the command.
 	 */
-	exec() {
-		// get all active modules from the application
+	async exec() {
 		const modules = getAppModules();
 
 		// if the modules are empty return a message
 		if (modules.length === 0) {
 			return this.printInfo(`There is no active module to run tests.`);
 		}
-
-		// instantiate a Mocha instance
-		const mocha = new Mocha();
-
-		// iterate all modules and add the test file to the mocha
-		modules.forEach((moduleName) => {
-			let testsPath = this.getModuleTestPath(moduleName);
-
-			// ignore the folder if this not exists
-			if (!Utils.exists(testsPath)) {
-				return;
-			}
-
-			fs.readdirSync(testsPath)
-				.filter((file) => file.substr(-8) === ".spec.js")
-				.forEach((file) => mocha.addFile(path.join(testsPath, file)));
+		const runPath = getCurrentUniverse();
+		const vitest = await createVitest("test", {
+			root: runPath,
 		});
 
 		console.log(`${this.FgBlue}Starting Stellar test suit in your application`);
 
-		// inject some useful objects to avoid add mocha, should and stellar to the
-		// modules npm dependencies
-		// fix: see why the global.should are been subscribed
-		global.Should = require("should");
-		global.engine = new Engine({ rootPath: Utils.getCurrentUniverse() });
+		global.engine = new Engine({ rootPath: runPath });
 
-		// set environment to test mode
-		process.env.NODE_ENV = "test";
-
-		// run the tests
-		mocha.run((failures) => {
-			process.exit(failures);
-		});
+		await vitest.start([`${runPath}/**/*.{spec,test}.js`]);
 	}
 }
 
-export default new TestCommand();
+export default new TestCommand().buildCommand();

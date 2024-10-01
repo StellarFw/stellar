@@ -1,5 +1,6 @@
 import path from "path";
 import { spawn } from "child_process";
+import { Command as NativeCommand } from "commander";
 
 import Engine from "../lib/engine.js";
 
@@ -33,9 +34,6 @@ export class Command {
 		this.isToInitialize = initialize;
 		this.api = null;
 		this.engine = null;
-
-		// FIX `this` binding in the `run` method
-		this.run = this.run.bind(this);
 	}
 
 	/**
@@ -66,10 +64,18 @@ export class Command {
 	}
 
 	/**
-	 * Catch the sywac command call.
+	 * Create command instance.
+	 *
+	 * @returns {NativeCommand}
+	 */
+	buildCommand() {
+		return new NativeCommand(this.flags).description(this.desc).action((options) => this.run(options));
+	}
+
+	/**
+	 * Catch the Commander command call.
 	 */
 	run(args) {
-		// store the args
 		this.args = args;
 
 		// if the user requested to run this as a deamon we must spawn a new process
@@ -106,7 +112,6 @@ export class Command {
 				});
 		}
 
-		// run the command
 		this.exec();
 	}
 
@@ -135,5 +140,14 @@ export class Command {
 	 */
 	printSuccess(msg) {
 		console.log(`${this.FgGreen}Success: ${msg}${this.FgDefault}`);
+	}
+
+	/**
+	 * Function to be executed when the command is called.
+	 *
+	 * @param {*} _options
+	 */
+	exec(_options) {
+		throw new Error("Exec needs to be implemented by the sub-class");
 	}
 }
