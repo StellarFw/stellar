@@ -4,7 +4,6 @@
 node_modules
 npm-debug.log
 
-
 ############################
 # tmp, editor & OS files
 ############################
@@ -29,6 +28,7 @@ coverage/*
 # Other
 ############################
 .node_history
+.direnv/
 
 ############################
 # Project
