@@ -2,7 +2,7 @@
 
 import os from "os";
 import fs from "fs";
-import path from "path";
+import path, { join } from "path";
 import { randomBytes } from "crypto";
 import { readFile } from "fs/promises";
 
@@ -552,24 +552,38 @@ export class Utils {
 	/**
 	 * Custom require function to load from the core scope and then from the project scope.
 	 *
-	 * @note: this is a ugly hack but it's working!
+	 * ESM isn't able to resolve directories so we need to do that ourselves.
+	 *
+	 * @param {string} path
 	 */
 	async require(path) {
-		// try load module from the core
-		try {
-			return import(path);
-		} catch (e) {
-			if (this.api == null) {
-				throw e;
+		let attemptPath = path;
+
+		// try to load the dependency from the core. If it fails we need to load it from the project dependencies; and it's
+		// here where the adventures starts, before there is no way to automatically resolve dependencies, we need to find
+		// out what is the file to load.
+		return import(attemptPath).catch(async () => {
+			attemptPath = `${this.api.scope.rootPath}/node_modules/${path}`;
+
+			// if it's a directory and has a package.json file we must check for the `main` property on it. It will tell us
+			// which directory we should check for the export files.
+			const possiblePackageJsonPath = join(attemptPath, "package.json");
+			if (this.directoryExists(attemptPath) && this.fileExists(possiblePackageJsonPath)) {
+				const pkgMetaContent = await this.readJsonFile(possiblePackageJsonPath);
+
+				// if the main property exists we use it to try on the new location
+				if (pkgMetaContent["main"]) {
+					attemptPath = join(attemptPath, pkgMetaContent["main"]);
+				}
 			}
 
-			// if fails try load from the project folder
-			try {
-				return import(`${this.api.scope.rootPath}/node_modules/${path}`);
-			} catch (e) {
-				throw e;
+			// if the path it's a directory we append the `index.js` file
+			if (this.directoryExists(attemptPath)) {
+				attemptPath = join(attemptPath, "index.js");
 			}
-		}
+
+			return import(attemptPath);
+		});
 	}
 
 	// ------------------------------------------------------------- [Type Checks]
