@@ -189,7 +189,7 @@ export default class WebSocketServer extends GenericServer {
 
 		let defaultsString = util.inspect(defaults);
 		defaultsString = defaultsString.replace("'window.location.origin'", "window.location.origin");
-		clientSource = clientSource.replace("'%%DEFAULTS%%'", defaultsString);
+		clientSource = clientSource.replace(`"%%DEFAULTS%%"`, defaultsString);
 
 		// remove ESM export
 		clientSource = clientSource.replace("export {};", "");
