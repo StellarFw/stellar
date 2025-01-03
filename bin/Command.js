@@ -5,6 +5,7 @@ import { Command as NativeCommand } from "commander";
 import Engine from "../src/engine.ts";
 
 import { getStellarMetadata } from "./utils.js";
+import process from "node:process";
 
 /**
  * All command extends this class in order to initialize Stellar and

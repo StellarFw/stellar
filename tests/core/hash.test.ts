@@ -3,6 +3,7 @@ import { describe, beforeAll, afterAll, it, afterEach } from "vitest";
 import Engine from "../../src/engine";
 import { expect } from "vitest";
 import { API } from "../../src/interfaces/api.interface";
+import process from "node:process";
 
 const engine = new Engine({ rootPath: `${process.cwd()}/example` });
 

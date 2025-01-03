@@ -1,5 +1,6 @@
 import fs, { access, mkdir, readFile, readdir, rmdir, stat, unlink, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import process from "node:process";
 
 /**
  * Get the current universe.

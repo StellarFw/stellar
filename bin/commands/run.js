@@ -2,6 +2,7 @@ import os from "node:os";
 import cluster from "node:cluster";
 
 import { Command } from "../Command.js";
+import process from "node:process";
 
 class RunCommand extends Command {
 	constructor() {

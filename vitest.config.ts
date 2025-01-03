@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig, defaultExclude } from "vitest/config";
 
 export default defineConfig({
 	define: {
@@ -8,5 +8,6 @@ export default defineConfig({
 	test: {
 		globals: false,
 		includeSource: ["src/**/*.{js,ts}"],
+		exclude: [...defaultExclude, ".direnv/**"],
 	},
 });

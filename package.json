@@ -21,6 +21,7 @@
 	"scripts": {
 		"dev": "rm -rf dist && ts-node-dev --transpile-only --no-deps ./src/engine",
 		"build": "rm -rf lib && ./node_modules/.bin/tsc -p tsconfig.build.json",
+		"test": "vitest",
 		"test-unit": "vitest ./src/**/*",
 		"test-e2e": "vitest ./tests/**/*",
 		"coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
@@ -42,7 +43,7 @@
 		"log": "^3.2.0",
 		"mime": "^2.4.6",
 		"node-resque": "^9.3.3",
-		"primus": "8.0.9",
+		"primus": "^8.0.9",
 		"qs": "^6.5.0",
 		"ramda": "^0.27.1",
 		"ramda-adjunct": "^5.1.0",

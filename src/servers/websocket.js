@@ -9,7 +9,7 @@ import GenericServer from "../genericServer.js";
 const type = "websocket";
 
 // server attributes
-let attributes = {
+const attributes = {
 	canChat: true,
 	logConnections: true,
 	logExists: true,
@@ -54,7 +54,10 @@ export default class WebSocketServer extends GenericServer {
 	 * Start the server
 	 */
 	start() {
-		let webserver = this.api.servers.servers.web;
+		const webserver = this.api.servers.servers.web;
+		if (!webserver) {
+			throw new Error("websocket server requires web server to be enabled");
+		}
 
 		// create a new primus instance
 		this.server = new Primus(webserver.server, this.api.config.servers.websocket.server);

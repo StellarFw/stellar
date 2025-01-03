@@ -84,15 +84,15 @@ export default class Web extends GenericServer {
 	 * Start the server instance.
 	 */
 	async start() {
-		// check if id to create a HTTP or a HTTPS server
-		if (this.options.secure === false) {
-			let http = await import("node:http");
-			this.server = http.createServer((req, res) => {
+		// Use the HTTP or HTTPS server based on the provided configuration
+		if (this.options.secure) {
+			const https = await import("node:https");
+			this.server = https.createServer(this.api.config.servers.web.serverOptions, (req, res) => {
 				this._handleRequest(req, res);
 			});
 		} else {
-			let https = await import("node:https");
-			this.server = https.createServer(this.api.config.servers.web.serverOptions, (req, res) => {
+			const http = await import("node:http");
+			this.server = http.createServer((req, res) => {
 				this._handleRequest(req, res);
 			});
 		}

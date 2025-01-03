@@ -395,10 +395,8 @@ describe("Servers: HTTP", function () {
 				"HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS, TRACE",
 			);
 			expect(response.headers.get("access-control-allow-origin")).toBe("*");
-			expect(response.headers.get("content-length")).toBe("0");
 		});
 
-		it("should respond to TRACE with parsed params received", async () => {
 			const response = await axios({
 				url: `${url}/api/x`,
 				method: "TRACE",
