@@ -119,42 +119,48 @@ export class Utils {
 	 * Get all .js files in a directory.
 	 *
 	 * @param dir
-	 * @param extension
+	 * @param extensions
 	 * @returns {Array.<T>}
 	 */
-	recursiveDirectoryGlob(dir, extension = "js") {
-		var results = [];
+	recursiveDirectoryGlob(dir, extensions = ["js", "ts"]) {
+		const results = [];
 
-		extension = extension.replace(".", "");
+		extensions = extensions.map((ext) => ext.replace(".", ""));
+
 		if (dir[dir.length - 1] !== "/") {
 			dir += "/";
 		}
 
-		if (fs.existsSync(dir)) {
-			fs.readdirSync(dir).forEach((file) => {
-				let fullFilePath = path.normalize(dir + file);
-				if (file[0] !== ".") {
-					// ignore 'system' files
-					let stats = fs.statSync(fullFilePath);
-					let child;
-
-					if (stats.isDirectory()) {
-						child = this.recursiveDirectoryGlob(fullFilePath, extension);
-						child.forEach((c) => results.push(c));
-					} else if (stats.isSymbolicLink()) {
-						let realPath = fs.readlinkSync(fullFilePath);
-						child = this.recursiveDirectoryGlob(realPath);
-						child.forEach((c) => results.push(c));
-					} else if (stats.isFile()) {
-						let fileParts = file.split(".");
-						let ext = fileParts[fileParts.length - 1];
-						if (ext === extension) {
-							results.push(fullFilePath);
-						}
-					}
-				}
-			});
+		if (!fs.existsSync(dir)) {
+			return results;
 		}
+
+		fs.readdirSync(dir).forEach((file) => {
+			const fullFilePath = path.normalize(dir + file);
+
+			if (file[0] === ".") {
+				return;
+			}
+
+			// ignore 'system' files
+			const stats = fs.statSync(fullFilePath);
+			let child;
+
+			if (stats.isDirectory()) {
+				child = this.recursiveDirectoryGlob(fullFilePath, extensions);
+				child.forEach((c) => results.push(c));
+			} else if (stats.isSymbolicLink()) {
+				const realPath = fs.readlinkSync(fullFilePath);
+				child = this.recursiveDirectoryGlob(realPath, extensions);
+				child.forEach((c) => results.push(c));
+			} else if (stats.isFile()) {
+				const fileParts = file.split(".");
+				const ext = fileParts[fileParts.length - 1];
+				if (extensions.includes(ext)) {
+					results.push(fullFilePath);
+				}
+			}
+		});
 
 		return results.sort();
 	}

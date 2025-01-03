@@ -228,7 +228,7 @@ class EventsManager {
 			}
 
 			// get all listeners files and load them
-			const listenersFiles = this.api.utils.recursiveDirectoryGlob(listenersFolderPath, "js");
+			const listenersFiles = this.api.utils.recursiveDirectoryGlob(listenersFolderPath);
 
 			for (const listenerPath of listenersFiles) {
 				await this._loadFile(listenerPath);

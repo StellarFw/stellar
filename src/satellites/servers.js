@@ -32,7 +32,7 @@ class Servers {
 	 */
 	async loadServers() {
 		// get the list of servers to load
-		let serversFiles = this.api.utils.recursiveDirectoryGlob(path.resolve(`${import.meta.dirname}/../servers`));
+		const serversFiles = this.api.utils.recursiveDirectoryGlob(path.resolve(`${import.meta.dirname}/../servers`));
 
 		for (let file of serversFiles) {
 			let parts = file.split(/[\/\\]+/);
@@ -61,7 +61,7 @@ class Servers {
 	 */
 	async startServers() {
 		for (const serverName in this.servers) {
-			let server = this.servers[serverName];
+			const server = this.servers[serverName];
 
 			// only load the server if the server is enabled
 			if (server.options.enable !== true) {
