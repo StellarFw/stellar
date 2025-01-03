@@ -1,6 +1,6 @@
-import cluster from "cluster";
+import cluster from "node:cluster";
 import { fetchJsonFile } from "../utils.js";
-import { resolve } from "path";
+import { resolve } from "node:path";
 
 /**
  * Setup the server ID.

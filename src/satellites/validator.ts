@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 
-import { resolve } from "path";
+import { resolve } from "node:path";
 
-import { fetchJsonFile } from "../utils.js";
+import { fetchJsonFile } from "../utils.ts";
 
 let Messages = {};
 const fetchMessages = async () => {

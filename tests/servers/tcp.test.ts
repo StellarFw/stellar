@@ -1,8 +1,8 @@
 import { describe, beforeAll, afterAll, it, expect, beforeEach, afterEach } from "vitest";
 
-import Engine from "../../lib/engine";
+import Engine from "../../src/engine";
 import { connect } from "net";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { API } from "../../src/interfaces/api.interface";
 
 const engine = new Engine({ rootPath: `${process.cwd()}/example` });

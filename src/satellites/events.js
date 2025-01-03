@@ -1,5 +1,5 @@
 import async from "async";
-import { join } from "path";
+import { join } from "node:path";
 
 /**
  * Class to manage events.

@@ -1,6 +1,6 @@
 import winston from "winston";
 import "winston-daily-rotate-file";
-import cluster from "cluster";
+import cluster from "node:cluster";
 import chalk from "chalk";
 
 const colors = {

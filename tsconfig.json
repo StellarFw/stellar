@@ -15,7 +15,7 @@
 		// "paths": {
 		// 	"@stellar/*": ["./src/*"]
 		// },
-		"types": ["node"]
+		"types": ["node", "vitest/importMeta"]
 	},
 	"exclude": ["./example/**/*"],
 	"include": ["./src", "./cli", "./tests"]

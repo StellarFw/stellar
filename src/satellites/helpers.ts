@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import GenericServer from "../genericServer.js";
 
 class TestServer extends GenericServer {

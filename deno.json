@@ -1,0 +1,9 @@
+{
+	"imports": {},
+	"compilerOptions": {
+		"strict": true,
+		"strictNullChecks": true,
+		"types": ["node", "vitest/importMeta"]
+	},
+	"unstable": ["sloppy-imports"]
+}

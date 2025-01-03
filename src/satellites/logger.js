@@ -1,4 +1,4 @@
-import { mkdir } from "fs/promises";
+import { mkdir } from "node:fs/promises";
 import winston from "winston";
 
 export default class {

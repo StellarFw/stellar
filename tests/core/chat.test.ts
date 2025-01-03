@@ -1,6 +1,6 @@
 import { describe, beforeAll, afterAll, it, afterEach } from "vitest";
 
-import Engine from "../../lib/engine";
+import Engine from "../../src/engine";
 import { expect } from "vitest";
 import { API } from "../../src/interfaces/api.interface";
 

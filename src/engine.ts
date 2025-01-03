@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
-import path, { join } from "path";
+import path, { join } from "node:path";
 import { Utils as UtilsClass } from "./satellites/utils.js";
-import { ensureNoTsHeaderOrSpecFiles, safeGlob } from "./utils/file.js";
+import { ensureNoTsHeaderOrSpecFiles, safeGlob } from "./utils/file.ts";
 
 // FIXME: this is a temporary workaround, we must make this more professional
 const Utils = new UtilsClass();

@@ -1,8 +1,8 @@
-import path from "path";
-import { spawn } from "child_process";
+import path from "node:path";
+import { spawn } from "node:child_process";
 import { Command as NativeCommand } from "commander";
 
-import Engine from "../lib/engine.js";
+import Engine from "../src/engine.ts";
 
 import { getStellarMetadata } from "./utils.js";
 

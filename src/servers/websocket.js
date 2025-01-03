@@ -1,12 +1,12 @@
-import fs from "fs";
-import util from "util";
-import path from "path";
+import fs from "node:fs";
+import util from "node:util";
+import path from "node:path";
 import Primus from "primus";
 import UglifyJS from "uglify-js";
 import GenericServer from "../genericServer.js";
 
 // server type
-let type = "websocket";
+const type = "websocket";
 
 // server attributes
 let attributes = {

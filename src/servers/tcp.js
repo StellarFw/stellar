@@ -1,10 +1,10 @@
-import net from "net";
-import tls from "tls";
+import net from "node:net";
+import tls from "node:tls";
 import GenericServer from "../genericServer.js";
-import { sleep } from "../utils.js";
+import { sleep } from "../utils.ts";
 
 // server type
-let type = "tcp";
+const type = "tcp";
 
 // server attributes
 let attributes = {

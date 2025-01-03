@@ -1,5 +1,5 @@
 import common from "winston/lib/winston/common.js";
-import os from "os";
+import os from "node:os";
 import { Transport } from "winston";
 import chalk from "chalk";
 import util from "util";

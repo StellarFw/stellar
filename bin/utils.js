@@ -1,5 +1,5 @@
-import fs, { access, mkdir, readFile, readdir, rmdir, stat, unlink, writeFile } from "fs/promises";
-import { resolve } from "path";
+import fs, { access, mkdir, readFile, readdir, rmdir, stat, unlink, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
 
 /**
  * Get the current universe.

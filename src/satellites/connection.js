@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 
 /**
  * Create a clean connection.
@@ -6,8 +6,8 @@ import { randomUUID } from "crypto";
  * @param connection  Connection object.
  * @returns {{}}      New clean connection object.
  */
-let cleanConnection = (connection) => {
-	let clean = {};
+const cleanConnection = (connection) => {
+	const clean = {};
 
 	for (let i in connection) {
 		if (i !== "rawConnection") {

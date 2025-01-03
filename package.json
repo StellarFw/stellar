@@ -21,14 +21,14 @@
 	"scripts": {
 		"dev": "rm -rf dist && ts-node-dev --transpile-only --no-deps ./src/engine",
 		"build": "rm -rf lib && ./node_modules/.bin/tsc -p tsconfig.build.json",
-		"pretest": "pnpm build",
-		"test": "vitest",
+		"test-unit": "vitest ./src/**/*",
+		"test-e2e": "vitest ./tests/**/*",
 		"coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
 		"lint": "eslint src"
 	},
 	"dependencies": {
 		"async": "^2.5.0",
-		"bcrypt": "5.0.0",
+		"bcrypt": "^5.1.1",
 		"bluebird": "^3.5.0",
 		"browser_fingerprint": "1.0.4",
 		"chalk": "^5.3.0",
@@ -45,6 +45,7 @@
 		"primus": "8.0.9",
 		"qs": "^6.5.0",
 		"ramda": "^0.27.1",
+		"ramda-adjunct": "^5.1.0",
 		"sails-disk": "1.0.0-12",
 		"should": "^13.0.0",
 		"source-map-support": "^0.5.0",
@@ -91,7 +92,7 @@
 		"stellar": "./bin/stellar"
 	},
 	"exports": {
-		".": "./src/engine.ts",
+		".": "./src/engine.js",
 		"./*": "./src/*"
 	},
 	"packageManager": "pnpm@9.10.0+sha512.73a29afa36a0d092ece5271de5177ecbf8318d454ecd701343131b8ebc0c1a91c487da46ab77c8e596d6acf1461e3594ced4becedf8921b074fbd8653ed7051c"

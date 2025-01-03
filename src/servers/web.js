@@ -1,17 +1,18 @@
-import fs from "fs";
+import fs from "node:fs";
 import qs from "qs";
-import url from "url";
-import path from "path";
-import zlib from "zlib";
+import url from "node:url";
+import path from "node:path";
+import zlib from "node:zlib";
 import etag from "etag";
 import Mime from "mime";
 import formidable from "st-formidable";
 import GenericServer from "../genericServer.js";
 import BrowserFingerprint from "browser_fingerprint";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
+import { Buffer } from "node:buffer";
 
 // server type
-let type = "web";
+const type = "web";
 
 // server attributes
 let attributes = {
@@ -85,12 +86,12 @@ export default class Web extends GenericServer {
 	async start() {
 		// check if id to create a HTTP or a HTTPS server
 		if (this.options.secure === false) {
-			let http = await import("http");
+			let http = await import("node:http");
 			this.server = http.createServer((req, res) => {
 				this._handleRequest(req, res);
 			});
 		} else {
-			let https = await import("https");
+			let https = await import("node:https");
 			this.server = https.createServer(this.api.config.servers.web.serverOptions, (req, res) => {
 				this._handleRequest(req, res);
 			});

@@ -2,7 +2,7 @@ import { describe, beforeAll, afterAll, it, expect } from "vitest";
 
 import axios, { AxiosError } from "axios";
 
-import Engine from "../../lib/engine";
+import Engine from "../../src/engine";
 import { sleep } from "../../src/utils";
 import { API } from "../../src/interfaces/api.interface";
 const engine = new Engine({ rootPath: `${process.cwd()}/example` });

@@ -1,5 +1,5 @@
 // module dependencies
-import path from "path";
+import path from "node:path";
 
 /**
  * Manager for server instances.
@@ -84,7 +84,7 @@ class Servers {
 				await server.start();
 				this.api.log(`Server started: ${serverName}`, "debug");
 			} catch (error) {
-				this.api.log(`Failed to start server "${serverName}"`, "emerg");
+				this.api.log(`Failed to start server "${serverName}"`, "emerg", error);
 			}
 		}
 	}
