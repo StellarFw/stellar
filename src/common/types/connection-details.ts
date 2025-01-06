@@ -1,4 +1,4 @@
-export interface ConnectionDetails {
+export type ConnectionDetails = {
 	/**
 	 * Connection type.
 	 */
@@ -77,4 +77,4 @@ export interface ConnectionDetails {
 	 * Execute a verb for this connection.
 	 */
 	verbs?: (verb: string, words: Array<string>) => Promise<unknown>;
-}
+};

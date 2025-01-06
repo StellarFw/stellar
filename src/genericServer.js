@@ -3,7 +3,7 @@ import { EventEmitter } from "node:events";
 /**
  * This function is called when the method is not implemented.
  */
-let methodNotDefined = () => {
+const methodNotDefined = () => {
 	throw new Error("The containing method should be defined for this server type");
 };
 
@@ -60,15 +60,15 @@ export default class GenericServer extends EventEmitter {
 	/**
 	 * Build a new connection object.
 	 *
-	 * @param data Connection data.
+	 * @param params Connection data.
 	 */
-	buildConnection(data) {
-		let details = {
+	buildConnection(params) {
+		const details = {
 			type: this.type,
-			id: data.id,
-			remotePort: data.remotePort,
-			remoteIP: data.remoteAddress,
-			rawConnection: data.rawConnection,
+			id: params.id,
+			remotePort: params.remotePort,
+			remoteIP: params.remoteAddress,
+			rawConnection: params.rawConnection,
 		};
 
 		// if the server canChat enable the flag on the connection
@@ -77,15 +77,15 @@ export default class GenericServer extends EventEmitter {
 		}
 
 		// if the connection doesn't have a fingerprint already create one
-		if (data.fingerprint) {
-			details.fingerprint = data.fingerprint;
+		if (params.fingerprint) {
+			details.fingerprint = params.fingerprint;
 		}
 
 		// get connection class
-		let ConnectionClass = this.api.connection;
+		const ConnectionClass = this.api.connection;
 
 		// create a new connection instance
-		let connection = new ConnectionClass(this.api, details);
+		const connection = new ConnectionClass(this.api, details);
 
 		// define sendMessage method
 		connection.sendMessage = (message) => {
@@ -136,7 +136,7 @@ export default class GenericServer extends EventEmitter {
 	processAction(connection) {
 		// create a new action processor instance for this request
 		const ActionProcessor = this.api.actionProcessor;
-		let actionProcessor = new ActionProcessor(this.api, connection, (data) => {
+		const actionProcessor = new ActionProcessor(this.api, connection, (data) => {
 			this.emit("actionComplete", data);
 		});
 
@@ -205,8 +205,9 @@ export default class GenericServer extends EventEmitter {
 	 *
 	 * @param connection  Connection object.
 	 * @param message     Message be sent back to the client.
+	 * @param messageCount Number of the message already sent for this client.
 	 */
-	sendMessage() {
+	sendMessage(connection, message, messageCount) {
 		methodNotDefined();
 	}
 
@@ -216,7 +217,7 @@ export default class GenericServer extends EventEmitter {
 	 * @param connection  Connection object.
 	 * @param reason      Reason for disconnection.
 	 */
-	goodbye() {
+	goodbye(connection, reason) {
 		methodNotDefined();
 	}
 }

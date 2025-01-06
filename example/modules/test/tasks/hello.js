@@ -6,7 +6,7 @@ export default {
 	frequency: 1000,
 
 	run(api, params, next) {
-		api.log("hello", "debug");
+		api.log("Hello! I'm an action greeting you.", "debug");
 
 		next();
 	},

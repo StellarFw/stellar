@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 import { randomUUID } from "node:crypto";
-import { API } from "./interfaces/api.interface";
-import { ConnectionDetails } from "./interfaces/connection-details";
+import { API } from "./interfaces/api.interface.ts";
+import { ConnectionDetails } from "./common/types/connection-details.ts";
 
 /**
  * This class represents an active connection.
  */
-export class Connection implements ConnectionDetails {
+export class Connection<C = unknown> implements ConnectionDetails {
 	/**
 	 * Api reference.
 	 */
@@ -80,7 +79,7 @@ export class Connection implements ConnectionDetails {
 	/**
 	 * Raw connection.
 	 */
-	public rawConnection: unknown = null;
+	public rawConnection!: C;
 
 	/**
 	 * Is used to mark the connection as destroyed.
@@ -99,7 +98,7 @@ export class Connection implements ConnectionDetails {
 	 * @param api Stellar API reference
 	 * @param data hash map
 	 */
-	constructor(api, data) {
+	constructor(api: API, data) {
 		this.api = api;
 		this.setup(data);
 
