@@ -1,4 +1,4 @@
-import { describe, beforeAll, afterAll, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, beforeAll, afterAll, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 import Engine from "../../src/engine.ts";
 import { randomUUID } from "node:crypto";
@@ -312,38 +312,11 @@ describe("Servers: TCP", function () {
 		});
 	});
 
-	describe.skip("chat", function () {
-		beforeAll(() => {
-			api.chatRoom.addMiddleware({
-				name: "join chat middleware",
-				join: (connection, room, callback) => {
-					api.chatRoom.emit(room, "message", `I have entered the room: ${connection.id}`).then((_) => {
-						callback();
-					});
-				},
-			});
-
-			api.chatRoom.addMiddleware({
-				name: "leave chat middleware",
-				leave: (connection, room, callback) => {
-					api.chatRoom.emit(room, "message", `I have left the room: ${connection.id}`).then((_) => {
-						callback();
-					});
-				},
-			});
-		});
-
-		afterAll(() => {
-			api.chatRoom.middleware = {};
-			api.chatRoom.globalMiddleware = [];
-		});
-
+	describe("chat", function () {
 		beforeEach(async () => {
 			await makeSocketRequest(client1, "roomJoin defaultRoom");
 			await makeSocketRequest(client2, "roomJoin defaultRoom");
 			await makeSocketRequest(client3, "roomJoin defaultRoom");
-
-			return new Promise((resolve) => setTimeout(resolve, 250));
 		});
 
 		afterEach(async () => {
@@ -352,23 +325,17 @@ describe("Servers: TCP", function () {
 				await makeSocketRequest(client2, `roomLeave ${room}`);
 				await makeSocketRequest(client3, `roomLeave ${room}`);
 			}
-
-			return new Promise((resolve) => setTimeout(resolve, 250));
 		});
 
 		it("clients are in the default room", async () => {
 			await expect(makeSocketRequest(client1, "roomView defaultRoom")).resolves.toMatchObject({
-				data: {
-					room: "defaultRoom",
-				},
+				data: { room: "defaultRoom" },
 			});
 		});
 
 		it("clients can view additional info about rooms they are in", async () => {
 			await expect(makeSocketRequest(client1, "roomView defaultRoom")).resolves.toMatchObject({
-				data: {
-					membersCount: 3,
-				},
+				data: { membersCount: 3 },
 			});
 		});
 
@@ -389,11 +356,59 @@ describe("Servers: TCP", function () {
 		it("connections in the first room see the count go down", async () => {
 			await makeSocketRequest(client1, "roomJoin otherRoom");
 			await makeSocketRequest(client1, "roomLeave defaultRoom");
+
 			await expect(makeSocketRequest(client2, "roomView defaultRoom")).resolves.toMatchObject({
 				data: {
 					room: "defaultRoom",
 					membersCount: 2,
 				},
+			});
+		});
+
+		describe("middleware", () => {
+			const joinFn = vi.fn();
+			const leaveFn = vi.fn();
+
+			beforeAll(() => {
+				api.chatRoom.addMiddleware({
+					name: "join chat middleware",
+					join: (connection, room, callback) => {
+						joinFn();
+
+						api.chatRoom.emit(room, "message", `I have entered the room: ${connection.id}`).then((_) => {
+							callback();
+						});
+					},
+				});
+
+				api.chatRoom.addMiddleware({
+					name: "leave chat middleware",
+					leave: (connection, room, callback) => {
+						leaveFn();
+
+						api.chatRoom.emit(room, "message", `I have left the room: ${connection.id}`).then((_) => {
+							callback();
+						});
+					},
+				});
+			});
+
+			afterAll(() => {
+				api.chatRoom.middleware = {};
+				api.chatRoom.globalMiddleware = [];
+			});
+
+			it("joining and leaving a run executes the middleware", async () => {
+				// join a run an ensure that the middleware is called
+				await expect(makeSocketRequest(client1, "roomJoin otherRoom")).resolves.toBeTruthy();
+				expect(joinFn).toHaveBeenCalled();
+
+				// consume the join message
+				await readSocket(client1);
+
+				// leave a run an ensure that the middleware is called
+				await expect(makeSocketRequest(client1, "roomLeave otherRoom")).resolves.toBeTruthy();
+				expect(leaveFn).toHaveBeenCalled();
 			});
 		});
 	});
