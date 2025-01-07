@@ -1,8 +1,15 @@
 {
   "version": "4",
   "specifiers": {
+    "jsr:@std/assert@^1.0.10": "1.0.10",
+    "jsr:@std/data-structures@^1.0.5": "1.0.5",
+    "jsr:@std/expect@^1.0.10": "1.0.10",
+    "jsr:@std/fs@^1.0.8": "1.0.8",
+    "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/path@^1.0.8": "1.0.8",
+    "jsr:@std/testing@^1.0.8": "1.0.8",
     "npm:@types/node@^20.11.16": "20.17.11",
+    "npm:@types/ramda@~0.30.2": "0.30.2",
     "npm:@typescript-eslint/eslint-plugin@^6.21.0": "6.21.0_@typescript-eslint+parser@6.21.0__eslint@8.56.0__typescript@5.7.2_eslint@8.56.0_typescript@5.7.2",
     "npm:@typescript-eslint/parser@^6.21.0": "6.21.0_eslint@8.56.0_typescript@5.7.2",
     "npm:@vitest/coverage-v8@^2.1.2": "2.1.8_vitest@2.1.8__@types+node@20.17.11__@vitest+ui@2.1.8___vitest@2.1.8___@types+node@20.17.11__vite@5.4.11___@types+node@20.17.11_@types+node@20.17.11_@vitest+ui@2.1.8__vitest@2.1.8___@types+node@20.17.11___@vitest+ui@2.1.8___vite@5.4.11____@types+node@20.17.11__@types+node@20.17.11",
@@ -50,8 +57,43 @@
     "npm:ws@4": "4.1.0"
   },
   "jsr": {
+    "@std/assert@1.0.10": {
+      "integrity": "59b5cbac5bd55459a19045d95cc7c2ff787b4f8527c0dd195078ff6f9481fbb3",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    },
+    "@std/data-structures@1.0.5": {
+      "integrity": "86dd5c2d6365a6ad56e9103b3a877c5d5ade238c68ae463acfe0eb0e56d40783"
+    },
+    "@std/expect@1.0.10": {
+      "integrity": "7659b640447887cd1735f866962e10e434f12443b13595b149970c806e6f08db",
+      "dependencies": [
+        "jsr:@std/assert",
+        "jsr:@std/internal"
+      ]
+    },
+    "@std/fs@1.0.8": {
+      "integrity": "161c721b6f9400b8100a851b6f4061431c538b204bb76c501d02c508995cffe0",
+      "dependencies": [
+        "jsr:@std/path"
+      ]
+    },
+    "@std/internal@1.0.5": {
+      "integrity": "54a546004f769c1ac9e025abd15a76b6671ddc9687e2313b67376125650dc7ba"
+    },
     "@std/path@1.0.8": {
       "integrity": "548fa456bb6a04d3c1a1e7477986b6cffbce95102d0bb447c67c4ee70e0364be"
+    },
+    "@std/testing@1.0.8": {
+      "integrity": "ceef535808fb7568e91b0f8263599bd29b1c5603ffb0377227f00a8ca9fe42a2",
+      "dependencies": [
+        "jsr:@std/assert",
+        "jsr:@std/data-structures",
+        "jsr:@std/fs",
+        "jsr:@std/internal",
+        "jsr:@std/path"
+      ]
     }
   },
   "npm": {
@@ -400,6 +442,12 @@
       "integrity": "sha512-FDuKUJQm/ju9fT/SeX/6+gBzoPzlVCzfzmGkwKvRHQVxi4BntVbyIwf6a4Xn62mrvndLiml6z/UBXIdEVjQLXg==",
       "dependencies": [
         "undici-types"
+      ]
+    },
+    "@types/ramda@0.30.2": {
+      "integrity": "sha512-PyzHvjCalm2BRYjAU6nIB3TprYwMNOUY/7P/N8bSzp9W/yM2YrtGtAnnVtaCNSeOZ8DzKyFDvaqQs7LnWwwmBA==",
+      "dependencies": [
+        "types-ramda"
       ]
     },
     "@types/semver@7.5.8": {
@@ -3403,6 +3451,9 @@
         "yn"
       ]
     },
+    "ts-toolbelt@9.6.0": {
+      "integrity": "sha512-nsZd8ZeNUzukXPlJmTBwUAuABDe/9qtVDelJeT/qW0ow3ZS3BsQJtNkan1802aM9Uf68/Y8ljw86Hu0h5IUW3w=="
+    },
     "tsconfig-paths@3.15.0": {
       "integrity": "sha512-2Ac2RgzDe/cn48GvOe3M+o82pEFewD3UPbyoUHHdKasHwJKjds4fLXWf/Ux5kATBKN20oaFGu+jbElp1pos0mg==",
       "dependencies": [
@@ -3475,6 +3526,12 @@
         "is-typed-array",
         "possible-typed-array-names",
         "reflect.getprototypeof"
+      ]
+    },
+    "types-ramda@0.30.1": {
+      "integrity": "sha512-1HTsf5/QVRmLzcGfldPFvkVsAdi1db1BBKzi7iW3KBUlOICg/nKnFS+jGqDJS3YD8VsWbAh7JiHeBvbsw8RPxA==",
+      "dependencies": [
+        "ts-toolbelt"
       ]
     },
     "typescript@5.7.2": {
@@ -3797,11 +3854,15 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@std/path@^1.0.8"
+      "jsr:@std/assert@^1.0.10",
+      "jsr:@std/expect@^1.0.10",
+      "jsr:@std/path@^1.0.8",
+      "jsr:@std/testing@^1.0.8"
     ],
     "packageJson": {
       "dependencies": [
         "npm:@types/node@^20.11.16",
+        "npm:@types/ramda@~0.30.2",
         "npm:@typescript-eslint/eslint-plugin@^6.21.0",
         "npm:@typescript-eslint/parser@^6.21.0",
         "npm:@vitest/coverage-v8@^2.1.2",

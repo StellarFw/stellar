@@ -1,10 +1,14 @@
-import { describe, beforeAll, afterAll, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, beforeAll, afterAll, it, beforeEach, afterEach } from "@std/testing/bdd";
+import { expect } from "@std/expect";
+import { assertSpyCall, spy } from "@std/testing/mock";
+import { assert } from "@std/assert";
 
 import Engine from "../../src/engine.ts";
 import { randomUUID } from "node:crypto";
 import { API } from "../../src/interfaces/api.interface.ts";
 import { head } from "ramda";
 import { sleep } from "../../src/utils.ts";
+import { assertRejects } from "jsr:@std/assert@^1.0.10/rejects";
 
 /**
  * Time to wait for a response, in ms.
@@ -24,10 +28,12 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
 const readSocket = async (client: Deno.TcpConn, delimiter = "\r\n") => {
+	let timerId: number = 0;
+
 	// create a timeout promise for when the server doesn't respond in time
-	const timeoutPromise = new Promise<Uint8Array>((_, reject) =>
-		setTimeout(() => reject(new Error("Timeout reached")), TIMEOUT),
-	);
+	const timeoutPromise = new Promise<Uint8Array>((_, reject) => {
+		timerId = setTimeout(() => reject(new Error("Timeout reached")), TIMEOUT);
+	});
 
 	// create read promise
 	const readPromise = (async () => {
@@ -41,9 +47,15 @@ const readSocket = async (client: Deno.TcpConn, delimiter = "\r\n") => {
 	})();
 
 	const rawData = await Promise.race([readPromise, timeoutPromise]);
+
+	// cancel timeout timer
+	clearTimeout(timerId);
+
 	const data = decoder.decode(rawData);
 	const splittedResponse = data.split(delimiter);
 	const response = head(splittedResponse);
+
+	assert(response, "we need at least one response");
 
 	let parsed;
 	try {
@@ -173,8 +185,8 @@ describe("Servers: TCP", function () {
 		const response = await makeSocketRequest(client2, "detailsView");
 
 		expect(response.status).toBe("OK");
-		expect(response.data).toBeTypeOf("object");
-		expect(response.data.params).toBeTypeOf("object");
+		expect(response.data).toBeDefined();
+		expect(response.data.params).toBeDefined();
 	});
 
 	it("params can update", async () => {
@@ -366,8 +378,8 @@ describe("Servers: TCP", function () {
 		});
 
 		describe("middleware", () => {
-			const joinFn = vi.fn();
-			const leaveFn = vi.fn();
+			const joinFn = spy();
+			const leaveFn = spy();
 
 			beforeAll(() => {
 				api.chatRoom.addMiddleware({
@@ -400,15 +412,15 @@ describe("Servers: TCP", function () {
 
 			it("joining and leaving a run executes the middleware", async () => {
 				// join a run an ensure that the middleware is called
-				await expect(makeSocketRequest(client1, "roomJoin otherRoom")).resolves.toBeTruthy();
-				expect(joinFn).toHaveBeenCalled();
+				assert(await makeSocketRequest(client1, "roomJoin otherRoom"));
+				assertSpyCall(joinFn, 0);
 
 				// consume the join message
 				await readSocket(client1);
 
 				// leave a run an ensure that the middleware is called
 				await expect(makeSocketRequest(client1, "roomLeave otherRoom")).resolves.toBeTruthy();
-				expect(leaveFn).toHaveBeenCalled();
+				assertSpyCall(leaveFn, 0);
 			});
 		});
 	});
@@ -441,7 +453,7 @@ describe("Servers: TCP", function () {
 
 			await sleep(100);
 
-			expect(readSocket(innerClient)).rejects.toThrowError("Connection closed by the server");
+			await assertRejects(() => readSocket(innerClient), "Connection closed by the server");
 		});
 	});
 });

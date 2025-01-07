@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 import path, { join } from "node:path";
 import { Utils as UtilsClass } from "./satellites/utils.js";
 import { ensureNoTsHeaderOrSpecFiles, safeGlob } from "./utils/file.ts";
@@ -95,7 +94,7 @@ export default class Engine {
 
 		// finish the process execution
 		await this.stop();
-		process.exit(1);
+		Deno.exit(1);
 	}
 
 	// --------------------------------------------------------------------------- [Class]
