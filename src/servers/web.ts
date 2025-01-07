@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import qs from "qs";
 import url from "node:url";
-import path from "node:path";
+// import path from "node:path";
+import * as path from "@std/path";
 import zlib from "node:zlib";
 import etag from "etag";
 import Mime from "mime";
@@ -15,7 +16,7 @@ import { Buffer } from "node:buffer";
 const type = "web";
 
 // server attributes
-let attributes = {
+const attributes = {
 	canChat: false,
 	logConnections: false,
 	logExits: false,
@@ -155,10 +156,10 @@ export default class Web extends GenericServer {
 		this._cleanHeaders(connection);
 
 		// get the response headers
-		let headers = connection.rawConnection.responseHeaders;
+		const headers = connection.rawConnection.responseHeaders;
 
 		// get the response status code
-		let responseHttpCode = parseInt(connection.rawConnection.responseHttpCode);
+		const responseHttpCode = parseInt(connection.rawConnection.responseHttpCode);
 
 		// send the response to the client (use compression if active)
 		this.sendWithCompression(connection, responseHttpCode, headers, stringResponse);
@@ -218,7 +219,7 @@ export default class Web extends GenericServer {
 		// This function is used to send the response to the client.
 		const sendRequestResult = () => {
 			// parse the HTTP status code to int
-			let responseHttpCode = parseInt(connection.rawConnection.responseHttpCode, 10);
+			const responseHttpCode = parseInt(connection.rawConnection.responseHttpCode, 10);
 
 			if (error) {
 				const errorString = error instanceof Error ? String(error) : JSON.stringify(error);
@@ -262,7 +263,7 @@ export default class Web extends GenericServer {
 				connection.rawConnection.responseHeaders.push(["ETag", fileEtag]);
 
 				let noneMatchHeader = reqHeaders["if-none-match"];
-				let cacheCtrlHeader = reqHeaders["cache-control"];
+				const cacheCtrlHeader = reqHeaders["cache-control"];
 				let noCache = false;
 				let etagMatches;
 
@@ -308,7 +309,7 @@ export default class Web extends GenericServer {
 	 */
 	sendWithCompression(connection, responseHttpCode, headers, stringResponse, fileStream, fileLength) {
 		let compressor, stringEncoder;
-		let acceptEncoding = connection.rawConnection.req.headers["accept-encoding"];
+		const acceptEncoding = connection.rawConnection.req.headers["accept-encoding"];
 
 		// Note: this is not a conformant accept-encoding parser.
 		// https://nodejs.org/api/zlib.html#zlib_zlib_createinflate_options
@@ -381,11 +382,11 @@ export default class Web extends GenericServer {
 		// get the client fingerprint
 		const { fingerprint, headersHash } = this.fingerprinter.fingerprint(req);
 
-		let responseHeaders = [];
-		let cookies = this.api.utils.parseCookies(req);
-		let responseHttpCode = 200;
-		let method = req.method.toUpperCase();
-		let parsedURL = url.parse(req.url, true);
+		const responseHeaders = [];
+		const cookies = this.api.utils.parseCookies(req);
+		const responseHttpCode = 200;
+		const method = req.method.toUpperCase();
+		const parsedURL = url.parse(req.url, true);
 		let i;
 
 		// push all cookies from the request to the response
@@ -483,8 +484,8 @@ export default class Web extends GenericServer {
 	_determineRequestParams(connection, callback) {
 		// determine if is a file or an api request
 		let requestMode = this.api.config.servers.web.rootEndpointType;
-		let pathname = connection.rawConnection.parsedURL.pathname;
-		let pathParts = pathname.split("/");
+		const pathname = connection.rawConnection.parsedURL.pathname;
+		const pathParts = pathname.split("/");
 		let matcherLength, i;
 
 		// remove empty parts from the beginning of the path
@@ -521,7 +522,7 @@ export default class Web extends GenericServer {
 		}
 
 		// split parsed URL by '.'
-		var extensionParts = connection.rawConnection.parsedURL.pathname.split(".");
+		const extensionParts = connection.rawConnection.parsedURL.pathname.split(".");
 
 		if (extensionParts.length > 1) {
 			connection.extension = extensionParts[extensionParts.length - 1];
@@ -543,7 +544,7 @@ export default class Web extends GenericServer {
 			connection.rawConnection.parsedURL.search =
 				typeof connection.rawConnection.parsedURL.search === "string" ? connection.rawConnection.parsedURL.search : "";
 
-			let search = connection.rawConnection.parsedURL.search.slice(1);
+			const search = connection.rawConnection.parsedURL.search.slice(1);
 			this._fillParamsFromWebRequest(connection, qs.parse(search, this.api.config.servers.web.queryParseOptions));
 
 			connection.rawConnection.params.query = connection.rawConnection.parsedURL.query;
@@ -591,7 +592,7 @@ export default class Web extends GenericServer {
 			}
 		} else if (requestMode === "file") {
 			if (!connection.params.file) {
-				connection.params.file = pathParts.join(path.sep);
+				connection.params.file = pathParts.join(path.SEPARATOR);
 			}
 
 			if (connection.params.file === "" || connection.params.file[connection.params.file.length - 1] === "/") {
@@ -605,8 +606,8 @@ export default class Web extends GenericServer {
 
 	processClientLib(connection) {
 		// client lib
-		let file = path.normalize(
-			`${this.api.config.general.paths.public + path.sep + this.api.config.servers.websocket.clientJsName}.js`,
+		const file = path.normalize(
+			`${this.api.config.general.paths.public + path.SEPARATOR + this.api.config.servers.websocket.clientJsName}.js`,
 		);
 
 		// define the file to be loaded
@@ -625,7 +626,7 @@ export default class Web extends GenericServer {
 	 */
 	_fillParamsFromWebRequest(connection, varsHash) {
 		// helper for JSON parts
-		let collapsedVarsHash = this.api.utils.collapseObjectToArray(varsHash);
+		const collapsedVarsHash = this.api.utils.collapseObjectToArray(varsHash);
 
 		if (collapsedVarsHash !== false) {
 			// post was an array, lets call it "payload"
@@ -633,7 +634,7 @@ export default class Web extends GenericServer {
 		}
 
 		// copy requests params to connection object
-		for (let v in varsHash) {
+		for (const v in varsHash) {
 			connection.params[v] = varsHash[v];
 		}
 	}
@@ -660,7 +661,7 @@ export default class Web extends GenericServer {
 		}
 
 		if (this.api.config.servers.web.metadataOptions.serverInformation) {
-			let stopTime = new Date().getTime();
+			const stopTime = new Date().getTime();
 
 			data.response.serverInformation = {
 				serverName: this.api.config.general.serverName,
@@ -764,7 +765,7 @@ export default class Web extends GenericServer {
 	 */
 	_buildRequesterInformation(connection) {
 		// build the request information object
-		let requesterInformation = {
+		const requesterInformation = {
 			id: connection.id,
 			fingerprint: connection.fingerprint,
 			remoteIP: connection.remoteIP,
@@ -772,7 +773,7 @@ export default class Web extends GenericServer {
 		};
 
 		// copy all the connection params to the request information
-		for (let param in connection.params) {
+		for (const param in connection.params) {
 			requesterInformation.receivedParams[param] = connection.params[param];
 		}
 
@@ -788,15 +789,15 @@ export default class Web extends GenericServer {
 	 */
 	_cleanHeaders(connection) {
 		// make a copy of the original headers
-		let originalHeaders = connection.rawConnection.responseHeaders.reverse();
-		let foundHeaders = [];
-		let cleanedHeaders = [];
+		const originalHeaders = connection.rawConnection.responseHeaders.reverse();
+		const foundHeaders = [];
+		const cleanedHeaders = [];
 
 		// iterate all headers and remove duplications and unnecessary headers
-		for (let i in originalHeaders) {
+		for (const i in originalHeaders) {
 			// get header name and value
-			let key = originalHeaders[i][0];
-			let value = originalHeaders[i][1];
+			const key = originalHeaders[i][0];
+			const value = originalHeaders[i][1];
 
 			if (foundHeaders.indexOf(key.toLowerCase()) >= 0 && key.toLowerCase().indexOf("set-cookie") < 0) {
 				// ignore, it's a duplicate
@@ -824,7 +825,7 @@ export default class Web extends GenericServer {
 			!this.api.config.servers.web.httpHeaders["Access-Control-Allow-Methods"] &&
 			!this._extractHeader(connection, "Access-Control-Allow-Methods")
 		) {
-			let methods = "HEAD, GET, POST, PUT, DELETE, OPTIONS, TRACE";
+			const methods = "HEAD, GET, POST, PUT, DELETE, OPTIONS, TRACE";
 			connection.rawConnection.responseHeaders.push(["Access-Control-Allow-Methods", methods]);
 		}
 
@@ -833,7 +834,7 @@ export default class Web extends GenericServer {
 			!this.api.config.servers.web.httpHeaders["Access-Control-Allow-Origin"] &&
 			!this._extractHeader(connection, "Access-Control-Allow-Origin")
 		) {
-			var origin = "*";
+			const origin = "*";
 			connection.rawConnection.responseHeaders.push(["Access-Control-Allow-Origin", origin]);
 		}
 
@@ -849,10 +850,10 @@ export default class Web extends GenericServer {
 	 */
 	_respondToTrace(connection) {
 		// build the request information
-		let data = this._buildRequesterInformation(connection);
+		const data = this._buildRequesterInformation(connection);
 
 		// build the response string and send it to the client
-		let stringResponse = JSON.stringify(data, null, this.api.config.servers.web.padding);
+		const stringResponse = JSON.stringify(data, null, this.api.config.servers.web.padding);
 		this.sendMessage(connection, stringResponse);
 	}
 

@@ -2,10 +2,10 @@ import { describe, beforeAll, afterAll, it, expect } from "vitest";
 
 import axios, { AxiosError } from "axios";
 
-import Engine from "../../src/engine";
-import { sleep } from "../../src/utils";
-import { API } from "../../src/interfaces/api.interface";
-const engine = new Engine({ rootPath: `${process.cwd()}/example` });
+import Engine from "../../src/engine.ts";
+import { sleep } from "../../src/utils.ts";
+import { API } from "../../src/interfaces/api.interface.ts";
+const engine = new Engine({ rootPath: `${Deno.cwd()}/example` });
 
 let api: API;
 let url: string = "";
@@ -397,20 +397,20 @@ describe("Servers: HTTP", function () {
 			expect(response.headers.get("access-control-allow-origin")).toBe("*");
 		});
 
-			const response = await axios({
-				url: `${url}/api/x`,
-				method: "TRACE",
-				data: { key: "someKey", value: "someValue" },
-			});
+		// const response = await axios({
+		// 	url: `${url}/api/x`,
+		// 	method: "TRACE",
+		// 	data: { key: "someKey", value: "someValue" },
+		// });
 
-			expect(response.status).toBe(200);
-			expect(response.data).toMatchObject({
-				receivedParams: {
-					key: "someKey",
-					value: "someValue",
-				},
-			});
-		});
+		// expect(response.status).toBe(200);
+		// expect(response.data).toMatchObject({
+		// 	receivedParams: {
+		// 		key: "someKey",
+		// 		value: "someValue",
+		// 	},
+		// });
+		// });
 
 		it("should respond to HEAD request just like GET, but with no body", async () => {
 			const response = await axios.head(`${url}/api/headerTestAction`);

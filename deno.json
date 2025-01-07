@@ -1,5 +1,7 @@
 {
-	"imports": {},
+	"imports": {
+		"@std/path": "jsr:@std/path@^1.0.8"
+	},
 	"compilerOptions": {
 		"strict": true,
 		"strictNullChecks": true,
