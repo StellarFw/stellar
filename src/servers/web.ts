@@ -1,7 +1,4 @@
-import fs from "node:fs";
 import qs from "qs";
-import url from "node:url";
-// import path from "node:path";
 import * as path from "@std/path";
 import zlib from "node:zlib";
 import etag from "etag";
@@ -9,7 +6,6 @@ import Mime from "mime";
 import formidable from "st-formidable";
 import GenericServer from "../genericServer.js";
 import BrowserFingerprint from "browser_fingerprint";
-import { randomUUID } from "node:crypto";
 import { Buffer } from "node:buffer";
 
 // server type
@@ -53,7 +49,7 @@ export default class Web extends GenericServer {
 
 		// -------------------------------------------------------------------------------------------------------- [EVENTS]
 		this.on("connection", (connection) => {
-			this._determineRequestParams(connection, (requestMode) => {
+			this.#determineRequestParams(connection, (requestMode) => {
 				switch (requestMode) {
 					case "api":
 						this.processAction(connection);
@@ -89,26 +85,26 @@ export default class Web extends GenericServer {
 		if (this.options.secure) {
 			const https = await import("node:https");
 			this.server = https.createServer(this.api.config.servers.web.serverOptions, (req, res) => {
-				this._handleRequest(req, res);
+				this.#handleRequest(req, res);
 			});
 		} else {
 			const http = await import("node:http");
 			this.server = http.createServer((req, res) => {
-				this._handleRequest(req, res);
+				this.#handleRequest(req, res);
 			});
 		}
 
 		let bootAttempts = 0;
 
 		return new Promise((resolve, reject) => {
-			this.server.on("error", (e) => {
+			this.server.on("error", async (e) => {
 				bootAttempts++;
 
 				if (bootAttempts < this.api.config.servers.web.bootAttempts) {
 					this.log(`cannot boot web server; trying again [${String(e)}]`, "error");
 
 					if (bootAttempts === 1) {
-						this._cleanSocket(this.options.bindIP, this.options.port);
+						await this.#cleanSocket(this.options.bindIP, this.options.port);
 					}
 
 					setTimeout(() => {
@@ -175,7 +171,7 @@ export default class Web extends GenericServer {
 	 * @param length          File length in bytes.
 	 * @param lastModified    Timestamp if the last modification.
 	 */
-	sendFile(connection, error, fileStream, mime, length, lastModified) {
+	async sendFile(connection, error, fileStream, mime, length, lastModified) {
 		let foundCacheControl = false;
 		let ifModifiedSince;
 		let reqHeaders;
@@ -252,11 +248,8 @@ export default class Web extends GenericServer {
 		// check if is to use ETag
 		if (this.api.config.servers.web.enableEtag && fileStream && fileStream.path) {
 			// Get the file states in order to create the ETag header
-			fs.stat(fileStream.path, (error, filestats) => {
-				if (error) {
-					this.log(`Error receiving file statistics: ${String(error)}`);
-					return sendRequestResult();
-				}
+			try {
+				const filestats = await Deno.stat(fileStream.path);
 
 				// push the ETag header to the response
 				const fileEtag = etag(filestats, { weak: true });
@@ -291,7 +284,10 @@ export default class Web extends GenericServer {
 
 				// send response
 				sendRequestResult();
-			});
+			} catch (error) {
+				this.log(`Error receiving file statistics`, "error", error);
+				return sendRequestResult();
+			}
 		} else {
 			sendRequestResult();
 		}
@@ -378,7 +374,7 @@ export default class Web extends GenericServer {
 	 * @param res   Response object.
 	 * @private
 	 */
-	_handleRequest(req, res) {
+	#handleRequest(req, res) {
 		// get the client fingerprint
 		const { fingerprint, headersHash } = this.fingerprinter.fingerprint(req);
 
@@ -386,7 +382,8 @@ export default class Web extends GenericServer {
 		const cookies = this.api.utils.parseCookies(req);
 		const responseHttpCode = 200;
 		const method = req.method.toUpperCase();
-		const parsedURL = url.parse(req.url, true);
+		// TODO: check if we need something better as a default base
+		const parsedURL = new URL(req.url, "http://localhost");
 		let i;
 
 		// push all cookies from the request to the response
@@ -455,7 +452,7 @@ export default class Web extends GenericServer {
 				responseHttpCode: responseHttpCode,
 				parsedURL: parsedURL,
 			},
-			id: `${fingerprint}-${randomUUID()}`,
+			id: `${fingerprint}-${crypto.randomUUID()}`,
 			fingerprint: fingerprint,
 			remoteAddress: remoteIP,
 			remotePort: remotePort,
@@ -470,7 +467,7 @@ export default class Web extends GenericServer {
 	 */
 	chmodSocket(bindIP, port) {
 		if (!bindIP && port.indexOf("/") >= 0) {
-			fs.chmodSync(port, 0o777);
+			Deno.chmodSync(port, 0o777);
 		}
 	}
 
@@ -481,10 +478,12 @@ export default class Web extends GenericServer {
 	 * @param callback    Callback function.
 	 * @private
 	 */
-	_determineRequestParams(connection, callback) {
+	#determineRequestParams(connection, callback) {
+		const url: URL = connection.rawConnection.parsedURL;
+		const pathname = url.pathname;
+
 		// determine if is a file or an api request
 		let requestMode = this.api.config.servers.web.rootEndpointType;
-		const pathname = connection.rawConnection.parsedURL.pathname;
 		const pathParts = pathname.split("/");
 		let matcherLength, i;
 
@@ -539,15 +538,12 @@ export default class Web extends GenericServer {
 				requestMode = "trace";
 			}
 
-			// Normalize `search` param to be a string even when there is
-			// no search query set
-			connection.rawConnection.parsedURL.search =
-				typeof connection.rawConnection.parsedURL.search === "string" ? connection.rawConnection.parsedURL.search : "";
+			const searchString = url.search.slice(1);
+			const queryStringParameters = qs.parse(searchString, this.api.config.servers.web.queryParseOptions);
+			this.#fillParamsFromWebRequest(connection, queryStringParameters);
 
-			const search = connection.rawConnection.parsedURL.search.slice(1);
-			this._fillParamsFromWebRequest(connection, qs.parse(search, this.api.config.servers.web.queryParseOptions));
-
-			connection.rawConnection.params.query = connection.rawConnection.parsedURL.query;
+			// copy the raw search params into the connection
+			connection.rawConnection.params.query = Object.fromEntries(url.searchParams);
 
 			if (
 				connection.rawConnection.method !== "GET" &&
@@ -567,8 +563,8 @@ export default class Web extends GenericServer {
 					} else {
 						connection.rawConnection.params.body = fields;
 						connection.rawConnection.params.files = files;
-						this._fillParamsFromWebRequest(connection, files);
-						this._fillParamsFromWebRequest(connection, fields);
+						this.#fillParamsFromWebRequest(connection, files);
+						this.#fillParamsFromWebRequest(connection, fields);
 					}
 
 					if (this.api.config.servers.web.queryRouting !== true) {
@@ -624,7 +620,7 @@ export default class Web extends GenericServer {
 	 * @param varsHash    Request params.
 	 * @private
 	 */
-	_fillParamsFromWebRequest(connection, varsHash) {
+	#fillParamsFromWebRequest(connection, varsHash) {
 		// helper for JSON parts
 		const collapsedVarsHash = this.api.utils.collapseObjectToArray(varsHash);
 
@@ -864,15 +860,14 @@ export default class Web extends GenericServer {
 	 * @param port
 	 * @private
 	 */
-	_cleanSocket(bindIP, port) {
+	async #cleanSocket(bindIP, port) {
 		if (!bindIP && port.indexOf("/") >= 0) {
-			fs.unlink(port, (error) => {
-				if (error) {
-					this.log(`cannot remove stale socket @${port}:${error}`, "error");
-				} else {
-					this.log(`removed stale unix socket @${port}`);
-				}
-			});
+			try {
+				await Deno.remove(port);
+				this.log(`removed stale unix socket @${port}`);
+			} catch (error) {
+				this.log(`cannot remove stale socket @${port}`, "error", error);
+			}
 		}
 	}
 }
