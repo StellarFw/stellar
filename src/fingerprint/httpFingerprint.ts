@@ -15,9 +15,9 @@ export type FingerprintData = {
 	propertiesHash: Record<string, string | number>;
 
 	/**
-	 * Hash with the header hash.
+	 * Object with the headers.
 	 */
-	headerHash: Record<string, string>;
+	headersHash: Record<string, string>;
 };
 
 /**
@@ -118,25 +118,27 @@ export class HttpFingerprint {
 		};
 	}
 
-	async fingerprint(request: Request): Promise<FingerprintData> {
+	async fingerprint(request: Request, info: Deno.ServeHandlerInfo<Deno.NetAddr>): Promise<FingerprintData> {
 		let fingerprint = "";
-		const headerHash: Record<string, string> = {};
+		const headersHash: Record<string, string> = {};
 
 		const cookies = parseCookies(request);
 
 		// if the request cookie already have the fingerprint, return
 		if (cookies[this.options.cookieKey]) {
 			fingerprint = cookies[this.options.cookieKey];
-			return { fingerprint, headerHash, propertiesHash: {} };
+			return { fingerprint, headersHash, propertiesHash: {} };
 		}
 
 		// if the request header already have the fingerprint, return
 		if (request.headers.has(this.options.cookieKey)) {
 			fingerprint = request.headers.get(this.options.cookieKey)!;
-			return { fingerprint, headerHash, propertiesHash: {} };
+			return { fingerprint, headersHash, propertiesHash: {} };
 		}
 
 		const propertiesHash = sortAndStringObject({
+			remoteAddress: info.remoteAddr.hostname,
+			remotePort: info.remoteAddr.port,
 			clientCookie: fingerprint,
 			rand: Math.random(),
 			time: new Date().getTime(),
@@ -157,12 +159,12 @@ export class HttpFingerprint {
 					settingsParams = `${settingsParams}${key}${value ? `=${value}` : ""};`;
 				}
 
-				headerHash["Set-Cookie"] = `${this.options.cookieKey}=${fingerprint};${settingsParams}`;
+				headersHash["Set-Cookie"] = `${this.options.cookieKey}=${fingerprint};${settingsParams}`;
 			} else {
-				headerHash["Set-Cookie"] = `${this.options.cookieKey}=${fingerprint}`;
+				headersHash["Set-Cookie"] = `${this.options.cookieKey}=${fingerprint}`;
 			}
 		}
 
-		return { fingerprint, headerHash, propertiesHash };
+		return { fingerprint, headersHash, propertiesHash };
 	}
 }

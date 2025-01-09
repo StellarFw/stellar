@@ -31,17 +31,17 @@ describe("HTTP fingerprint", () => {
 	beforeAll(() => {
 		abortController = new AbortController();
 
-		server = Deno.serve({ signal: abortController.signal, hostname, port }, async (req) => {
-			const { fingerprint, headerHash, propertiesHash } = await httpFingerprint.fingerprint(req);
+		server = Deno.serve({ signal: abortController.signal, hostname, port }, async (req, info) => {
+			const { fingerprint, headersHash, propertiesHash } = await httpFingerprint.fingerprint(req, info);
 
-			headerHash["Content-Type"] = "text/plain";
+			headersHash["Content-Type"] = "text/plain";
 
 			let resp = `Fingerprint: ${fingerprint} \r\n\r\n`;
 			for (const i in propertiesHash) {
 				resp = `${resp}Element ${i}: ${propertiesHash[i]}\r\n`;
 			}
 
-			return new Response(resp, { status: 200, headers: headerHash });
+			return new Response(resp, { status: 200, headers: headersHash });
 		});
 	});
 
