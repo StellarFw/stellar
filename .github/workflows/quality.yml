@@ -38,8 +38,13 @@ jobs:
       - name: Cache Deno dependencies
         uses: actions/cache@v4
         with:
-          path: ${{ env.DENO_DIR }}
+          path: |
+            ${{ env.DENO_DIR }}
+            .node_modules
           key: ${{ hashFiles('deno.lock') }}
+
+      - name: Install Node dependencies
+        run: deno install
 
       - run: deno test --allow-all --coverage=cov/
 
