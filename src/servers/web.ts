@@ -11,6 +11,8 @@ import { HttpFingerprint } from "../fingerprint/httpFingerprint.ts";
 import { Connection } from "../connection.ts";
 import { ActionProcessor, RequesterInformation } from "../common/types/action-processor.ts";
 import { deflate, gzip } from "@deno-library/compress";
+import { STATUS_CODE } from "@std/http";
+import { HEADER } from "@std/http/unstable-header";
 
 // server type
 const type = "web";
@@ -196,7 +198,7 @@ export default class Web extends GenericServer<HttpConnection> {
 		});
 
 		// add mime type to the response headers
-		connection.rawConnection.responseHeaders.push(["Content-Type", mime]);
+		connection.rawConnection.responseHeaders.push([HEADER.ContentType, mime]);
 
 		// If is to use a cache mechanism we must append a cache control header to the response
 		if (fileStream) {
@@ -229,7 +231,7 @@ export default class Web extends GenericServer<HttpConnection> {
 			if (error) {
 				const errorString = error instanceof Error ? String(error) : JSON.stringify(error);
 				this.#buildResponseWithCompression(connection, responseStatusCode, headers, errorString);
-			} else if (responseStatusCode !== 304) {
+			} else if (responseStatusCode !== STATUS_CODE.NotModified) {
 				this.#buildResponseWithCompression(connection, responseStatusCode, headers, null, fileStream, length);
 			} else {
 				// TODO: convert this code
@@ -241,7 +243,7 @@ export default class Web extends GenericServer<HttpConnection> {
 
 		// if an error exists change the status code to 404 and send the response
 		if (error) {
-			connection.rawConnection.response.statusCode = 404;
+			connection.rawConnection.response.statusCode = STATUS_CODE.NotFound;
 			return sendRequestResult();
 		}
 
@@ -250,7 +252,7 @@ export default class Web extends GenericServer<HttpConnection> {
 			ifModifiedSince = new Date(reqHeaders["if-modified-since"]);
 			lastModified.setMilliseconds(0);
 			if (lastModified <= ifModifiedSince) {
-				connection.rawConnection.response.statusCode = 304;
+				connection.rawConnection.response.statusCode = STATUS_CODE.NotModified;
 			}
 			return sendRequestResult();
 		}
@@ -289,7 +291,7 @@ export default class Web extends GenericServer<HttpConnection> {
 
 				// use the cached object
 				if (etagMatches && !noCache) {
-					connection.rawConnection.responseHeaders = 304;
+					connection.rawConnection.responseHeaders = STATUS_CODE.NotModified;
 				}
 
 				// send response
@@ -312,18 +314,18 @@ export default class Web extends GenericServer<HttpConnection> {
 		let responseBytes = new TextEncoder().encode(stringResponse);
 
 		// apply compression if it's enabled and it was requested
-		const acceptEncoding = connection.rawConnection.req.headers.get("accept-encoding");
+		const acceptEncoding = connection.rawConnection.req.headers.get(HEADER.AcceptEncoding);
 		if (this.api.config.servers.web.compress) {
 			if (acceptEncoding?.match(/\bdeflate\b/)) {
-				headers.set("Content-Encoding", "deflate");
+				headers.set(HEADER.ContentEncoding, "deflate");
 				responseBytes = deflate(responseBytes);
 			} else if (acceptEncoding?.match(/\bgzip\b/)) {
-				headers.set("Content-Encoding", "gzip");
+				headers.set(HEADER.ContentEncoding, "gzip");
 				responseBytes = gzip(responseBytes);
 			}
 		}
 
-		headers.set("content-length", responseBytes.byteLength.toString());
+		headers.set(HEADER.ContentLength, responseBytes.byteLength.toString());
 
 		return new Response(responseBytes, {
 			headers,
@@ -350,18 +352,18 @@ export default class Web extends GenericServer<HttpConnection> {
 		fileLength?: number,
 	) {
 		let compressor, stringEncoder;
-		const acceptEncoding = connection.rawConnection.req.headers.get("accept-encoding");
+		const acceptEncoding = connection.rawConnection.req.headers.get(HEADER.AcceptEncoding);
 
 		// Note: this is not a conformant accept-encoding parser.
 		// https://nodejs.org/api/zlib.html#zlib_zlib_createinflate_options
 		// See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3
 		if (this.api.config.servers.web.compress === true) {
 			if (acceptEncoding?.match(/\bdeflate\b/)) {
-				headers.set("Content-Encoding", "deflate");
+				headers.set(HEADER.ContentEncoding, "deflate");
 				compressor = zlib.createDeflate();
 				stringEncoder = zlib.deflate;
 			} else if (acceptEncoding?.match(/\bgzip\b/)) {
-				headers.set("Content-Encoding", "gzip");
+				headers.set(HEADER.ContentEncoding, "gzip");
 				compressor = zlib.createGzip();
 				stringEncoder = zlib.gzip;
 			}
@@ -382,8 +384,8 @@ export default class Web extends GenericServer<HttpConnection> {
 				connection.rawConnection.res.writeHead(statusCode, headers);
 				fileStream.pipe(compressor).pipe(connection.rawConnection.res);
 			} else {
-				headers.push(["Content-Length", fileLength]);
-				connection.rawConnection.res.status = 200;
+				headers.push([HEADER.ContentLength, fileLength]);
+				connection.rawConnection.res.status = STATUS_CODE.OK;
 				connection.rawConnection.res.writeHead(statusCode, headers);
 				fileStream.pipe(connection.rawConnection.res);
 			}
@@ -394,7 +396,7 @@ export default class Web extends GenericServer<HttpConnection> {
 
 		if (stringEncoder) {
 			stringEncoder(stringResponse, (_, zippedString) => {
-				headers.set("Content-Length", zippedString.length);
+				headers.set(HEADER.ContentLength, zippedString.length);
 			});
 
 			// TODO: implement
@@ -406,7 +408,7 @@ export default class Web extends GenericServer<HttpConnection> {
 
 		const encodedContent = new TextEncoder().encode(stringResponse);
 		console.log("🚀 ~ Web ~ encodedContent:", encodedContent);
-		headers.set("Content-Length", encodedContent.byteLength.toString());
+		headers.set(HEADER.ContentLength, encodedContent.byteLength.toString());
 
 		return new Response(encodedContent, {
 			status: statusCode,
@@ -438,7 +440,7 @@ export default class Web extends GenericServer<HttpConnection> {
 		const { fingerprint, headersHash } = await this.fingerprinter.fingerprint(req, info);
 
 		const cookies = this.api.utils.parseCookies(req);
-		const responseHttpCode = 200;
+		const responseHttpCode = STATUS_CODE.OK;
 		const method = req.method.toUpperCase() as HTTPMethod;
 		// TODO: check if we need something better as a default base
 		const parsedURL = new URL(req.url, "http://localhost");
@@ -449,7 +451,7 @@ export default class Web extends GenericServer<HttpConnection> {
 		}
 
 		// set content type to JSON
-		headers.set("Content-Type", "application/json; charset=utf-8");
+		headers.set(HEADER.ContentType, "application/json; charset=utf-8");
 
 		// push all the default headers to the response object
 		for (const headerName in this.api.config.servers.web.httpHeaders) {
@@ -605,8 +607,8 @@ export default class Web extends GenericServer<HttpConnection> {
 			if (
 				connection.rawConnection.method !== "GET" &&
 				connection.rawConnection.method !== "HEAD" &&
-				(connection.rawConnection.req.headers.has("content-type") ||
-					connection.rawConnection.req.headers.has("Content-Type"))
+				(connection.rawConnection.req.headers.has(HEADER.ContentType) ||
+					connection.rawConnection.req.headers.has(HEADER.ContentType))
 			) {
 				connection.rawConnection.form = new formidable.IncomingForm();
 
@@ -728,16 +730,16 @@ export default class Web extends GenericServer<HttpConnection> {
 		if (data.response.error) {
 			if (
 				this.api.config.servers.web.returnErrorCodes === true &&
-				data.connection.rawConnection.response.statusCode === 200
+				data.connection.rawConnection.response.statusCode === STATUS_CODE.OK
 			) {
 				if (data.actionStatus === "unknown_action") {
-					data.connection.rawConnection.response.statusCode = 404;
+					data.connection.rawConnection.response.statusCode = STATUS_CODE.NotFound;
 				} else if (data.actionStatus === "missing_params") {
-					data.connection.rawConnection.response.statusCode = 422;
+					data.connection.rawConnection.response.statusCode = STATUS_CODE.UnprocessableEntity;
 				} else if (data.actionStatus === "server_error") {
-					data.connection.rawConnection.response.statusCode = 500;
+					data.connection.rawConnection.response.statusCode = STATUS_CODE.InternalServerError;
 				} else {
-					data.connection.rawConnection.response.statusCode = 400;
+					data.connection.rawConnection.response.statusCode = STATUS_CODE.BadRequest;
 				}
 			}
 		}
@@ -749,7 +751,7 @@ export default class Web extends GenericServer<HttpConnection> {
 			this.api.actions.actions[data.params.action][data.params.apiVersion].matchExtensionMimeType === true &&
 			data.connection.extension
 		) {
-			data.connection.rawConnection.response.headers.set("Content-Type", Mime.getType(data.connection.extension));
+			data.connection.rawConnection.response.headers.set(HEADER.ContentType, Mime.getType(data.connection.extension));
 		}
 
 		// if its an error response we need to serialize the error object
@@ -759,11 +761,11 @@ export default class Web extends GenericServer<HttpConnection> {
 
 		let stringResponse = "";
 
-		if (this.#extractHeader(data.connection, "Content-Type")?.match(/json/)) {
+		if (this.#extractHeader(data.connection, HEADER.ContentType)?.match(/json/)) {
 			try {
 				stringResponse = JSON.stringify(data.response, null, this.api.config.servers.web.padding);
 			} catch (_) {
-				data.connection.rawConnection.response.statusCode = 500;
+				data.connection.rawConnection.response.statusCode = STATUS_CODE.InternalServerError;
 				stringResponse = JSON.stringify({
 					error: "invalid_response_object",
 					requesterInformation: this.#buildRequesterInformation(data.connection),
@@ -771,7 +773,7 @@ export default class Web extends GenericServer<HttpConnection> {
 			}
 
 			if (data.params.callback) {
-				data.connection.rawConnection.response.headers.set("Content-Type", "application/javascript");
+				data.connection.rawConnection.response.headers.set(HEADER.ContentType, "application/javascript");
 				stringResponse = `${data.connection.params.callback}(${stringResponse});`;
 			}
 		} else {
@@ -857,16 +859,16 @@ export default class Web extends GenericServer<HttpConnection> {
 			!this.#extractHeader(connection, "Access-Control-Allow-Methods")
 		) {
 			const methods = "HEAD, GET, POST, PUT, DELETE, OPTIONS, TRACE";
-			connection.rawConnection.res.headers.append("Access-Control-Allow-Methods", methods);
+			connection.rawConnection.res.headers.append(HEADER.AccessControlAllowMethods, methods);
 		}
 
 		// inform the allowed origins
 		if (
-			!this.api.config.servers.web.httpHeaders["Access-Control-Allow-Origin"] &&
-			!this.#extractHeader(connection, "Access-Control-Allow-Origin")
+			!this.api.config.servers.web.httpHeaders[HEADER.AccessControlAllowOrigin] &&
+			!this.#extractHeader(connection, HEADER.AccessControlAllowOrigin)
 		) {
 			const origin = "*";
-			connection.rawConnection.res.headers.append("Access-Control-Allow-Origin", origin);
+			connection.rawConnection.res.headers.append(HEADER.AccessControlAllowOrigin, origin);
 		}
 
 		// send the message to client
