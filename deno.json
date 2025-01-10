@@ -16,7 +16,7 @@
 	"compilerOptions": {
 		"strict": true,
 		"strictNullChecks": true,
-		"types": ["node", "vitest/importMeta"]
+		"types": ["node"]
 	},
 	"unstable": ["sloppy-imports"]
 }
