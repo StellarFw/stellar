@@ -18,5 +18,12 @@
 		"strictNullChecks": true,
 		"types": ["node"]
 	},
-	"unstable": ["sloppy-imports"]
+	"unstable": ["sloppy-imports"],
+	"fmt": {
+		"indentWidth": 2,
+		"lineWidth": 120,
+		"semiColons": true,
+		"singleQuote": false,
+		"useTabs": true
+	}
 }
