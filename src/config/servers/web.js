@@ -103,13 +103,12 @@ export default {
 				bootAttempts: 1,
 
 				// ---------------------------------------------------------------------
-				// Settings for determining the id of an http(s) request
-				// (browser-fingerprint)
+				// Settings for determining the ID of an http(s) request
+				// (http-fingerprint)
 				// ---------------------------------------------------------------------
 				fingerprintOptions: {
 					cookieKey: "sessionID",
 					toSetCookie: true,
-					onlyStaticElements: false,
 					settings: {
 						path: "/",
 						expires: 3600000,

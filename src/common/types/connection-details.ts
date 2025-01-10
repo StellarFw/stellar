@@ -1,4 +1,4 @@
-export type ConnectionDetails = {
+export type ConnectionDetails<C> = {
 	/**
 	 * Connection type.
 	 */
@@ -24,12 +24,12 @@ export type ConnectionDetails = {
 	/**
 	 * Remote connection string.
 	 */
-	remoteIP: string;
+	remoteHostname: string;
 
 	/**
-	 * Raw connection details.
+	 * Generic connection details.
 	 */
-	rawConnection: unknown;
+	rawConnection: C;
 
 	/**
 	 * Flag to know if the connection supports chat.
@@ -56,7 +56,7 @@ export type ConnectionDetails = {
 	/**
 	 * Dictionary with the request parameters.
 	 */
-	params: { [key: string]: unknown };
+	params: Record<string, unknown>;
 
 	/**
 	 * Used file extension when doing file requests.

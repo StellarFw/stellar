@@ -1,12 +1,10 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-import { randomUUID } from "node:crypto";
 import { API } from "./interfaces/api.interface.ts";
 import { ConnectionDetails } from "./common/types/connection-details.ts";
 
 /**
  * This class represents an active connection.
  */
-export class Connection<C = unknown> implements ConnectionDetails {
+export class Connection<C> implements ConnectionDetails<C> {
 	/**
 	 * Api reference.
 	 */
@@ -74,12 +72,17 @@ export class Connection<C = unknown> implements ConnectionDetails {
 	/**
 	 * Remote IP address.
 	 */
-	public remoteIP!: string;
+	public remoteHostname!: string;
 
 	/**
 	 * Raw connection.
 	 */
 	public rawConnection!: C;
+
+	/**
+	 * For the cases where there is a local extension to the request.
+	 */
+	extension?: string;
 
 	/**
 	 * Is used to mark the connection as destroyed.
@@ -98,9 +101,9 @@ export class Connection<C = unknown> implements ConnectionDetails {
 	 * @param api Stellar API reference
 	 * @param data hash map
 	 */
-	constructor(api: API, data) {
+	constructor(api: API, data: ConnectionDetails<C>) {
 		this.api = api;
-		this.setup(data);
+		this.#setup(data);
 
 		// Save this connection on the connection manager
 		this.api.connections.connections[this.id] = this;
@@ -118,12 +121,12 @@ export class Connection<C = unknown> implements ConnectionDetails {
 	 *
 	 * @param data
 	 */
-	private setup(data) {
+	#setup(data: ConnectionDetails<C>) {
 		if (data.id) {
 			this.id = data.id;
 		} else {
 			// generate an unique ID for this connection
-			this.id = randomUUID();
+			this.id = crypto.randomUUID();
 		}
 
 		this.connectedAt = new Date().getTime();
@@ -137,7 +140,7 @@ export class Connection<C = unknown> implements ConnectionDetails {
 			this[req] = data[req];
 		});
 
-		const enforcedConnectionProperties = ["remotePort", "remoteIP"];
+		const enforcedConnectionProperties = ["remotePort", "remoteHostname"];
 		enforcedConnectionProperties.forEach((req) => {
 			if (data[req] === null || data[req] === undefined) {
 				if (this.api.configs.general.enforceConnectionProperties === true) {
@@ -199,7 +202,7 @@ export class Connection<C = unknown> implements ConnectionDetails {
 		if (server) {
 			if (server.attributes.logExits === true) {
 				server.log("connection closed", "info", {
-					to: this.remoteIP,
+					to: this.remoteHostname,
 				});
 			}
 
@@ -246,7 +249,7 @@ export class Connection<C = unknown> implements ConnectionDetails {
 		if (server && allowedVerbs.indexOf(verb) >= 0) {
 			server.log("verb", "debug", {
 				verb,
-				to: this.remoteIP,
+				to: this.remoteHostname,
 				params: JSON.stringify(words),
 			});
 
@@ -298,7 +301,7 @@ export class Connection<C = unknown> implements ConnectionDetails {
 				return {
 					id: this.id,
 					fingerprint: this.fingerprint,
-					remoteIP: this.remoteIP,
+					remoteIP: this.remoteHostname,
 					remotePort: this.remotePort,
 					params: this.params,
 					connectedAt: this.connectedAt,

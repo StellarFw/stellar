@@ -1,4 +1,4 @@
-import GenericServer from "../genericServer.js";
+import GenericServer from "../genericServer.ts";
 import { sleep } from "../utils.ts";
 import { API } from "../interfaces/api.interface.ts";
 import { isNil } from "ramda";
@@ -35,7 +35,7 @@ const HEX_CODE_CTRL_D = "04";
 /**
  * TCP server implementation.
  */
-export default class Tcp extends GenericServer {
+export default class Tcp extends GenericServer<Deno.TcpConn> {
 	/**
 	 * TCP server socket.
 	 */

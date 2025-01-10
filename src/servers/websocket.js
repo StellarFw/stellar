@@ -3,7 +3,7 @@ import util from "node:util";
 import path from "node:path";
 import Primus from "primus";
 import UglifyJS from "uglify-js";
-import GenericServer from "../genericServer.js";
+import GenericServer from "../genericServer.ts";
 
 // server type
 const type = "websocket";

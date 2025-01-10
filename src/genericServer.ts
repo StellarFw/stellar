@@ -1,4 +1,6 @@
 import { EventEmitter } from "node:events";
+import { Connection, ConnectionDetails } from "./connection.ts";
+import { ActionProcessor } from "./common/types/action-processor.ts";
 
 /**
  * This function is called when the method is not implemented.
@@ -7,11 +9,38 @@ const methodNotDefined = () => {
 	throw new Error("The containing method should be defined for this server type");
 };
 
+type BuildConnectionParams<C> = {
+	/**
+	 * Unique connection identifier.
+	 */
+	id: string;
+
+	/**
+	 * Client fingerprint.
+	 */
+	fingerprint: string;
+
+	/**
+	 * Remote hostname.
+	 */
+	remoteHostname: string;
+
+	/**
+	 * Remote port.
+	 */
+	remotePort: number;
+
+	/**
+	 * Generic connection object.
+	 */
+	rawConnection: C;
+};
+
 /**
  * This is the prototypical generic server class that all other types
  * of servers inherit from.
  */
-export default class GenericServer extends EventEmitter {
+export default class GenericServer<C> extends EventEmitter {
 	/**
 	 * API object reference.
 	 */
@@ -50,7 +79,7 @@ export default class GenericServer extends EventEmitter {
 		this.attributes = attributes;
 
 		// attributes can be overwritten by the options
-		for (let key in this.options) {
+		for (const key in this.options) {
 			if (this.attributes[key] !== null && this.attributes[key] !== undefined) {
 				this.attributes[key] = this.options[key];
 			}
@@ -62,30 +91,22 @@ export default class GenericServer extends EventEmitter {
 	 *
 	 * @param params Connection data.
 	 */
-	buildConnection(params) {
-		const details = {
+	buildConnection(params: BuildConnectionParams<C>) {
+		const details: ConnectionDetails<C> = {
 			type: this.type,
 			id: params.id,
 			remotePort: params.remotePort,
-			remoteIP: params.remoteAddress,
+			remoteHostname: params.remoteHostname,
 			rawConnection: params.rawConnection,
+			canChat: this.attributes.canChat,
+			fingerprint: params.fingerprint,
 		};
 
-		// if the server canChat enable the flag on the connection
-		if (this.attributes.canChat === true) {
-			details.canChat = true;
-		}
-
-		// if the connection doesn't have a fingerprint already create one
-		if (params.fingerprint) {
-			details.fingerprint = params.fingerprint;
-		}
-
 		// get connection class
-		const ConnectionClass = this.api.connection;
+		const ConnectionClass = this.api.connection as typeof Connection;
 
 		// create a new connection instance
-		const connection = new ConnectionClass(this.api, details);
+		const connection = new ConnectionClass<C>(this.api, details);
 
 		// define sendMessage method
 		connection.sendMessage = (message) => {
@@ -103,7 +124,7 @@ export default class GenericServer extends EventEmitter {
 
 		// check if the lod for this type of connection is active
 		if (this.attributes.logConnections === true) {
-			this.log("new connection", "info", { to: connection.remoteIP });
+			this.log("new connection", "info", { to: connection.remoteHostname });
 		}
 
 		// bidirectional connection can have a welcome message
@@ -133,14 +154,12 @@ export default class GenericServer extends EventEmitter {
 	 *
 	 * @param connection Connection object.
 	 */
-	processAction(connection) {
-		// create a new action processor instance for this request
+	processAction(connection: Connection<C>) {
 		const ActionProcessor = this.api.actionProcessor;
-		const actionProcessor = new ActionProcessor(this.api, connection, (data) => {
+		const actionProcessor = new ActionProcessor(this.api, connection, (data: ActionProcessor<C>) => {
 			this.emit("actionComplete", data);
 		});
 
-		// process the request
 		actionProcessor.processAction();
 	}
 
@@ -149,7 +168,7 @@ export default class GenericServer extends EventEmitter {
 	 *
 	 * @param connection Connection object.
 	 */
-	processFile(connection) {
+	processFile(connection: Connection<C>) {
 		this.api.staticFile.get(connection, (connection, error, fileStream, mime, length, lastModified) => {
 			this.sendFile(connection, error, fileStream, mime, length, lastModified);
 		});
@@ -163,10 +182,10 @@ export default class GenericServer extends EventEmitter {
 	 * @returns {Array}
 	 */
 	connections() {
-		let _connections = [];
+		const _connections = [];
 
-		for (let i in this.api.connections.connections) {
-			let connection = this.api.connections.connections[i];
+		for (const i in this.api.connections.connections) {
+			const connection = this.api.connections.connections[i];
 			if (connection.type === this.type) {
 				_connections.push(connection);
 			}

@@ -4,12 +4,43 @@ import zlib from "node:zlib";
 import etag from "etag";
 import Mime from "mime";
 import formidable from "st-formidable";
-import GenericServer from "../genericServer.js";
-import BrowserFingerprint from "browser_fingerprint";
-import { Buffer } from "node:buffer";
+import GenericServer from "../genericServer.ts";
+import { sleep } from "../utils.ts";
+import { API } from "../interfaces/api.interface.ts";
+import { HttpFingerprint } from "../fingerprint/httpFingerprint.ts";
+import { Connection } from "../connection.ts";
+import { ActionProcessor, RequesterInformation } from "../common/types/action-processor.ts";
+import { deflate, gzip } from "@deno-library/compress";
 
 // server type
 const type = "web";
+
+/**
+ * HTTP methods.
+ */
+type HTTPMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD" | "OPTIONS" | "TRACE";
+
+/**
+ * Requests modes support by this HTTP sever.
+ */
+type RequestMode = "api" | "file" | "options" | "client-lib" | "trace";
+
+export type HttpConnection = {
+	req: Request;
+	params: Record<string, unknown>;
+	method: HTTPMethod;
+	parsedURL: URL;
+	cookies: Record<string, string>;
+	response: {
+		headers: Headers;
+		statusCode: number;
+	};
+
+	/**
+	 * Promise and resolvers to complete the connection.
+	 */
+	completePromise: PromiseWithResolvers<Response>;
+};
 
 // server attributes
 const attributes = {
@@ -25,11 +56,21 @@ const attributes = {
 /**
  * This implements the HTTP web server.
  */
-export default class Web extends GenericServer {
+export default class Web extends GenericServer<HttpConnection> {
 	/**
-	 * Http server instance.
+	 * Abortion controller to stop the server.
 	 */
-	server = null;
+	abortionController?: AbortController;
+
+	/**
+	 * HTTP server instance.
+	 */
+	server?: Deno.HttpServer<Deno.NetAddr>;
+
+	/**
+	 * Allows to produce a fingerprint for the caller.
+	 */
+	fingerprinter: HttpFingerprint;
 
 	/**
 	 * Constructor.
@@ -37,19 +78,19 @@ export default class Web extends GenericServer {
 	 * @param api       api instance.
 	 * @param options   map with the server options.
 	 */
-	constructor(api, options) {
+	constructor(api: API, options) {
 		// call the super constructor
 		super(api, type, options, attributes);
 
-		this.fingerprinter = new BrowserFingerprint(this.api.config.servers.web.fingerprintOptions);
+		this.fingerprinter = new HttpFingerprint(this.api.config.servers.web.fingerprintOptions);
 
 		if (["api", "file"].indexOf(this.api.config.servers.web.rootEndpointType) < 0) {
 			throw new Error("api.config.servers.web.rootEndpointType can only be 'api' or 'file'.");
 		}
 
 		// -------------------------------------------------------------------------------------------------------- [EVENTS]
-		this.on("connection", (connection) => {
-			this.#determineRequestParams(connection, (requestMode) => {
+		this.on("connection", (connection: Connection<HttpConnection>) => {
+			this.#determineRequestParams(connection, (requestMode: RequestMode) => {
 				switch (requestMode) {
 					case "api":
 						this.processAction(connection);
@@ -58,20 +99,19 @@ export default class Web extends GenericServer {
 						this.processFile(connection);
 						break;
 					case "options":
-						this._respondToOptions(connection);
+						this.#respondToOptions(connection);
 						break;
 					case "client-lib":
-						this.processClientLib(connection);
+						this.#processClientLib(connection);
 						break;
 					case "trace":
-						this._respondToTrace(connection);
+						this.#respondToTrace(connection);
 				}
 			});
 		});
 
-		// event to be executed after the action completion
-		this.on("actionComplete", (data) => {
-			this._completeResponse(data);
+		this.on("actionComplete", (actionProcessor: ActionProcessor<HttpConnection>) => {
+			this.#completeResponse(actionProcessor);
 		});
 	}
 
@@ -80,56 +120,34 @@ export default class Web extends GenericServer {
 	/**
 	 * Start the server instance.
 	 */
-	async start() {
+	override async start() {
 		// Use the HTTP or HTTPS server based on the provided configuration
-		if (this.options.secure) {
-			const https = await import("node:https");
-			this.server = https.createServer(this.api.config.servers.web.serverOptions, (req, res) => {
-				this.#handleRequest(req, res);
-			});
-		} else {
-			const http = await import("node:http");
-			this.server = http.createServer((req, res) => {
-				this.#handleRequest(req, res);
-			});
-		}
+		// if (this.options.secure) {
+		// 	const https = await import("node:https");
+		// 	this.server = https.createServer(this.api.config.servers.web.serverOptions, (req, res) => {
+		// 		this.#handleRequest(req, res);
+		// 	});
+		// } else {
+		// 	const http = await import("node:http");
+		// 	this.server = http.createServer((req, res) => {
+		// 		this.#handleRequest(req, res);
+		// 	});
+		// }
 
-		let bootAttempts = 0;
+		// TODO: add support for HTTPS
 
-		return new Promise((resolve, reject) => {
-			this.server.on("error", async (e) => {
-				bootAttempts++;
+		this.abortionController = new AbortController();
 
-				if (bootAttempts < this.api.config.servers.web.bootAttempts) {
-					this.log(`cannot boot web server; trying again [${String(e)}]`, "error");
-
-					if (bootAttempts === 1) {
-						await this.#cleanSocket(this.options.bindIP, this.options.port);
-					}
-
-					setTimeout(() => {
-						this.log("attempting to boot again...");
-						this.server.listen(this.options.port, this.options.bindIP);
-					}, 1000);
-				} else {
-					return reject(
-						new Error(`Cannot start web server @ ${this.options.bindIP}:${this.options.port} => ${e.message}`),
-					);
-				}
-			});
-
-			this.server.listen(this.options.port, this.options.bindIP, () => {
-				this.chmodSocket(this.options.bindIP, this.options.port);
-				resolve();
-			});
-		});
+		await this.#createHttpServer((request, info) => this.#handleRequest(request, info));
 	}
 
 	/**
 	 * Stop server.
 	 */
-	async stop() {
-		await this.server.close();
+	override stop() {
+		this.abortionController?.abort();
+
+		return this.server?.finished;
 	}
 
 	/**
@@ -138,27 +156,15 @@ export default class Web extends GenericServer {
 	 * @param connection  Connection object where the message must be sent.
 	 * @param message     Message to be sent.
 	 */
-	sendMessage(connection, message) {
-		// response string
-		let stringResponse = "";
+	override sendMessage(connection: Connection<HttpConnection>, message: string): Response {
+		const stringResponse = connection.rawConnection.method === "HEAD" ? "" : message;
 
-		// if the connection is as 'HEAD' HTTP method we need to
-		// ensure the message is a string
-		if (connection.rawConnection.method !== "HEAD") {
-			stringResponse = String(message);
-		}
+		this.#cleanHeaders(connection);
 
-		// clean HTTP headers
-		this._cleanHeaders(connection);
+		const headers = connection.rawConnection.response.headers;
+		const responseStatusCode = connection.rawConnection.response.statusCode;
 
-		// get the response headers
-		const headers = connection.rawConnection.responseHeaders;
-
-		// get the response status code
-		const responseHttpCode = parseInt(connection.rawConnection.responseHttpCode);
-
-		// send the response to the client (use compression if active)
-		this.sendWithCompression(connection, responseHttpCode, headers, stringResponse);
+		return this.#buildStringResponseWithCompression(connection, responseStatusCode, headers, stringResponse);
 	}
 
 	/**
@@ -171,10 +177,16 @@ export default class Web extends GenericServer {
 	 * @param length          File length in bytes.
 	 * @param lastModified    Timestamp if the last modification.
 	 */
-	async sendFile(connection, error, fileStream, mime, length, lastModified) {
+	async sendFile(
+		connection: Connection<HttpConnection>,
+		error: Error | null,
+		fileStream: ReadableStream,
+		mime: string,
+		length: number,
+		lastModified: string,
+	) {
 		let foundCacheControl = false;
 		let ifModifiedSince;
-		let reqHeaders;
 
 		// check if we should use cache mechanisms
 		connection.rawConnection.responseHeaders.forEach((pair) => {
@@ -204,26 +216,24 @@ export default class Web extends GenericServer {
 		}
 
 		// clean the connection headers
-		this._cleanHeaders(connection);
+		this.#cleanHeaders(connection);
 
-		// get headers from the client request
-		reqHeaders = connection.rawConnection.req.headers;
-
-		// get the response headers
-		const headers = connection.rawConnection.responseHeaders;
+		const reqHeaders = connection.rawConnection.req.headers;
+		const headers = connection.rawConnection.response.headers;
 
 		// This function is used to send the response to the client.
 		const sendRequestResult = () => {
 			// parse the HTTP status code to int
-			const responseHttpCode = parseInt(connection.rawConnection.responseHttpCode, 10);
+			const responseStatusCode = parseInt(connection.rawConnection.response.statusCode, 10);
 
 			if (error) {
 				const errorString = error instanceof Error ? String(error) : JSON.stringify(error);
-				this.sendWithCompression(connection, responseHttpCode, headers, errorString);
-			} else if (responseHttpCode !== 304) {
-				this.sendWithCompression(connection, responseHttpCode, headers, null, fileStream, length);
+				this.#buildResponseWithCompression(connection, responseStatusCode, headers, errorString);
+			} else if (responseStatusCode !== 304) {
+				this.#buildResponseWithCompression(connection, responseStatusCode, headers, null, fileStream, length);
 			} else {
-				connection.rawConnection.res.writeHead(responseHttpCode, headers);
+				// TODO: convert this code
+				connection.rawConnection.res.writeHead(responseStatusCode, headers);
 				connection.rawConnection.res.end();
 				connection.destroy();
 			}
@@ -231,7 +241,7 @@ export default class Web extends GenericServer {
 
 		// if an error exists change the status code to 404 and send the response
 		if (error) {
-			connection.rawConnection.responseHttpCode = 404;
+			connection.rawConnection.response.statusCode = 404;
 			return sendRequestResult();
 		}
 
@@ -240,7 +250,7 @@ export default class Web extends GenericServer {
 			ifModifiedSince = new Date(reqHeaders["if-modified-since"]);
 			lastModified.setMilliseconds(0);
 			if (lastModified <= ifModifiedSince) {
-				connection.rawConnection.responseHttpCode = 304;
+				connection.rawConnection.response.statusCode = 304;
 			}
 			return sendRequestResult();
 		}
@@ -293,67 +303,115 @@ export default class Web extends GenericServer {
 		}
 	}
 
+	#buildStringResponseWithCompression(
+		connection: Connection<HttpConnection>,
+		statusCode: number,
+		headers: Headers,
+		stringResponse: string,
+	): Response {
+		let responseBytes = new TextEncoder().encode(stringResponse);
+
+		// apply compression if it's enabled and it was requested
+		const acceptEncoding = connection.rawConnection.req.headers.get("accept-encoding");
+		if (this.api.config.servers.web.compress) {
+			if (acceptEncoding?.match(/\bdeflate\b/)) {
+				headers.set("Content-Encoding", "deflate");
+				responseBytes = deflate(responseBytes);
+			} else if (acceptEncoding?.match(/\bgzip\b/)) {
+				headers.set("Content-Encoding", "gzip");
+				responseBytes = gzip(responseBytes);
+			}
+		}
+
+		headers.set("content-length", responseBytes.byteLength.toString());
+
+		return new Response(responseBytes, {
+			headers,
+			status: statusCode,
+		});
+	}
+
 	/**
 	 * Send a compressed message to the client.
 	 *
 	 * @param connection          Connection object where the message must be sent.
-	 * @param responseHttpCode    HTTP Status code.
+	 * @param statusCode    HTTP Status code.
 	 * @param headers             HTTP response headers.
 	 * @param stringResponse      Response body.
 	 * @param fileStream          FileStream, only needed if to send a file.
 	 * @param fileLength          File size in bytes, only needed if is to send a file.
 	 */
-	sendWithCompression(connection, responseHttpCode, headers, stringResponse, fileStream, fileLength) {
+	#buildResponseWithCompression(
+		connection: Connection<HttpConnection>,
+		statusCode: number,
+		headers: Headers,
+		stringResponse: string,
+		fileStream?: ReadableStream,
+		fileLength?: number,
+	) {
 		let compressor, stringEncoder;
-		const acceptEncoding = connection.rawConnection.req.headers["accept-encoding"];
+		const acceptEncoding = connection.rawConnection.req.headers.get("accept-encoding");
 
 		// Note: this is not a conformant accept-encoding parser.
 		// https://nodejs.org/api/zlib.html#zlib_zlib_createinflate_options
 		// See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3
 		if (this.api.config.servers.web.compress === true) {
-			if (acceptEncoding.match(/\bdeflate\b/)) {
-				headers.push(["Content-Encoding", "deflate"]);
+			if (acceptEncoding?.match(/\bdeflate\b/)) {
+				headers.set("Content-Encoding", "deflate");
 				compressor = zlib.createDeflate();
 				stringEncoder = zlib.deflate;
-			} else if (acceptEncoding.match(/\bgzip\b/)) {
-				headers.push(["Content-Encoding", "gzip"]);
+			} else if (acceptEncoding?.match(/\bgzip\b/)) {
+				headers.set("Content-Encoding", "gzip");
 				compressor = zlib.createGzip();
 				stringEncoder = zlib.gzip;
 			}
 		}
 
-		// the 'finish' event deontes a successful transfer
-		connection.rawConnection.res.on("finish", () => {
-			connection.destroy();
-		});
+		// // the 'finish' event denotes a successful transfer
+		// connection.rawConnection.res.on("finish", () => {
+		// 	connection.destroy();
+		// });
 
-		// the 'close' event deontes a failed transfer, but it is probably the client's fault
-		connection.rawConnection.res.on("close", () => {
-			connection.destroy();
-		});
+		// // the 'close' event denotes a failed transfer, but it is probably the client's fault
+		// connection.rawConnection.res.on("close", () => {
+		// 	connection.destroy();
+		// });
 
 		if (fileStream) {
 			if (compressor) {
-				connection.rawConnection.res.writeHead(responseHttpCode, headers);
+				connection.rawConnection.res.writeHead(statusCode, headers);
 				fileStream.pipe(compressor).pipe(connection.rawConnection.res);
 			} else {
 				headers.push(["Content-Length", fileLength]);
-				connection.rawConnection.res.writeHead(responseHttpCode, headers);
+				connection.rawConnection.res.status = 200;
+				connection.rawConnection.res.writeHead(statusCode, headers);
 				fileStream.pipe(connection.rawConnection.res);
 			}
-		} else {
-			if (stringEncoder) {
-				stringEncoder(stringResponse, (_, zippedString) => {
-					headers.push(["Content-Length", zippedString.length]);
-					connection.rawConnection.res.writeHead(responseHttpCode, headers);
-					connection.rawConnection.res.end(zippedString);
-				});
-			} else {
-				headers.push(["Content-Length", Buffer.byteLength(stringResponse)]);
-				connection.rawConnection.res.writeHead(responseHttpCode, headers);
-				connection.rawConnection.res.end(stringResponse);
-			}
+
+			// TODO: implement
+			return new Response();
 		}
+
+		if (stringEncoder) {
+			stringEncoder(stringResponse, (_, zippedString) => {
+				headers.set("Content-Length", zippedString.length);
+			});
+
+			// TODO: implement
+			return new Response(zippedString, {
+				status: statusCode,
+				headers,
+			});
+		}
+
+		const encodedContent = new TextEncoder().encode(stringResponse);
+		console.log("🚀 ~ Web ~ encodedContent:", encodedContent);
+		headers.set("Content-Length", encodedContent.byteLength.toString());
+
+		return new Response(encodedContent, {
+			status: statusCode,
+			headers,
+		});
 	}
 
 	/**
@@ -361,7 +419,7 @@ export default class Web extends GenericServer {
 	 *
 	 * @param connection
 	 */
-	goodbye() {
+	override goodbye() {
 		// disconnect handlers
 	}
 
@@ -371,92 +429,93 @@ export default class Web extends GenericServer {
 	 * Handle the requests.
 	 *
 	 * @param req   Request object.
-	 * @param res   Response object.
-	 * @private
 	 */
-	#handleRequest(req, res) {
-		// get the client fingerprint
-		const { fingerprint, headersHash } = this.fingerprinter.fingerprint(req);
+	async #handleRequest(req: Request, info: Deno.ServeHandlerInfo<Deno.NetAddr>): Promise<Response> {
+		const headers = new Headers();
+		const completionSignal = Promise.withResolvers<Response>();
 
-		const responseHeaders = [];
+		// get the client fingerprint
+		const { fingerprint, headersHash } = await this.fingerprinter.fingerprint(req, info);
+
 		const cookies = this.api.utils.parseCookies(req);
 		const responseHttpCode = 200;
-		const method = req.method.toUpperCase();
+		const method = req.method.toUpperCase() as HTTPMethod;
 		// TODO: check if we need something better as a default base
 		const parsedURL = new URL(req.url, "http://localhost");
-		let i;
 
-		// push all cookies from the request to the response
-		for (i in headersHash) {
-			responseHeaders.push([i, headersHash[i]]);
+		// add all cookies from the request into the response
+		for (const headerName in headersHash) {
+			headers.append(headerName, headersHash[headerName]);
 		}
 
 		// set content type to JSON
-		responseHeaders.push(["Content-Type", "application/json; charset=utf-8"]);
+		headers.set("Content-Type", "application/json; charset=utf-8");
 
 		// push all the default headers to the response object
-		for (i in this.api.config.servers.web.httpHeaders) {
-			responseHeaders.push([i, this.api.config.servers.web.httpHeaders[i]]);
+		for (const headerName in this.api.config.servers.web.httpHeaders) {
+			headers.append(headerName, this.api.config.servers.web.httpHeaders[headerName]);
 		}
 
-		// get the client IP
-		let remoteIP = req.connection.remoteAddress;
-
-		// get the client port
-		let remotePort = req.connection.remotePort;
+		// get client connection details
+		let remoteHostname = info.remoteAddr.hostname;
+		let remotePort = info.remoteAddr.port;
 
 		// helpers for unix socket bindings with no forward
-		if (!remoteIP && !remotePort) {
-			remoteIP = "0.0.0.0";
-			remotePort = "0";
+		if (!remoteHostname && !remotePort) {
+			remoteHostname = "0.0.0.0";
+			remotePort = 0;
 		}
 
-		if (req.headers["x-forwarded-for"]) {
+		if (req.headers.has("x-forwarded-for")) {
 			let parts;
-			let forwardedIp = req.headers["x-forwarded-for"].split(",")[0];
+			let forwardedIp = req.headers.get("x-forwarded-for")!.split(",")[0];
 			if (forwardedIp.indexOf(".") >= 0 || (forwardedIp.indexOf(".") < 0 && forwardedIp.indexOf(":") < 0)) {
 				// IPv4
 				forwardedIp = forwardedIp.replace("::ffff:", ""); // remove any IPv6 information, ie: '::ffff:127.0.0.1'
 				parts = forwardedIp.split(":");
 				if (parts[0]) {
-					remoteIP = parts[0];
+					remoteHostname = parts[0];
 				}
 				if (parts[1]) {
-					remotePort = parts[1];
+					remotePort = parseInt(parts[1], 10);
 				}
 			} else {
 				// IPv6
 				parts = this.api.utils.parseIPv6URI(forwardedIp);
 				if (parts.host) {
-					remoteIP = parts.host;
+					remoteHostname = parts.host;
 				}
 				if (parts.port) {
 					remotePort = parts.port;
 				}
 			}
 
-			if (req.headers["x-forwarded-port"]) {
-				remotePort = req.headers["x-forwarded-port"];
+			if (req.headers.has("x-forwarded-port")) {
+				const rawPort = req.headers.get("x-forwarded-port")!;
+				remotePort = parseInt(rawPort, 10);
 			}
 		}
 
 		this.buildConnection({
-			// will emit 'connection'
 			rawConnection: {
 				req: req,
-				res: res,
 				params: {},
 				method: method,
 				cookies: cookies,
-				responseHeaders: responseHeaders,
-				responseHttpCode: responseHttpCode,
 				parsedURL: parsedURL,
+				completePromise: completionSignal,
+				response: {
+					statusCode: responseHttpCode,
+					headers,
+				},
 			},
 			id: `${fingerprint}-${crypto.randomUUID()}`,
 			fingerprint: fingerprint,
-			remoteAddress: remoteIP,
+			remoteHostname: remoteHostname,
 			remotePort: remotePort,
 		});
+
+		return completionSignal.promise;
 	}
 
 	/**
@@ -465,7 +524,7 @@ export default class Web extends GenericServer {
 	 * @param bindIP  IP here socket is listening.
 	 * @param port    Port that socket is listening.
 	 */
-	chmodSocket(bindIP, port) {
+	#chmodSocket(bindIP: string, port: string) {
 		if (!bindIP && port.indexOf("/") >= 0) {
 			Deno.chmodSync(port, 0o777);
 		}
@@ -476,10 +535,9 @@ export default class Web extends GenericServer {
 	 *
 	 * @param connection  Client connection object.
 	 * @param callback    Callback function.
-	 * @private
 	 */
-	#determineRequestParams(connection, callback) {
-		const url: URL = connection.rawConnection.parsedURL;
+	#determineRequestParams(connection: Connection<HttpConnection>, callback) {
+		const url = connection.rawConnection.parsedURL;
 		const pathname = url.pathname;
 
 		// determine if is a file or an api request
@@ -522,7 +580,6 @@ export default class Web extends GenericServer {
 
 		// split parsed URL by '.'
 		const extensionParts = connection.rawConnection.parsedURL.pathname.split(".");
-
 		if (extensionParts.length > 1) {
 			connection.extension = extensionParts[extensionParts.length - 1];
 		}
@@ -548,7 +605,8 @@ export default class Web extends GenericServer {
 			if (
 				connection.rawConnection.method !== "GET" &&
 				connection.rawConnection.method !== "HEAD" &&
-				(connection.rawConnection.req.headers["content-type"] || connection.rawConnection.req.headers["Content-Type"])
+				(connection.rawConnection.req.headers.has("content-type") ||
+					connection.rawConnection.req.headers.has("Content-Type"))
 			) {
 				connection.rawConnection.form = new formidable.IncomingForm();
 
@@ -558,7 +616,7 @@ export default class Web extends GenericServer {
 
 				connection.rawConnection.form.parse(connection.rawConnection.req, (error, fields, files) => {
 					if (error) {
-						this.log(`error processing form: ${String(error)}`, "error");
+						this.log(`error processing form`, "error", error);
 						connection.error = new Error("There was an error processing this form.");
 					} else {
 						connection.rawConnection.params.body = fields;
@@ -600,7 +658,7 @@ export default class Web extends GenericServer {
 		}
 	}
 
-	processClientLib(connection) {
+	#processClientLib(connection: Connection<HttpConnection>) {
 		// client lib
 		const file = path.normalize(
 			`${this.api.config.general.paths.public + path.SEPARATOR + this.api.config.servers.websocket.clientJsName}.js`,
@@ -618,9 +676,8 @@ export default class Web extends GenericServer {
 	 *
 	 * @param connection  Connection object.
 	 * @param varsHash    Request params.
-	 * @private
 	 */
-	#fillParamsFromWebRequest(connection, varsHash) {
+	#fillParamsFromWebRequest(connection: Connection<HttpConnection>, varsHash: Record<string, string>) {
 		// helper for JSON parts
 		const collapsedVarsHash = this.api.utils.collapseObjectToArray(varsHash);
 
@@ -644,14 +701,9 @@ export default class Web extends GenericServer {
 	 * @param data  Data to be sent to the client.
 	 * @private
 	 */
-	_completeResponse(data) {
-		if (data.toRender !== true) {
-			if (data.connection.rawConnection.res.finished) {
-				data.connection.destroy();
-			} else {
-				data.connection.rawConnection.res.on("finish", () => data.connection.destroy());
-				data.connection.rawConnection.res.on("close", () => data.connection.destroy());
-			}
+	#completeResponse(data: ActionProcessor<HttpConnection>) {
+		if (!data.toRender) {
+			data.connection.rawConnection.completePromise.promise.then(() => data.connection.destroy());
 
 			return;
 		}
@@ -669,23 +721,23 @@ export default class Web extends GenericServer {
 
 		// check if is to use requester information
 		if (this.api.config.servers.web.metadataOptions.requesterInformation) {
-			data.response.requesterInformation = this._buildRequesterInformation(data.connection);
+			data.response.requesterInformation = this.#buildRequesterInformation(data.connection);
 		}
 
 		// is an error response?
 		if (data.response.error) {
 			if (
 				this.api.config.servers.web.returnErrorCodes === true &&
-				data.connection.rawConnection.responseHttpCode === 200
+				data.connection.rawConnection.response.statusCode === 200
 			) {
 				if (data.actionStatus === "unknown_action") {
-					data.connection.rawConnection.responseHttpCode = 404;
+					data.connection.rawConnection.response.statusCode = 404;
 				} else if (data.actionStatus === "missing_params") {
-					data.connection.rawConnection.responseHttpCode = 422;
+					data.connection.rawConnection.response.statusCode = 422;
 				} else if (data.actionStatus === "server_error") {
-					data.connection.rawConnection.responseHttpCode = 500;
+					data.connection.rawConnection.response.statusCode = 500;
 				} else {
-					data.connection.rawConnection.responseHttpCode = 400;
+					data.connection.rawConnection.response.statusCode = 400;
 				}
 			}
 		}
@@ -697,7 +749,7 @@ export default class Web extends GenericServer {
 			this.api.actions.actions[data.params.action][data.params.apiVersion].matchExtensionMimeType === true &&
 			data.connection.extension
 		) {
-			data.connection.rawConnection.responseHeaders.push(["Content-Type", Mime.getType(data.connection.extension)]);
+			data.connection.rawConnection.response.headers.set("Content-Type", Mime.getType(data.connection.extension));
 		}
 
 		// if its an error response we need to serialize the error object
@@ -707,46 +759,43 @@ export default class Web extends GenericServer {
 
 		let stringResponse = "";
 
-		// build the string response
-		if (this._extractHeader(data.connection, "Content-Type").match(/json/)) {
+		if (this.#extractHeader(data.connection, "Content-Type")?.match(/json/)) {
 			try {
 				stringResponse = JSON.stringify(data.response, null, this.api.config.servers.web.padding);
 			} catch (_) {
-				data.connection.rawConnection.responseHttpCode = 500;
+				data.connection.rawConnection.response.statusCode = 500;
 				stringResponse = JSON.stringify({
 					error: "invalid_response_object",
-					requesterInformation: this._buildRequesterInformation(data.connection),
+					requesterInformation: this.#buildRequesterInformation(data.connection),
 				});
 			}
 
 			if (data.params.callback) {
-				data.connection.rawConnection.responseHeaders.push(["Content-Type", "application/javascript"]);
+				data.connection.rawConnection.response.headers.set("Content-Type", "application/javascript");
 				stringResponse = `${data.connection.params.callback}(${stringResponse});`;
 			}
 		} else {
-			stringResponse = data.response;
+			stringResponse = String(data.response);
 		}
 
-		// return the response to the client
-		this.sendMessage(data.connection, stringResponse);
+		// Get the response object and resolve the request with it.
+		const response = this.sendMessage(data.connection, stringResponse);
+		data.connection.rawConnection.completePromise.resolve(response);
 	}
 
 	/**
 	 * Extract one header from a connection object.
 	 *
 	 * @param connection  Connection object from the header must be extracted.
-	 * @param match       Header name.
-	 * @returns {*}       Null if not found, otherwise the header value.
-	 * @private
+	 * @param targetName  Header name.
 	 */
-	_extractHeader(connection, match) {
-		let i = connection.rawConnection.responseHeaders.length - 1;
+	#extractHeader(connection: Connection<HttpConnection>, targetName: string): string | null {
+		const headers = connection.rawConnection.response.headers;
 
-		while (i >= 0) {
-			if (connection.rawConnection.responseHeaders[i][0].toLowerCase() === match.toLowerCase()) {
-				return connection.rawConnection.responseHeaders[i][1];
+		for (const [headerName, headerValue] of headers.entries()) {
+			if (headerName.toLowerCase() === targetName.toLowerCase()) {
+				return headerValue;
 			}
-			i--;
 		}
 
 		return null;
@@ -756,15 +805,12 @@ export default class Web extends GenericServer {
 	 * Build the requester information.
 	 *
 	 * @param connection
-	 * @returns {{id: number, fingerprint: (*|BrowserFingerprint.fingerprint|null), remoteIP: string, receivedParams: {}}}
-	 * @private
 	 */
-	_buildRequesterInformation(connection) {
-		// build the request information object
-		const requesterInformation = {
+	#buildRequesterInformation(connection: Connection<HttpConnection>): RequesterInformation {
+		const requesterInformation: RequesterInformation = {
 			id: connection.id,
 			fingerprint: connection.fingerprint,
-			remoteIP: connection.remoteIP,
+			remoteHostname: connection.remoteHostname,
 			receivedParams: {},
 		};
 
@@ -773,7 +819,6 @@ export default class Web extends GenericServer {
 			requesterInformation.receivedParams[param] = connection.params[param];
 		}
 
-		// return the request information
 		return requesterInformation;
 	}
 
@@ -781,32 +826,22 @@ export default class Web extends GenericServer {
 	 * Remove some unnecessary headers from the response.
 	 *
 	 * @param connection  Client connection object.
-	 * @private
 	 */
-	_cleanHeaders(connection) {
-		// make a copy of the original headers
-		const originalHeaders = connection.rawConnection.responseHeaders.reverse();
+	#cleanHeaders(connection: Connection<HttpConnection>) {
+		const originalHeaders = connection.rawConnection.response.headers.entries();
 		const foundHeaders = [];
-		const cleanedHeaders = [];
 
 		// iterate all headers and remove duplications and unnecessary headers
-		for (const i in originalHeaders) {
-			// get header name and value
-			const key = originalHeaders[i][0];
-			const value = originalHeaders[i][1];
-
+		for (const [key, value] of originalHeaders) {
 			if (foundHeaders.indexOf(key.toLowerCase()) >= 0 && key.toLowerCase().indexOf("set-cookie") < 0) {
 				// ignore, it's a duplicate
 			} else if (connection.rawConnection.method === "HEAD" && key === "Transfer-Encoding") {
 				// ignore, we can't send this header for HEAD requests
 			} else {
 				foundHeaders.push(key.toLowerCase());
-				cleanedHeaders.push([key, value]);
+				connection.rawConnection.response.headers.set(key, value);
 			}
 		}
-
-		// set the clean headers on the connection
-		connection.rawConnection.responseHeaders = cleanedHeaders;
 	}
 
 	/**
@@ -815,23 +850,23 @@ export default class Web extends GenericServer {
 	 * @param connection  Connection object.
 	 * @private
 	 */
-	_respondToOptions(connection = null) {
+	#respondToOptions(connection: Connection<HttpConnection>) {
 		// inform the allowed methods
 		if (
 			!this.api.config.servers.web.httpHeaders["Access-Control-Allow-Methods"] &&
-			!this._extractHeader(connection, "Access-Control-Allow-Methods")
+			!this.#extractHeader(connection, "Access-Control-Allow-Methods")
 		) {
 			const methods = "HEAD, GET, POST, PUT, DELETE, OPTIONS, TRACE";
-			connection.rawConnection.responseHeaders.push(["Access-Control-Allow-Methods", methods]);
+			connection.rawConnection.res.headers.append("Access-Control-Allow-Methods", methods);
 		}
 
 		// inform the allowed origins
 		if (
 			!this.api.config.servers.web.httpHeaders["Access-Control-Allow-Origin"] &&
-			!this._extractHeader(connection, "Access-Control-Allow-Origin")
+			!this.#extractHeader(connection, "Access-Control-Allow-Origin")
 		) {
 			const origin = "*";
-			connection.rawConnection.responseHeaders.push(["Access-Control-Allow-Origin", origin]);
+			connection.rawConnection.res.headers.append("Access-Control-Allow-Origin", origin);
 		}
 
 		// send the message to client
@@ -844,9 +879,9 @@ export default class Web extends GenericServer {
 	 * @param connection  Client connection object.
 	 * @private
 	 */
-	_respondToTrace(connection) {
+	#respondToTrace(connection: Connection<HttpConnection>) {
 		// build the request information
-		const data = this._buildRequesterInformation(connection);
+		const data = this.#buildRequesterInformation(connection);
 
 		// build the response string and send it to the client
 		const stringResponse = JSON.stringify(data, null, this.api.config.servers.web.padding);
@@ -860,13 +895,48 @@ export default class Web extends GenericServer {
 	 * @param port
 	 * @private
 	 */
-	async #cleanSocket(bindIP, port) {
+	async #cleanSocket(bindIP: string, port: string) {
 		if (!bindIP && port.indexOf("/") >= 0) {
 			try {
 				await Deno.remove(port);
 				this.log(`removed stale unix socket @${port}`);
 			} catch (error) {
 				this.log(`cannot remove stale socket @${port}`, "error", error);
+			}
+		}
+	}
+
+	async #createHttpServer(handler: Deno.ServeHandler<Deno.NetAddr>) {
+		let isBooted = false;
+		let bootAttempts = 1;
+
+		while (!isBooted) {
+			bootAttempts += 1;
+
+			try {
+				// TODO: add support for TLS
+				this.server = Deno.serve(
+					{ port: this.options.port, hostname: this.options.bindIP, signal: this.abortionController?.signal },
+					handler,
+				);
+				isBooted = true;
+				this.#chmodSocket(this.options.bindIP, this.options.port);
+			} catch (error) {
+				if (bootAttempts < this.api.config.servers.web.bootAttempts) {
+					this.log(`cannot boot web server; trying again`, "error", error);
+				} else {
+					throw new Error(
+						`Cannot start web server @ ${this.options.bindIP}:${this.options.port} -> ${(error as Error).message}`,
+					);
+				}
+
+				// on the first attempt try to clean the socket
+				if (bootAttempts === 1) {
+					await this.#cleanSocket(this.options.bindIP, this.options.port);
+				}
+
+				// stop for a while to give time to the system perform any cleanup action
+				await sleep(1000);
 			}
 		}
 	}
