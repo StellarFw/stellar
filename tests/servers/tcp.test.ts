@@ -1,11 +1,11 @@
-import { describe, beforeAll, afterAll, it, beforeEach, afterEach } from "@std/testing/bdd";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from "@std/testing/bdd";
 import { expect } from "@std/expect";
 import { assertSpyCall, spy } from "@std/testing/mock";
 import { assert } from "@std/assert";
 
 import Engine from "../../src/engine.ts";
 import { randomUUID } from "node:crypto";
-import { API } from "../../src/interfaces/api.interface.ts";
+import { API } from "../../src/common/types/api.types.ts";
 import { head } from "ramda";
 import { sleep } from "../../src/utils.ts";
 import { assertRejects } from "jsr:@std/assert@^1.0.10/rejects";

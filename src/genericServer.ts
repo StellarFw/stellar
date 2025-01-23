@@ -1,6 +1,8 @@
 import { EventEmitter } from "node:events";
 import { Connection, ConnectionDetails } from "./connection.ts";
 import { ActionProcessor } from "./common/types/action-processor.ts";
+import { API } from "./common/types/api.types.ts";
+import { GetFileResponse } from "./common/types/static-file.interface.ts";
 
 /**
  * This function is called when the method is not implemented.
@@ -44,7 +46,7 @@ export default class GenericServer<C> extends EventEmitter {
 	/**
 	 * API object reference.
 	 */
-	api;
+	protected api: API;
 
 	/**
 	 * Connection type.
@@ -168,10 +170,18 @@ export default class GenericServer<C> extends EventEmitter {
 	 *
 	 * @param connection Connection object.
 	 */
-	processFile(connection: Connection<C>) {
-		this.api.staticFile.get(connection, (connection, error, fileStream, mime, length, lastModified) => {
-			this.sendFile(connection, error, fileStream, mime, length, lastModified);
-		});
+	async processFile(connection: Connection<C>) {
+		const response = await this.api.staticFile.get<C>(connection);
+		this.sendFile(response);
+	}
+
+	/**
+	 * Send a file to the client.
+	 *
+	 * @param _fileResponse Response with the
+	 */
+	sendFile(_fileResponse: GetFileResponse<C>) {
+		throw new Error("Not supported");
 	}
 
 	/**

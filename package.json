@@ -32,7 +32,6 @@
 		"browser_fingerprint": "1.0.4",
 		"chalk": "^5.3.0",
 		"commander": "^12.1.0",
-		"etag": "^1.7.0",
 		"glob": "^10.3.10",
 		"i18n": "^0.13.2",
 		"ioredis": "^5.3.2",

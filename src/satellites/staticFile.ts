@@ -1,17 +1,18 @@
-import fs from "node:fs";
-import path from "node:path";
+import * as path from "@std/path";
 import Mime from "mime";
+import { Connection } from "../connection.ts";
+import { API } from "../common/types/api.types.ts";
+import { assert } from "@std/assert";
+import { GetFileResponse, IStaticFile } from "../common/types/static-file.interface.ts";
 
 /**
  * Class to manage the static files.
  */
-class StaticFile {
+class StaticFile implements IStaticFile {
 	/**
 	 * API object reference.
-	 *
-	 * @type {null}
 	 */
-	api = null;
+	api!: API;
 
 	/**
 	 * Search locations.
@@ -25,7 +26,7 @@ class StaticFile {
 	 *
 	 * @param api API object reference.
 	 */
-	constructor(api) {
+	constructor(api: API) {
 		this.api = api;
 	}
 
@@ -34,9 +35,8 @@ class StaticFile {
 	 *
 	 * @param connection  Client connection object.
 	 * @param counter
-	 * @returns {*}
 	 */
-	searchPath(connection, counter = 0) {
+	searchPath(connection: Connection<unknown>, counter = 0): string | null {
 		if (this.searchLocations.length === 0 || counter >= this.searchLocations.length) {
 			return null;
 		} else {
@@ -45,46 +45,34 @@ class StaticFile {
 	}
 
 	/**
-	 * Get the content of a file by the 'connection.params.file' var.
+	 * Get the content of a file by the 'connection.params.file' parameter.
 	 *
 	 * @param connection  Client connection object.
-	 * @param callback    Callback function.
 	 * @param counter
 	 */
-	async get(connection, callback, counter = 0) {
-		if (!connection.params.file || !this.searchPath(connection, counter)) {
-			this.sendFileNotFound(connection, this.api.config.errors.fileNotProvided(connection), callback);
-		} else {
-			let file = null;
-
-			if (!path.isAbsolute(connection.params.file)) {
-				file = path.normalize(`${this.searchPath(connection, counter)}/${connection.params.file}`);
-			} else {
-				file = connection.params.file;
-			}
-
-			if (file.indexOf(path.normalize(this.searchPath(connection, counter))) !== 0) {
-				this.get(connection, callback, counter + 1);
-			} else {
-				this.checkExistence(file, async (exists, truePath) => {
-					if (exists) {
-						const {
-							connection: connectionObj,
-							fileStream,
-							mime,
-							length,
-							lastModified,
-							error,
-						} = await this.sendFile(truePath, connection);
-						if (callback) {
-							callback(connectionObj, error, fileStream, mime, length, lastModified);
-						}
-					} else {
-						this.get(connection, callback, counter + 1);
-					}
-				});
-			}
+	async get<C>(connection: Connection<C>, counter = 0): Promise<GetFileResponse<C>> {
+		const currentSearchPath = this.searchPath(connection, counter);
+		if (!connection.params.file || !currentSearchPath) {
+			return this.sendFileNotFound(connection, this.api.config.errors.fileNotProvided(connection));
 		}
+
+		const requestedFile = connection.params.file as string | undefined;
+		assert(requestedFile, "request file needs to be present");
+
+		const file = !path.isAbsolute(requestedFile)
+			? path.normalize(`${currentSearchPath}/${requestedFile}`)
+			: requestedFile;
+
+		if (file.indexOf(path.normalize(currentSearchPath)) !== 0) {
+			return this.get(connection, counter + 1);
+		}
+
+		const [exists, truePath] = await this.checkExistence(file);
+		if (!exists) {
+			return this.get(connection, counter + 1);
+		}
+
+		return this.sendFile(truePath, connection);
 	}
 
 	/**
@@ -93,26 +81,31 @@ class StaticFile {
 	 * @param file
 	 * @param connection
 	 */
-	async sendFile(file, connection) {
-		let lastModified;
-
+	async sendFile<C>(file: string, connection: Connection<C>): Promise<GetFileResponse<C>> {
 		try {
-			const stats = await this.api.utils.stats(file);
+			const stats = await Deno.lstat(file);
 			const mime = Mime.getType(file);
 			const length = stats.size;
 			const start = new Date().getTime();
-			lastModified = stats.mtime;
+			const lastModified = stats.mtime;
 
-			const fileStream = fs.createReadStream(file);
-			this.fileLogger(fileStream, connection, start, file, length);
+			const fileDescriptor = await Deno.open(file, { read: true });
 
-			await new Promise((resolve) => fileStream.on("open", resolve));
 			return {
+				fileDescriptor: {
+					file: fileDescriptor,
+					lastModified: lastModified as Date,
+					// Close the file descriptor after use.
+					[Symbol.dispose]: () => {
+						fileDescriptor.close();
+
+						const duration = new Date().getTime() - start;
+						this.logRequest(file, connection, length, duration, true);
+					},
+				},
 				connection,
-				fileStream,
 				mime,
 				length,
-				lastModified,
 			};
 		} catch (error) {
 			return this.sendFileNotFound(connection, this.api.config.errors.fileReadError(connection, String(error)));
@@ -124,10 +117,9 @@ class StaticFile {
 	 *
 	 * @param connection    Client connection object.
 	 * @param errorMessage  Error message to send.
-	 * @param callback      Callback function.
 	 */
-	sendFileNotFound(connection, errorMessage) {
-		connection.error = new Error(errorMessage);
+	sendFileNotFound<C>(connection: Connection<C>, errorMessage: string): GetFileResponse<C> {
+		connection.error = errorMessage;
 
 		this.logRequest("{404: not found}", connection, null, null, false);
 
@@ -143,48 +135,29 @@ class StaticFile {
 	 * Check the existence of a file.
 	 *
 	 * @param file
-	 * @param callback
 	 */
-	checkExistence(file, callback) {
-		fs.stat(file, (error, stats) => {
-			// if exists an error execute the callback
-			// function and return
-			if (error) {
-				return callback(false, file);
+	async checkExistence(file: string): Promise<[boolean, string]> {
+		try {
+			const stats = await Deno.lstat(file);
+
+			if (stats.isDirectory) {
+				const indexPath = `${file}/${this.api.config.general.directoryFileType}`;
+				return this.checkExistence(indexPath);
 			}
 
-			if (stats.isDirectory()) {
-				let indexPath = `${file}/${this.api.config.general.directoryFileType}`;
-				this.checkExistence(indexPath, callback);
-			} else if (stats.isSymbolicLink()) {
-				fs.readlink(file, (error, truePath) => {
-					if (error) {
-						callback(false, file);
-					} else {
-						truePath = path.normalize(truePath);
-						this.checkExistence(truePath, callback);
-					}
-				});
-			} else if (stats.isFile()) {
-				callback(true, file);
-			} else {
-				callback(false, file);
+			if (stats.isSymlink) {
+				const truePath = await Deno.readLink(file);
+				return this.checkExistence(truePath);
 			}
-		});
-	}
 
-	/**
-	 * Log a file request.
-	 */
-	fileLogger(fileStream, connection, start, file, length) {
-		fileStream.on("end", () => {
-			const duration = new Date().getTime() - start;
-			this.logRequest(file, connection, length, duration, true);
-		});
+			return [stats.isFile, file];
+		} catch (err) {
+			if (!(err instanceof Deno.errors.NotFound)) {
+				throw err;
+			}
 
-		fileStream.on("error", (error) => {
-			throw error;
-		});
+			return [false, file];
+		}
 	}
 
 	/**
@@ -196,9 +169,9 @@ class StaticFile {
 	 * @param duration
 	 * @param success
 	 */
-	logRequest(file, connection, length, duration, success) {
+	logRequest(file: string, connection: Connection<unknown>, length: number, duration: number, success: boolean) {
 		this.api.log(`[ file @ ${connection.type}]`, "debug", {
-			to: connection.remoteIP,
+			to: connection.remoteHostname,
 			file: file,
 			size: length,
 			duration: duration,
@@ -220,7 +193,7 @@ export default class {
 	 *
 	 * @param api   API reference object.
 	 */
-	async load(api) {
+	async load(api: API) {
 		// put static file methods available on the API object
 		api.staticFile = new StaticFile(api);
 

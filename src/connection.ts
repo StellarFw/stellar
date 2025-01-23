@@ -1,4 +1,4 @@
-import { API } from "./interfaces/api.interface.ts";
+import { API } from "./common/types/api.types.ts";
 import { ConnectionDetails } from "./common/types/connection-details.ts";
 
 /**

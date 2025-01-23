@@ -43,7 +43,6 @@
     "npm:eslint-plugin-node@11.1.0": "11.1.0_eslint@8.56.0",
     "npm:eslint-plugin-unused-imports@3": "3.2.0_@typescript-eslint+eslint-plugin@6.21.0__@typescript-eslint+parser@6.21.0___eslint@8.56.0___typescript@5.7.2__eslint@8.56.0__typescript@5.7.2_eslint@8.56.0_@typescript-eslint+parser@6.21.0__eslint@8.56.0__typescript@5.7.2_typescript@5.7.2",
     "npm:eslint@8.56.0": "8.56.0",
-    "npm:etag@^1.7.0": "1.8.1",
     "npm:glob@^10.3.10": "10.4.5",
     "npm:i18n@~0.13.2": "0.13.4",
     "npm:ioredis-mock@^8.9.0": "8.9.0_@types+ioredis-mock@8.2.5_ioredis@5.4.2_fengari@0.1.4",
@@ -1299,9 +1298,6 @@
     },
     "esutils@2.0.3": {
       "integrity": "sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g=="
-    },
-    "etag@1.8.1": {
-      "integrity": "sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg=="
     },
     "event-emitter@0.3.5": {
       "integrity": "sha512-D9rRn9y7kLPnJ+hMq7S/nhvoKwwvVJahBi2BPmx3bvbsEdK3W9ii8cBSGjP+72/LnM4n6fo3+dkCX5FeTQruXA==",
@@ -3326,7 +3322,6 @@
         "npm:eslint-plugin-node@11.1.0",
         "npm:eslint-plugin-unused-imports@3",
         "npm:eslint@8.56.0",
-        "npm:etag@^1.7.0",
         "npm:glob@^10.3.10",
         "npm:i18n@~0.13.2",
         "npm:ioredis-mock@^8.9.0",

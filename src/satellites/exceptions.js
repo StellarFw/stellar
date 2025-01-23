@@ -39,7 +39,9 @@ class ExceptionsManager {
 					objects.connection[detailName] !== undefined &&
 					typeof objects.connection[detailName] !== "function"
 				) {
-					extraMessages.push(`    ${detailName}: ${JSON.stringify(objects.connection[detailName])}`);
+					extraMessages.push(
+						`    ${detailName}: ${JSON.stringify(objects.connection[detailName])}`,
+					);
 				}
 			}
 
@@ -50,7 +52,9 @@ class ExceptionsManager {
 			data.name = name;
 			data.queue = objects.queue;
 			data.worker = objects.workerId;
-			data.arguments = objects?.task?.args ? JSON.stringify(objects.task.args[0]) : undefined;
+			data.arguments = objects?.task?.args
+				? JSON.stringify(objects.task.args[0])
+				: undefined;
 		} else {
 			extraMessages.push(`Error: ${error.message}\n`);
 			extraMessages.push(`    Type: ${type}`);
@@ -111,7 +115,13 @@ class ExceptionsManager {
 	 * @param data
 	 */
 	action(error, data) {
-		this.report(error, "action", `action: ${data.action.name}`, { ...data, error }, "alert");
+		this.report(
+			error,
+			"action",
+			`action: ${data.action.name}`,
+			{ ...data, error },
+			"alert",
+		);
 	}
 
 	/**

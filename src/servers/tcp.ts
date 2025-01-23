@@ -1,6 +1,6 @@
 import GenericServer from "../genericServer.ts";
 import { sleep } from "../utils.ts";
-import { API } from "../interfaces/api.interface.ts";
+import { API } from "../common/types/api.types.ts";
 import { isNil } from "ramda";
 import { Connection } from "../connection.ts";
 import { isEmptyString } from "ramda-adjunct";

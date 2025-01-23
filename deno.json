@@ -24,6 +24,7 @@
 		"lineWidth": 120,
 		"semiColons": true,
 		"singleQuote": false,
-		"useTabs": true
+		"useTabs": true,
+		"proseWrap": "preserve"
 	}
 }

@@ -1,4 +1,4 @@
-import { API } from "../src/interfaces/api.interface.ts";
+import { API } from "../src/common/types/api.types.ts";
 
 /**
  * This is a temporary function util to run an action and return a promise.

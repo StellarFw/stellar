@@ -1,18 +1,18 @@
 import qs from "qs";
 import * as path from "@std/path";
-import zlib from "node:zlib";
-import etag from "etag";
+
 import Mime from "mime";
 import formidable from "st-formidable";
 import GenericServer from "../genericServer.ts";
 import { sleep } from "../utils.ts";
-import { API } from "../interfaces/api.interface.ts";
+import { API } from "../common/types/api.types.ts";
 import { HttpFingerprint } from "../fingerprint/httpFingerprint.ts";
 import { Connection } from "../connection.ts";
 import { ActionProcessor, RequesterInformation } from "../common/types/action-processor.ts";
 import { deflate, gzip } from "@deno-library/compress";
-import { STATUS_CODE } from "@std/http";
+import { eTag, STATUS_CODE } from "@std/http";
 import { HEADER } from "@std/http/unstable-header";
+import { FileDescriptor, GetFileResponse } from "../common/types/static-file.interface.ts";
 
 // server type
 const type = "web";
@@ -204,44 +204,33 @@ export default class Web extends GenericServer<HttpConnection> {
 	 * @param length          File length in bytes.
 	 * @param lastModified    Timestamp if the last modification.
 	 */
-	async sendFile(
-		connection: Connection<HttpConnection>,
-		error: Error | null,
-		fileStream: ReadableStream,
-		mime: string,
-		length: number,
-		lastModified: string,
+	override async sendFile(
+		fileResponse: GetFileResponse<HttpConnection>,
 	) {
-		let foundCacheControl = false;
-		let ifModifiedSince;
+		const error = fileResponse.error;
+		const connection = fileResponse.connection;
 
-		// check if we should use cache mechanisms
-		connection.rawConnection.responseHeaders.forEach((pair) => {
-			if (pair[0].toLowerCase() === "cache-control") {
-				foundCacheControl = true;
-			}
-		});
+		// If the cache control header is set we must use cache mechanics
+		const foundCacheControl = connection.rawConnection.response.headers.has(HEADER.CacheControl);
 
 		// add mime type to the response headers
-		connection.rawConnection.responseHeaders.push([HEADER.ContentType, mime]);
+		connection.rawConnection.response.headers.set(HEADER.ContentType, fileResponse.mime);
 
-		// If is to use a cache mechanism we must append a cache control header to the response
-		if (fileStream) {
-			if (!foundCacheControl) {
-				connection.rawConnection.responseHeaders.push([
-					"Cache-Control",
-					`max-age=${this.api.config.servers.web.flatFileCacheDuration}, must-revalidate, public`,
-				]);
-			}
+		// When the cache header isn't present we need to set it
+		if (fileResponse.fileDescriptor && !foundCacheControl) {
+			connection.rawConnection.response.headers.set(
+				"Cache-Control",
+				`max-age=${this.api.config.servers.web.flatFileCacheDuration}, must-revalidate, public`,
+			);
 		}
 
 		// add a header to the response with the last modified timestamp
-		if (fileStream && !this.api.config.servers.web.enableEtag) {
-			if (lastModified) {
-				connection.rawConnection.responseHeaders.push([
-					"Last-Modified",
-					new Date(lastModified).toUTCString(),
-				]);
+		if (fileResponse.fileDescriptor && !this.api.config.servers.web.enableEtag) {
+			if (fileResponse.fileDescriptor.lastModified) {
+				connection.rawConnection.response.headers.set(
+					HEADER.LastModified,
+					fileResponse.fileDescriptor.lastModified.toUTCString(),
+				);
 			}
 		}
 
@@ -249,39 +238,37 @@ export default class Web extends GenericServer<HttpConnection> {
 		this.#cleanHeaders(connection);
 
 		const reqHeaders = connection.rawConnection.req.headers;
-		const headers = connection.rawConnection.response.headers;
+		const resHeaders = connection.rawConnection.response.headers;
 
 		// This function is used to send the response to the client.
 		const sendRequestResult = () => {
-			// parse the HTTP status code to int
-			const responseStatusCode = parseInt(
-				connection.rawConnection.response.statusCode,
-				10,
-			);
+			let response;
+			const responseStatusCode = connection.rawConnection.response.statusCode;
 
 			if (error) {
 				const errorString = error instanceof Error ? String(error) : JSON.stringify(error);
-				this.#buildResponseWithCompression(
+
+				response = this.#buildStringResponseWithCompression(
 					connection,
 					responseStatusCode,
-					headers,
+					resHeaders,
 					errorString,
 				);
 			} else if (responseStatusCode !== STATUS_CODE.NotModified) {
-				this.#buildResponseWithCompression(
+				using fileDescriptor = fileResponse.fileDescriptor;
+
+				response = this.#buildResponseWithCompression(
 					connection,
 					responseStatusCode,
-					headers,
-					null,
-					fileStream,
-					length,
+					resHeaders,
+					fileDescriptor,
+					fileResponse.length,
 				);
 			} else {
-				// TODO: convert this code
-				connection.rawConnection.res.writeHead(responseStatusCode, headers);
-				connection.rawConnection.res.end();
-				connection.destroy();
+				response = new Response(null, { status: responseStatusCode, headers: resHeaders });
 			}
+
+			connection.rawConnection.completePromise.resolve(response);
 		};
 
 		// if an error exists change the status code to 404 and send the response
@@ -291,63 +278,62 @@ export default class Web extends GenericServer<HttpConnection> {
 		}
 
 		// get the 'if-modified-since' value if exists
-		if (reqHeaders["if-modified-since"]) {
-			ifModifiedSince = new Date(reqHeaders["if-modified-since"]);
+		if (fileResponse.fileDescriptor && reqHeaders.has(HEADER.IfModifiedSince)) {
+			const lastModified = fileResponse.fileDescriptor?.lastModified;
+			const ifModifiedSince = new Date(reqHeaders.get(HEADER.IfModifiedSince)!);
+
 			lastModified.setMilliseconds(0);
 			if (lastModified <= ifModifiedSince) {
 				connection.rawConnection.response.statusCode = STATUS_CODE.NotModified;
 			}
+
 			return sendRequestResult();
 		}
 
-		// check if is to use ETag
+		// If the ETags are enabled we need to implement the entity tag mechanism
 		if (
-			this.api.config.servers.web.enableEtag && fileStream && fileStream.path
+			this.api.config.servers.web.enableEtag && fileResponse.fileDescriptor
 		) {
 			// Get the file states in order to create the ETag header
 			try {
-				const filestats = await Deno.stat(fileStream.path);
+				const fileStats = await fileResponse.fileDescriptor.file.stat();
 
 				// push the ETag header to the response
-				const fileEtag = etag(filestats, { weak: true });
-				connection.rawConnection.responseHeaders.push(["ETag", fileEtag]);
-
-				let noneMatchHeader = reqHeaders["if-none-match"];
-				const cacheCtrlHeader = reqHeaders["cache-control"];
-				let noCache = false;
-				let etagMatches;
-
-				// check for no-cache cache request directive
-				if (cacheCtrlHeader && cacheCtrlHeader.indexOf("no-cache") !== -1) {
-					noCache = true;
+				const fileEtag = await eTag(fileStats, { weak: true });
+				if (fileEtag) {
+					connection.rawConnection.response.headers.set(HEADER.ETag, fileEtag);
 				}
 
+				const noneMatchHeader = reqHeaders.get(HEADER.IfNoneMatch);
+				const cacheCtrlHeader = reqHeaders.get(HEADER.CacheControl);
+
+				const noCache = cacheCtrlHeader && cacheCtrlHeader.includes("no-cache");
+				let etagMatches;
+
 				// parse if-none-match
+				let noneMatchHeaderParts: string[] = [];
 				if (noneMatchHeader) {
-					noneMatchHeader = noneMatchHeader.split(/ *, */);
+					noneMatchHeaderParts = noneMatchHeader.split(/ *, */);
 				}
 
 				// if-none-match
-				if (noneMatchHeader) {
-					etagMatches = noneMatchHeader.some(
+				if (noneMatchHeaderParts) {
+					etagMatches = noneMatchHeaderParts.some(
 						(match) => match === "*" || match === fileEtag || match === `W/${fileEtag}`,
 					);
 				}
 
 				// use the cached object
 				if (etagMatches && !noCache) {
-					connection.rawConnection.responseHeaders = STATUS_CODE.NotModified;
+					connection.rawConnection.response.statusCode = STATUS_CODE.NotModified;
 				}
-
-				// send response
-				sendRequestResult();
 			} catch (error) {
 				this.log(`Error receiving file statistics`, "error", error);
 				return sendRequestResult();
 			}
-		} else {
-			sendRequestResult();
 		}
+
+		sendRequestResult();
 	}
 
 	#buildStringResponseWithCompression(
@@ -386,80 +372,42 @@ export default class Web extends GenericServer<HttpConnection> {
 	 * @param connection          Connection object where the message must be sent.
 	 * @param statusCode    HTTP Status code.
 	 * @param headers             HTTP response headers.
-	 * @param stringResponse      Response body.
-	 * @param fileStream          FileStream, only needed if to send a file.
+	 * @param fileDescriptor          FileStream, only needed if to send a file.
 	 * @param fileLength          File size in bytes, only needed if is to send a file.
 	 */
-	#buildResponseWithCompression(
+	async #buildResponseWithCompression(
 		connection: Connection<HttpConnection>,
 		statusCode: number,
 		headers: Headers,
-		stringResponse: string,
-		fileStream?: ReadableStream,
-		fileLength?: number,
+		fileDescriptor: FileDescriptor,
+		fileLength: number,
 	) {
-		let compressor, stringEncoder;
+		let hasCompress = false;
 		const acceptEncoding = connection.rawConnection.req.headers.get(
 			HEADER.AcceptEncoding,
 		);
+
+		// read the bytes from the file
+		let bytes = new Uint8Array(fileLength);
+		await fileDescriptor?.file.read(bytes);
 
 		// Note: this is not a conformant accept-encoding parser.
 		// https://nodejs.org/api/zlib.html#zlib_zlib_createinflate_options
 		// See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3
 		if (this.api.config.servers.web.compress === true) {
 			if (acceptEncoding?.match(/\bdeflate\b/)) {
+				hasCompress = true;
 				headers.set(HEADER.ContentEncoding, "deflate");
-				compressor = zlib.createDeflate();
-				stringEncoder = zlib.deflate;
+				bytes = deflate(bytes);
 			} else if (acceptEncoding?.match(/\bgzip\b/)) {
+				hasCompress = true;
 				headers.set(HEADER.ContentEncoding, "gzip");
-				compressor = zlib.createGzip();
-				stringEncoder = zlib.gzip;
+				bytes = gzip(bytes);
 			}
 		}
 
-		// // the 'finish' event denotes a successful transfer
-		// connection.rawConnection.res.on("finish", () => {
-		// 	connection.destroy();
-		// });
-
-		// // the 'close' event denotes a failed transfer, but it is probably the client's fault
-		// connection.rawConnection.res.on("close", () => {
-		// 	connection.destroy();
-		// });
-
-		if (fileStream) {
-			if (compressor) {
-				connection.rawConnection.res.writeHead(statusCode, headers);
-				fileStream.pipe(compressor).pipe(connection.rawConnection.res);
-			} else {
-				headers.push([HEADER.ContentLength, fileLength]);
-				connection.rawConnection.res.status = STATUS_CODE.OK;
-				connection.rawConnection.res.writeHead(statusCode, headers);
-				fileStream.pipe(connection.rawConnection.res);
-			}
-
-			// TODO: implement
-			return new Response();
-		}
-
-		if (stringEncoder) {
-			stringEncoder(stringResponse, (_, zippedString) => {
-				headers.set(HEADER.ContentLength, zippedString.length);
-			});
-
-			// TODO: implement
-			return new Response(zippedString, {
-				status: statusCode,
-				headers,
-			});
-		}
-
-		const encodedContent = new TextEncoder().encode(stringResponse);
-		console.log("🚀 ~ Web ~ encodedContent:", encodedContent);
-		headers.set(HEADER.ContentLength, encodedContent.byteLength.toString());
-
-		return new Response(encodedContent, {
+		headers.set(HEADER.ContentLength, String(fileLength));
+		return new Response(bytes, {
 			status: statusCode,
 			headers,
 		});

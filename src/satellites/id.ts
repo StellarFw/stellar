@@ -48,7 +48,7 @@ export default class {
 				try {
 					api.log(message, "crit");
 				} catch (e) {
-					console.log(message);
+					console.error(message);
 				}
 			}
 

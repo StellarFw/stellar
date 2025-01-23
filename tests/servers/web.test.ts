@@ -1,11 +1,11 @@
-import { describe, beforeAll, afterAll, it } from "@std/testing/bdd";
+import { afterAll, beforeAll, describe, it } from "@std/testing/bdd";
 import { expect } from "@std/expect";
 
 import axios, { AxiosError } from "axios";
 
 import Engine from "../../src/engine.ts";
 import { sleep } from "../../src/utils.ts";
-import { API } from "../../src/interfaces/api.interface.ts";
+import { API } from "../../src/common/types/api.types.ts";
 import { assertEquals } from "@std/assert/equals";
 const engine = new Engine({ rootPath: `${Deno.cwd()}/example` });
 
