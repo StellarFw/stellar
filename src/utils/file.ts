@@ -21,6 +21,6 @@ export function ensureNoTsHeaderOrSpecFiles(files: Array<string>): Array<string>
  * @returns
  */
 export function safeGlob(match: string, args: GlobOptions = {}) {
-	const isWindows = process.platform === "win32";
+	const isWindows = Deno.build.os === "windows";
 	return glob(match, { ...args, windowsPathsNoEscape: isWindows });
 }

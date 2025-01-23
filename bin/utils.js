@@ -1,4 +1,13 @@
-import fs, { access, mkdir, readdir, readFile, rmdir, stat, unlink, writeFile } from "node:fs/promises";
+import fs, {
+	access,
+	mkdir,
+	readdir,
+	readFile,
+	rmdir,
+	stat,
+	unlink,
+	writeFile,
+} from "node:fs/promises";
 import { resolve } from "node:path";
 import process from "node:process";
 
@@ -29,7 +38,9 @@ export async function exists(path) {
 	try {
 		await access(path, fs.F_OK);
 		return true;
-	} catch (e) {}
+	} catch (_e) {
+		// do nothing
+	}
 
 	return false;
 }
@@ -180,9 +191,12 @@ export async function generateFileFromTemplate(templateName, data, outputPath) {
  * @returns
  */
 export async function getStellarMetadata() {
-	const stellarPackageMetadataText = await readFile(resolve(import.meta.dirname, "../package.json"), {
-		encoding: "utf8",
-	});
+	const stellarPackageMetadataText = await readFile(
+		resolve(import.meta.dirname, "../package.json"),
+		{
+			encoding: "utf8",
+		},
+	);
 
 	return JSON.parse(stellarPackageMetadataText);
 }
