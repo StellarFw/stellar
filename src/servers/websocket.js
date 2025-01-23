@@ -14,7 +14,16 @@ const attributes = {
 	logConnections: true,
 	logExists: true,
 	sendWelcomeMessage: true,
-	verbs: ["quit", "exit", "roomJoin", "roomLeave", "roomView", "detailsView", "say", "event"],
+	verbs: [
+		"quit",
+		"exit",
+		"roomJoin",
+		"roomLeave",
+		"roomView",
+		"detailsView",
+		"say",
+		"event",
+	],
 };
 
 export default class WebSocketServer extends GenericServer {
@@ -60,13 +69,23 @@ export default class WebSocketServer extends GenericServer {
 		}
 
 		// create a new primus instance
-		this.server = new Primus(webserver.server, this.api.config.servers.websocket.server);
+		this.server = new Primus(
+			webserver.server,
+			this.api.config.servers.websocket.server,
+		);
 
 		// define some event handlers
-		this.server.on("connection", (rawConnection) => this._handleConnection(rawConnection));
-		this.server.on("disconnection", (rawConnection) => this._handleDisconnection(rawConnection));
+		this.server.on("connection", (rawConnection) =>
+			this._handleConnection(rawConnection),
+		);
+		this.server.on("disconnection", (rawConnection) =>
+			this._handleDisconnection(rawConnection),
+		);
 
-		this.api.log(`webSocket bound to ${webserver.options.bindIP}:${webserver.options.port}`, "debug");
+		this.api.log(
+			`webSocket bound to ${webserver.options.bindIP}:${webserver.options.port}`,
+			"debug",
+		);
 		this.server.active = true;
 
 		// write client js
@@ -98,7 +117,9 @@ export default class WebSocketServer extends GenericServer {
 	sendMessage(connection, message, messageCount) {
 		// serialize the error if exists
 		if (message.error) {
-			message.error = this.api.config.errors.serializers.servers.websocket(message.error);
+			message.error = this.api.config.errors.serializers.servers.websocket(
+				message.error,
+			);
 		}
 
 		// if the message don't have a context set to 'response'
@@ -146,7 +167,11 @@ export default class WebSocketServer extends GenericServer {
 				});
 				fileStream.on("end", () => {
 					response.content = content;
-					this.server.sendMessage(connection, response, connection.messageCount);
+					this.server.sendMessage(
+						connection,
+						response,
+						connection.messageCount,
+					);
 				});
 			} else {
 				this.server.sendMessage(connection, response, connection.messageCount);
@@ -175,7 +200,9 @@ export default class WebSocketServer extends GenericServer {
 	 * @private
 	 */
 	_compileClientJS() {
-		let clientSource = fs.readFileSync(`${import.meta.dirname}/../client.js`).toString();
+		let clientSource = fs
+			.readFileSync(`${import.meta.dirname}/../client.js`)
+			.toString();
 		let url = this.api.config.servers.websocket.clientUrl;
 
 		// replace any url by client url
@@ -191,7 +218,10 @@ export default class WebSocketServer extends GenericServer {
 		defaults.simultaneousActions = this.api.config.general.simultaneousActions;
 
 		let defaultsString = util.inspect(defaults);
-		defaultsString = defaultsString.replace("'window.location.origin'", "window.location.origin");
+		defaultsString = defaultsString.replace(
+			"'window.location.origin'",
+			"window.location.origin",
+		);
 		clientSource = clientSource.replace(`"%%DEFAULTS%%"`, defaultsString);
 
 		// remove ESM export
@@ -230,13 +260,17 @@ export default class WebSocketServer extends GenericServer {
 	 */
 	_writeClientJS() {
 		// ensure the public folder exists
-		if (!this.api.utils.directoryExists(`${this.api.config.general.paths.public}`)) {
+		if (
+			!this.api.utils.directoryExists(`${this.api.config.general.paths.public}`)
+		) {
 			this.api.utils.createFolder(`${this.api.config.general.paths.public}`);
 		}
 
 		if (this.api.config.servers.websocket.clientJsName) {
 			let base = path.normalize(
-				this.api.config.general.paths.public + path.sep + this.api.config.servers.websocket.clientJsName,
+				this.api.config.general.paths.public +
+					path.sep +
+					this.api.config.servers.websocket.clientJsName,
 			);
 
 			try {
@@ -245,7 +279,10 @@ export default class WebSocketServer extends GenericServer {
 				fs.writeFileSync(`${base}.min.js`, this._renderClientJs(true));
 				this.api.log(`wrote ${base}.min.js`, "debug");
 			} catch (e) {
-				this.api.log("Cannot write client-side JS for websocket server:", "warning");
+				this.api.log(
+					"Cannot write client-side JS for websocket server:",
+					"warning",
+				);
 				this.api.log(e, "warning");
 				throw e;
 			}
@@ -259,7 +296,10 @@ export default class WebSocketServer extends GenericServer {
 	 * @private
 	 */
 	_handleConnection(rawConnection) {
-		const fingerPrint = rawConnection.query[this.api.config.servers.web.fingerprintOptions.cookieKey];
+		const fingerPrint =
+			rawConnection.query[
+				this.api.config.servers.web.fingerprintOptions.cookieKey
+			];
 
 		this.buildConnection({
 			rawConnection: rawConnection,
@@ -277,7 +317,10 @@ export default class WebSocketServer extends GenericServer {
 	 */
 	_handleDisconnection(rawConnection) {
 		for (let i in this.connections()) {
-			if (this.connections()[i] && rawConnection.id === this.connections()[i].rawConnection.id) {
+			if (
+				this.connections()[i] &&
+				rawConnection.id === this.connections()[i].rawConnection.id
+			) {
 				this.connections()[i].destroy();
 				break;
 			}

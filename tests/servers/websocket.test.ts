@@ -1,11 +1,11 @@
-import { describe, beforeAll, afterAll, it, expect, afterEach, beforeEach } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-imports
 import Primus from "primus";
 
 import Engine from "../../src/engine";
 import { sleep } from "../../src/utils";
-import { API } from "../../src/interfaces/api.interface";
+import { API } from "../../src/common/types/api.types.ts";
 const engine = new Engine({ rootPath: `${process.cwd()}/example` });
 
 let api: API;

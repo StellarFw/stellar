@@ -1,8 +1,8 @@
-import { describe, beforeAll, afterAll, it, afterEach, beforeEach, expect } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import Engine from "../../src/engine";
 import { runActionPromise } from "../utils";
-import { API } from "../../src/interfaces/api.interface";
+import { API } from "../../src/common/types/api.types.ts";
 
 const engine = new Engine({ rootPath: `${process.cwd()}/example` });
 
