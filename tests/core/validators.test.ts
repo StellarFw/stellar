@@ -1,4 +1,4 @@
-import { describe, beforeAll, afterAll, it, expect } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import Engine from "../../src/engine";
 

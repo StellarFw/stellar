@@ -1,4 +1,4 @@
-import { flatten, values, pipe } from "ramda";
+import { flatten, pipe, values } from "ramda";
 
 /**
  * This contains all the protected keys, that can not be modified by the mod

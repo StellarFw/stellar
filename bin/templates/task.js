@@ -1,4 +1,4 @@
-exports.render = data => `
+exports.render = (data) => `
 'use strict'
 
 exports.${data.taskName} = {
@@ -15,4 +15,4 @@ exports.${data.taskName} = {
     next()
   }
 }
-`
+`;

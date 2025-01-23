@@ -52,9 +52,7 @@ class ExceptionsManager {
 			data.name = name;
 			data.queue = objects.queue;
 			data.worker = objects.workerId;
-			data.arguments = objects?.task?.args
-				? JSON.stringify(objects.task.args[0])
-				: undefined;
+			data.arguments = objects?.task?.args ? JSON.stringify(objects.task.args[0]) : undefined;
 		} else {
 			extraMessages.push(`Error: ${error.message}\n`);
 			extraMessages.push(`    Type: ${type}`);

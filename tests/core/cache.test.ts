@@ -1,4 +1,4 @@
-import { describe, beforeAll, afterAll, it, afterEach } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, it } from "vitest";
 
 import Engine from "../../src/engine";
 import { expect } from "vitest";

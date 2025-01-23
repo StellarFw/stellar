@@ -110,10 +110,10 @@ export class HttpFingerprint {
 			toSetCookie: options.toSetCookie ?? true,
 			settings: options.settings
 				? {
-						httpOnly: options.settings?.httpOnly ?? false,
-						path: options.settings?.path ?? "/",
-						secure: options.settings?.secure ?? false,
-					}
+					httpOnly: options.settings?.httpOnly ?? false,
+					path: options.settings?.path ?? "/",
+					secure: options.settings?.secure ?? false,
+				}
 				: undefined,
 		};
 	}

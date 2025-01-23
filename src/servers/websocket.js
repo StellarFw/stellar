@@ -75,12 +75,8 @@ export default class WebSocketServer extends GenericServer {
 		);
 
 		// define some event handlers
-		this.server.on("connection", (rawConnection) =>
-			this._handleConnection(rawConnection),
-		);
-		this.server.on("disconnection", (rawConnection) =>
-			this._handleDisconnection(rawConnection),
-		);
+		this.server.on("connection", (rawConnection) => this._handleConnection(rawConnection));
+		this.server.on("disconnection", (rawConnection) => this._handleDisconnection(rawConnection));
 
 		this.api.log(
 			`webSocket bound to ${webserver.options.bindIP}:${webserver.options.port}`,
@@ -241,8 +237,7 @@ export default class WebSocketServer extends GenericServer {
 		let libSource = this.server.library();
 		let clientSource = this._compileClientJS();
 
-		clientSource =
-			`;;;\r\n` +
+		clientSource = `;;;\r\n` +
 			`(function(exports){ \r\n${clientSource}\r\n` +
 			`exports.StellarClient = StellarClient; \r\n` +
 			`})(typeof exports === 'undefined' ? window : exports);`;
@@ -296,10 +291,9 @@ export default class WebSocketServer extends GenericServer {
 	 * @private
 	 */
 	_handleConnection(rawConnection) {
-		const fingerPrint =
-			rawConnection.query[
-				this.api.config.servers.web.fingerprintOptions.cookieKey
-			];
+		const fingerPrint = rawConnection.query[
+			this.api.config.servers.web.fingerprintOptions.cookieKey
+		];
 
 		this.buildConnection({
 			rawConnection: rawConnection,

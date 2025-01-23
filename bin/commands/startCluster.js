@@ -107,9 +107,7 @@ class Worker {
 		this.worker.send("stopProcess");
 	}
 
-	/**
-	 *
-	 */
+	/** */
 	restart() {
 		this.worker.send("restart");
 	}

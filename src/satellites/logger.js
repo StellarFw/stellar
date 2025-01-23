@@ -22,7 +22,7 @@ export default class {
 		}
 
 		const loggers = (api.config.logger.loggers || []).map((logger) =>
-			typeof logger === "function" ? logger(api, winston) : logger,
+			typeof logger === "function" ? logger(api, winston) : logger
 		);
 
 		// create the logger instance

@@ -400,7 +400,6 @@ class ActionProcessor {
 							// post process the action
 							this.postProcessAction((error) => this.completeAction(error));
 						})
-
 						// catch error responses
 						.catch((error) => {
 							// when the error rendered flag is set we don't send a response
@@ -411,7 +410,6 @@ class ActionProcessor {
 							// complete the action with an error message
 							this.completeAction(error);
 						})
-
 						// stop the timeout timer
 						.then(() => clearTimeout(this.timeoutTimer));
 				}

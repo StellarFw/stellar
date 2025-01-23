@@ -1,4 +1,4 @@
-import { GlobOptions, glob } from "glob";
+import { glob, GlobOptions } from "glob";
 
 /**
  * Swap out d.ts files for the JS versions when running with ts-node also filter out *.test. and *.spec. js|ts files
