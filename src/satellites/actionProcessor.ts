@@ -86,7 +86,7 @@ class ActionProcessor {
 	 *
 	 * @param status
 	 */
-	completeAction(status) {
+	completeAction(status?: string | Error) {
 		let error = null;
 
 		// define the action status
