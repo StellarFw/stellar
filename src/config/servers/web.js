@@ -1,5 +1,3 @@
-import os from "node:os";
-
 export default {
 	servers: {
 		web(api) {
@@ -49,7 +47,8 @@ export default {
 				httpHeaders: {
 					"X-Powered-By": api.config.general.serverName,
 					"Access-Control-Allow-Origin": "*",
-					"Access-Control-Allow-Methods": "HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS, TRACE",
+					"Access-Control-Allow-Methods":
+						"HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS, TRACE",
 					"Access-Control-Allow-Headers": "Content-Type",
 				},
 
@@ -119,7 +118,7 @@ export default {
 				// Options to be applied to incoming file uploads.
 				// ---------------------------------------------------------------------
 				formOptions: {
-					uploadDir: os.tmpdir(),
+					uploadDir: Deno.makeTempDir("stellar_uploads_"),
 					keepExtensions: false,
 					maxFieldsSize: 1024 * 1024 * 100,
 				},
@@ -181,7 +180,9 @@ export const test = {
 	servers: {
 		web() {
 			return {
-				port: process.env.PORT ? process.env.PORT : 18080 + parseInt(process.env.VITEST_WORKER_ID || "0"),
+				port: process.env.PORT
+					? process.env.PORT
+					: 18080 + parseInt(process.env.VITEST_WORKER_ID || "0"),
 			};
 		},
 	},

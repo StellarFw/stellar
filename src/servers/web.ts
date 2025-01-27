@@ -2,7 +2,6 @@ import qs from "qs";
 import * as path from "@std/path";
 
 import Mime from "mime";
-import formidable from "st-formidable";
 import GenericServer from "../genericServer.ts";
 import { sleep } from "../utils.ts";
 import { API } from "../common/types/api.types.ts";
@@ -13,6 +12,8 @@ import { deflate, gzip } from "@deno-library/compress";
 import { eTag, STATUS_CODE } from "@std/http";
 import { HEADER } from "@std/http/unstable-header";
 import { FileDescriptor, GetFileResponse } from "../common/types/static-file.interface.ts";
+import { METHOD } from "@std/http/unstable-method";
+import { processRequestData } from "../utils/form-data.ts";
 
 // server type
 const type = "web";
@@ -551,7 +552,7 @@ export default class Web extends GenericServer<HttpConnection> {
 	 * @param connection  Client connection object.
 	 * @param callback    Callback function.
 	 */
-	#determineRequestParams(connection: Connection<HttpConnection>, callback) {
+	async #determineRequestParams(connection: Connection<HttpConnection>, callback) {
 		const url = connection.rawConnection.parsedURL;
 		const pathname = url.pathname;
 
@@ -640,51 +641,43 @@ export default class Web extends GenericServer<HttpConnection> {
 			);
 
 			if (
-				connection.rawConnection.method !== "GET" &&
-				connection.rawConnection.method !== "HEAD" &&
+				connection.rawConnection.method !== METHOD.Get &&
+				connection.rawConnection.method !== METHOD.Head &&
 				(connection.rawConnection.req.headers.has(HEADER.ContentType) ||
 					connection.rawConnection.req.headers.has(HEADER.ContentType))
 			) {
-				connection.rawConnection.form = new formidable.IncomingForm();
+				try {
+					const { files, fields } = await processRequestData(
+						connection.rawConnection.req,
+						this.api.config.servers.web.formOptions,
+					);
+					connection.rawConnection.params.body = fields;
+					connection.rawConnection.params.files = files;
 
-				for (i in this.api.config.servers.web.formOptions) {
-					connection.rawConnection.form[i] = this.api.config.servers.web.formOptions[i];
+					this.#fillParamsFromWebRequest(connection, files);
+					this.#fillParamsFromWebRequest(connection, fields);
+				} catch (error) {
+					this.log(`error processing form`, "error", error);
+					connection.error = new Error(
+						"There was an error processing this form.",
+					);
 				}
 
-				connection.rawConnection.form.parse(
-					connection.rawConnection.req,
-					(error, fields, files) => {
-						if (error) {
-							this.log(`error processing form`, "error", error);
-							connection.error = new Error(
-								"There was an error processing this form.",
-							);
-						} else {
-							connection.rawConnection.params.body = fields;
-							connection.rawConnection.params.files = files;
-							this.#fillParamsFromWebRequest(connection, files);
-							this.#fillParamsFromWebRequest(connection, fields);
-						}
+				if (this.api.config.servers.web.queryRouting !== true) {
+					connection.params.action = null;
+				}
 
-						if (this.api.config.servers.web.queryRouting !== true) {
-							connection.params.action = null;
-						}
+				this.api.routes.processRoute(connection, pathParts);
 
-						// process route
-						this.api.routes.processRoute(connection, pathParts);
-
-						callback(requestMode);
-					},
-				);
+				return callback(requestMode);
 			} else {
 				if (this.api.config.servers.web.queryRouting !== true) {
 					connection.params.action = null;
 				}
 
-				// process route
 				this.api.routes.processRoute(connection, pathParts);
 
-				callback(requestMode);
+				return callback(requestMode);
 			}
 		} else if (requestMode === "file") {
 			if (!connection.params.file) {

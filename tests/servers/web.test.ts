@@ -231,7 +231,7 @@ describe("Servers: HTTP", function () {
 		expect(response.data.number).toBeLessThanOrEqual(10);
 	});
 
-	it.only("HTTP Verbs should work: POST", async () => {
+	it("HTTP Verbs should work: POST", async () => {
 		const response = await axios.post(`${url}/api/randomNumber`);
 
 		expect(response.data.number).toBeGreaterThanOrEqual(0);
