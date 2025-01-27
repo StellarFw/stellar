@@ -143,7 +143,7 @@ export class Connection<C> implements ConnectionDetails<C> {
 		const enforcedConnectionProperties = ["remotePort", "remoteHostname"];
 		enforcedConnectionProperties.forEach((req) => {
 			if (data[req] === null || data[req] === undefined) {
-				if (this.api.configs.general.enforceConnectionProperties === true) {
+				if (this.api.config.general.enforceConnectionProperties === true) {
 					throw new Error(`${req} is required to create a new connection object`);
 				} else {
 					data[req] = 0; // TODO: could be a random uuid as well?
@@ -326,10 +326,10 @@ export class Connection<C> implements ConnectionDetails<C> {
 				// broadcast the event to the room
 				return this.api.chatRoom.broadcast(this, room, { event, data });
 			} else {
-				throw new Error(this.api.configs.errors.verbNotFound(this, verb));
+				throw new Error(this.api.config.errors.verbNotFound(this, verb));
 			}
 		} else {
-			throw new Error(this.api.configs.errors.verbNotAllowed(this, verb));
+			throw new Error(this.api.config.errors.verbNotAllowed(this, verb));
 		}
 	}
 }

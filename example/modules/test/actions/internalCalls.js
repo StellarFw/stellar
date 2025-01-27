@@ -20,12 +20,9 @@ export const sumANumber = {
 	// make this action private (this only can be called internally)
 	private: true,
 
-	run(api, action, next) {
+	run(api, action) {
 		// make the sum calculation
-		action.response.result = action.params.a + action.params.b;
-
-		// finish the action execution
-		next();
+		return { result: action.params.a + action.params.b };
 	},
 };
 
@@ -49,11 +46,11 @@ export const formattedSum = {
 		formatted: "3 + 3 = 6",
 	},
 
-	async run(api, { params, response }) {
+	async run(api, { params }) {
 		// make a internal call to 'sumANumber' action
 		const { result } = await api.actions.call("sumANumber", params);
 
 		// build a nice formatted string
-		response.formatted = `${params.a} + ${params.b} = ${result}`;
+		return { formatted: `${params.a} + ${params.b} = ${result}` };
 	},
 };

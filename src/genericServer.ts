@@ -1,6 +1,5 @@
 import { EventEmitter } from "node:events";
 import { Connection, ConnectionDetails } from "./connection.ts";
-import { ActionProcessor } from "./common/types/action-processor.ts";
 import { API } from "./common/types/api.types.ts";
 import { GetFileResponse } from "./common/types/static-file.interface.ts";
 
@@ -156,13 +155,12 @@ export default class GenericServer<C> extends EventEmitter {
 	 *
 	 * @param connection Connection object.
 	 */
-	processAction(connection: Connection<C>) {
+	async processAction(connection: Connection<C>) {
 		const ActionProcessor = this.api.actionProcessor;
-		const actionProcessor = new ActionProcessor(this.api, connection, (data: ActionProcessor<C>) => {
-			this.emit("actionComplete", data);
-		});
+		const actionProcessor = new ActionProcessor(this.api, connection);
 
-		actionProcessor.processAction();
+		const data = await actionProcessor.processAction();
+		this.emit("actionComplete", data);
 	}
 
 	/**

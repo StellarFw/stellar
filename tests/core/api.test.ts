@@ -82,9 +82,7 @@ describe("Core: API", () => {
 
 		it("will default clients to the latest version of the action", async () => {
 			return expect(
-				new Promise((resolve) => {
-					api.helpers.runAction("versionedAction", {}, resolve);
-				}),
+				api.helpers.runAction("versionedAction", {}),
 			).resolves.toMatchObject({
 				requesterInformation: {
 					receivedParams: {

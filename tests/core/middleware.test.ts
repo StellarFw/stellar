@@ -293,7 +293,7 @@ describe("Core: Middleware", function () {
 				});
 			});
 
-			api.helpers.runAction("randomNumber", () => {});
+			await api.helpers.runAction("randomNumber");
 
 			await expect(promiseToTest).resolves.toBeTruthy();
 		});
@@ -308,9 +308,8 @@ describe("Core: Middleware", function () {
 				});
 			});
 
-			api.helpers.runAction("randomNumber", (response, connection) => {
-				connection.destroy();
-			});
+			await api.helpers.runAction("randomNumber");
+			connection.destroy();
 
 			await expect(promiseToTest).resolves.toBeTruthy();
 		});

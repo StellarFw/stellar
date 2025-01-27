@@ -382,7 +382,6 @@ export default class Web extends GenericServer<HttpConnection> {
 		fileDescriptor: FileDescriptor,
 		fileLength: number,
 	) {
-		let hasCompress = false;
 		const acceptEncoding = connection.rawConnection.req.headers.get(
 			HEADER.AcceptEncoding,
 		);
@@ -521,9 +520,9 @@ export default class Web extends GenericServer<HttpConnection> {
 				},
 			},
 			id: `${fingerprint}-${crypto.randomUUID()}`,
-			fingerprint: fingerprint,
-			remoteHostname: remoteHostname,
-			remotePort: remotePort,
+			fingerprint,
+			remoteHostname,
+			remotePort,
 		});
 
 		return completionSignal.promise;
