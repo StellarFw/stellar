@@ -286,9 +286,8 @@ describe("Servers: HTTP", function () {
 					name: "paramTestAction",
 					description: "Returns connection.rawConnection.params",
 					version: 1,
-					run: (api, action, next) => {
-						action.response = action.connection.rawConnection.params;
-						next();
+					run(api, action) {
+						return action.connection.rawConnection.params;
 					},
 				},
 			};
@@ -362,13 +361,12 @@ describe("Servers: HTTP", function () {
 					name: "headerTestAction",
 					description: "Test action",
 					version: 1,
-					run: (api, action, next) => {
-						action.connection.rawConnection.responseHeaders.push(["thing", "A"]);
-						action.connection.rawConnection.responseHeaders.push(["thing", "B"]);
-						action.connection.rawConnection.responseHeaders.push(["thing", "C"]);
-						action.connection.rawConnection.responseHeaders.push(["Set-Cookie", "value_1=1"]);
-						action.connection.rawConnection.responseHeaders.push(["Set-Cookie", "value_2=2"]);
-						next();
+					run(api, action) {
+						action.connection.rawConnection.response.headers.set("thing", "A");
+						action.connection.rawConnection.response.headers.set("thing", "B");
+						action.connection.rawConnection.response.headers.set("thing", "C");
+						action.connection.rawConnection.response.headers.set("Set-Cookie", "value_1=1");
+						action.connection.rawConnection.response.headers.set("Set-Cookie", "value_2=2");
 					},
 				},
 			};
