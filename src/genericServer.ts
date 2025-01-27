@@ -92,7 +92,7 @@ export default class GenericServer<C> extends EventEmitter {
 	 *
 	 * @param params Connection data.
 	 */
-	buildConnection(params: BuildConnectionParams<C>) {
+	buildConnection(params: BuildConnectionParams<C>): Connection<C> {
 		const details: ConnectionDetails<C> = {
 			type: this.type,
 			id: params.id,
@@ -148,6 +148,8 @@ export default class GenericServer<C> extends EventEmitter {
 				}
 			}, this.attributes.sendWelcomeMessage);
 		}
+
+		return connection;
 	}
 
 	/**

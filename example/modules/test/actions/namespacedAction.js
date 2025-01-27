@@ -6,8 +6,7 @@ export const status = {
 		success: "ok",
 	},
 
-	run: (api, action, next) => {
-		action.response.success = "ok";
-		next();
+	run: (api, action) => {
+		return { success: "ok" };
 	},
 };

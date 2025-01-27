@@ -16,20 +16,22 @@ export const sleep = {
 		sleepDuration: 10,
 	},
 
-	run: (api, data, next) => {
+	run(_api, data) {
 		const sleepDuration = data.params.sleepDuration;
 		const sleepStarted = new Date().getTime();
 
-		setTimeout(() => {
-			let sleepEnded = new Date().getTime();
-			let sleepDelta = sleepEnded - sleepStarted;
+		return new Promise((resolve) => {
+			setTimeout(() => {
+				const sleepEnded = new Date().getTime();
+				const sleepDelta = sleepEnded - sleepStarted;
 
-			data.response.sleepStarted = sleepStarted;
-			data.response.sleepEnded = sleepEnded;
-			data.response.sleepDelta = sleepDelta;
-			data.response.sleepDuration = sleepDuration;
+				data.response.sleepStarted = sleepStarted;
+				data.response.sleepEnded = sleepEnded;
+				data.response.sleepDelta = sleepDelta;
+				data.response.sleepDuration = sleepDuration;
 
-			next();
-		}, sleepDuration);
+				resolve();
+			}, sleepDuration);
+		});
 	},
 };

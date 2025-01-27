@@ -103,15 +103,15 @@ describe("Servers: HTTP", function () {
 		it("works for the API", async () => {
 			expect(Object.keys(api.connections.connections).length).toBe(0);
 
-			axios.get(`${url}/api/sleep`);
+			const requestPromise = axios.get(`${url}/api/sleep`);
 			await sleep(100);
 			expect(Object.keys(api.connections.connections)).toHaveLength(1);
 
-			await sleep(1000);
+			await requestPromise;
 			expect(Object.keys(api.connections.connections)).toHaveLength(0);
 		});
 
-		// @todo - test for files
+		// TODO: test for files
 	});
 
 	describe("errors", function () {

@@ -506,7 +506,7 @@ export default class Web extends GenericServer<HttpConnection> {
 			}
 		}
 
-		this.buildConnection({
+		const connection = this.buildConnection({
 			rawConnection: {
 				req: req,
 				params: {},
@@ -525,7 +525,12 @@ export default class Web extends GenericServer<HttpConnection> {
 			remotePort,
 		});
 
-		return completionSignal.promise;
+		const response = await completionSignal.promise;
+
+		// cleanup internal connection
+		connection.destroy();
+
+		return response;
 	}
 
 	/**
