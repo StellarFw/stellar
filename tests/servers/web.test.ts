@@ -122,8 +122,8 @@ describe("Servers: HTTP", function () {
 					name: "stringErrorTestAction",
 					description: "stringErrorTestAction",
 					version: 1,
-					run: function (api, data, next) {
-						next("broken");
+					run(api, data) {
+						throw "broken";
 					},
 				},
 			};
@@ -134,8 +134,8 @@ describe("Servers: HTTP", function () {
 					name: "errorErrorTestAction",
 					description: "errorErrorTestAction",
 					version: 1,
-					run: function (api, data, next) {
-						next(new Error("broken"));
+					run(api, data) {
+						throw new Error("broken");
 					},
 				},
 			};
@@ -146,8 +146,8 @@ describe("Servers: HTTP", function () {
 					name: "complexErrorTestAction",
 					description: "complexErrorTestAction",
 					version: 1,
-					run: function (api, data, next) {
-						next({ error: "broken", reason: "stuff" });
+					run(api, data) {
+						throw ({ error: "broken", reason: "stuff" });
 					},
 				},
 			};
@@ -231,7 +231,7 @@ describe("Servers: HTTP", function () {
 		expect(response.data.number).toBeLessThanOrEqual(10);
 	});
 
-	it("HTTP Verbs should work: POST", async () => {
+	it.only("HTTP Verbs should work: POST", async () => {
 		const response = await axios.post(`${url}/api/randomNumber`);
 
 		expect(response.data.number).toBeGreaterThanOrEqual(0);

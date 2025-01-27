@@ -3,11 +3,8 @@
  */
 export const example = {
 	event: "example",
-	run(api, params, next) {
+	run(api, params) {
 		// change the param value to 'thisIsATest'
 		params.value = "thisIsATest";
-
-		// finish event execution
-		next();
 	},
 };

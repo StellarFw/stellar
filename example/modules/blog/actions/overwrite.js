@@ -2,11 +2,8 @@ export default {
 	name: "test",
 	description: "Just to test overwrite protection",
 
-	run(engine, data, next) {
+	run(engine, data) {
 		// define a response var
-		data.response.string = "overwrite";
-
-		// end the action execution
-		next();
+		return { string: "overwrite" };
 	},
 };

@@ -8,11 +8,8 @@ exports.${data.taskName} = {
   queue: 'default',
   frequency: 1000,
 
-  run (api, param, next) {
+  run (api, param) {
     // do stuff...
-
-    // finish the task execution
-    next()
   }
 }
 `;

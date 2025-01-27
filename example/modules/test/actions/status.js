@@ -8,11 +8,11 @@ export const status = {
 		uptime: 10030,
 	},
 
-	run(api, data, next) {
-		data.response.id = api.id;
-		data.response.stellarVersion = api.stellarVersion;
-		data.response.uptime = new Date().getTime() - api.bootTime;
-
-		next();
+	run(api, data) {
+		return {
+			id: api.id,
+			stellarVersion: api.stellarVersion,
+			uptime: new Date().getTime() - api.bootTime,
+		};
 	},
 };
