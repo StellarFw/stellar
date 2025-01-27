@@ -6,8 +6,7 @@ export const modModuleTest = {
 		result: "OK",
 	},
 
-	run(api, action, next) {
-		action.response.result = action.actionTemplate.modProp;
-		next();
+	run(api, action) {
+		return { result: action.actionTemplate.modProp };
 	},
 };

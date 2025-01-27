@@ -2,10 +2,7 @@ export const versionedAction = {
 	name: "versionedAction",
 	description: "Is just a dummy action with a version property",
 	version: 1,
-	run(api, action, next) {
-		// finish the action execution
-		next();
-	},
+	run(api, action) {},
 };
 
 export const versionedActionV2 = {
@@ -17,11 +14,7 @@ export const versionedActionV2 = {
 		news: "new version",
 	},
 
-	run(api, action, next) {
-		// add a response property
-		action.response.news = "new version";
-
-		// finish the action execution
-		next();
+	run(api, action) {
+		return { news: "new version" };
 	},
 };

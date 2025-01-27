@@ -6,15 +6,15 @@ export const modTest = {
 		result: "OK",
 	},
 
-	run(api, action, next) {
-		action.response.result = action.actionTemplate.modProp;
-		next();
+	run(api, action) {
+		return { result: action.actionTemplate.modProp };
 	},
 };
 
 export const groupTest = {
 	name: "groupTest",
-	description: "This action is used to test the group definition directly on the action",
+	description:
+		"This action is used to test the group definition directly on the action",
 
 	// this is the property that are under testing, this can't be changed without
 	// pay attention to other files.
@@ -24,9 +24,8 @@ export const groupTest = {
 		result: "OK",
 	},
 
-	run(api, action, next) {
-		action.response.result = action.actionTemplate.modProp;
-		next();
+	run(api, action) {
+		return { result: action.actionTemplate.modProp };
 	},
 };
 
@@ -44,9 +43,8 @@ export const groupAddItems = {
 		result: "OK",
 	},
 
-	run(api, action, next) {
-		action.response.result = action.actionTemplate.customProp;
-		next();
+	run(api, action) {
+		return { result: action.actionTemplate.customProp };
 	},
 };
 
@@ -64,8 +62,7 @@ export const groupRmItems = {
 		result: "OK",
 	},
 
-	run(api, action, next) {
-		action.response.result = action.actionTemplate.customProp2;
-		next();
+	run(api, action) {
+		return { result: action.actionTemplate.customProp2 };
 	},
 };
