@@ -929,14 +929,11 @@ export default class Web extends GenericServer<HttpConnection> {
 		// inform the allowed methods
 		if (
 			!this.api.config.servers.web
-				.httpHeaders["Access-Control-Allow-Methods"] &&
-			!this.#extractHeader(connection, "Access-Control-Allow-Methods")
+				.httpHeaders[HEADER.AccessControlAllowMethods] &&
+			!this.#extractHeader(connection, HEADER.AccessControlAllowMethods)
 		) {
 			const methods = "HEAD, GET, POST, PUT, DELETE, OPTIONS, TRACE";
-			connection.rawConnection.res.headers.append(
-				HEADER.AccessControlAllowMethods,
-				methods,
-			);
+			connection.rawConnection.response.headers.set(HEADER.AccessControlAllowMethods, methods);
 		}
 
 		// inform the allowed origins
@@ -946,14 +943,14 @@ export default class Web extends GenericServer<HttpConnection> {
 			!this.#extractHeader(connection, HEADER.AccessControlAllowOrigin)
 		) {
 			const origin = "*";
-			connection.rawConnection.res.headers.append(
+			connection.rawConnection.response.headers.set(
 				HEADER.AccessControlAllowOrigin,
 				origin,
 			);
 		}
 
-		// send the message to client
-		this.sendMessage(connection, "");
+		const response = this.sendMessage(connection, "");
+		connection.rawConnection.completePromise.resolve(response);
 	}
 
 	/**

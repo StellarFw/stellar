@@ -401,8 +401,7 @@ describe("Servers: HTTP", function () {
 			expect(response.headers.get("access-control-allow-origin")).toBe("*");
 		});
 
-		// TODO: fix the HEAD method call
-		it.skip("should respond to HEAD request just like GET, but with no body", async () => {
+		it("should respond to HEAD request just like GET, but with no body", async () => {
 			const response = await axios.head(`${url}/api/headerTestAction`);
 
 			expect(response.status).toBe(200);
