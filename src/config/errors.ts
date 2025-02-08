@@ -1,5 +1,7 @@
+import { API } from "../common/types/api.types.ts";
+
 export default {
-	errors(api) {
+	errors(api: API) {
 		return {
 			_toExpand: false,
 
@@ -57,7 +59,7 @@ export default {
 			// ---------------------------------------------------------------------
 			// When a client make a call to a private action
 			// ---------------------------------------------------------------------
-			privateActionCalled(actionName) {
+			privateActionCalled(actionName: string) {
 				return {
 					code: "002",
 					message: `The action '${actionName}' is private`,
@@ -78,7 +80,7 @@ export default {
 			// ---------------------------------------------------------------------
 			// When a param was an invalid type
 			// ---------------------------------------------------------------------
-			paramInvalidType(paramName, expected) {
+			paramInvalidType(paramName: string, expected: string) {
 				return {
 					code: "003",
 					message: `Param '${paramName}' has an invalid type, expected ${expected}`,
@@ -88,17 +90,17 @@ export default {
 			// ---------------------------------------------------------------------
 			// user required an unknown action
 			// ---------------------------------------------------------------------
-			unknownAction(action) {
+			unknownAction(actionName: string) {
 				return {
 					code: "004",
-					message: `Unknown action (${action}) or invalid apiVersion`,
+					message: `Unknown action (${actionName}) or invalid apiVersion`,
 				};
 			},
 
 			// ---------------------------------------------------------------------
 			// action can be called by this client/server type
 			// ---------------------------------------------------------------------
-			unsupportedServerType(type) {
+			unsupportedServerType(type: string) {
 				return {
 					code: "005",
 					message: `This action does not support the ${type} connection type`,
@@ -134,7 +136,7 @@ export default {
 			// the limit can be configured using:
 			//  api.config.servers.tcp.maxDataLength
 			// ---------------------------------------------------------------------
-			dataLengthTooLarge(maxLength, receivedLength) {
+			dataLengthTooLarge(maxLength: string, receivedLength: string) {
 				return {
 					code: "008",
 					message: api.i18n.localize(`Data length is too big (${maxLength} received/${receivedLength} max)`),

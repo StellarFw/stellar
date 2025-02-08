@@ -1,8 +1,10 @@
+import { API } from "../common/types/api.types.ts";
+
 /**
  * Default task configs.
  */
 export default {
-	tasks(api) {
+	tasks(api: API) {
 		return {
 			// ---------------------------------------------------------------------
 			// should this mode run a scheduler to promote delayed tasks?
@@ -101,7 +103,7 @@ export default {
  *
  * @type {{tasks: (function())}}
  */
-export let test = {
+export const test = {
 	tasks(api) {
 		return {
 			timeout: 100,

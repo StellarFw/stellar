@@ -13,7 +13,10 @@ export const EXPAND_PREVENT_KEY = "_toExpand";
 /**
  * Check if the object has an expand prevent key.
  */
-const hasPreventExpand = both(has(EXPAND_PREVENT_KEY), propEq(EXPAND_PREVENT_KEY, false));
+const hasPreventExpand = both(
+	has(EXPAND_PREVENT_KEY),
+	propEq(EXPAND_PREVENT_KEY, false),
+);
 
 const isToExpand = (obj) => isPlainObject(obj) && !hasPreventExpand(obj);
 
@@ -87,11 +90,11 @@ export class Utils {
 	 * @returns {Array}   Array with the files paths.
 	 */
 	getFiles(dir) {
-		var results = [];
+		const results = [];
 
 		fs.readdirSync(dir).forEach((file) => {
 			file = `${dir}/${file}`;
-			var stat = fs.statSync(file);
+			const stat = fs.statSync(file);
 
 			if (stat && !stat.isDirectory()) {
 				results.push(file);
@@ -174,7 +177,7 @@ export class Utils {
 	 * @returns {{}}
 	 */
 	hashMerge(a, b, arg) {
-		let c = {};
+		const c = {};
 		let i, response;
 
 		for (i in a) {
@@ -238,10 +241,10 @@ export class Utils {
 	 * @returns {{}}
 	 */
 	parseCookies(req) {
-		let cookies = {};
+		const cookies = {};
 		if (req.headers.cookie) {
 			req.headers.cookie.split(";").forEach(function (cookie) {
-				let parts = cookie.split("=");
+				const parts = cookie.split("=");
 				cookies[parts[0].trim()] = (parts[1] || "").trim();
 			});
 		}
@@ -256,7 +259,7 @@ export class Utils {
 	 */
 	collapseObjectToArray(obj) {
 		try {
-			let keys = Object.keys(obj);
+			const keys = Object.keys(obj);
 			if (keys.length < 1) {
 				return false;
 			}
@@ -267,9 +270,9 @@ export class Utils {
 				return false;
 			}
 
-			let arr = [];
-			for (let i in keys) {
-				let key = keys[i];
+			const arr = [];
+			for (const i in keys) {
+				const key = keys[i];
 				if (String(parseInt(key)) !== key) {
 					return false;
 				} else {
@@ -306,7 +309,10 @@ export class Utils {
 	}
 
 	isError(e) {
-		return this.isObject(e) && (this.objectToString(e) === "[object Error]" || e instanceof Error);
+		return (
+			this.isObject(e) &&
+			(this.objectToString(e) === "[object Error]" || e instanceof Error)
+		);
 	}
 
 	/**
@@ -327,7 +333,7 @@ export class Utils {
 		// iterate all folders and files on the directory
 		filesList.forEach((file) => {
 			// get full file path
-			let filePath = `${path}/${file}`;
+			const filePath = `${path}/${file}`;
 
 			// check if it's a file
 			if (fs.statSync(filePath).isFile()) {
@@ -345,17 +351,15 @@ export class Utils {
 	/**
 	 * Check if the directory exists.
 	 *
-	 * @param dir           Directory path.
+	 * @param path           Directory path.
 	 * @returns {boolean}   True if exists, false if not or the given path isn't a directory.
 	 */
-	directoryExists(dir) {
+	async directoryExists(path: string) {
 		try {
-			fs.statSync(dir).isDirectory();
+			return Deno.statSync(path).isDirectory;
 		} catch (er) {
 			return false;
 		}
-
-		return true;
 	}
 
 	/**
@@ -407,10 +411,10 @@ export class Utils {
 	 * @returns {String} Server external IP or false if not founded.
 	 */
 	getExternalIPAddress() {
-		let ifaces = os.networkInterfaces();
+		const ifaces = os.networkInterfaces();
 		let ip = false;
 
-		for (let dev in ifaces) {
+		for (const dev in ifaces) {
 			ifaces[dev].forEach((details) => {
 				if (details.family === "IPv4" && details.address !== "127.0.0.1") {
 					ip = details.address;
@@ -431,7 +435,9 @@ export class Utils {
 		return Object.create(
 			Object.getPrototypeOf(obj),
 			Object.getOwnPropertyNames(obj).reduce((memo, name) => {
-				return (memo[name] = Object.getOwnPropertyDescriptor(obj, name)) && memo;
+				return (
+					(memo[name] = Object.getOwnPropertyDescriptor(obj, name)) && memo
+				);
 			}, {}),
 		);
 	}
@@ -456,12 +462,12 @@ export class Utils {
 	parseIPv6URI(address) {
 		let host = "::1";
 		let port = 80;
-		let regexp = new RegExp(/\[([0-9a-f:]+)\]:([0-9]{1,5})/);
+		const regexp = new RegExp(/\[([0-9a-f:]+)\]:([0-9]{1,5})/);
 
 		// if we have brackets parse them and find a port
 		if (address.indexOf("[") > -1 && address.indexOf("]") > -1) {
 			// execute the regular expression
-			let res = regexp.exec(address);
+			const res = regexp.exec(address);
 
 			// if null this isn't a valid IPv6 address
 			if (res === null) {
@@ -551,7 +557,10 @@ export class Utils {
 			// if it's a directory and has a package.json file we must check for the `main` property on it. It will tell us
 			// which directory we should check for the export files.
 			const possiblePackageJsonPath = join(attemptPath, "package.json");
-			if (this.directoryExists(attemptPath) && this.fileExists(possiblePackageJsonPath)) {
+			if (
+				this.directoryExists(attemptPath) &&
+				this.fileExists(possiblePackageJsonPath)
+			) {
 				const pkgMetaContent = await this.readJsonFile(possiblePackageJsonPath);
 
 				// if the main property exists we use it to try on the new location

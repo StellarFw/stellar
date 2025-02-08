@@ -1,6 +1,8 @@
+import { API } from "../../common/types/api.types.ts";
+
 export default {
 	servers: {
-		web(api) {
+		web(api: API) {
 			return {
 				// ---------------------------------------------------------------------
 				// Enable server?
@@ -37,7 +39,7 @@ export default {
 				// This options can be overwrited withe PORT param on the console
 				// execution.
 				// ---------------------------------------------------------------------
-				port: process.env.PORT || 8080,
+				port: parseInt(Deno.env.get("PORT") ?? "8080"),
 
 				// ---------------------------------------------------------------------
 				// This are the headers who are sended on all Stellar responses.
@@ -47,8 +49,7 @@ export default {
 				httpHeaders: {
 					"X-Powered-By": api.config.general.serverName,
 					"Access-Control-Allow-Origin": "*",
-					"Access-Control-Allow-Methods":
-						"HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS, TRACE",
+					"Access-Control-Allow-Methods": "HEAD, GET, POST, PUT, PATCH, DELETE, OPTIONS, TRACE",
 					"Access-Control-Allow-Headers": "Content-Type",
 				},
 
@@ -118,7 +119,7 @@ export default {
 				// Options to be applied to incoming file uploads.
 				// ---------------------------------------------------------------------
 				formOptions: {
-					uploadDir: Deno.makeTempDir("stellar_uploads_"),
+					uploadDir: Deno.makeTempDir({ prefix: "stellar_uploads_" }),
 					keepExtensions: false,
 					maxFieldsSize: 1024 * 1024 * 100,
 				},
@@ -179,10 +180,10 @@ export default {
 export const test = {
 	servers: {
 		web() {
+			const port = parseInt(Deno.env.get("PORT") ?? "18080") + Deno.pid;
+
 			return {
-				port: process.env.PORT
-					? process.env.PORT
-					: 18080 + parseInt(process.env.VITEST_WORKER_ID || "0"),
+				port,
 			};
 		},
 	},

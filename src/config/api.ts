@@ -1,8 +1,10 @@
+import { API } from "../common/types/api.types.ts";
+
 /**
  * General configs.
  */
 export default {
-	general(api) {
+	general(api: API) {
 		return {
 			// ---------------------------------------------------------------------
 			// API version
@@ -44,6 +46,9 @@ export default {
 
 			// ---------------------------------------------------------------------
 			// By default the Stellar are in development mode
+			//
+			// This enables some internal actions as well as to generates
+			// documentation.
 			// ---------------------------------------------------------------------
 			developmentMode: true,
 

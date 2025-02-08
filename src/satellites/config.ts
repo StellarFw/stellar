@@ -1,13 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
+import { API } from "../common/types/api.types.ts";
+import { createDirSafe } from "../common/lib/fs.ts";
+import { join } from "@std/path";
 
 class ConfigManager {
 	/**
 	 * Api reference object.
-	 *
-	 * @type {null}
 	 */
-	api = null;
+	api: API;
 
 	/**
 	 * Files to watch for changes.
@@ -22,7 +23,7 @@ class ConfigManager {
 	 *
 	 * @param api API reference object.
 	 */
-	constructor(api) {
+	constructor(api: API) {
 		this.api = api;
 	}
 
@@ -30,14 +31,9 @@ class ConfigManager {
 	 * Start the config execution.
 	 */
 	async execute() {
-		// init the execution environment
-		this._setupEnvironment();
-
-		// creates 'temp' folder if it does not exist
-		this._createTempFolder();
-
-		// load manifest file, and core, project and modules configs
-		await this._loadConfigs();
+		this.#setupEnvironment();
+		this.#createTempFolder();
+		await this.#loadConfigs();
 	}
 
 	/**
@@ -47,15 +43,12 @@ class ConfigManager {
 	 *
 	 * TODO: use the command line arguments to define the environment
 	 */
-	_setupEnvironment() {
+	#setupEnvironment() {
 		// if (argv.NODE_ENV) {
 		//   this.api.env = argv.NODE_ENV
 		// } else
-		if (process.env.NODE_ENV) {
-			this.api.env = process.env.NODE_ENV;
-		} else {
-			this.api.env = "development";
-		}
+
+		this.api.env = Deno.env.get("STELLAR_ENV") ?? "development";
 	}
 
 	/**
@@ -111,14 +104,14 @@ class ConfigManager {
 	 * @param file  File path who as changed.
 	 * @private
 	 */
-	_rebootCallback(file) {
+	#rebootCallback(file) {
 		this.api.log(`\r\n\r\n*** rebooting due to config change (${file}) ***\r\n\r\n`, "info");
 		// TODO: do we really need this when using ESM modules?
 		// delete require.cache[ require.resolve(file) ]
 		this.api.commands.restart.call(this.api._self);
 	}
 
-	async _loadConfigs() {
+	async #loadConfigs() {
 		// set config object on API
 		this.api.config = {};
 
@@ -157,18 +150,18 @@ class ConfigManager {
 	 */
 	async loadConfigDirectory(configPath, watch = false) {
 		// get all files from the config folder
-		let configFiles = this.api.utils.recursiveDirectoryGlob(configPath);
+		const configFiles = this.api.utils.recursiveDirectoryGlob(configPath);
 
 		let loadRetries = 0;
 		let loadErrors = {};
 
 		for (let i = 0, limit = configFiles.length; i < limit; i++) {
 			// get the next file to be loaded
-			let file = configFiles[i];
+			const file = configFiles[i];
 
 			try {
 				// attempt configuration file load
-				let localConfig = await import(file);
+				const localConfig = await import(file);
 				if (localConfig.default) {
 					this.api.config = this.api.utils.hashMerge(this.api.config, localConfig.default, this.api);
 				}
@@ -183,7 +176,7 @@ class ConfigManager {
 
 				// configuration file loaded: set watch
 				if (watch !== false) {
-					this.watchFileAndAct(file, this._rebootCallback.bind(this));
+					this.watchFileAndAct(file, this.#rebootCallback.bind(this));
 				}
 			} catch (error) {
 				// error loading configuration, abort if all remaining configuration files have been tried and failed indicating
@@ -203,13 +196,10 @@ class ConfigManager {
 	 * Creates the 'temp' folder if it does not exist.
 	 *
 	 * This folder is used to store the log files.
-	 *
-	 * @private
 	 */
-	_createTempFolder() {
-		if (!this.api.utils.directoryExists(`${this.api.scope.rootPath}/temp`)) {
-			this.api.utils.createFolder(`${this.api.scope.rootPath}/temp`);
-		}
+	#createTempFolder() {
+		const tempDirPath = join(this.api.scope.rootPath, "temp");
+		createDirSafe(tempDirPath);
 	}
 }
 
