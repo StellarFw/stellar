@@ -1,3 +1,3 @@
-import { GeneralConfig } from "./general.types.ts";
+import { BaseConfig } from "./general.types.ts";
 
-export type Configs = GeneralConfig & Record<string, unknown>;
+export type Configs = BaseConfig & Record<string, unknown>;
