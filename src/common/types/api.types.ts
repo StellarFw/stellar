@@ -1,3 +1,4 @@
+import { Configs } from "./configs/configs.types.ts";
 import { IStaticFile } from "./static-file.interface.ts";
 
 /**
@@ -12,7 +13,7 @@ export type API = {
 	/**
 	 * Runtime configurations.
 	 */
-	config: Record<string, unknown>;
+	config: Configs;
 
 	/**
 	 * Used to work with static files.

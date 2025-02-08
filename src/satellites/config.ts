@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { API } from "../common/types/api.types.ts";
-import { createDirSafe } from "../common/lib/fs.ts";
+import { createDirSafe, readJSONFile } from "../common/lib/fs.ts";
 import { join } from "@std/path";
 
 class ConfigManager {
@@ -120,13 +120,12 @@ class ConfigManager {
 
 		// read project manifest
 		try {
-			this.api.config = await this.api.utils.readJsonFile(`${this.api.scope.rootPath}/manifest.json`);
-		} catch (e) {
-			// when the project manifest doesn't exists the user is informed and the engine instance is terminated
-			this.api.log("Project `manifest.json` file does not exists.", "emergency");
-
-			// finish process (we can not stop the Engine because it can not be run)
-			process.exit(1);
+			this.api.config = await readJSONFile(`${this.api.scope.rootPath}/manifest.json`);
+		} catch (error) {
+			// when the project manifest doesn't exists the user is informed and the engine instance is terminated. We can't
+			// use the graceful way to close Stellar since the engine could not be running.
+			this.api.log("Project `manifest.json` file does not exists.", "emergency", error);
+			Deno.exit(1);
 		}
 
 		// load the default config files from the Stellar core
@@ -148,7 +147,7 @@ class ConfigManager {
 	 * @param configPath
 	 * @param watch
 	 */
-	async loadConfigDirectory(configPath, watch = false) {
+	async loadConfigDirectory(configPath: string, watch = false) {
 		// get all files from the config folder
 		const configFiles = this.api.utils.recursiveDirectoryGlob(configPath);
 

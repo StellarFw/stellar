@@ -7,6 +7,7 @@ import { randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { isPlainObject } from "ramda-adjunct";
 import { both, has, propEq } from "ramda";
+import { readJSONFile } from "../common/lib/fs.ts";
 
 export const EXPAND_PREVENT_KEY = "_toExpand";
 
@@ -112,10 +113,6 @@ export class Utils {
 	 */
 	readFile(filePath) {
 		return readFile(filePath);
-	}
-
-	readJsonFile(filePath) {
-		return this.readFile(filePath).then((buffer) => JSON.parse(buffer.toString()));
 	}
 
 	/**
@@ -561,7 +558,7 @@ export class Utils {
 				this.directoryExists(attemptPath) &&
 				this.fileExists(possiblePackageJsonPath)
 			) {
-				const pkgMetaContent = await this.readJsonFile(possiblePackageJsonPath);
+				const pkgMetaContent = await readJSONFile(possiblePackageJsonPath);
 
 				// if the main property exists we use it to try on the new location
 				if (pkgMetaContent["main"]) {

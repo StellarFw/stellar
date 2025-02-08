@@ -1,17 +1,17 @@
-import fs from "node:fs";
 import { exec } from "node:child_process";
+import { join } from "@std/path";
+import { API } from "../common/types/api.types.ts";
+import { dirExists, readJSONFile } from "../common/lib/fs.ts";
+import { isEmpty } from "ramda";
 
 /**
- * This class is responsible to manage all modules, process
- * the NPM dependencies.
+ * This class is responsible to manage all modules, process the NPM dependencies.
  */
 class Modules {
 	/**
 	 * API reference object.
-	 *
-	 * @type {null}
 	 */
-	api = null;
+	api: API;
 
 	/**
 	 * Map with the active modules.
@@ -76,37 +76,39 @@ class Modules {
 	 * The private module is always loaded even if not present on the activeModules property.
 	 */
 	async loadModules() {
-		// get active modules
-		let modules = this.api.config.modules;
+		let activeModules = this.api.config.modules ?? [];
 
 		// check if the private module folder exists
-		if (this.api.utils.directoryExists(`${this.api.scope.rootPath}/modules/private`)) {
-			modules.push("private");
+		const privateModulePath = `${this.api.scope.rootPath}/modules/private`;
+		if (
+			await dirExists(privateModulePath)
+		) {
+			activeModules = [...activeModules, "private"];
 		}
 
-		// this config is required. If doesn't exists or is an empty array an exception should be raised.
-		if (modules === undefined || modules.length === 0) {
+		// in order to execute Stellar at least one module needs to be active.
+		if (isEmpty(activeModules)) {
 			throw new Error("At least one module needs to be active.");
 		}
 
 		// load all modules declared in the manifest file
-		for (const moduleName of modules) {
-			// build the full path
-			const path = `${this.api.scope.rootPath}/modules/${moduleName}`;
+		for (const moduleName of activeModules) {
+			const path = join(this.api.scope.rootPath, "modules", moduleName);
 
-			// get module manifest file content
+			// get module manifest file content, and save it
 			try {
-				const manifest = await this.api.utils.readJsonFile(`${path}/manifest.json`);
-
-				// save the module config on the engine instance
+				const manifestFilePath = join(path, "manifest.json");
+				const manifest = await readJSONFile(
+					manifestFilePath,
+				);
 				this.activeModules.set(manifest.id, manifest);
-
-				// save the module full path
 				this.modulesPaths.set(manifest.id, path);
-			} catch (e) {
-				throw new Error(
+			} catch (error) {
+				this.api.log(
+					"error",
 					`There is an invalid module active, named "${moduleName}", fix this to start Stellar normally.`,
 				);
+				throw error;
 			}
 		}
 	}
@@ -116,7 +118,7 @@ class Modules {
 	 *
 	 * The npm install command only is executed if the package.json file are not present.
 	 */
-	processNpmDependencies() {
+	async processNpmDependencies() {
 		// don't use NPM on test environment (otherwise the tests will fail)
 		if (this.api.env === "test") {
 			return;
@@ -129,7 +131,7 @@ class Modules {
 		// temporary files and process every thing again
 		if (scope.args.clean) {
 			// list of temporary files
-			let tempFilesLocations = [
+			const tempFilesLocations = [
 				`${scope.rootPath}/temp`,
 				`${scope.rootPath}/package.json`,
 				`${scope.rootPath}/node_modules`,
@@ -141,11 +143,13 @@ class Modules {
 
 		// if the `package.json` file already exists and Stellar isn't starting with
 		// the `update` flag return now
-		if (this.api.utils.fileExists(`${scope.rootPath}/package.json`) && !scope.args.update) {
+		if (
+			this.api.utils.fileExists(`${scope.rootPath}/package.json`) &&
+			!scope.args.update
+		) {
 			return;
 		}
 
-		// global npm dependencies
 		let npmDependencies = {};
 
 		// iterate all active modules
@@ -153,12 +157,15 @@ class Modules {
 			// check if the module have NPM dependencies
 			if (manifest.npmDependencies !== undefined) {
 				// merge the two hashes
-				npmDependencies = this.api.utils.hashMerge(npmDependencies, manifest.npmDependencies);
+				npmDependencies = this.api.utils.hashMerge(
+					npmDependencies,
+					manifest.npmDependencies,
+				);
 			}
 		});
 
 		// compile project information
-		let projectJson = {
+		const projectJson = {
 			private: true,
 			name: "stellar-dependencies",
 			version: "1.0.0",
@@ -167,10 +174,15 @@ class Modules {
 			dependencies: npmDependencies,
 		};
 
-		// generate project.json file
 		const packageJsonPath = `${this.api.scope.rootPath}/package.json`;
+
+		// remote the existing package json, if any exists
 		this.api.utils.removePath(packageJsonPath);
-		fs.writeFileSync(packageJsonPath, JSON.stringify(projectJson, null, 2), "utf8");
+
+		// write the new package.json file
+		const data = JSON.stringify(projectJson, null, 2);
+		const encodedFileData = new TextEncoder().encode(data);
+		await Deno.writeFile(packageJsonPath, encodedFileData);
 
 		this.api.log("updating NPM packages", "info");
 
@@ -181,7 +193,10 @@ class Modules {
 		return new Promise((resolve, reject) => {
 			exec(npmCommand, (error) => {
 				if (error) {
-					this.api.log("An error occurs during the NPM install command", "emergency");
+					this.api.log(
+						"An error occurs during the NPM install command",
+						"emergency",
+					);
 					return reject(error);
 				}
 
@@ -209,7 +224,7 @@ export default class {
 	 *
 	 * @param api   API reference.
 	 */
-	async load(api) {
+	async load(api: API) {
 		api.modules = new Modules(api);
 		await api.modules.loadModules();
 		await api.modules.processNpmDependencies();
