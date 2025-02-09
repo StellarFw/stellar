@@ -1,4 +1,34 @@
 import { isNotNil } from "ramda-adjunct";
+import { err, ok } from "../common/fp/result/result.ts";
+import { API } from "../common/types/api.types.ts";
+import { Connection } from "../connection.ts";
+import { Action } from "../common/types/action.type.ts";
+import { Result } from "../common/fp/result/result.interface.ts";
+import { UnknownActionException } from "../common/exceptions/unknown-action.exception.ts";
+import { last } from "ramda";
+import { EngineStatus } from "../common/types/engine.types.ts";
+import { ExecutionTimeoutException } from "../common/exceptions/executionTimeout.exception.ts";
+
+enum ActionStatus {
+	NOT_PROCESSED = "not_processed",
+	SERVER_ERROR = "server_error",
+	SERVER_SHUTTING_DOWN = "server_shutting_down",
+	TOO_MANY_REQUESTS = "too_many_requests",
+	UNKNOWN_ACTION = "unknown_action",
+	UNSUPPORTED_SERVER_TYPE = "unsupported_server_type",
+	VALIDATOR_ERRORS = "validator_errors",
+	RESPONSE_TIMEOUT = "response_timeout",
+	OTHER = "other",
+}
+
+type Params = {
+	/**
+	 * Version of the action to be executed.
+	 */
+	apiVersion?: number;
+
+	[key: string]: unknown;
+};
 
 /**
  * This class process an action request.
@@ -6,36 +36,55 @@ import { isNotNil } from "ramda-adjunct";
 class ActionProcessor {
 	/**
 	 * API reference.
-	 *
-	 * @type {null}
 	 */
-	api = null;
+	api: API;
 
-	connection = null;
-	action = null;
+	connection: Connection<unknown>;
+
+	/**
+	 * Name of the action being executed.
+	 */
+	actionName!: string;
+
 	toProcess = true;
 	toRender = true;
-	messageCount = null;
-	params = null;
+
+	/**
+	 * Message identifier.
+	 */
+	messageCount = 0;
+
+	params: Params = {};
 	validatorErrors = new Map();
-	actionStartTime = null;
-	actionTemplate = null;
+
+	/**
+	 * Timestamp when the action was started to be processed.
+	 */
+	actionStartTime!: number;
+
+	actionTemplate!: Action<unknown>;
+
 	working = false;
-	response = {};
-	duration = null;
-	actionStatus = null;
+
+	/**
+	 * Action response.
+	 */
+	response?: Result<unknown, unknown>;
+
+	/**
+	 * Duration that the action took to be completed.
+	 */
+	duration: number = 0;
 
 	/**
 	 * Timer that is used to timeout the action call.
 	 */
-	timeoutTimer = null;
+	timeoutTimer?: number;
 
 	/**
 	 * When this flag is set to true we block any after response.
 	 *
 	 * This is essential used when a timeout happens.
-	 *
-	 * @type {boolean}
 	 */
 	errorRendered = false;
 
@@ -45,7 +94,7 @@ class ActionProcessor {
 	 * @param api API reference.
 	 * @param connection Connection object.
 	 */
-	constructor(api, connection) {
+	constructor(api: API, connection: Connection<unknown>) {
 		this.api = api;
 		this.connection = connection;
 		this.messageCount = connection.messageCount;
@@ -72,8 +121,6 @@ class ActionProcessor {
 
 	/**
 	 * Get the number of pending action for this connection.
-	 *
-	 * @returns {number|*}
 	 */
 	getPendingActionCount() {
 		return this.connection.pendingActions;
@@ -86,44 +133,41 @@ class ActionProcessor {
 	 *
 	 * @param status
 	 */
-	completeAction(status?: string | Error) {
-		let error = null;
+	completeAction(status?: ActionStatus, incomeError?: Error | string) {
+		let error = incomeError ?? null;
 
-		// define the action status
-		this.actionStatus = String(status);
-
-		if (status instanceof Error) {
-			error = status;
-		} else if (status === "server_error") {
-			error = this.api.config.errors.serverErrorMessage;
-		} else if (status === "server_shutting_down") {
-			error = this.api.config.errors.serverShuttingDown;
-		} else if (status === "too_many_requests") {
-			error = this.api.config.errors.tooManyPendingActions();
-		} else if (status === "unknown_action") {
-			error = this.api.config.errors.unknownAction(this.action);
-		} else if (status === "unsupported_server_type") {
-			error = this.api.config.errors.unsupportedServerType(
-				this.connection.type,
-			);
-		} else if (status === "validator_errors") {
-			error = this.api.config.errors.invalidParams(this.validatorErrors);
-		} else if (status === "response_timeout") {
-			error = this.api.config.errors.responseTimeout(this.action);
-		} else if (status) {
-			error = status;
+		switch (status) {
+			case ActionStatus.SERVER_ERROR:
+				error = this.api.config.errors.serverErrorMessage;
+				break;
+			case ActionStatus.SERVER_SHUTTING_DOWN:
+				error = this.api.config.errors.serverShuttingDown;
+				break;
+			case ActionStatus.TOO_MANY_REQUESTS:
+				error = this.api.config.errors.tooManyPendingActions();
+				break;
+			case ActionStatus.UNKNOWN_ACTION:
+				error = this.api.config.errors.unknownAction(this.actionName);
+				break;
+			case ActionStatus.UNSUPPORTED_SERVER_TYPE:
+				error = this.api.config.errors.unsupportedServerType(
+					this.connection.type,
+				);
+				break;
+			case ActionStatus.VALIDATOR_ERRORS:
+				error = this.api.config.errors.invalidParams(this.validatorErrors);
+				break;
+			case ActionStatus.RESPONSE_TIMEOUT:
+				error = this.api.config.errors.responseTimeout(this.actionName);
+				break;
 		}
 
 		if (error && typeof error === "string") {
 			error = new Error(error);
 		}
 
-		if (error && !this.response.error) {
-			if (typeof this.response === "string" || Array.isArray(this.response)) {
-				this.response = error.toString();
-			} else {
-				this.response.error = error;
-			}
+		if (error && !this.response?.isErr()) {
+			this.response = err(error);
 		}
 
 		this.incrementPendingActions(-1);
@@ -167,7 +211,7 @@ class ActionProcessor {
 
 		const logLine = {
 			to: this.connection.remoteIP,
-			action: this.action,
+			action: this.actionName,
 			params: JSON.stringify(filteredParams),
 			duration: this.duration,
 		};
@@ -216,6 +260,8 @@ class ActionProcessor {
 				await this.api.actions.middleware[name].preProcessor(this);
 			}
 		}
+
+		return ok(null);
 	}
 
 	/**
@@ -308,6 +354,21 @@ class ActionProcessor {
 		}
 	}
 
+	private setupActionTemplate(): Result<true, UnknownActionException> {
+		const actionVersions = this.api.actions.versions.get(this.actionName);
+		if (!actionVersions) {
+			return err(new UnknownActionException());
+		}
+
+		// use the latest action version when no version is specified
+		if (!this.params.apiVersion) {
+			this.params.apiVersion = last(actionVersions);
+		}
+
+		this.actionTemplate = this.api.actions.actions[this.actionName][this.params.apiVersion!];
+		return ok(true);
+	}
+
 	/**
 	 * Process the action.
 	 */
@@ -317,39 +378,35 @@ class ActionProcessor {
 		this.working = true;
 		this.incrementTotalActions();
 		this.incrementPendingActions();
-		this.action = this.params.action;
+		this.actionName = String(this.params.action);
 
-		if (this.api.actions.versions[this.action]) {
-			if (!this.params.apiVersion) {
-				this.params.apiVersion = this.api.actions.versions[this.action][
-					this.api.actions.versions[this.action].length - 1
-				];
-			}
-			this.actionTemplate = this.api.actions.actions[this.action][this.params.apiVersion];
+		// setup the template and checks if the requested action exists
+		if (this.setupActionTemplate().isErr()) {
+			this.completeAction(ActionStatus.UNKNOWN_ACTION);
+			return;
 		}
 
-		if (this.api.status !== "running") {
-			return this.completeAction("server_shutting_down");
+		if (this.api.status !== EngineStatus.Running) {
+			return this.completeAction(ActionStatus.SERVER_SHUTTING_DOWN);
 		} else if (
-			this.getPendingActionCount(this.connection) >
+			this.getPendingActionCount() >
 				this.api.config.general.simultaneousActions
 		) {
-			return this.completeAction("too_many_requests");
-		} else if (!this.action || !this.actionTemplate) {
-			return this.completeAction("unknown_action");
+			return this.completeAction(ActionStatus.TOO_MANY_REQUESTS);
 		} else if (
 			this.actionTemplate.blockedConnectionTypes &&
-			this.actionTemplate.blockedConnectionTypes.indexOf(
-					this.connection.type,
-				) >= 0
+			this.actionTemplate.blockedConnectionTypes.includes(
+				this.connection.type,
+			)
 		) {
-			return this.completeAction("unsupported_server_type");
+			return this.completeAction(ActionStatus.UNSUPPORTED_SERVER_TYPE);
 		}
 
 		try {
 			return this.runAction();
-		} catch (err) {
-			this.api.exceptionHandlers.action(err, this, () => this.completeAction("server_error"));
+		} catch (error) {
+			this.api.exceptionHandlers.action(error, this);
+			return this.completeAction(ActionStatus.SERVER_ERROR);
 		}
 	}
 
@@ -363,11 +420,11 @@ class ActionProcessor {
 			// validate the request params with the action requirements
 			this.validateParams();
 		} catch (error) {
-			return this.completeAction(error);
+			return this.completeAction(ActionStatus.SERVER_ERROR, error as Error);
 		}
 
 		if (this.validatorErrors.size > 0) {
-			return this.completeAction("validator_errors");
+			return this.completeAction(ActionStatus.VALIDATOR_ERRORS);
 		}
 
 		if (!this.toProcess) {
@@ -376,25 +433,15 @@ class ActionProcessor {
 
 		// create a timer that will be used to timeout the action if needed. The time timeout is reached a timeout error
 		// is sent to the client.
-		const timeoutPromise = new Promise((_, reject) => {
+		const timeoutPromise = new Promise<Result<unknown>>((_, rejects) => {
 			this.timeoutTimer = setTimeout(() => {
-				reject();
-
-				// finish action with a timeout error
-				this.completeAction("response_timeout");
-
-				// ensure that the action wouldn't respond
-				this.errorRendered = true;
+				rejects(new ExecutionTimeoutException());
 			}, this.api.config.general.actionTimeout);
 		});
 
 		try {
-			const actionPromise = this.actionTemplate.run(this.api, this);
-
-			const actionResponse = await Promise.race([timeoutPromise, actionPromise]);
-			if (isNotNil(actionResponse)) {
-				Object.assign(this.response, actionResponse);
-			}
+			const actionPromise = this.actionTemplate.run(this.params, this.api, this.actionTemplate);
+			this.response = await Promise.race([timeoutPromise, actionPromise]);
 
 			// when the error rendered flag is set we don't send a response
 			if (this.errorRendered) {
@@ -414,8 +461,14 @@ class ActionProcessor {
 				return;
 			}
 
+			if (error instanceof ExecutionTimeoutException) {
+				// TODO: should we modify the completeAction to set this to true when an error happens?
+				this.errorRendered = true;
+				return this.completeAction(ActionStatus.RESPONSE_TIMEOUT);
+			}
+
 			// complete the action with an error message
-			return this.completeAction(error);
+			return this.completeAction(undefined, error as Error);
 		} finally {
 			// since the action can also fail we need to resolve the
 			clearTimeout(this.timeoutTimer);

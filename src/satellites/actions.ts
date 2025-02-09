@@ -1,72 +1,69 @@
 import { flatten, pipe, values } from "ramda";
+import { ActionsStore, IActionSatellite } from "../common/types/actions-satellite.types.ts";
+import { API } from "../common/types/api.types.ts";
+import { Action } from "../common/types/action.type.ts";
+import { Middleware } from "../common/types/middleware.type.ts";
+import { Result } from "../common/fp/result/result.interface.ts";
+import { err, ok } from "../common/fp/result/result.ts";
+
+/**
+ * Map with the action by version.
+ */
+export interface VersionActionMap {
+	[key: number]: Action<unknown, unknown>;
+}
 
 /**
  * This contains all the protected keys, that can not be modified by the mod
  * groups.
- *
- * @type {Array}
  */
-const PROTECTED_KEYS = ["name", "run"];
+const PROTECTED_KEYS = ["name"];
 
 /**
  * This class manage all actions.
  */
-class Actions {
+class Actions implements IActionSatellite {
 	/**
 	 * API reference.
-	 *
-	 * @type {null}
 	 */
-	api = null;
+	api: API;
 
 	/**
 	 * Hash map with the registered actions.
-	 *
-	 * @type {{}}
 	 */
-	actions = {};
+	actions: ActionsStore = {};
 
 	/**
 	 * Separate actions by version.
-	 *
-	 * @type {{}}
 	 */
-	versions = {};
+	versions: Map<string, Array<number>> = new Map();
 
 	/**
 	 * Hash map with the middleware by actions.
-	 *
-	 * @type {{}}
 	 */
-	middleware = {};
+	middleware: Record<string, Middleware> = {};
 
 	/**
 	 * Global middleware.
-	 *
-	 * @type {Array}
 	 */
-	globalMiddleware = [];
+	globalMiddleware: string[] = [];
 
 	/**
 	 * This Map contains all the metadata changes that be applied to the actions.
-	 *
-	 * @type {Map}
 	 */
 	groups = new Map();
 
 	/**
 	 * This Map stores the actions associated with a group.
-	 *
-	 * @type {Map}
 	 */
-	groupsActions = new Map();
+	groupActions: Map<string, string[]> = new Map();
 
 	/**
 	 * Create a new actions manager instance.
 	 *
 	 * @param api
 	 */
-	constructor(api) {
+	constructor(api: API) {
 		this.api = api;
 	}
 
@@ -76,21 +73,20 @@ class Actions {
 	 * This allow developers call actions internally.
 	 *
 	 * @param actionName  Name of the action to be called.
-	 * @param params      Action parameters.
+	 * @param rawParams      Action parameters.
 	 */
-	async call(actionName, params = {}) {
+	async call<R, I = object, E = string>(actionName: string, rawParams: I = {}): Promise<Result<R, E>> {
 		const ConnectionClass = this.api.connection;
 
 		// create a new internal connection object
 		const connection = new ConnectionClass(this.api, {
 			type: "internal",
-			remotePort: 0,
 			remoteHostname: 0,
+			remotePort: 0,
 			rawConnection: {},
 		});
 
-		// set connection params
-		connection.params = params;
+		connection.params = rawParams;
 		connection.params.action = actionName;
 
 		// create a new ActionProcessor instance
@@ -102,11 +98,7 @@ class Actions {
 
 		const data = await actionProcessor.processAction();
 
-		// destroy the connection and resolve of reject the promise
 		connection.destroy();
-		if (data.response.error !== undefined) {
-			throw data.response.error;
-		}
 
 		return data.response;
 	}
@@ -126,81 +118,77 @@ class Actions {
 		}
 
 		// add an action to give some information about the server status
-		this.versions.status = [1];
+		this.versions.set("status", [1]);
 		this.actions.status = {
 			1: {
 				name: "status",
 				description: "Is a system action to show the server status",
-				run: (api, action, next) => {
-					// finish the action execution
-					next();
+				run() {
+					return ok(true);
 				},
 			},
 		};
 	}
 
-	async loadAction(actionFilePath, moduleName, action, reload = false) {
+	async loadAction(actionFilePath, moduleName, action: Action<unknown>, reload = false) {
+		// when there is no version defined use a default one
+		const actionVersion = action.version ?? 1;
+
+		// ensure to initialize all the optional fields
+		const newAction: Action<unknown> = {
+			...action,
+			metadata: action.metadata ?? {},
+			inputs: action.inputs ?? {},
+			private: action.private ?? false,
+			protected: action.protected ?? false,
+		};
+
 		const loadMessage = (action) => {
 			const level = reload ? "info" : "debug";
 			let msg = null;
 
 			if (reload) {
-				msg = `action (re)loaded: ${action.name} @ v${action.version}, ${actionFilePath}`;
+				msg = `action (re)loaded: ${action.name} @ v${actionVersion}, ${actionFilePath}`;
 			} else {
-				msg = `action loaded: ${action.name} @ v${action.version}, ${actionFilePath}`;
+				msg = `action loaded: ${action.name} @ v${actionVersion}, ${actionFilePath}`;
 			}
 
 			this.api.log(msg, level);
 		};
 
-		// if there is no version defined set it to 1.0
-		if (action.version === null || action.version === undefined) {
-			action.version = 1.0;
-		}
-
 		// if the action not exists create a new entry on the hash map
-		if (
-			this.actions[action.name] === null ||
-			this.actions[action.name] === undefined
-		) {
-			this.actions[action.name] = {};
+		if (!this.actions[newAction.name]) {
+			this.actions[newAction.name] = {};
 		}
 
-		// if the action exists and are protected return now
+		// Protected actions can't be override by other modules.
 		if (
-			this.actions[action.name][action.version] !== undefined &&
-			this.actions[action.name][action.version].protected !== undefined &&
-			this.actions[action.name][action.version].protected === true
+			!reload &&
+			this.actions[newAction.name][actionVersion]?.protected
 		) {
-			return;
+			return err("Protected actions can't be replaced");
 		}
 
 		if (!reload) {
 			// associate the action to the module (this must only be made once)
-			this.api.modules.regModuleAction(moduleName, action.name);
+			this.api.modules.regModuleAction(moduleName, newAction.name);
 		} else {
 			// Groups: apply the necessary actions modifications (this is only
 			// made on the reload because on the loading we don't have the
 			// necessary information for this)
-			this._applyModificationsToAction(action);
+			this.applyModificationsToAction(newAction);
 		}
 
 		// put the action on correct version slot
-		this.actions[action.name][action.version] = action;
-		if (
-			this.versions[action.name] === null ||
-			this.versions[action.name] === undefined
-		) {
-			this.versions[action.name] = [];
-		}
-		this.versions[action.name].push(action.version);
-		this.versions[action.name].sort();
+		this.actions[newAction.name][actionVersion] = newAction;
 
-		// validate the action data
-		this.validateAction(this.actions[action.name][action.version]);
+		// keep track of the action versions
+		const currentActionVersions = this.versions.get(newAction.name) ?? [];
+		this.versions.set(newAction.name, [...currentActionVersions, actionVersion].sort());
 
-		// send a log message
-		loadMessage(action);
+		this.validateAction(this.actions[newAction.name][actionVersion]);
+
+		loadMessage(newAction);
 	}
 
 	/**
@@ -414,7 +402,7 @@ class Actions {
 			}
 
 			// save the actions that compose this group
-			this.groupsActions.set(groupName, actions);
+			this.groupActions.set(groupName, actions);
 
 			// save the group metadata modifications to apply to the actions, later
 			this.groups.set(groupName, group.metadata);
@@ -431,7 +419,7 @@ class Actions {
 		const result = [];
 
 		// iterate all groups
-		this.groupsActions.forEach((actions, groupName) => {
+		this.groupActions.forEach((actions, groupName) => {
 			if (actions.includes(actionName)) {
 				result.push(groupName);
 			}
@@ -498,17 +486,17 @@ class Actions {
 	 *
 	 * @param {object} action Action object.
 	 */
-	_applyModificationsToAction(action) {
+	applyModificationsToAction(action) {
 		// when the action has a group defined, the action name must be pushed
 		// to the `groupsActions`
 		if (this.api.utils.isNonEmptyString(action.group)) {
 			// if the key doesn't exists we must create one with an empty array
-			if (!this.groupsActions.has(action.group)) {
-				this.groupsActions.set(action.group, []);
+			if (!this.groupActions.has(action.group)) {
+				this.groupActions.set(action.group, []);
 			}
 
 			// get the array of actions
-			const arrayOfActions = this.groupsActions.get(action.group);
+			const arrayOfActions = this.groupActions.get(action.group);
 
 			// to prevent duplicated entries, it's necessary check if the array
 			// already exists on the array
@@ -536,7 +524,7 @@ class Actions {
 			// iterate all action versions
 			Object.keys(actionVersion).forEach((versionNumber) => {
 				// apply the group modifications
-				this._applyModificationsToAction(actionVersion[versionNumber]);
+				this.applyModificationsToAction(actionVersion[versionNumber]);
 			});
 		});
 	}

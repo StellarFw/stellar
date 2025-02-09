@@ -36,8 +36,8 @@ export default class {
 
 		if (argv.title) {
 			api.id = argv.title;
-		} else if (process.env.STELLAR_TITLE) {
-			api.id = process.env.STELLAR_TITLE;
+		} else if (Deno.env.has("STELLAR_TITLE")) {
+			api.id = Deno.env.get("STELLAR_TITLE");
 		} else if (!api.config.general.id) {
 			// get servers external IP
 			const externalIP = api.utils.getExternalIPAddress();
@@ -54,7 +54,7 @@ export default class {
 
 			api.id = externalIP;
 			if (cluster.isWorker) {
-				api.id += `:${process.pid}`;
+				api.id += `:${Deno.pid}`;
 			}
 		} else {
 			api.id = api.config.general.id;

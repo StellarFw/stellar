@@ -4,6 +4,7 @@ import { Utils as UtilsClass } from "./satellites/utils.ts";
 import { ensureNoTsHeaderOrSpecFiles, safeGlob } from "./utils/file.ts";
 import { join } from "@std/path";
 import { dirExists } from "./common/lib/fs.ts";
+import { API } from "./common/types/api.types.ts";
 
 // FIXME: this is a temporary workaround, we must make this more professional
 const Utils = new UtilsClass();
@@ -109,8 +110,7 @@ export default class Engine {
 	 *
 	 * @type {{}}
 	 */
-	api = {
-		bootTime: null,
+	api: API = {
 		status: "stopped",
 
 		commands: {
@@ -219,7 +219,7 @@ export default class Engine {
 	/**
 	 * Start engine execution.
 	 */
-	async start() {
+	async start(): API {
 		startCount = 0;
 
 		// in the case of the engine not have been initialized do it now

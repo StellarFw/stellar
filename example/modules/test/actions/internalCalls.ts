@@ -1,4 +1,7 @@
-export const sumANumber = {
+import { ok } from "../../../../src/common/fp/result/result.ts";
+import { Action } from "../../../../src/common/types/action.type.ts";
+
+export const sumANumber: Action<number, { a: number; b: number }> = {
 	name: "sumANumber",
 	description: "Sum two integer numbers",
 	inputs: {
@@ -20,13 +23,15 @@ export const sumANumber = {
 	// make this action private (this only can be called internally)
 	private: true,
 
-	run(api, action) {
-		// make the sum calculation
-		return { result: action.params.a + action.params.b };
+	run(params) {
+		return ok(params.a + params.b);
 	},
 };
 
-export const formattedSum = {
+export const formattedSum: Action<
+	{ formatted: string },
+	{ a: number; b: number }
+> = {
 	name: "formattedSum",
 	description: "Sum two numbers and return a formatted message with the result",
 	inputs: {
@@ -46,11 +51,11 @@ export const formattedSum = {
 		formatted: "3 + 3 = 6",
 	},
 
-	async run(api, { params }) {
+	async run(params, api) {
 		// make a internal call to 'sumANumber' action
-		const { result } = await api.actions.call("sumANumber", params);
+		const result = (await api.actions.call("sumANumber", params)).unwrap();
 
 		// build a nice formatted string
-		return { formatted: `${params.a} + ${params.b} = ${result}` };
+		return ok({ formatted: `${params.a} + ${params.b} = ${result}` });
 	},
 };

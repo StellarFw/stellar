@@ -180,7 +180,7 @@ export default {
 export const test = {
 	servers: {
 		web() {
-			const port = parseInt(Deno.env.get("PORT") ?? "18080") + Deno.pid;
+			const port = parseInt(Deno.env.get("PORT") ?? "10000") + Math.floor(Deno.pid / 2);
 
 			return {
 				port,

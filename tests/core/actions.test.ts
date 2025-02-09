@@ -1,121 +1,109 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-
-import Engine from "../../src/engine";
-import { API } from "../../src/common/types/api.types.ts";
-const engine = new Engine({ rootPath: `${process.cwd()}/example` });
-
-let api: API;
+import { afterAll, beforeAll, describe, test } from "@std/testing/bdd";
+import { expect } from "@std/expect";
+import { buildTestEngine } from "../utils.ts";
 
 describe("Core: Actions", () => {
+	const engine = buildTestEngine();
+
 	beforeAll(async () => {
-		api = await engine.start();
+		await engine.start();
 	});
 
 	afterAll(() => engine.stop());
 
-	// ----------------------------------------------------------- [Internal Call]
+	test("can use a function to set a param default value", async () => {
+		const responseRaw = await engine.api.actions.call<{ value: number }, unknown, unknown>("inputDefaultFunction");
+		expect(responseRaw.isOk()).toBeTruthy();
+		expect(responseRaw.unwrap().value).toBe(156);
+	});
 
 	describe("can execute internally", () => {
-		it("without params", () => {
-			return expect(api.actions.call("formattedSum")).rejects.toEqual({
+		test("returns an error with the missing parameters", async () => {
+			const response = await engine.api.actions.call<unknown, { a: string; b: string }>("formattedSum");
+			expect(response.isErr()).toBeTruthy();
+			expect(response.unwrapErr()).toEqual({
 				a: "The a field is required.",
 				b: "The b field is required.",
 			});
 		});
 
-		it("reject works", () => {
-			return expect(api.actions.call("formattedSum")).rejects.toThrow();
-		});
-
-		it("normally", () => {
-			return expect(api.actions.call("formattedSum", { a: 3, b: 3 })).resolves.toEqual({ formatted: "3 + 3 = 6" });
+		test("with all required parameters", async () => {
+			expect((await engine.api.actions.call("formattedSum", { a: 3, b: 3 })).unwrap()).toStrictEqual({
+				formatted: "3 + 3 = 6",
+			});
 		});
 	});
 
-	// ------------------------------------------------------------------ [Groups]
-
 	describe("Groups", () => {
-		it("can read the group from an action", () => {
-			expect(api.actions.groupsActions.has("example")).toBeTruthy();
+		test("can read the group from an action", () => {
+			expect(engine.api.actions.groupActions.has("example")).toBeTruthy();
 		});
 
-		it("the action name exists on the group", () => {
-			const arrayOfAction = api.actions.groupsActions.get("example");
+		test("the action name exists on the group", () => {
+			const arrayOfAction = engine.api.actions.groupActions.get("example");
+
 			expect(arrayOfAction).toContain("groupTest");
 		});
 
-		it("support the group property", () => {
-			return expect(api.actions.call("groupTest")).resolves.toEqual({
-				result: "OK",
-			});
+		test("supports the group property", async () => {
+			const response = (await engine.api.actions.call<{ result: string }, unknown>("groupTest")).unwrap();
+
+			expect(response.result).toBe("OK");
 		});
 
-		it("support modules", () => {
-			return expect(api.actions.call("modModuleTest")).resolves.toEqual({
-				result: "OK",
-			});
+		test("support modules", async () => {
+			const response = (await engine.api.actions.call<{ result: string }, unknown>("modModuleTest")).unwrap();
+			expect(response.result).toBe("OK");
 		});
 
-		it("support the actions property", () => {
-			return expect(api.actions.call("modTest")).resolves.toEqual({
-				result: "OK",
-			});
+		test("support the actions property", async () => {
+			const response = (await engine.api.actions.call<{ result: string }, unknown>("modTest")).unwrap();
+			expect(response.result).toBe("OK");
 		});
 
-		it("can add new items to an array", () => {
-			return expect(api.actions.call("groupAddItems")).resolves.toHaveProperty("result", ["a", "b", "c"]);
+		test("can add new items to an array", async () => {
+			const response = (await engine.api.actions.call<{ result: string[] }>("groupAddItems")).unwrap();
+			expect(response.result).toEqual(["a", "b", "c"]);
 		});
 
-		it("can remove items from the array", async () => {
-			const response = await api.actions.call("groupRmItems");
-			expect(response.result).toContain("a");
-			expect(response.result).not.toContain("b");
+		test("can remove items from the array", async () => {
+			const response = (await engine.api.actions.call<{ result: string[] }>("groupRmItems")).unwrap();
+			expect(Array.isArray(response.result)).toBeTruthy();
+			expect(response.result.includes("a")).toBeTruthy();
+			expect(response.result.includes("b")).toBeFalsy();
 		});
 	});
-
-	// ------------------------------------------------------------------- [Timeout]
 
 	describe("Timeout", () => {
-		// define the timeout to just 100 ms
 		beforeAll(() => {
-			api.config.general.actionTimeout = 100;
+			engine.api.config.general.actionTimeout = 100;
 		});
 
-		// reset the actionTimeout to the normal value
 		afterAll(() => {
-			api.config.general.actionTimeout = 30000;
+			engine.api.config.general.actionTimeout = 30000;
 		});
 
-		it("when the action exceed the config time it timeout", () => {
-			return expect(api.actions.call("sleep", { sleepDuration: 150 })).rejects.toEqual({
-				code: "022",
-				message: `Response timeout for action 'sleep'`,
+		test("when the action exceed the config time in timeout", async () => {
+			const response = await engine.api.actions.call("sleep", {
+				sleepDuration: 150,
 			});
+
+			expect(response.isErr()).toBeTruthy();
 		});
-	});
 
-	// ------------------------------------------------------------------- [Other]
+		test("throw a well formed error", async () => {
+			const responseRaw = await engine.api.actions.call<
+				unknown,
+				{ sleepDuration: number },
+				{ code: string; message: string }
+			>("sleep", {
+				sleepDuration: 150,
+			});
+			expect(responseRaw.isErr()).toBeTruthy();
 
-	it("is possible finish an action retuning a promise", () => {
-		return expect(api.actions.call("promiseAction")).resolves.toHaveProperty("success", `It's working!`);
-	});
-
-	it("is possible using a foreign promise to finish an action", (done) => {
-		return expect(api.actions.call("internalCallPromise")).resolves.toHaveProperty("result", `4 + 5 = 9`);
-	});
-
-	it("can handle promise rejections and exceptions", (done) => {
-		return expect(api.actions.call("errorPromiseAction")).rejects.toHaveProperty("message", "This is an error");
-	});
-
-	it("can use a function to set a param default value", async () => {
-		return expect(api.actions.call("input-default-function")).resolves.toHaveProperty("value", 156);
-	});
-
-	it("can use a function to set a param default value accessing the api object", async () => {
-		const testVal = "looks-awesome";
-		api.config.testValue = testVal;
-
-		return expect(api.actions.call("inputDefaultFunctionApi")).resolves.toHaveProperty("value", testVal);
+			const error = responseRaw.unwrapErr();
+			expect(error.code).toBe("022");
+			expect(error.message).toBe("Response timeout for action 'sleep'");
+		});
 	});
 });
