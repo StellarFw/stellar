@@ -172,7 +172,7 @@ export type Action<R, I = unknown, E = string> = {
 	path?: Option<string>;
 
 	// TODO: rethink the ability to extend the action object
-	[key: string]: unknown
+	[key: string]: unknown;
 };
 
 /**

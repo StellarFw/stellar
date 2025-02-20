@@ -25,8 +25,7 @@ export default class BeautifulLogger extends Transport {
 		this.json = options.json || false;
 		this.colorize = options.colorize || false;
 		this.prettyPrint = options.prettyPrint || false;
-		this.timestamp =
-			typeof options.timestamp !== "undefined" ? options.timestamp : false;
+		this.timestamp = typeof options.timestamp !== "undefined" ? options.timestamp : false;
 		this.showLevel = options.showLevel === undefined ? true : options.showLevel;
 		this.label = options.label || null;
 		this.logstash = options.logstash || false;
@@ -39,8 +38,7 @@ export default class BeautifulLogger extends Transport {
 		this.eol = options.eol || os.EOL;
 
 		if (this.json) {
-			this.stringify =
-				options.stringify || ((obj) => JSON.stringify(obj, null, 2));
+			this.stringify = options.stringify || ((obj) => JSON.stringify(obj, null, 2));
 		}
 	}
 
@@ -79,11 +77,15 @@ export default class BeautifulLogger extends Transport {
 		const data = new Date();
 
 		// build a string with the correct formatted date
-		return `${data.getFullYear()}-${`0${data.getMonth() + 1}`.slice(-2)}-${`0${data.getDate()}`.slice(
-			-2,
-		)} ${`0${data.getHours()}`.slice(-2)}:${`0${data.getMinutes()}`.slice(
-			-2,
-		)}:${`0${data.getSeconds()}`.slice(-2)}.${`00${data.getMilliseconds()}`.slice(-3)}`;
+		return `${data.getFullYear()}-${`0${data.getMonth() + 1}`.slice(-2)}-${
+			`0${data.getDate()}`.slice(
+				-2,
+			)
+		} ${`0${data.getHours()}`.slice(-2)}:${
+			`0${data.getMinutes()}`.slice(
+				-2,
+			)
+		}:${`0${data.getSeconds()}`.slice(-2)}.${`00${data.getMilliseconds()}`.slice(-3)}`;
 	}
 
 	/**

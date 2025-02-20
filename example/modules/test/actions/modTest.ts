@@ -17,8 +17,7 @@ export const modTest: Action<{ result: string }> = {
 
 export const groupTest: Action<{ result: string }> = {
 	name: "groupTest",
-	description:
-		"This action is used to test the group definition directly on the action",
+	description: "This action is used to test the group definition directly on the action",
 
 	// this is the property that is under testing, this can't be changed without
 	// paying attention to other files.

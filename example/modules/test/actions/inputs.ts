@@ -175,8 +175,7 @@ export const inputValidatorInvalid: Action<
 	{ value: string }
 > = {
 	name: "inputValidatorInvalid",
-	description:
-		"This uses an invalid validator to test if the error message appears",
+	description: "This uses an invalid validator to test if the error message appears",
 
 	inputs: {
 		value: {
