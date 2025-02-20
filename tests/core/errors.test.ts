@@ -1,40 +1,62 @@
-import { describe, beforeAll, afterAll, it } from "vitest";
-
-import Engine from "../../lib/engine";
-import { expect } from "vitest";
-import { runActionPromise } from "../utils";
-import { API } from "../../src/interfaces/api.interface";
-
-const engine = new Engine({ rootPath: `${process.cwd()}/example` });
-
-let api: API;
+import { afterAll, beforeAll, describe, test } from "@std/testing/bdd";
+import { expect } from "@std/expect";
+import { buildTestEngine } from "../utils.ts";
 
 describe("Core: Errors", () => {
+	const engine = buildTestEngine();
+
 	beforeAll(async () => {
-		api = await engine.start();
+		await engine.start();
 	});
 
 	afterAll(() => engine.stop());
 
-	it("returns string errors properly", async function () {
-		await expect(runActionPromise(api, "aNotExistingAction")).rejects.toMatchObject({
+	test("returns string errors properly", async () => {
+		const response = await engine.api.actions.call("aNotExistingAction");
+
+		await expect(response.unwrapErr()).toMatchObject({
 			code: "004",
 		});
 	});
 
-	it("returns Error object properly", async function () {
-		api.config.errors.unknownAction = () => new Error("error test");
+	describe("with error function", () => {
+		let originalHandler: CallableFunction;
 
-		await expect(runActionPromise(api, "aNotExistingAction")).rejects.toBe("Error: error test");
+		beforeAll(() => {
+			originalHandler = engine.api.config.errors as CallableFunction;
+			engine.api.config.errors.unknownAction = () => new Error("error test");
+		});
+
+		afterAll(() => {
+			engine.api.config.errors = originalHandler;
+		});
+
+		test("returns Error object properly", async () => {
+			const response = await engine.api.actions.call("aNotExistingAction");
+			await expect((response.unwrapErr() as Error).message).toBe("error test");
+		});
 	});
 
-	it("returns generic object properly", async function () {
-		api.config.errors.unknownAction = () => {
-			return { code: "error160501" };
-		};
+	describe("with a function that returns an object", () => {
+		let originalHandler: CallableFunction;
 
-		await expect(runActionPromise(api, "aNotExistingAction")).rejects.toMatchObject({
-			code: "error160501",
+		beforeAll(() => {
+			originalHandler = engine.api.config.errors as CallableFunction;
+			engine.api.config.errors.unknownAction = () => {
+				return { code: "error160501" };
+			};
+		});
+
+		afterAll(() => {
+			engine.api.config.errors = originalHandler;
+		});
+
+		test("returns generic object properly", async () => {
+			const response = await engine.api.actions.call("aNotExistingAction");
+
+			await expect(response.unwrapErr()).toMatchObject({
+				code: "error160501",
+			});
 		});
 	});
 });

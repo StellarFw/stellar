@@ -1,6 +1,6 @@
-import cluster from "cluster";
+import cluster from "node:cluster";
 import { fetchJsonFile } from "../utils.js";
-import { resolve } from "path";
+import { resolve } from "node:path";
 
 /**
  * Setup the server ID.
@@ -36,8 +36,8 @@ export default class {
 
 		if (argv.title) {
 			api.id = argv.title;
-		} else if (process.env.STELLAR_TITLE) {
-			api.id = process.env.STELLAR_TITLE;
+		} else if (Deno.env.has("STELLAR_TITLE")) {
+			api.id = Deno.env.get("STELLAR_TITLE");
 		} else if (!api.config.general.id) {
 			// get servers external IP
 			const externalIP = api.utils.getExternalIPAddress();
@@ -48,13 +48,13 @@ export default class {
 				try {
 					api.log(message, "crit");
 				} catch (e) {
-					console.log(message);
+					console.error(message);
 				}
 			}
 
 			api.id = externalIP;
 			if (cluster.isWorker) {
-				api.id += `:${process.pid}`;
+				api.id += `:${Deno.pid}`;
 			}
 		} else {
 			api.id = api.config.general.id;

@@ -1,8 +1,9 @@
 import common from "winston/lib/winston/common.js";
-import os from "os";
+import os from "node:os";
 import { Transport } from "winston";
 import chalk from "chalk";
 import util from "util";
+import { Buffer } from "node:buffer";
 
 // List of colors for each level
 const colors = {
@@ -30,7 +31,10 @@ export default class BeautifulLogger extends Transport {
 		this.logstash = options.logstash || false;
 		this.depth = options.depth || null;
 		this.align = options.align || false;
-		this.stderrLevels = BeautifulLogger.setStderrLevels(options.stderrLevels, options.debugStdout);
+		this.stderrLevels = BeautifulLogger.setStderrLevels(
+			options.stderrLevels,
+			options.debugStdout,
+		);
 		this.eol = options.eol || os.EOL;
 
 		if (this.json) {
@@ -73,11 +77,15 @@ export default class BeautifulLogger extends Transport {
 		const data = new Date();
 
 		// build a string with the correct formatted date
-		return `${data.getFullYear()}-${`0${data.getMonth() + 1}`.slice(-2)}-${`0${data.getDate()}`.slice(
-			-2,
-		)} ${`0${data.getHours()}`.slice(-2)}:${`0${data.getMinutes()}`.slice(
-			-2,
-		)}:${`0${data.getSeconds()}`.slice(-2)}.${`00${data.getMilliseconds()}`.slice(-3)}`;
+		return `${data.getFullYear()}-${`0${data.getMonth() + 1}`.slice(-2)}-${
+			`0${data.getDate()}`.slice(
+				-2,
+			)
+		} ${`0${data.getHours()}`.slice(-2)}:${
+			`0${data.getMinutes()}`.slice(
+				-2,
+			)
+		}:${`0${data.getSeconds()}`.slice(-2)}.${`00${data.getMilliseconds()}`.slice(-3)}`;
 	}
 
 	/**
@@ -149,10 +157,11 @@ export default class BeautifulLogger extends Transport {
 		}
 
 		// print output the message to the STDOUT or STDERR, depending on log level
+		const bytesToWrite = new TextEncoder().encode(`${output}${this.eol}`);
 		if (this.stderrLevels[level]) {
-			process.stderr.write(output + this.eol);
+			Deno.stderr.write(bytesToWrite);
 		} else {
-			process.stdout.write(output + this.eol);
+			Deno.stdout.write(bytesToWrite);
 		}
 
 		// Emit the `logged` event immediately because the event loop will not exit until `process.stdout` has drained

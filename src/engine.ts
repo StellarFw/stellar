@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-import path, { join } from "path";
-import { Utils as UtilsClass } from "./satellites/utils.js";
-import { ensureNoTsHeaderOrSpecFiles, safeGlob } from "./utils/file.js";
+import path from "node:path";
+import { Utils as UtilsClass } from "./satellites/utils.ts";
+import { ensureNoTsHeaderOrSpecFiles, safeGlob } from "./utils/file.ts";
+import { join } from "@std/path";
+import { dirExists } from "./common/lib/fs.ts";
+import { API } from "./common/types/api.types.ts";
 
 // FIXME: this is a temporary workaround, we must make this more professional
 const Utils = new UtilsClass();
@@ -75,7 +77,7 @@ export default class Engine {
 	 * @param errors  String or array with the fatal error(s).
 	 * @param type    String with the error type.
 	 */
-	private async fatalError(errors, type) {
+	private async fatalError(errors?: string | string[], type?: string) {
 		// if errors variables if not defined return
 		if (!errors) {
 			return;
@@ -95,7 +97,7 @@ export default class Engine {
 
 		// finish the process execution
 		await this.stop();
-		process.exit(1);
+		Deno.exit(1);
 	}
 
 	// --------------------------------------------------------------------------- [Class]
@@ -108,8 +110,7 @@ export default class Engine {
 	 *
 	 * @type {{}}
 	 */
-	api = {
-		bootTime: null,
+	api: API = {
 		status: "stopped",
 
 		commands: {
@@ -182,9 +183,9 @@ export default class Engine {
 		// define a dummy logger
 		//
 		// this only should print error, emergency levels
-		this.api.log = (msg, level = "info") => {
+		this.api.log = (msg: string, level = "info") => {
 			// if we are on test environment don't use the console
-			if (process.env.NODE_ENV === "test") {
+			if (Deno.env.get("STELLAR_ENV") === "test") {
 				return;
 			}
 
@@ -218,7 +219,7 @@ export default class Engine {
 	/**
 	 * Start engine execution.
 	 */
-	async start() {
+	async start(): API {
 		startCount = 0;
 
 		// in the case of the engine not have been initialized do it now
@@ -305,8 +306,8 @@ export default class Engine {
 
 		// we need to load the config first
 		const initialSatellites = [
-			join(import.meta.dirname, "satellites", "utils.js"),
-			join(import.meta.dirname, "satellites", "config.js"),
+			join(import.meta.dirname, "satellites", "utils.ts"),
+			join(import.meta.dirname, "satellites", "config.ts"),
 		];
 
 		for (const file of initialSatellites) {
@@ -318,7 +319,7 @@ export default class Engine {
 			this.satellites[initializer] = new Satellite();
 
 			try {
-				await this.satellites[initializer].load(this.api);
+				await this.satellites[initializer].load?.(this.api);
 			} catch (error) {
 				this.fatalError(error, "stage0");
 			}
@@ -348,12 +349,10 @@ export default class Engine {
 
 		// function to load the satellites in the right place
 		const loadSatellitesInPlace = async (satellitesFiles) => {
-			for (const key in satellitesFiles) {
-				const f = satellitesFiles[key];
-
+			for (const satellitePath of satellitesFiles) {
 				// get satellite normalized file name and
-				const file = path.normalize(f);
-				const initializer = path.basename(f).split(".")[0];
+				const file = path.normalize(satellitePath);
+				const initializer = path.basename(satellitePath).split(".")[0];
 
 				// get initializer module and instantiate it
 				const Satellite = (await import(file)).default;
@@ -417,7 +416,7 @@ export default class Engine {
 		for (const moduleName of this.api.config.modules) {
 			const moduleSatellitePath = join(this.api.scope.rootPath, "modules", moduleName, "stellites");
 
-			if (Utils.directoryExists(moduleSatellitePath)) {
+			if (await dirExists(moduleSatellitePath)) {
 				const files = await safeGlob(join(moduleSatellitePath, "**/*(*.js|*.ts)"));
 				const filteredFiles = ensureNoTsHeaderOrSpecFiles(files);
 				await loadSatellitesInPlace(Utils.getFiles(filteredFiles));
