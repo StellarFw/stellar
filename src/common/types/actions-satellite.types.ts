@@ -79,5 +79,5 @@ export interface IActionSatellite {
 	 * @param actionName Name of the action to be called.
 	 * @param params Action parameters.
 	 */
-	call<R, T = object, E = string>(actionName: string, params?: T): Promise<Result<R, E>>;
+	call<R, T = object, E = string | Error>(actionName: string, params?: T): Promise<Result<R, E>>;
 }

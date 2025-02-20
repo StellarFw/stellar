@@ -133,7 +133,7 @@ class ActionProcessor {
 	 *
 	 * @param status
 	 */
-	completeAction(status?: ActionStatus, incomeError?: Error | string) {
+	completeAction(status?: ActionStatus, incomeError?: Error | string): ActionProcessor {
 		let error = incomeError ?? null;
 
 		switch (status) {
@@ -372,7 +372,7 @@ class ActionProcessor {
 	/**
 	 * Process the action.
 	 */
-	async processAction() {
+	processAction(): ActionProcessor | Promise<ActionProcessor | undefined> {
 		// initialize the processing environment
 		this.actionStartTime = new Date().getTime();
 		this.working = true;
@@ -382,8 +382,7 @@ class ActionProcessor {
 
 		// setup the template and checks if the requested action exists
 		if (this.setupActionTemplate().isErr()) {
-			this.completeAction(ActionStatus.UNKNOWN_ACTION);
-			return;
+			return this.completeAction(ActionStatus.UNKNOWN_ACTION);
 		}
 
 		if (this.api.status !== EngineStatus.Running) {
