@@ -2,6 +2,7 @@
 // @ts-nocheck
 import { MultiWorker, Queue, Scheduler } from "node-resque";
 import { filterObjectForLogging } from "../utils.js";
+import { LogLevel } from "../common/types/engine.types.ts";
 
 /**
  * Node-Resque manager.
@@ -230,8 +231,11 @@ class ResqueManager {
 	 * Stop multiworker system.
 	 */
 	async stopMultiWorker() {
-		if (this.api.config.tasks.minTaskProcessors > 0) {
-			return this.multiWorker.stop();
+		if (this.multiWorker && this.api.config.tasks.minTaskProcessors > 0) {
+			await this.multiWorker.stop();
+			this.multiWorker = null;
+
+			this.api.log("Task worker stopped", LogLevel.Debug);
 		}
 	}
 }

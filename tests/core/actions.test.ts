@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, test } from "@std/testing/bdd";
 import { expect } from "@std/expect";
 import { buildTestEngine } from "../utils.ts";
+import { sleep } from "../../src/utils.ts";
 
 describe("Core: Actions", () => {
 	const engine = buildTestEngine();
@@ -89,6 +90,9 @@ describe("Core: Actions", () => {
 			});
 
 			expect(response.isErr()).toBeTruthy();
+
+			// ensure that we wait for the timer to be resolved, avoiding error with the deno test
+			await sleep(150);
 		});
 
 		test("throw a well formed error", async () => {
@@ -104,6 +108,9 @@ describe("Core: Actions", () => {
 			const error = responseRaw.unwrapErr();
 			expect(error.code).toBe("022");
 			expect(error.message).toBe("Response timeout for action 'sleep'");
+
+			// wait for the timer to be resolved to avoid errors with the deno test command
+			await sleep(150);
 		});
 	});
 });

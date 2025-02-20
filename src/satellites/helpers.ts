@@ -113,13 +113,8 @@ class Helpers {
 	 * @param actionName  Action to be executed.
 	 * @param input       Action parameters.
 	 */
-	runAction(actionName, input) {
+	runAction(actionName, input = {}) {
 		let connection;
-
-		if (typeof input === "function" && !next) {
-			next = input;
-			input = {};
-		}
 
 		if (input.id && input.type === "testServer") {
 			connection = input;
