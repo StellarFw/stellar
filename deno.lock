@@ -4,6 +4,7 @@
     "jsr:@deno-library/compress@~0.5.5": "0.5.5",
     "jsr:@deno-library/crc32@1.0.2": "1.0.2",
     "jsr:@std/assert@^1.0.10": "1.0.10",
+    "jsr:@std/async@^1.0.9": "1.0.9",
     "jsr:@std/bytes@^1.0.2": "1.0.4",
     "jsr:@std/cli@^1.0.8": "1.0.10",
     "jsr:@std/data-structures@^1.0.5": "1.0.5",
@@ -50,7 +51,7 @@
     "npm:is-running@^2.1.0": "2.1.0",
     "npm:log@^3.2.0": "3.2.0",
     "npm:mime@^2.4.6": "2.6.0",
-    "npm:node-resque@^9.3.3": "9.3.7",
+    "npm:node-resque@^9.3.7": "9.3.7",
     "npm:primus@^8.0.9": "8.0.9_eventemitter3@5.0.1",
     "npm:qs@^6.13.1": "6.13.1",
     "npm:ramda-adjunct@^5.1.0": "5.1.0_ramda@0.30.1",
@@ -87,6 +88,9 @@
       "dependencies": [
         "jsr:@std/internal"
       ]
+    },
+    "@std/async@1.0.9": {
+      "integrity": "c6472fd0623b3f3daae023cdf7ca5535e1b721dfbf376562c0c12b3fb4867f91"
     },
     "@std/bytes@1.0.4": {
       "integrity": "11a0debe522707c95c7b7ef89b478c13fb1583a7cfb9a85674cd2cc2e3a28abc"
@@ -169,6 +173,7 @@
       "integrity": "ceef535808fb7568e91b0f8263599bd29b1c5603ffb0377227f00a8ca9fe42a2",
       "dependencies": [
         "jsr:@std/assert",
+        "jsr:@std/async",
         "jsr:@std/data-structures",
         "jsr:@std/fs@^1.0.8",
         "jsr:@std/internal",
@@ -3325,7 +3330,7 @@
         "npm:is-running@^2.1.0",
         "npm:log@^3.2.0",
         "npm:mime@^2.4.6",
-        "npm:node-resque@^9.3.3",
+        "npm:node-resque@^9.3.7",
         "npm:primus@^8.0.9",
         "npm:qs@^6.13.1",
         "npm:ramda-adjunct@^5.1.0",
