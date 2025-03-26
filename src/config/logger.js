@@ -95,7 +95,7 @@ export default {
 
 		// check if this Stellar instance is the primary node
 		if (cluster.isPrimary) {
-			loggers.push(() => buildConsoleLogger("debug"));
+			loggers.push(() => buildConsoleLogger("info"));
 		}
 
 		// add a file logger

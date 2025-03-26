@@ -1,5 +1,3 @@
-import async from "async";
-
 class TaskSatellite {
 	/**
 	 * API reference object.
@@ -95,14 +93,10 @@ class TaskSatellite {
 	 * @private
 	 */
 	_jobWrapper(taskName) {
-		// get task object
 		let task = this.tasks[taskName];
 
-		// get tasks plugins
-		let plugins = task.plugins || [];
-
-		// get plugin options
-		let pluginOptions = task.pluginOptions || [];
+		let plugins = task.plugins ?? [];
+		let pluginOptions = task.pluginOptions ?? [];
 
 		// check if the task uses some kind of plugins
 		if (task.frequency > 0) {
@@ -121,26 +115,22 @@ class TaskSatellite {
 		return {
 			plugins: plugins,
 			pluginsOptions: pluginOptions,
-			perform: (...args) => {
-				// get the callback function
-				let cb = args.pop();
+			perform: async (...args) => {
+				const taskArguments = [this.api, ...args];
 
-				if (args.length === 0) {
-					args.push({});
+				let response = null;
+				try {
+					response = await task.run.apply(task, taskArguments);
+					await this.enqueueRecurrentJob(taskName);
+				} catch (error) {
+					if (task.frequency > 0 && task.reEnqueuePeriodicTaskIfException) {
+						await this.enqueueRecurrentJob(taskName);
+					}
+
+					throw error;
 				}
 
-				// enqueue the task again
-				args.push((error, resp) => {
-					this.enqueueRecurrentJob(taskName, () => {
-						cb(error, resp);
-					});
-				});
-
-				// add the API object at the begin of the arguments array
-				args.unshift(this.api);
-
-				// execute the task
-				this.tasks[taskName].run.apply(this, args);
+				return response;
 			},
 		};
 	}
@@ -211,8 +201,8 @@ class TaskSatellite {
 	 * @param  {String}   queue    Queue here the task must be enqueued.
 	 */
 	async enqueue(taskName, params, queue) {
-		params = params ?? {};
-		queue = queue ?? this.tasks[taskName].queue;
+		params ??= {};
+		queue ??= this.tasks[taskName].queue;
 
 		return this.api.resque.queue.enqueue(queue, taskName, params);
 	}
@@ -224,18 +214,12 @@ class TaskSatellite {
 	 * @param  {String}   taskName  Unique task identifier of the task to add.
 	 * @param  {Object}   params    Parameters to be passed to the task.
 	 * @param  {String}   queue     Queue where the task must be enqueued.
-	 * @param  {Function} callback  Callback function.
 	 */
-	enqueueAt(timestamp, taskName, params, queue, callback) {
-		if (typeof queue === "function" && callback === undefined) {
-			callback = queue;
-			queue = this.tasks[taskName].queue;
-		} else if (typeof params === "function" && callback === undefined && queue === undefined) {
-			callback = params;
-			queue = this.tasks[taskName].queue;
-			params = {};
-		}
-		this.api.resque.queue.enqueueAt(timestamp, queue, taskName, params, callback);
+	enqueueAt(timestamp, taskName, params, queue) {
+		queue ??= this.tasks[taskName].queue;
+		params ??= {};
+
+		return this.api.resque.queue.enqueueAt(timestamp, queue, taskName, params);
 	}
 
 	/**
@@ -245,19 +229,12 @@ class TaskSatellite {
 	 * @param  {String}   taskName Unique identifier for the task to enqueue.
 	 * @param  {Object}   params   Parameters to be passed to the task.
 	 * @param  {String}   queue    Queue where the task will be enqueued.
-	 * @param  {Function} callback Callback function.
 	 */
-	enqueueIn(time, taskName, params, queue, callback) {
-		if (typeof queue === "function" && callback === undefined) {
-			callback = queue;
-			queue = this.tasks[taskName].queue;
-		} else if (typeof params === "function" && callback === undefined && queue === undefined) {
-			callback = params;
-			queue = this.tasks[taskName].queue;
-			params = {};
-		}
+	enqueueIn(time, taskName, params, queue) {
+		params ??= {};
+		queue ??= this.tasks[taskName].queue;
 
-		this.api.resque.queue.enqueueIn(time, queue, taskName, params, callback);
+		return this.api.resque.queue.enqueueIn(time, queue, taskName, params);
 	}
 
 	/**
@@ -267,10 +244,9 @@ class TaskSatellite {
 	 * @param  {String}   taskName Unique identifier of the task to be removed.
 	 * @param  {Object}   args     Arguments to pass to node-resque.
 	 * @param  {Number}   count    Number of task entries to be removed.
-	 * @param  {Function} callback Callback function.
 	 */
-	del(queue, taskName, args, count, callback) {
-		this.api.resque.queue.del(queue, taskName, args, count, callback);
+	async del(queue, taskName, args, count) {
+		return this.api.resque.queue.del(queue, taskName, args, count);
 	}
 
 	/**
@@ -279,10 +255,9 @@ class TaskSatellite {
 	 * @param  {String}   queue    Queue where the task must be removed.
 	 * @param  {String}   taskName Task unique identifier.
 	 * @param  {Object}   args     Arguments to pass to node-resque.
-	 * @param  {Function} callback Callback function.
 	 */
-	delDelayed(queue, taskName, args, callback) {
-		this.api.resque.queue.delDelayed(queue, taskName, args, callback);
+	async delDelayed(queue, taskName, args) {
+		return this.api.resque.queue.delDelayed(queue, taskName, args);
 	}
 
 	/**
@@ -291,14 +266,13 @@ class TaskSatellite {
 	 * @param  {String}   queue    Queue identifier.
 	 * @param  {String}   taskName Task unique identifier.
 	 * @param  {Object}   args     Arguments to pass to node-resque.
-	 * @param  {Function} callback Callback function.
 	 */
-	scheduledAt(queue, taskName, args, callback) {
-		this.api.resque.queue.scheduledAt(queue, taskName, args, callback);
+	async scheduledAt(queue, taskName, args) {
+		return this.api.resque.queue.scheduledAt(queue, taskName, args);
 	}
 
-	stats(callback) {
-		this.api.resque.queue.stats(callback);
+	async stats() {
+		return this.api.resque.queue.stats();
 	}
 
 	/**
@@ -307,109 +281,98 @@ class TaskSatellite {
 	 * @param  {String}   queue    Queue to check.
 	 * @param  {Decimal}  start    Start timestamp.
 	 * @param  {Decimal}  stop     End timestamp.
-	 * @param  {Function} callback Callback function.
 	 */
-	queued(queue, start, stop, callback) {
-		this.api.resque.queue.queued(queue, start, stop, callback);
+	async queued(queue, start, stop) {
+		return this.api.resque.queue.queued(queue, start, stop);
 	}
 
 	/**
 	 * Remove a queue.
 	 *
 	 * @param  {String}   queue    Queue to be removed.
-	 * @param  {Function} callback Callback function.
 	 */
-	delQueue(queue, callback) {
-		this.api.resque.queue.delQueue(queue, callback);
+	async delQueue(queue) {
+		return this.api.resque.queue.delQueue(queue);
 	}
 
 	/**
 	 * Get the locks.
 	 *
-	 * @param  {Function} callback Callback function.
 	 */
-	locks(callback) {
-		this.api.resque.queue.locks(callback);
+	async locks() {
+		return this.api.resque.queue.locks();
 	}
 
 	/**
 	 * Remove a lock.
 	 *
 	 * @param  {String}   lock     Lock to be removed.
-	 * @param  {Function} callback Callback function.
 	 */
-	delLock(lock, callback) {
-		this.api.resque.queue.delLock(lock, callback);
+	async delLock(lock) {
+		return this.api.resque.queue.delLock(lock);
 	}
 
-	timestamps(callback) {
-		this.api.resque.queue.timestamps(callback);
+	async timestamps() {
+		return this.api.resque.queue.timestamps();
 	}
 
-	delayedAt(timestamp, callback) {
-		this.api.resque.queue.delayedAt(timestamp, callback);
+	async delayedAt(timestamp) {
+		return this.api.resque.queue.delayedAt(timestamp);
 	}
 
-	allDelayed(callback) {
-		this.api.resque.queue.allDelayed(callback);
+	async allDelayed() {
+		return this.api.resque.queue.allDelayed();
 	}
 
-	workers(callback) {
-		this.api.resque.queue.workers(callback);
+	async workers() {
+		return this.api.resque.queue.workers();
 	}
 
-	workingOn(workerName, queues, callback) {
-		this.api.resque.queue.workingOn(workerName, queues, callback);
+	async workingOn(workerName, queues) {
+		return this.api.resque.queue.workingOn(workerName, queues);
 	}
 
-	allWorkingOn(callback) {
-		this.api.resque.queue.allWorkingOn(callback);
+	async allWorkingOn() {
+		return this.api.resque.queue.allWorkingOn();
 	}
 
-	failedCount(callback) {
-		this.api.resque.queue.failedCount(callback);
+	async failedCount() {
+		return this.api.resque.queue.failedCount();
 	}
 
-	failed(start, stop, callback) {
-		this.api.resque.queue.failed(start, stop, callback);
+	async failed(start, stop) {
+		return this.api.resque.queue.failed(start, stop);
 	}
 
-	removeFailed(failedJob, callback) {
-		this.api.resque.queue.removeFailed(failedJob, callback);
+	async removeFailed(failedJob) {
+		return this.api.resque.queue.removeFailed(failedJob);
 	}
 
-	retryAndRemoveFailed(failedJob, callback) {
-		this.api.resque.queue.retryAndRemoveFailed(failedJob, callback);
+	async retryAndRemoveFailed(failedJob) {
+		return this.api.resque.queue.retryAndRemoveFailed(failedJob);
 	}
 
-	cleanOldWorkers(age, callback) {
-		this.api.resque.queue.cleanOldWorkers(age, callback);
+	async cleanOldWorkers(age) {
+		return this.api.resque.queue.cleanOldWorkers(age);
 	}
 
 	/**
 	 * Enqueue recurrent job.
 	 *
 	 * @param taskName Task's name.
-	 * @param callback Callback function.
 	 */
-	enqueueRecurrentJob(taskName, callback) {
+	async enqueueRecurrentJob(taskName) {
 		// get task object
 		let task = this.tasks[taskName];
 
-		// if it isn't a periodic task execute the callback function and return
 		if (task.frequency <= 0) {
-			callback();
 			return;
 		}
 
-		this.del(task.queue, taskName, {}, () => {
-			this.delDelayed(task.queue, taskName, {}, () => {
-				this.enqueueIn(task.frequency, taskName, () => {
-					this.api.log(`re-enqueued recurrent job ${taskName}`, this.api.config.tasks.schedulerLogging.reEnqueue);
-					callback();
-				});
-			});
-		});
+		await this.del(task.queue, taskName, {});
+		await this.delDelayed(task.queue, taskName, {});
+		await this.enqueueIn(task.frequency, taskName);
+		this.api.log(`re-enqueued recurrent job ${taskName}`, this.api.config.tasks.schedulerLogging.reEnqueue);
 	}
 
 	/**
@@ -437,74 +400,47 @@ class TaskSatellite {
 	/**
 	 * Remove a recurrent task from the queue.
 	 *
-	 * @param taskName  Task's name to be removed.
-	 * @param callback  Callback function.
+	 * @param name  Task's name to be removed.
 	 */
-	stopRecurrentJob(taskName, callback) {
-		let task = this.tasks[taskName];
+	async stopRecurrentJob(name) {
+		const job = this.tasks[name];
 
-		// if isn't a recurrent task execute the callback and return
-		if (task.frequency <= 0) {
-			callback();
+		if (job.frequency <= 0) {
 			return;
 		}
 
 		let removedCount = 0;
 
 		// remove the task from the recurrent queue
-		this.del(task.queue, task.name, {}, 1, (_, count) => {
-			removedCount = removedCount + count;
-			this.delDelayed(task.queue, task.name, {}, (error, timestamps) => {
-				removedCount = removedCount + timestamps.length;
-				callback(error, removedCount);
-			});
-		});
+		const count = await this.del(job.queue, job.name, {}, 1);
+		removedCount = removedCount + count;
+		const timestamps = this.delDelayed(job.queue, job.name, {});
+
+		return removedCount + timestamps.length;
 	}
 
 	/**
 	 * Get the current task queue state.
-	 *
-	 * @param callback  Callback function.
 	 */
-	details(callback) {
+	async details() {
 		let result = { queues: {}, workers: {} };
-		let jobs = [];
 
 		// push all the workers to the result var
-		jobs.push((done) => {
-			this.api.tasks.allWorkingOn((error, workers) => {
-				if (error) {
-					return done(error);
-				}
-				result.workers = workers;
-			});
-		});
+		result.workers = await this.api.tasks.allWorkingOn();
 
 		// push all the queue to the result var
-		jobs.push((done) => {
-			this.api.resque.queue.queues((error, queues) => {
-				if (error) {
-					return done(error);
-				}
-				let queueJobs = [];
+		const queues = await this.api.resque.queue.queues();
+		let queueJobs = [];
 
-				queues.forEach((queue) => {
-					queueJobs.push((qDone) => {
-						this.resque.queue.length(queue, (error, length) => {
-							if (error) {
-								return qDone(error);
-							}
-							result.queues[queue] = { length: length };
-							return qDone();
-						});
-					});
-				});
-
-				async.series(queueJobs, done);
+		queues.forEach((queue) => {
+			queueJobs.push(async () => {
+				const length = await this.resque.queue.length(queue);
+				result.queues[queue] = { length: length };
 			});
 		});
 
-		async.series(jobs, callback);
+		await Promise.all(queueJobs);
+		return result;
 	}
 }
 
