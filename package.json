@@ -28,7 +28,7 @@
 	},
 	"dependencies": {
 		"async": "^2.5.0",
-		"bcrypt": "5.0.0",
+		"bcrypt": "5.0.1",
 		"bluebird": "^3.5.0",
 		"browser_fingerprint": "1.0.4",
 		"chalk": "^5.3.0",
